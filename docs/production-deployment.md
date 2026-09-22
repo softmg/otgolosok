@@ -354,3 +354,45 @@ increasing graph coverage or concurrency.
 - Интерактивная проверка под редактором на проде не выполнялась: учётных
   данных редактора в сессии не было. Генерация историй и синтез речи при
   проверке не запускались.
+
+## Прогулки на карте и личный кабинет — 2026-09-22, 14:31 UTC
+
+- Развёрнута ревизия `3932067` (merge PR #3,
+  `feat/auth-account-osm-pipeline`): сначала генератор
+  (`make deploy-otgolosok-generator`), затем фронтенд
+  (`make deploy-otgolosok-prod`), оба с `VPS=services@93.189.230.19`.
+  Локальная `main` отставала на 81 коммит; перед публикацией выполнен
+  fast-forward до `origin/main`.
+- Проверки перед публикацией: `pnpm install --frozen-lockfile`,
+  `next typegen`, `build-walk-catalog.mjs`, `build-map.mjs`, lint, TypeScript,
+  305 frontend-тестов, 276 backend-тестов, статическая сборка.
+- Перед заменой все 15 записей `jobs` были в терминальных состояниях, поэтому
+  проверка простоя прошла сразу. Valhalla не перезапускалась (uptime 2 недели).
+  Резервная копия: `backups/generator-20260922T142808Z/generator.tar.gz`.
+- Миграции применились на живой базе: `user_walks` получила колонки
+  `visibility` (по умолчанию `private`) и `share_token`, создана пустая таблица
+  `user_generation_intents`. Новых обязательных переменных окружения нет:
+  `USER_DAILY_GENERATION_LIMIT` имеет значение по умолчанию 6.
+- Маршрутизация не менялась: Traefik отдаёт генератору весь `PathPrefix(/api/)`,
+  поэтому новые `/api/me/*` и `/api/story-walks/*` работают без правок ingress.
+  Nginx отдаёт новую страницу `/history` общим правилом `try_files $uri $uri.html`.
+- Проверка прода: `/`, `/admin`, `/create`, `/walk`, `/history`, `/login`,
+  `/api/story-service` — 200 (`enabled: true`). HTML всех шести страниц совпал
+  с локальной сборкой байт в байт. `sw.js` совпадает по версии
+  `2e0cbf9b5daf8e84`, в precache добавлены `/walk`, `/history`, `/account`.
+- Границы доступа: `/api/me`, `/api/me/walks`, `/api/story-admin/jobs`,
+  `/api/story-admin/content/places`, `/api/story-admin/content/batches` без
+  авторизации — 401; межсайтовый POST `/api/walk-plan` — 403; ссылка на чужую
+  прогулку со случайным идентификатором — 404. Публичная
+  `/api/story-walks/msk-kozhevniki-zindel-short` — 200.
+- `server.mjs`, `walks.mjs`, `account-store.mjs`, `walk-document.mjs`,
+  `walk-view.mjs`, `walk-catalog.mjs`, `user-walks.mjs` и
+  `favorite-summary.mjs` в контейнере совпадают с локальными по SHA-256.
+- Данные сохранены: `PRAGMA quick_check` — `ok` в `jobs.sqlite` и `auth.sqlite`,
+  6107 мест, 1019 текстов, 15 записей `jobs` в прежних состояниях, 1 аккаунт.
+- Браузерная проверка на 390×844 без авторизации: главная открывается картой с
+  метками и нижней навигацией «Рядом / Прогулка / История / Профиль», `/walk`
+  без сохранённой прогулки переводит на `/history`, `/login` показывает форму
+  входа. В консоли ошибок нет, два предупреждения о неиспользованном
+  `link preload` для CSS-чанков.
+- Генерация историй и синтез речи при проверке не запускались.
