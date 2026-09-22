@@ -31,12 +31,16 @@ let container: HTMLDivElement;
 /** Holds every response open so a test can look at the tables mid-request. */
 let gate: { promise: Promise<void>; open: () => void } | null;
 let walks: (typeof walkSummary)[];
+let total: number;
+let hasMore: boolean;
+const requestedPaths: string[] = [];
 const onDirtyChange = vi.fn();
 const openJob = vi.fn();
 
 const api: AdminApi = async <T,>(path: string): Promise<T> => {
   if (gate) await gate.promise;
-  if (path === "/walks") return { walks } as T;
+  requestedPaths.push(path);
+  if (path.startsWith("/walks?")) return { walks, total, hasMore } as T;
   if (path === `/walks/${walkDetail.id}`) return { walk: structuredClone(walkDetail) } as T;
   throw new Error(`Неожиданный запрос: ${path}`);
 };
@@ -91,6 +95,9 @@ beforeEach(async () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   gate = null;
   walks = [structuredClone(walkSummary)];
+  total = walks.length;
+  hasMore = false;
+  requestedPaths.length = 0;
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
@@ -149,5 +156,41 @@ describe("прелоадеры таблиц прогулок", () => {
     expect(cells[0].tagName).toBe("TD");
     expect(cells[1].tagName).toBe("TH");
     await openGate();
+  });
+});
+
+describe("пагинация прогулок", () => {
+  it("переходит вперёд и назад по серверным страницам", async () => {
+    total = 51;
+    hasMore = true;
+    await click(buttons("Обновить список")[0]);
+    expect(container.querySelector('[aria-label="Страницы прогулок"]')?.textContent).toContain("Страница 1 из 2");
+
+    walks = [{ ...walkSummary, id: "walk-2", title: "Вторая страница" }];
+    hasMore = false;
+    await click(buttons("Далее")[0]);
+    expect(requestedPaths.at(-1)).toBe("/walks?limit=50&offset=50");
+    expect(container.textContent).toContain("Вторая страница");
+    expect(container.querySelector('[aria-label="Страницы прогулок"]')?.textContent).toContain("Страница 2 из 2");
+
+    walks = [structuredClone(walkSummary)];
+    hasMore = true;
+    await click(buttons("Назад")[0]);
+    expect(requestedPaths.at(-1)).toBe("/walks?limit=50&offset=0");
+  });
+
+  it("возвращается на предыдущую страницу, если текущая опустела", async () => {
+    total = 51;
+    hasMore = true;
+    await click(buttons("Обновить список")[0]);
+    walks = [];
+    total = 50;
+    hasMore = false;
+    await click(buttons("Далее")[0]);
+    expect(requestedPaths.slice(-2)).toEqual([
+      "/walks?limit=50&offset=50",
+      "/walks?limit=50&offset=0",
+    ]);
+    expect(container.querySelector('[aria-label="Страницы прогулок"]')?.textContent).toContain("Страница 1 из 1");
   });
 });

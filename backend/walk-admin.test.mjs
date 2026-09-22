@@ -73,6 +73,8 @@ test("admin catalog exposes ordered chapter drafts and safe source evidence", (t
   const { store } = fixture(t);
   const list = store.listWalksAdmin();
   assert.equal(list.walks.length, builtinRoutes.length);
+  assert.equal(list.total, builtinRoutes.length);
+  assert.equal(list.hasMore, false);
   assert.deepEqual(Object.keys(list.walks[0]), ["id", "title", "subtitle", "status", "chapterCount", "publishedCount", "pendingCount", "failedCount", "updatedAt"]);
   assert.equal(list.walks[0].status, "ready");
   const detail = store.getWalkAdmin(routeId);
@@ -83,6 +85,19 @@ test("admin catalog exposes ordered chapter drafts and safe source evidence", (t
   assert.equal(store.getWalkAdmin("missing"), null);
   assert.equal(store.getPublishedWalk("missing"), null);
   assert.deepEqual(store.getPublishedWalk(routeId), builtinRoutes[0]);
+});
+
+test("admin catalog validates and applies pagination", (t) => {
+  const { store } = fixture(t);
+  const first = store.listWalksAdmin({ limit: 1, offset: 0 });
+  assert.equal(first.walks.length, 1);
+  assert.equal(first.total, builtinRoutes.length);
+  assert.equal(first.hasMore, builtinRoutes.length > 1);
+  assert.deepEqual(store.listWalksAdmin({ limit: 1, offset: builtinRoutes.length }), {
+    walks: [], total: builtinRoutes.length, hasMore: false,
+  });
+  assert.throws(() => store.listWalksAdmin({ limit: 0 }), { code: "BAD_REQUEST" });
+  assert.throws(() => store.listWalksAdmin({ offset: -1 }), { code: "BAD_REQUEST" });
 });
 
 test("editing preserves paragraph identities, fact links, and the prior publication", (t) => {

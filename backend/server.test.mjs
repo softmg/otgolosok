@@ -67,6 +67,19 @@ test("worker transport still exposes credentials and allows issuing keys",async(
   assert.equal((await f.post("/api/story-admin/content/workers",{name:"GPU",profiles:["silero-ru-v1"]})).status,201);
 });
 
+test("admin walk catalog accepts pagination and rejects invalid parameters",async(t)=>{
+  const f=await fixture(t);
+  const response=await fetch(`${f.base}/api/story-admin/walks?limit=1&offset=0`);
+  assert.equal(response.status,200);
+  const page=await response.json();
+  assert.equal(page.walks.length,1);
+  assert.equal(page.total>=page.walks.length,true);
+  assert.equal(typeof page.hasMore,"boolean");
+  assert.equal((await fetch(`${f.base}/api/story-admin/walks?limit=0&offset=0`)).status,400);
+  assert.equal((await fetch(`${f.base}/api/story-admin/walks?limit=1&offset=-1`)).status,400);
+  assert.equal((await fetch(`${f.base}/api/story-admin/walks?limit=1&limit=2`)).status,400);
+});
+
 test("external worker API authenticates, leases and accepts an idempotent upload",async(t)=>{
   const artifact={url:`/api/story-audio/${"b".repeat(64)}.mp3`,sha256:"b".repeat(64),bytes:100,durationSec:60,model:"external",voice:"external",provider:"external",synthetic:true};
   const f=await fixture(t,{workerToken:"worker-secret",audioIngest:async req=>{

@@ -332,7 +332,10 @@ export function createWalkAdminStore({ db, now = Date.now, transaction, checkCap
   }
 
   return {
-    listWalksAdmin() {
+    listWalksAdmin({ limit = 50, offset = 0 } = {}) {
+      if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50 || !Number.isSafeInteger(offset) || offset < 0) {
+        throw codedError("BAD_REQUEST");
+      }
       const walks = builtinRoutes.flatMap((route) => {
         if (!routeDefinition(route.id)) return [];
         const detail = routeDetail(route.id);
@@ -343,7 +346,7 @@ export function createWalkAdminStore({ db, now = Date.now, transaction, checkCap
         return [{ id: route.id, title: route.title, subtitle: route.subtitle, status: detail.status,
           chapterCount: detail.chapters.length, publishedCount, pendingCount, failedCount, updatedAt }];
       });
-      return { walks };
+      return { walks: walks.slice(offset, offset + limit), total: walks.length, hasMore: offset + limit < walks.length };
     },
 
     getWalkAdmin(routeId) {

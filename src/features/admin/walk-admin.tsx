@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AdminApi, AdminRun, OpenAdminJob, TtsProvider } from "./model";
-import { safeSourceLink } from "./model";
+import { pageCount, pageRange, safeSourceLink } from "./model";
 import { skeletonRows } from "./table-skeleton";
 import "./walk-admin.css";
 
@@ -116,6 +116,7 @@ const confidenceLabels: Record<string, string> = {
   unverified: "Не подтверждён",
 };
 const workingStages = new Set(["queued", "researching", "verifying", "writing", "voicing"]);
+const WALK_PAGE = 50;
 
 function copyDraft(draft: WalkDraft): WalkDraft {
   return {
@@ -152,6 +153,9 @@ function stageLabel(stage: string) {
 export function WalkAdmin({ api, busy, run, onDirtyChange }: WalkAdminProps) {
   const loaded = useRef(false);
   const [walks, setWalks] = useState<WalkSummary[]>([]);
+  const [walkOffset, setWalkOffset] = useState(0);
+  const [walkTotal, setWalkTotal] = useState(0);
+  const [walksHaveMore, setWalksHaveMore] = useState(false);
   const [walk, setWalk] = useState<WalkDetail | null>(null);
   const [chapterId, setChapterId] = useState("");
   const [draft, setDraft] = useState<WalkDraft | null>(null);
@@ -187,8 +191,12 @@ export function WalkAdmin({ api, busy, run, onDirtyChange }: WalkAdminProps) {
       loaded.current = true;
       setWalksLoading(true);
       try {
-        const result = await api<{ walks: WalkSummary[] }>("/walks", signal);
+        const params = new URLSearchParams({ limit: String(WALK_PAGE), offset: "0" });
+        const result = await api<{ walks: WalkSummary[]; total: number; hasMore: boolean }>(`/walks?${params}`, signal);
         setWalks(result.walks);
+        setWalkOffset(0);
+        setWalkTotal(result.total);
+        setWalksHaveMore(result.hasMore);
       } finally { setWalksLoading(false); }
     });
   }, [api, busy, run]);
@@ -244,11 +252,23 @@ export function WalkAdmin({ api, busy, run, onDirtyChange }: WalkAdminProps) {
     chooseVoice(walk, selected);
   }
 
+  async function fetchWalks(offset: number, signal: AbortSignal): Promise<void> {
+    const params = new URLSearchParams({ limit: String(WALK_PAGE), offset: String(offset) });
+    const result = await api<{ walks: WalkSummary[]; total: number; hasMore: boolean }>(`/walks?${params}`, signal);
+    if (!result.walks.length && offset > 0) {
+      await fetchWalks(Math.max(0, offset - WALK_PAGE), signal);
+      return;
+    }
+    setWalks(result.walks);
+    setWalkOffset(offset);
+    setWalkTotal(result.total);
+    setWalksHaveMore(result.hasMore);
+  }
+
   async function updateWalks(signal: AbortSignal) {
     setWalksLoading(true);
     try {
-      const result = await api<{ walks: WalkSummary[] }>("/walks", signal);
-      setWalks(result.walks);
+      await fetchWalks(walkOffset, signal);
     } finally { setWalksLoading(false); }
   }
 
@@ -277,6 +297,7 @@ export function WalkAdmin({ api, busy, run, onDirtyChange }: WalkAdminProps) {
         <div>
           <h2>Прогулки</h2>
           <p>Редактируйте главы и запускайте новую озвучку по одной. Опубликованная запись останется доступна, пока новая не будет готова.</p>
+          <p className="admin-meta">{walksLoading ? "Загружаем прогулки…" : `Показано ${pageRange(walkOffset, walks.length, walkTotal)} прогулок.`}</p>
         </div>
         <button type="button" disabled={Boolean(busy) || dirty} onClick={() => {
           setNotice("");
@@ -308,6 +329,19 @@ export function WalkAdmin({ api, busy, run, onDirtyChange }: WalkAdminProps) {
         </table>
         {!walks.length && !walksLoading && !busy && <p className="walk-admin__empty">В каталоге пока нет прогулок с редактируемыми главами.</p>}
       </div>
+      <nav className="admin-pagination" aria-label="Страницы прогулок">
+        <button disabled={Boolean(busy) || walkOffset === 0} onClick={() => void run("Загрузка прогулок…", async signal => {
+          setWalksLoading(true);
+          try { await fetchWalks(Math.max(0, walkOffset - WALK_PAGE), signal); }
+          finally { setWalksLoading(false); }
+        })}>Назад</button>
+        <span className="admin-meta">Страница {Math.floor(walkOffset / WALK_PAGE) + 1} из {pageCount(walkTotal, WALK_PAGE)}</span>
+        <button disabled={Boolean(busy) || !walksHaveMore} onClick={() => void run("Загрузка прогулок…", async signal => {
+          setWalksLoading(true);
+          try { await fetchWalks(walkOffset + WALK_PAGE, signal); }
+          finally { setWalksLoading(false); }
+        })}>Далее</button>
+      </nav>
 
       {walk && <article className="walk-admin__detail">
         <header className="walk-admin__route-head">

@@ -228,8 +228,9 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
         }
         if(roleAuthorized&&!["GET","HEAD"].includes(req.method)&&!validSessionCsrf(authSecret,session.session.id,req.headers["x-csrf-token"])) {json(res,403,{error:{code:"CSRF",message:"Refresh the editor and retry."}});return;}
         if(req.method==="GET"&&url.pathname==="/api/story-admin/walks") {
-          if(url.search)throw failure("BAD_REQUEST");
-          json(res,200,store.listWalksAdmin());return;
+          const entries=[...url.searchParams];
+          if(entries.some(([key,value])=>!["limit","offset"].includes(key)||!/^\d+$/.test(value))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
+          json(res,200,store.listWalksAdmin({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0)}));return;
         }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/places") {
           const entries=[...url.searchParams];if(entries.some(([key,value])=>!["limit","offset","q","status"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value))))throw failure("BAD_REQUEST");
