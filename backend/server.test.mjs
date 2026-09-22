@@ -182,6 +182,32 @@ test("the audio retry route matches a job id instead of falling through to the a
   assert.equal((await unmatched.json()).error.message,"Admin endpoint not found.");
 });
 
+test("admin can start a bounded bulk audio backfill", async t => {
+  const f = await fixture(t, {
+    localTts: { transport: "http", defaultProfile: "f5-ru-v1", profiles: { "f5-ru-v1": { engine: "f5" } } },
+  });
+  f.store.importPlaces({ source: "fixture", sourceSha256: "a".repeat(64), rulesVersion: "v1", coverage: "fixture", places: [
+    { placeId: "osm:node:8", osmType: "node", osmId: 8, name: "Музей", location: { lat: 55.75, lon: 37.61 }, tags: { tourism: "museum" } },
+  ] });
+  const batch = f.store.createBatch({ requestKey: "bulk-audio-api", name: "Audio", limit: 1, mode: "text-only" });
+  const job = f.store.claimContentJob();
+  const story = {
+    title: "История музея",
+    paragraphs: [
+      { text: ("Это подтверждённый рассказ о музее для проверки административной постановки озвучки. ").repeat(12), factIds: [] },
+      { text: ("Дополнительный абзац содержит достаточно текста для валидного аудиозадания. ").repeat(12), factIds: [] },
+    ],
+  };
+  f.store.completeContentJob(job.id, { story, evidence: {}, autoApprove: false });
+  f.store.approvePlaceText("osm:node:8");
+
+  const response = await f.post("/api/story-admin/content/audio/bulk", { profileId: "f5-ru-v1", limit: 1 });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { queued: 1, alreadyQueued: 0, retried: 0, skipped: 0, failed: 0, inspected: 1, hasMore: false });
+  assert.equal(f.store.getContentStats().external.queued, 1);
+  assert.equal(f.store.getBatch(batch.id).counts.ready, 1);
+});
+
 test("place lookup has no generation side effect and reports bounded errors",async(t)=>{
   const inputs=[];
   const f=await fixture(t,{resolvePlace:async input=>{inputs.push(input);if(input.q==='busy')throw Object.assign(new Error('private'),{code:'PLACE_BUSY'});return {address:'Москва, Арбат, 10',location:{lat:55.75,lon:37.6}};}});

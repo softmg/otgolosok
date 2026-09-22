@@ -235,6 +235,20 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
         <div><dt>Старейшее аудио в очереди</dt><dd className="content-stats-date">{moment(stats.audioQueue?.oldestQueuedAt)}</dd></div>
       </dl> : <div className="content-stats-loading" role="status" aria-live="polite"><span className="content-loading-spinner" aria-hidden="true" />Загружаем статистику каталога…</div>}
 
+      <section className="admin-review content-audio-backfill" aria-labelledby="content-audio-backfill-title">
+        <div className="admin-section-head"><div>
+          <h3 id="content-audio-backfill-title">Массовая озвучка</h3>
+          <p className="admin-meta">Поставляет в очередь утверждённые тексты без готового аудио. Повторный запуск не создаёт дубликаты.</p>
+        </div>
+          <button className="admin-primary" disabled={disabled || ttsTransport === "worker" && !workerOnline} onClick={() => void run("Постановка озвучки…", async signal => {
+            const result = await api<{ queued: number; retried: number; alreadyQueued: number; failed: number; inspected: number; hasMore: boolean }>("/content/audio/bulk", signal, { limit: 500 });
+            await loadOverview(signal);
+            setNotice(`В очередь поставлено: ${result.queued}. Повторено: ${result.retried}. Проверено: ${result.inspected}${result.hasMore ? " — нажмите ещё раз для продолжения" : ""}.`);
+          })}>Озвучить тексты без аудио</button>
+        </div>
+        {ttsTransport === "worker" && !workerOnline && <p className="admin-callout">Нет online-воркера TTS. Сначала подключите воркер.</p>}
+      </section>
+
       <section className="admin-review" aria-labelledby="content-new-batch-title">
         <h3 id="content-new-batch-title">Новая партия</h3>
         <p className="admin-meta">Берёт указанное число мест из каталога по алфавиту и ставит их в очередь подготовки.</p>

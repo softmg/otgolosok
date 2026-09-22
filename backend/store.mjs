@@ -262,6 +262,43 @@ export function createStore(
     ...walkAdminStore,
     ...createWalkResearchStore({ db, now, transaction, checkCapacity }),
     ...contentStore,
+    async enqueueMissingPlaceAudio({ profileId = "silero-ru-v1", limit = 500, signal } = {}) {
+      if (typeof profileId !== "string" || !/^[a-z0-9][a-z0-9._-]{0,63}$/.test(profileId)
+        || !Number.isSafeInteger(limit) || limit < 1 || limit > 500) throw codedError("BAD_REQUEST");
+      const candidates = db.prepare(`SELECT t.id, t.approved_story_json, p.id place_id, p.name, p.address
+        FROM place_texts t JOIN places p ON p.id=t.place_id
+        WHERE p.archived=0 AND t.approved_story_json IS NOT NULL
+          AND (t.audio_json IS NULL OR t.audio_json='null')
+          AND NOT EXISTS (SELECT 1 FROM external_audio_jobs a
+            WHERE a.source_job_id='place-text:'||t.id AND a.profile_id=?
+              AND a.state IN ('queued','retry_wait','leased'))
+        ORDER BY t.created_at, t.rowid LIMIT ?`).all(profileId, limit + 1);
+      const rows = candidates.slice(0, limit);
+      const result = { queued: 0, alreadyQueued: 0, retried: 0, skipped: 0, failed: 0 };
+      for (const row of rows) {
+        try {
+          const job = await this.enqueueExternalAudio({
+            sourceJobId: `place-text:${row.id}`,
+            sourceRevision: 0,
+            story: { ...JSON.parse(row.approved_story_json), address: row.address ?? row.name },
+            profileId,
+            signal,
+          });
+          if (job.state === "failed" || job.state === "cancelled") {
+            const retried = this.retryExternalAudio(job.id);
+            if (retried) result.retried++;
+            else result.skipped++;
+          } else if (job.state === "queued" || job.state === "retry_wait") {
+            result.queued++;
+          } else {
+            result.alreadyQueued++;
+          }
+        } catch {
+          result.failed++;
+        }
+      }
+      return { ...result, inspected: rows.length, hasMore: candidates.length > limit };
+    },
     createOrGet({ key, address }) {
       if (typeof key !== "string" || key.length === 0) {
         throw new TypeError("key must be a non-empty string");

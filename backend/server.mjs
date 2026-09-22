@@ -243,6 +243,13 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
           const entries=[...url.searchParams];if(entries.some(([key,value])=>key!=="state"||!value)||entries.length>1)throw failure("BAD_REQUEST");
           const states=(url.searchParams.get("state")??"failed,cancelled").split(",");json(res,200,{audioJobs:store.listExternalAudio({states})});return;
         }
+        if(req.method==="POST"&&url.pathname==="/api/story-admin/content/audio/bulk") {
+          if(!origin||req.headers.origin!==origin){json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
+          const input=await body(req,4096);
+          if(Object.keys(input).some(key=>!["profileId","limit"].includes(key)))throw failure("BAD_REQUEST");
+          const result=await store.enqueueMissingPlaceAudio({profileId:input.profileId??localTts.defaultProfile,limit:input.limit??500});
+          json(res,200,result);return;
+        }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/workers") {if(url.search)throw failure("BAD_REQUEST");json(res,200,{transport:localTts.transport,workers:store.listWorkerCredentials(),heartbeats:store.listWorkerHeartbeats()});return;}
         if(req.method==="POST"&&url.pathname==="/api/story-admin/content/workers") {if(localTts.transport==="http"){json(res,503,{error:{code:"WORKER_DISABLED",message:"HTTP TTS transport is active."}});return;}if(!origin||req.headers.origin!==origin){json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
           json(res,201,{worker:store.createWorkerCredential(await body(req,4096))});return;}

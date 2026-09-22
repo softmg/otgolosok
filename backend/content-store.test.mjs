@@ -71,6 +71,37 @@ test("catalog nearby query returns approved cards ordered by distance",t=>{
   assert.equal(store.listPlaces({status:"ready",lat:55.9,lon:37.9,radius:100}).places.length,0);assert.equal(store.getBatch(batch.id).counts.ready,1);
 });
 
+test("bulk audio backfill queues only approved texts without audio and is idempotent", async t => {
+  const store = createStore(":memory:", {
+    externalTtsProfiles: { "f5-ru-v1": { engine: "f5", language: "ru" } },
+    normalizeExternalText: Object.assign(async text => text, { version: "plain-v1" }),
+  });
+  t.after(() => store.close());
+  store.importPlaces(catalog);
+  const batch = store.createBatch({ requestKey: "bulk-audio", name: "Audio", limit: 2, mode: "text-only" });
+  const job = store.claimContentJob();
+  const story = {
+    title: "История места",
+    paragraphs: [
+      { text: ("Это подтверждённый рассказ о месте для проверки массовой постановки озвучки. ").repeat(12), factIds: [] },
+      { text: ("Второй абзац содержит достаточно материала для валидного аудиозадания и публикации. ").repeat(12), factIds: [] },
+    ],
+  };
+  store.completeContentJob(job.id, { story, evidence: {}, autoApprove: false });
+  store.approvePlaceText(job.place.id);
+
+  const first = await store.enqueueMissingPlaceAudio({ profileId: "f5-ru-v1", limit: 500 });
+  assert.equal(first.queued, 1);
+  assert.equal(first.hasMore, false);
+  assert.equal(store.getExternalAudioStats().states.queued, 1);
+
+  const second = await store.enqueueMissingPlaceAudio({ profileId: "f5-ru-v1", limit: 500 });
+  assert.equal(second.queued, 0);
+  assert.equal(second.inspected, 0);
+  assert.equal(store.getExternalAudioStats().states.queued, 1);
+  assert.equal(store.getBatch(batch.id).counts.ready, 1);
+});
+
 test("job migrations add profile versions and priorities to existing databases",t=>{
   const directory=mkdtempSync(join(tmpdir(),"content-migration-")),file=join(directory,"jobs.sqlite");t.after(()=>rmSync(directory,{recursive:true,force:true}));
   const db=new DatabaseSync(file);db.exec(`CREATE TABLE content_jobs (id TEXT PRIMARY KEY,input_key TEXT NOT NULL UNIQUE,place_id TEXT NOT NULL,state TEXT NOT NULL,
