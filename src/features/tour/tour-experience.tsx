@@ -38,10 +38,13 @@ import {
   type MediaSessionController,
 } from "@/lib/audio/media-session";
 import type { Coordinates, Route } from "./types";
+import type { WalkView } from "../walks/model";
+import { walkViewToRoute } from "../walks/adapters";
 import { StorySources, StoryText } from "./story-content";
 import { RouteNotes } from "./route-notes";
 import { AroundScreen } from "../explore/around-screen";
 import { RouteMap } from "./route-map";
+import { BrandMark } from "../brand/brand-mark";
 import { chapterTriggerConfig, getWalkChapters, nextChapterTarget, WalkPlanPreview } from "./walk-plan";
 import { WalkMap } from "./walk-map";
 import { advanceModeHints, advanceModeLabels, advanceModes, useWalkSettings, type AdvanceMode, type PlaybackRate } from "./walk-settings";
@@ -49,6 +52,10 @@ import { AudioPlayerControls } from "./audio-player-controls";
 import { loadPublishedRoute } from "./published-route-cache";
 import { usePlaybackProgress } from "./use-playback-progress";
 import { formatPlaybackTime, type PlaybackCheckpoint } from "@/lib/audio/playback-progress";
+import { getLastUserId, getSession } from "../auth/client";
+import { saveWalkOffline } from "../walks/offline";
+import { WalkSession } from "./walk-session";
+import { playbackRates } from "./walk-settings";
 
 type SessionPhase = "reading" | "walking";
 type AudioStatus = "locked" | "unlocking" | "ready" | "loading" | "playing" | "paused" | "ended" | "blocked" | "error";
@@ -109,21 +116,17 @@ function applyPlaybackRate(audio: HTMLAudioElement, rate: number) {
   catch { /* Some engines reject a rate change while the source loads. */ }
 }
 
-export function TourExperience({ route }: { route: Route }) {
-  const firstPoi = route.pois[0];
-  if (!firstPoi) {
-    return <main className="shell"><section className="hero-copy">
-      <h1>{route.title}</h1>
-      <p className="dek">Маршрут готовится. Точки прогулки появятся здесь позже.</p>
-    </section></main>;
-  }
-  return <AvailableTour route={route} />;
+export function TourExperience({ route, walk }: { route?: Route; walk?: WalkView }) {
+  const resolvedRoute = walk ? walkViewToRoute(walk) : route;
+  if (!resolvedRoute) return <main className="shell"><section className="hero-copy"><h1>Прогулка не найдена</h1><p className="dek">Откройте ссылку ещё раз или вернитесь к списку прогулок.</p></section></main>;
+  return <AvailableTour route={resolvedRoute} universal={Boolean(walk)} view={walk} />;
 }
 
-function AvailableTour({ route: initialRoute }: { route: Route }) {
+function AvailableTour({ route: initialRoute, universal = false, view }: { route: Route; universal?: boolean; view?: WalkView }) {
   const [route, setRoute] = useState(initialRoute);
   const firstPoi = route.pois[0];
   const [phase, setPhase] = useState<SessionPhase>("reading");
+  const [completed, setCompleted] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("locked");
   const [wakeStatus, setWakeStatus] = useState<WakeLockStatus>("idle");
   const [diagnostics, setDiagnostics] =
@@ -134,6 +137,7 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
   const [mediaDuration, setMediaDuration] = useState(0);
   const [isReplay, setIsReplay] = useState(false);
   const [offlineStatus, setOfflineStatus] = useState("Офлайн-копия ещё не сохранена");
+  const [offlineBusy, setOfflineBusy] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const startButtonRef = useRef<HTMLButtonElement>(null);
@@ -170,6 +174,7 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
     toggle: () => {}, seekBy: () => {}, seekTo: () => {},
   });
   useEffect(() => {
+    if (universal) return;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     void loadPublishedRoute(initialRoute, controller.signal)
@@ -180,16 +185,16 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
       .catch(() => { /* The bundled walk remains available offline. */ })
       .finally(() => clearTimeout(timer));
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [initialRoute]);
-  const usesTestAudio = !firstPoi.story.audio_url;
+  }, [initialRoute, universal]);
+  const usesTestAudio = !universal && !firstPoi.story.audio_url;
   const hasStoryText = firstPoi.story.text_status === "ready" && firstPoi.story.paragraphs.length > 0;
   const storyMinutes = Math.ceil(firstPoi.story.duration_sec / 60);
   const readyNotes = (route.notes ?? []).filter((note) => note.story.text_status === "ready" && note.story.paragraphs.length > 0);
-  const chapters = getWalkChapters(route);
+  const chapters = getWalkChapters(route, universal);
   const chapter = chapters[chapterIndex];
   const walkContent = chapter?.content ?? firstPoi;
   const walkAudioUrl = chapter?.audio?.url ?? walkContent.story.audio_url;
-  const walkUsesTestAudio = !walkAudioUrl;
+  const walkUsesTestAudio = !universal && !walkAudioUrl;
   const hasWalkAudio = chapters.length > 0 && chapters.every((item) => item.audio?.url);
   const { savedCheckpoint, saveCheckpoint, clearCheckpoint } = usePlaybackProgress(route.id,
     chapters.flatMap((item) => item.audio ? [{ id: item.id, audioUrl: item.audio.url, durationSec: item.audio.duration_sec }] : []));
@@ -258,15 +263,30 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
           check();
         });
       }
-      if (!cancelled) setOfflineStatus("Офлайн-копия готова");
+      if (!cancelled) setOfflineStatus("Оболочка офлайн готова; сохраните прогулку для записей");
     }).catch(() => {
-      if (!cancelled) setOfflineStatus("Не удалось сохранить офлайн-копию · нужен интернет");
+      if (!cancelled) setOfflineStatus("Оболочка офлайн готова; записи сохраняются отдельно");
     });
     return () => {
       cancelled = true;
       cleanups.forEach((cleanup) => cleanup());
     };
   }, []);
+
+  async function saveOffline() {
+    if (!view || offlineBusy) return;
+    setOfflineBusy(true);
+    try {
+      const user = await getSession().catch(() => null);
+      const scope = user?.id ?? getLastUserId() ?? `public:${view.document.id}`;
+      const result = await saveWalkOffline(view, scope);
+      setOfflineStatus(`Офлайн-комплект сохранён · ${result.availableAudio} ${audioWord(result.availableAudio)}`);
+    } catch (caught) {
+      setOfflineStatus(caught instanceof Error ? caught.message : "Не удалось сохранить офлайн-комплект.");
+    } finally {
+      setOfflineBusy(false);
+    }
+  }
 
   useEffect(() => {
     const audioElement = audioRef.current;
@@ -307,21 +327,6 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [saveCheckpoint]);
-
-  // Refreshed after every render so the long-lived position subscription and the
-  // lock-screen handlers always act on the chapter that is playing now.
-  useEffect(() => {
-    liveRef.current = {
-      advance: settings.advance, rate: settings.rate, index: chapterIndex, count: chapters.length,
-      target, config: triggerConfig,
-    };
-    selectChapterRef.current = selectChapter;
-    controlsRef.current = {
-      toggle: toggleAudio,
-      seekBy: (offset) => seekPlayback((audioRef.current?.currentTime ?? playbackTime) + offset),
-      seekTo: (position) => seekPlayback(position),
-    };
-  });
 
   useEffect(() => {
     if (audioRef.current) applyPlaybackRate(audioRef.current, settings.rate);
@@ -403,9 +408,19 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
     setPlaybackTime(positionSec);
     if (!reuse) setMediaDuration(0);
     setAudioStatus("loading");
-    const didPlay = reuse ? await resumeAudioElement(audio) : source
-      ? await playAudioSource(audio, source, positionSec)
-      : await playTestTone(audio);
+    if (!source && !universal) {
+      const didPlay = reuse ? await resumeAudioElement(audio) : await playTestTone(audio);
+      if (sessionRef.current !== session || playbackRef.current !== playback) return;
+      audioBusyRef.current = false;
+      setAudioStatus(didPlay ? "playing" : audio.error ? "error" : "blocked");
+      return;
+    }
+    if (!source) {
+      audioBusyRef.current = false;
+      setAudioStatus("ready");
+      return;
+    }
+    const didPlay = reuse ? await resumeAudioElement(audio) : await playAudioSource(audio, source, positionSec);
     if (sessionRef.current !== session || playbackRef.current !== playback) return;
     if (!didPlay) {
       audioBusyRef.current = false;
@@ -445,6 +460,7 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
 
   function startTour(resumeSaved = true, requestedIndex?: number) {
     if (phase !== "reading" || sessionActiveRef.current) return;
+    setCompleted(false);
     sessionActiveRef.current = true;
 
     const audio = audioRef.current;
@@ -461,7 +477,7 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
 
     // Keep this call before the first await: iOS grants playback to this exact
     // element only while the click still owns user activation.
-    const unlockPromise = audio && !startAudioUrl
+    const unlockPromise = audio && !startAudioUrl && !universal
       ? unlockAudioElement(audio)
       : Promise.resolve(false);
 
@@ -469,8 +485,8 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
     setChapterIndex(initialIndex);
     setChapterCheckpoint(initialIndex, initialPosition);
     setPlaybackTime(initialPosition);
-    setAudioStatus(startAudioUrl ? "loading" : "unlocking");
-    audioBusyRef.current = true;
+    setAudioStatus(startAudioUrl ? "loading" : universal ? "ready" : "unlocking");
+    audioBusyRef.current = universal ? Boolean(startAudioUrl) : true;
     setShowSources(false);
     setIsReplay(replay);
     triggerStateRef.current = createTriggerState();
@@ -484,7 +500,7 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
     if (startAudioUrl) {
       // Start the real clip within this click, retaining iOS user activation.
       void playSignal(startAudioUrl, initialPosition);
-    } else {
+    } else if (!universal) {
       void unlockPromise.then((unlocked) => {
         if (sessionRef.current !== session || playbackRef.current !== playback) return;
         audioBusyRef.current = false;
@@ -552,6 +568,7 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
   }
 
   function stopTour(completed = false) {
+    setCompleted(completed);
     syncPlaybackProgress(true);
     if (completed) clearCheckpoint();
     else if (activeCheckpointRef.current) saveCheckpoint(activeCheckpointRef.current);
@@ -605,7 +622,23 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
     // Pass the destination explicitly: React state still holds the old chapter
     // during this click. Starting here also preserves mobile user activation.
     if (source) void playSignal(source);
+    else setAudioStatus("ready");
   }
+
+  // Refreshed after every render so the long-lived position subscription and the
+  // lock-screen handlers always act on the chapter that is playing now.
+  useEffect(() => {
+    liveRef.current = {
+      advance: settings.advance, rate: settings.rate, index: chapterIndex, count: chapters.length,
+      target, config: triggerConfig,
+    };
+    selectChapterRef.current = selectChapter;
+    controlsRef.current = {
+      toggle: toggleAudio,
+      seekBy: (offset) => seekPlayback((audioRef.current?.currentTime ?? playbackTime) + offset),
+      seekTo: (position) => seekPlayback(position),
+    };
+  });
 
   const isWalking = phase !== "reading";
   const reliableFix =
@@ -618,29 +651,43 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
   const statusText = getStatusText(diagnostics, firstPoi.trigger.max_accuracy_m);
   const duration = mediaDuration || chapter?.audio?.duration_sec || walkContent.story.duration_sec;
   const canSeek = !walkUsesTestAudio && mediaDuration > 0 && !["loading", "unlocking", "locked"].includes(audioStatus);
-  const audioButtonLabel = audioStatus === "loading" ? "Отменить запуск" : audioStatus === "playing" ? "Пауза" : audioStatus === "paused" ? "Продолжить" : audioStatus === "ended" ? "Слушать ещё раз" : audioStatus === "unlocking" ? "Включить звук" : audioStatus === "blocked" || audioStatus === "error" ? "Повторить запуск звука" : walkUsesTestAudio ? "Проверить звук" : "Слушать историю";
+  const audioButtonLabel = audioStatus === "loading" ? "Отменить запуск" : audioStatus === "playing" ? "Пауза" : audioStatus === "paused" ? "Продолжить" : audioStatus === "ended" ? "Слушать ещё раз" : audioStatus === "unlocking" ? "Включить звук" : audioStatus === "blocked" || audioStatus === "error" ? "Повторить запуск звука" : walkUsesTestAudio ? "Проверить звук" : walkAudioUrl ? "Слушать историю" : "Аудио ещё не готово";
   const chapterNarrative = chapter ? <>
     {chapter.transition ? <p className="walk-transition">{chapter.transition}</p> : null}
-    <StoryText story={walkContent.story} />
+    {chapter.status && !["ready", "text_ready"].includes(chapter.status) ? <p className="walk-note" role="status">{walkStatusLabel(chapter.status)}</p> : null}
+    {walkContent.story.paragraphs.length ? <StoryText story={walkContent.story} /> : null}
     <p className="walk-next-hint">{chapter.next_hint}</p>
   </> : null;
 
   return (
-    <main className={isWalking ? "shell" : "around-shell"} data-mode={isWalking ? "walk" : "reading"}>
-      {isWalking ? <header className="masthead">
+    <main className={universal ? "walk-session" : isWalking ? "shell" : "around-shell"} data-mode={isWalking ? "walk" : "reading"}>
+      {!universal && isWalking ? <header className="masthead">
         <a className="wordmark" href="#top" aria-label="Отголосок, на главную">
-          Отголосок<span aria-hidden="true">.</span>
+          <BrandMark />
         </a>
         <p className="privacy-note"><i aria-hidden="true" /> Координаты остаются на устройстве</p>
       </header> : null}
 
-      {isWalking ? (
+      {universal ? <WalkSession route={route} chapters={chapters} index={chapterIndex} active={isWalking} completed={completed}
+        user={diagnostics.lastFix} positionFailed={positionFailed} resume={Boolean(savedCheckpoint)} titleRef={walkTitleRef} startRef={startButtonRef}
+        onStart={() => startTour()} onSelect={selectChapter} onStop={stopTour}
+        audioError={audioStatus === "blocked" || audioStatus === "error" ? "Не удалось включить аудио. Нажмите «Повторить запуск звука»." : ""}
+        player={walkAudioUrl ? <AudioPlayerControls compact position={playbackTime} duration={duration} canSeek={canSeek} playing={audioStatus === "playing"}
+          label={audioButtonLabel} rate={settings.rate} onToggle={toggleAudio} onSeek={seekPlayback} onRate={rate => updateSettings({ rate })} /> : null}
+        story={<><StoryText story={walkContent.story} />{walkContent.sources.length ? <StorySources content={walkContent} open={showSources} onToggle={() => setShowSources(value => !value)} /> : null}</>}
+        settings={<div className="walk-session-settings">
+          <label>Переключение остановок<select value={settings.advance} onChange={event => updateSettings({ advance: event.target.value as AdvanceMode })}>{advanceModes.map(mode => <option key={mode} value={mode}>{advanceModeLabels[mode]}</option>)}</select></label>
+          <label>Скорость аудио<select value={settings.rate} onChange={event => updateSettings({ rate: Number(event.target.value) as PlaybackRate })}>{playbackRates.map(rate => <option key={rate} value={rate}>{String(rate).replace(".", ",")}×</option>)}</select></label>
+          <button type="button" disabled={offlineBusy} onClick={() => void saveOffline()}>{offlineBusy ? "Сохраняем…" : "Скачать для прогулки без сети"}</button>
+          <p className="walk-session-muted" role="status">{offlineStatus}</p>
+          {isWalking ? <button type="button" onClick={() => stopTour()}>Остановить прогулку</button> : null}
+        </div>} /> : isWalking ? (
         <section className="walk-view" id="top" aria-labelledby="walk-title">
           <div className="walk-status-row">
             <p className={`signal-status ${signalTone}`} role="status">
               <i aria-hidden="true" /> {statusText}
             </p>
-            <p className="walk-counter">{chapter ? `Часть ${chapterIndex + 1} из ${chapters.length}` : hasStoryText || !usesTestAudio ? "История 01" : "Тестовая точка"}</p>
+            <p className="walk-counter">{chapter ? `Часть ${chapterIndex + 1} из ${chapters.length}` : hasStoryText || !usesTestAudio ? "История" : "Тестовая точка"}</p>
           </div>
 
           <div className="walk-story" data-sequence={chapter ? "true" : undefined}>
@@ -652,7 +699,7 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
               {chapterNarrative}
             </details> : chapterNarrative}
             {walkUsesTestAudio ? <p className="walk-note">{chapter ? "Части переключаются вручную. Запись аудио готовится; кнопка проверки звука включает сигнал на 5 секунд." : hasStoryText ? "Историю можно прочитать ниже. Запись аудио готовится; у точки пока звучит тестовый сигнал на 5 секунд." : "Аудиоистория готовится. У точки прозвучит тестовый сигнал на 5 секунд."}</p> : null}
-            {chapter?.audio ? <p className="walk-note">{Math.ceil(chapter.audio.duration_sec)} сек · Синтетическая озвучка. «Дальше» включает следующую часть.</p> : null}
+            {chapter?.audio ? <p className="walk-note">{Math.ceil(chapter.audio.duration_sec)} сек · Озвучка доступна. «Дальше» включает следующую часть.</p> : null}
             {!chapter ? <div className="trigger-meter" aria-label={`Подтверждений геопозиции: ${candidateCount} из ${triggerConfig.windowSize}`}>
               {Array.from({ length: triggerConfig.windowSize }, (_, index) => (
                 <i key={index} className={index < candidateCount ? "filled" : ""} />
@@ -660,10 +707,10 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
             </div> : null}
           </div>
 
-          {!walkUsesTestAudio ? <AudioPlayerControls position={playbackTime} duration={duration}
+          {!walkUsesTestAudio && walkAudioUrl ? <AudioPlayerControls position={playbackTime} duration={duration}
             canSeek={canSeek} playing={audioStatus === "playing"} label={audioButtonLabel} rate={settings.rate}
             onToggle={toggleAudio} onSeek={seekPlayback} onRate={(rate: PlaybackRate) => updateSettings({ rate })} /> : <div className="walk-controls">
-            <button className="audio-button" type="button" onClick={toggleAudio}>{audioButtonLabel}</button>
+            {walkUsesTestAudio ? <button className="audio-button" type="button" onClick={toggleAudio}>{audioButtonLabel}</button> : <p className="walk-note" role="status">Для этой части пока нет аудиозаписи. Текст доступен ниже.</p>}
           </div>}
 
           {chapter ? <nav className="chapter-navigation" aria-label="Части прогулки">
@@ -720,7 +767,7 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
             <summary>Читать историю · около {storyMinutes} мин</summary>
             <StoryText story={firstPoi.story} />
           </details> : null}
-          <StorySources content={walkContent} open={showSources} onToggle={() => setShowSources((value) => !value)} />
+          {walkContent.story.text_status === "ready" && walkContent.sources.length ? <StorySources content={walkContent} open={showSources} onToggle={() => setShowSources((value) => !value)} /> : null}
           {!chapter ? <RouteNotes notes={readyNotes} /> : null}
 
           <details className="debug-panel" open={isReplay || undefined}>
@@ -741,16 +788,16 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
           </details>
         </section>
       ) : (
-        <AroundScreen route={route} onStart={(index) => startTour(index === undefined, index)} updateAvailable={updateAvailable}>
+        <AroundScreen route={route} onStart={(index) => startTour(index === undefined, index)} updateAvailable={updateAvailable} initialTab={universal ? "walk" : undefined}>
           <section className="hero" id="top">
             <div className="hero-copy">
-              <p className="kicker">{route.status === "draft" ? "Маршрут в подготовке" : "Аудиопрогулка № 01"} · {route.city}</p>
+              <p className="kicker">{route.status === "draft" ? "Маршрут в подготовке" : `Аудиопрогулка · ${route.city}`}</p>
               <h1>{route.title}</h1>
               <p className="dek">{route.subtitle}</p>
               <dl className="route-facts">
                 <div><dt>{route.status === "draft" ? "План пути" : "Путь"}</dt><dd>{route.walk ? `≈ ${Math.round(route.walk.distance_m / 50) * 50} м` : `${route.distance_km.toLocaleString("ru-RU")} км`}</dd></div>
                 <div><dt>{route.status === "draft" ? "План времени" : "Время"}</dt><dd>{route.duration_min} минут</dd></div>
-                <div><dt>Сейчас доступно</dt><dd>{chapter ? `${chapters.length} части · ${hasWalkAudio ? "аудио и текст" : "текст"}` : hasStoryText && usesTestAudio ? "История · текст" : usesTestAudio ? "Тестовая точка" : "Первая история"}</dd></div>
+                <div><dt>Сейчас доступно</dt><dd>{chapter ? `${chapters.length} части · ${hasWalkAudio ? "аудио и текст" : "текст"}` : hasStoryText && usesTestAudio ? "История · текст" : usesTestAudio ? "Тестовая точка" : universal && !hasStoryText ? "Маршрут без историй" : "Первая история"}</dd></div>
               </dl>
               <button className="start-button" type="button" ref={startButtonRef} onClick={() => void startTour()}>
                 <span>{savedCheckpoint ? "Продолжить прогулку" : "Начать прогулку"}</span><b aria-hidden="true">→</b>
@@ -759,31 +806,32 @@ function AvailableTour({ route: initialRoute }: { route: Route }) {
                 <p className="start-note">Часть {savedChapterIndex + 1} · {chapters[savedChapterIndex].title} · {formatPlaybackTime(savedCheckpoint.positionSec)}</p>
                 <button type="button" className="restart-walk" onClick={() => startTour(false)}>Начать сначала</button>
               </> : null}
-              <p className="start-note">{route.walk ? hasWalkAudio ? "Около 8 минут ходьбы без остановок. Первая запись включится при старте, следующие по кнопке «Дальше». Синтетическая озвучка." : "Около 8 минут ходьбы без остановок. Рассказы переключаются вручную; озвучка готовится." : usesTestAudio ? "Проверка геолокации и звука на одной точке. Запись аудио готовится." : "Разрешите звук и геолокацию после нажатия."}</p>
-              {chapters.length > 0 ? <a className="read-story-link" href="#walk-plan">Как пойдём · четыре части <span aria-hidden="true">↓</span></a> : null}
+              <p className="start-note">{route.walk ? hasWalkAudio ? `Около ${route.duration_min} минут ходьбы без остановок. Первая запись включится при старте, следующие по кнопке «Дальше». Озвучка доступна.` : universal && !hasStoryText ? `Около ${route.duration_min} минут ходьбы. Истории и аудио для этого маршрута пока не подготовлены.` : `Около ${route.duration_min} минут ходьбы без остановок. Рассказы переключаются вручную; озвучка готовится.` : usesTestAudio ? "Проверка геолокации и звука на одной точке. Запись аудио готовится." : "Разрешите звук и геолокацию после нажатия."}</p>
+              {chapters.length > 0 ? <a className="read-story-link" href="#walk-plan">Как пойдём · {chapters.length} {chapterWord(chapters.length)} <span aria-hidden="true">↓</span></a> : null}
               <a className="read-story-link" href="/create">Подготовить историю другого дома <span aria-hidden="true">→</span></a>
-              {hasStoryText ? <a className="read-story-link" href="#story">{route.walk ? "История на финише" : "Читать первую историю"} · около {storyMinutes} мин <span aria-hidden="true">↓</span></a> : null}
+              {hasStoryText ? <a className="read-story-link" href="#story">Читать первую историю · около {storyMinutes} мин <span aria-hidden="true">↓</span></a> : null}
               {readyNotes.length > 0 ? <div><a className="read-story-link" href="#along-the-way">По дороге · короткие заметки ({readyNotes.length}) <span aria-hidden="true">↓</span></a></div> : null}
               <p className="start-note" role="status">{offlineStatus}</p>
+              {view ? <button className="read-story-link offline-save-button" type="button" disabled={offlineBusy} onClick={() => void saveOffline()}>{offlineBusy ? "Сохраняем без сети…" : "Сохранить прогулку без сети ↓"}</button> : null}
               <div className="update-control">
                 {updateAvailable ? <p role="status">Доступна новая версия сайта.</p> : null}
                 <a href="/update.html">{updateAvailable ? "Обновить прогулку" : "Проверить обновление"}</a>
               </div>
             </div>
 
-            <RouteMap route={route} />
+            <RouteMap route={route} universal={universal} />
           </section>
 
           <WalkPlanPreview chapters={chapters} />
           <section className="story-preview" id="story" aria-labelledby="story-title">
-            <div className="story-number">{route.walk ? "04" : "01"}</div>
+            <div className="story-number">{String(Math.min(99, Math.max(1, chapterIndex + 1))).padStart(2, "0")}</div>
             <div>
               <p className="kicker">{hasStoryText ? firstPoi.name : "История в подготовке"}</p>
               <h2 id="story-title">{firstPoi.story.opening}</h2>
-              <p>{hasStoryText ? `Около ${storyMinutes} минут чтения.${hasWalkAudio ? " Озвучка доступна в четвёртой части прогулки." : usesTestAudio ? " Запись аудио готовится." : ""}` : "Короткая история с источниками рядом с местом событий."}</p>
+              <p>{hasStoryText ? `Около ${storyMinutes} минут чтения.${hasWalkAudio ? " Озвучка доступна в записи прогулки." : usesTestAudio ? " Запись аудио готовится." : ""}` : "Короткая история с источниками рядом с местом событий."}</p>
               {hasStoryText ? <StoryText story={firstPoi.story} /> : null}
             </div>
-            <StorySources content={firstPoi} open={showSources} onToggle={() => setShowSources((value) => !value)} />
+            {firstPoi.story.text_status === "ready" && firstPoi.sources.length ? <StorySources content={firstPoi} open={showSources} onToggle={() => setShowSources((value) => !value)} /> : null}
           </section>
           <RouteNotes notes={readyNotes} narrated={hasWalkAudio} />
         </AroundScreen>
@@ -834,4 +882,29 @@ function getStatusText(
   if (diagnostics.trigger.phase === "inside") return "Вы у точки";
   if (diagnostics.trigger.phase === "cooldown") return "Точка пройдена";
   return `Слушаем город · ±${Math.round(diagnostics.lastFix.accuracyM)} м`;
+}
+
+function walkStatusLabel(status: NonNullable<import("./types").WalkStep["status"]>) {
+  return {
+    not_requested: "История для этой остановки ещё не заказана.",
+    preparing: "История готовится. Остановку можно пройти вручную.",
+    failed: "Подготовка истории прервалась. Текст пока недоступен.",
+    review_required: "История ожидает редакторской проверки.",
+    insufficient_evidence: "Для истории пока не хватило подтверждённых источников.",
+    unavailable: "История этой остановки пока недоступна.",
+    text_ready: "Текст готов; аудиозапись ещё не подготовлена.",
+    ready: "История готова.",
+  }[status];
+}
+
+function audioWord(value: number) {
+  const remainder = value % 10;
+  const tens = value % 100;
+  return tens >= 11 && tens <= 14 ? "записей" : remainder === 1 ? "запись" : remainder >= 2 && remainder <= 4 ? "записи" : "записей";
+}
+
+function chapterWord(value: number) {
+  const remainder = value % 10;
+  const tens = value % 100;
+  return tens >= 11 && tens <= 14 ? "частей" : remainder === 1 ? "часть" : remainder >= 2 && remainder <= 4 ? "части" : "частей";
 }

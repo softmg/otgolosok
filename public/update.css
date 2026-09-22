@@ -1,13 +1,14 @@
-:root { color-scheme: light; color: #1a1714; background: #f5f1e8; font-family: system-ui, sans-serif; }
+:root { --paper:#f5f1e8; --raised:#fbf8f2; --ink:#1a1714; --muted:#57504a; --accent:#a8301b; --brand-accent:#e34234; --body:18px; --control:16px; color-scheme: light; color:var(--ink); background:var(--paper); font-family: Manrope, system-ui, sans-serif; font-size:var(--body); }
 * { box-sizing: border-box; }
 body { margin: 0; }
 main { max-width: 36rem; margin: 12vh auto; padding: 1.5rem; }
-.wordmark { font-family: Georgia, serif; font-size: 2rem; font-weight: 700; }
-.wordmark span { color: #a8301b; }
+.wordmark { min-height: 2.75rem; display: inline-flex; align-items: center; margin: 0; font-size: 2rem; line-height: 1; }
+.brand-mark { font-size: 28px; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700; letter-spacing: -.035em; line-height: 1; white-space: nowrap; }
+.brand-mark > span { color: var(--brand-accent); }
 h1 { font-size: 2rem; line-height: 1.2; }
 p { line-height: 1.65; }
-a, button { min-height: 44px; display: inline-flex; align-items: center; font: inherit; }
-a { color: #a8301b; text-underline-offset: 4px; }
-button { margin: 1rem 1rem 1rem 0; padding: .75rem 1rem; border: 1px solid #a8301b; color: #fff; background: #a8301b; cursor: pointer; }
+a, button { min-height: 44px; display: inline-flex; align-items: center; font: inherit; font-size:var(--control); }
+a { color: var(--accent); text-underline-offset: 4px; }
+button { margin: 1rem 1rem 1rem 0; padding: .75rem 1rem; border: 1px solid var(--accent); border-radius:999px; color: #fff; background: var(--accent); cursor: pointer; }
 [hidden] { display: none; }
 :focus-visible { outline: 3px solid #a8301b; outline-offset: 4px; }

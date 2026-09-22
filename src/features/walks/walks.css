@@ -1,0 +1,108 @@
+.walk-library,
+.walk-screen {
+  min-height: 100vh;
+  padding: clamp(1.5rem, 4vw, 4rem) max(1.25rem, 4vw) 5rem;
+}
+
+.walk-library {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.walk-library-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.walk-library-header h1,
+.walk-library-section h2,
+.walk-library-note h2 {
+  margin: 0;
+}
+
+.walk-library-header p:not(.kicker) {
+  max-width: 40rem;
+}
+
+.walk-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: .75rem 1.1rem;
+  border-radius: 999px;
+  background: #1e2a24;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.walk-library-section,
+.walk-library-note {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.walk-library-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.walk-library-list a {
+  display: flex;
+  min-height: 8rem;
+  flex-direction: column;
+  gap: .45rem;
+  padding: 1.15rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.walk-library-list a:hover,
+.walk-library-list a:focus-visible {
+  border-color: currentColor;
+}
+
+.walk-library-list span,
+.walk-library-list small,
+.walk-library-empty,
+.walk-library-note p {
+  color: color-mix(in srgb, currentColor 68%, transparent);
+}
+
+.walk-warning {
+  color: #9b2c2c;
+}
+
+.walk-offline-notice {
+  max-width: 44rem;
+  margin: 0 auto 1rem;
+  padding: .65rem .9rem;
+  color: #5e4b26;
+  background: #fff4d6;
+  border: 1px solid #e7d09a;
+  border-radius: .7rem;
+}
+
+.walk-offline-notice--map { position: fixed; z-index: 10; top: 12px; left: 76px; right: 100px; font-size: 13px; }
+
+@media (max-width: 640px) {
+  .walk-library-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .walk-primary {
+    width: 100%;
+  }
+}

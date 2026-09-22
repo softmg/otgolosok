@@ -100,3 +100,19 @@ Responses have `{ "error": { "code": "WALK_INVALID", "message": "..." } }`, with
 | 503 | `WALK_UNAVAILABLE` | Router unset, routing failure, malformed geometry, or routing deadline exceeded |
 
 Run mocked backend tests with Node 24 or newer: `node --test backend/*.test.mjs`. Tests make no live routing, discovery, or generation requests.
+
+## Универсальный документ прогулки
+
+Результат планировщика является только маршрутом. Для `/walk` он преобразуется в
+`WalkDocument` версии 2 со стабильными ID остановок; текст и аудио присоединяются
+позже через `storyRef`, а не копируются в черновик без проверки. Клиентский
+`WalkView` содержит только разрешённый текст, HTTPS-источники и проверенное аудио.
+Сервер заново проверяет документ при сохранении и не принимает присланный
+`stage` как доказательство готовности.
+
+Локальные документы хранятся коллекцией в `otgolosok:walks:v2`; старый
+`otgolosok:walk:v1` мигрируется идемпотентно и сохраняется как исходная копия.
+Аккаунтные методы, общий доступ, повторы GET и офлайн-ограничения описаны в
+[`docs/agents/walks.md`](../docs/agents/walks.md). Офлайн-кеш не заменяет
+серверную публикацию: 401/404 и отозванная ссылка не открываются из устаревшей
+копии.

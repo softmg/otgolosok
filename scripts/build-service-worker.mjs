@@ -1,11 +1,9 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
+import { selectPrecacheFiles, precacheUrl } from "./service-worker-manifest.mjs";
 
 const output = new URL("../out/", import.meta.url);
-const files = (await readdir(output, { recursive: true })).filter((file) =>
-  ["index.html", "create.html", "login.html", "account.html", "icon.svg", "favicon.ico", "manifest.webmanifest"].includes(file) ||
-  /^(?:_next\/static|data|audio)\/.+\.[^/]+$/.test(file),
-).sort();
+const files = selectPrecacheFiles(await readdir(output, { recursive: true }));
 const template = await readFile(new URL("../public/sw.js", import.meta.url), "utf8");
 const hash = createHash("sha256").update(template);
 
@@ -15,7 +13,7 @@ for (const file of files) {
 
 const manifest = {
   version: hash.digest("hex").slice(0, 16),
-  assets: files.map((file) => file === "index.html" ? "/" : ["create.html","login.html","account.html"].includes(file) ? `/${file.slice(0,-5)}` : `/${file}`),
+  assets: files.map(precacheUrl),
 };
 
 await writeFile(

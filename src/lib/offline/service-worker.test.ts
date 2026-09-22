@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const script = readFileSync(new URL("../../../public/sw.js", import.meta.url), "utf8");
 const origin = "https://otgolosok.test";
-const assets = ["/", "/create", "/_next/static/app.js", "/_next/static/app.css", "/_next/static/font.woff2", "/audio/story.wav"];
+const assets = ["/", "/create", "/walk", "/_next/static/app.js", "/_next/static/app.css", "/_next/static/font.woff2", "/audio/story.wav"];
 
 function setup() {
   const handlers: Record<string, (event: unknown) => void> = {};
@@ -72,6 +72,15 @@ describe("offline service worker", () => {
     expect(await response?.text()).toBe("cord");
     expect(fetch).not.toHaveBeenCalled();
   });
+  it("serves a bundled walk recording stored by a partial user package", async () => {
+    const { walkEntries, request, fetch } = setup();
+    const path = "/audio/walk/recording.mp3";
+    walkEntries.set(path, new Response("recording", { headers: { "Content-Type": "audio/mpeg" } }));
+    const response = await request(path, { headers: { Range: "bytes=1-3" } });
+    expect(response?.status).toBe(206);
+    expect(await response?.text()).toBe("eco");
+    expect(fetch).not.toHaveBeenCalled();
+  });
   it("installs scripts, styles and fonts before becoming ready", async () => {
     const { cache, lifecycle, skipWaiting } = setup();
     await lifecycle("install");
@@ -131,10 +140,10 @@ describe("offline service worker", () => {
 
   it("serves the full shell and query-string navigation without a network", async () => {
     const { request, fetch } = setup();
-    for (const path of ["/?replay=clean", ...assets.slice(1)]) {
+    for (const path of ["/?replay=clean", "/walk?catalog=paveletskaya", "/walk.html?catalog=paveletskaya", "/walk/", ...assets.slice(1)]) {
       const response = await request(path);
       expect(response?.status).toBe(200);
-      expect(await response?.text()).toBe(new URL(path, origin).pathname);
+      expect(await response?.text()).toBe(path.startsWith("/walk") ? "/walk" : new URL(path, origin).pathname);
     }
     expect(fetch).not.toHaveBeenCalled();
   });

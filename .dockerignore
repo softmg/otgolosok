@@ -9,6 +9,7 @@
 !public/data/**
 backend/*
 !backend/builtin-routes.mjs
+!backend/walk-document.mjs
 **/coverage
 **/*.tsbuildinfo
 **/*.log

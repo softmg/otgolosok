@@ -40,6 +40,9 @@ self.addEventListener("message", (event) => {
 async function cachedResponse(request, path) {
   const cache = await caches.open(CACHE_VERSION);
   let cached = await cache.match(path);
+  if (!cached && path.startsWith("/audio/")) {
+    cached = await (await caches.open(WALK_CACHE)).match(path);
+  }
   if (!cached && /^\/(?:_next\/static|audio)\//.test(path)) {
     const keys = (await caches.keys()).filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_VERSION);
     for (const key of keys.reverse()) {
@@ -97,7 +100,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (request.headers.has("authorization") || /^\/admin(?:\/|\.|$)/.test(url.pathname) || url.pathname.startsWith("/api/story-admin")) return;
-  const path = url.pathname === "/index.html" ? "/" : ["/create.html","/create/"].includes(url.pathname) ? "/create" : url.pathname;
+  const path = url.pathname === "/index.html" ? "/" : ["/create.html","/create/"].includes(url.pathname) ? "/create" : ["/walk.html","/walk/"].includes(url.pathname) ? "/walk" : ["/history.html","/history/"].includes(url.pathname) ? "/history" : url.pathname;
   if (path.startsWith("/api/auth/") || path === "/api/me" || path.startsWith("/api/me/")) return;
   if (/^\/api\/story-(?:jobs\/[a-f0-9-]{36}|audio\/[a-f0-9]{64}\.mp3)$/.test(path)) {
     event.respondWith(savedStoryResponse(request,path,path.startsWith("/api/story-audio/")));

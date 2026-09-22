@@ -100,6 +100,17 @@ test("invalid worker audio uses 413 and 422 result statuses",async t=>{
   }
 });
 
+test("a rejected worker upload never deletes an existing shared artifact",async t=>{
+  const hash="b".repeat(64),artifact={url:`/api/story-audio/${hash}.mp3`,sha256:hash,bytes:9,durationSec:60,model:"external",voice:"external",provider:"external",synthetic:true};
+  const f=await fixture(t,{workerToken:"worker-secret",audioIngest:async(req,directory,options)=>{for await(const chunk of req){void chunk;}assert.equal(options.expectedUploadSha256,"a".repeat(64));return{uploadSha256:"c".repeat(64),artifact};}});
+  await writeFile(join(f.directory,`${hash}.mp3`),"published");
+  const story={title:"Дом",address:"Москва, дом 1",paragraphs:[{text:("История дома. ").repeat(40),factIds:["f1"]},{text:("Архитектура дома. ").repeat(40),factIds:["f2"]}]};
+  const source=f.store.createOrGet({key:"shared-artifact",address:story.address}),ready=f.store.update(source.id,{stage:"failed",data:{story}},source.revision);await f.store.enqueueExternalAudio({sourceJobId:ready.id,sourceRevision:ready.revision,story});
+  const headers={Authorization:"Bearer worker-secret","X-Worker-Id":"gpu-shared","Content-Type":"application/json"},claim=await fetch(f.base+"/api/worker/v1/claim",{method:"POST",headers,body:JSON.stringify({requestId:"shared-artifact-request",profileIds:["silero-ru-v1"]})}).then(value=>value.json());
+  const response=await fetch(`${f.base}/api/worker/v1/jobs/${claim.job.id}/result`,{method:"PUT",headers:{...headers,"X-Lease-Token":claim.job.leaseToken,"X-Lease-Generation":String(claim.job.leaseGeneration),"X-Upload-Id":"shared-upload","X-Content-SHA256":"a".repeat(64),"Content-Type":"audio/wav"},body:"wave"});
+  assert.equal(response.status,422);assert.equal(await (await import("node:fs/promises")).readFile(join(f.directory,`${hash}.mp3`),"utf8"),"published");
+});
+
 test("OSM text stays private until approval and approved audio attaches to the place",async(t)=>{
   const artifact={url:`/api/story-audio/${"c".repeat(64)}.mp3`,sha256:"c".repeat(64),bytes:100,durationSec:60,model:"external",voice:"xenia",provider:"external",synthetic:true};
   const f=await fixture(t,{workerToken:"worker-secret",audioIngest:async req=>{for await(const chunk of req){void chunk;}return{uploadSha256:"d".repeat(64),artifact};}});

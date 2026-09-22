@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BrandMark } from "../brand/brand-mark";
 import { WalkAdmin } from "./walk-admin";
 import { ContentAdmin } from "./content-admin";
 import { draftCheck, initialDraft, safeSourceLink, stages, type AdminApi, type Draft, type Job, type Summary, type TtsProvider } from "./model";
@@ -278,7 +279,7 @@ export function AdminDesk() {
       <header className="admin-masthead">
         {/* A document navigation invokes beforeunload and destroys the in-memory session. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a className="admin-wordmark" href="/" aria-disabled={Boolean(busy)} onClick={event => { if (request.current) event.preventDefault(); }}>отголосок<span>.</span></a>
+        <a className="admin-wordmark" href="/" aria-disabled={Boolean(busy)} onClick={event => { if (request.current) event.preventDefault(); }}><BrandMark /></a>
         <span className="admin-context">Редакционный кабинет</span>
         {authenticated && <button disabled={Boolean(busy)} onClick={() => {
           if (!request.current && consent()) { void signOut().finally(()=>{clearAccess();setError("");window.history.replaceState(window.history.state,"","/admin");}); }

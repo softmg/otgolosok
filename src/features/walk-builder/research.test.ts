@@ -82,7 +82,7 @@ describe("walk requests", () => {
   });
   it("preserves error codes for CTA gating, missing recovery and unavailable providers", async () => {
     for (const [status, code] of [[422, "WALK_STOPS_NOT_FOUND"], [404, "NOT_FOUND"], [503, "RESEARCH_UNAVAILABLE"]] as const) {
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { code, message: "Unavailable" } }), { status })));
+      vi.stubGlobal("fetch", vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ error: { code, message: "Unavailable" } }), { status }))));
       const result = request("/api/walk-plan", new AbortController().signal);
       await expect(result).rejects.toMatchObject({ code, status });
       await expect(result).rejects.toBeInstanceOf(status < 500 ? RejectedRequest : RequestError);

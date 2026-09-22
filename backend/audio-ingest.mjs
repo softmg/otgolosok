@@ -10,7 +10,7 @@ import { failure, sha256 } from "./domain.mjs";
 const exec=promisify(execFile);
 let activeUploads=0;
 
-export async function ingestAudio(req,directory,{maximumBytes=64*1024*1024,timeoutMs=300000,signal,maximumConcurrent=2,minimumFreeBytes=128*1024*1024,execImpl=exec,statfsImpl=statfs}={}) {
+export async function ingestAudio(req,directory,{maximumBytes=64*1024*1024,timeoutMs=300000,signal,maximumConcurrent=2,minimumFreeBytes=128*1024*1024,expectedUploadSha256,execImpl=exec,statfsImpl=statfs}={}) {
   if(activeUploads>=maximumConcurrent)throw failure("UPLOAD_BUSY");activeUploads++;
   const nonce=`${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const source=join(directory,`.upload-${nonce}`),output=join(directory,`.encoded-${nonce}.mp3`);
@@ -27,6 +27,7 @@ export async function ingestAudio(req,directory,{maximumBytes=64*1024*1024,timeo
     await pipeline(req,createWriteStream(source,{mode:0o600}),{signal:deadline});
     if(!size)throw failure("BAD_AUDIO");
     const uploadSha256=hash.digest("hex");
+    if(expectedUploadSha256!==undefined&&(!/^[a-f0-9]{64}$/.test(expectedUploadSha256)||uploadSha256!==expectedUploadSha256))throw failure("AUDIO_CHECKSUM");
     await execImpl("ffmpeg",["-v","error","-nostdin","-y","-protocol_whitelist","file,pipe","-i",source,
       "-af","loudnorm=I=-16:TP=-1.5:LRA=11","-ac","1","-ar","24000","-b:a","64k","-map_metadata","-1",output],
       {timeout:120000,signal:deadline,maxBuffer:16000});

@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run && node --test backend/*.test.mjs",
     "generator:dev": "STATIC_DIR=out node backend/server.mjs",
-    "auth:set-editor": "node scripts/set-editor.mjs"
+    "auth:set-editor": "node scripts/set-editor.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@softmg/airouter-logs": "file:vendor/softmg-airouter-logs-0.1.0.tgz",
@@ -27,6 +28,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^24.13.3",
     "@types/react": "^19",

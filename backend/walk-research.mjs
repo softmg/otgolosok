@@ -15,18 +15,20 @@ export function validateRecoveryToken(token) {
 }
 
 export function validateWalkResearch(input, lookup = false) {
-  if (!keys(input, lookup ? ['start', 'mode', 'minutes'] : ['start', 'mode', 'minutes', 'consent', 'recoveryToken']) || (!lookup && input.consent !== true)
+  if (!keys(input, lookup ? ['start', 'mode', 'minutes', 'destination'] : ['start', 'mode', 'minutes', 'destination', 'consent', 'recoveryToken']) || (!lookup && input.consent !== true)
     || !['loop', 'open'].includes(input.mode) || ![30, 60, 90].includes(input.minutes)
     || !keys(input.start, ['address', 'location']) || !inBox(input.start.location)
     || (!lookup && !clean(input.start.address, 240))) throw failure('BAD_REQUEST');
+  if (input.destination != null && (input.mode !== 'open' || !keys(input.destination,['address','location']) || !inBox(input.destination.location) || (!lookup && !clean(input.destination.address,240)) || distance(input.start.location,input.destination.location)<25)) throw failure('BAD_REQUEST');
+  const destination = input.destination ? { address: 'Финиш прогулки', location: {lat:Number(input.destination.location.lat.toFixed(6)),lon:Number(input.destination.location.lon.toFixed(6))} } : null;
   const { lat, lon } = input.start.location;
   if (!lookup) validateRecoveryToken(input.recoveryToken);
-  return { start: { address: 'Начало прогулки', location: { lat: Number(lat.toFixed(6)), lon: Number(lon.toFixed(6)) } }, mode: input.mode, minutes: input.minutes };
+  return { start: { address: 'Начало прогулки', location: { lat: Number(lat.toFixed(6)), lon: Number(lon.toFixed(6)) } }, mode: input.mode, minutes: input.minutes, ...(destination?{destination}:{}) };
 }
 
 export function walkResearchKey(request) {
   const r = validateWalkResearch(request, true);
-  return `walk-research:v1:${sha256(JSON.stringify([r.start.location.lat, r.start.location.lon, r.mode, r.minutes]))}`;
+  return `walk-research:v1:${sha256(JSON.stringify([r.start.location.lat, r.start.location.lon, r.mode, r.minutes, ...(r.destination?[r.destination.location.lat,r.destination.location.lon]:[])]))}`;
 }
 
 export const canRetryWalk = job => job.stage === 'failed' && job.attempts < 3 && !['WALK_NOT_FOUND', 'STORY_UNAVAILABLE'].includes(job.error?.code);
@@ -78,9 +80,11 @@ export function createResearchDiscovery({ fetchImpl = fetch, endpoint = process.
         candidates.push({ place: { address, location }, provenance: { source: 'OpenStreetMap', type: e.type, id: e.id,
           url: `https://www.openstreetmap.org/${e.type}/${e.id}`, fetchedAt: new Date().toISOString(), radius } });
       }
-      candidates.sort((a, b) => distance(request.start.location, a.place.location) - distance(request.start.location, b.place.location) || a.provenance.id - b.provenance.id);
+      const cost = p => distance(request.start.location,p) + (request.destination ? distance(p,request.destination.location) : 0);
+      candidates.sort((a,b) => cost(a.place.location)-cost(b.place.location) || a.provenance.id-b.provenance.id);
       const selected = [];
       for (const c of candidates) {
+        if (request.destination && (cost(c.place.location)>request.minutes*90 || distance(c.place.location,request.destination.location)<25)) continue;
         if (!selected.some(s => addressKey(s.place.address) === addressKey(c.place.address) || distance(s.place.location, c.place.location) < 40)) selected.push(c);
         if (selected.length === 3) break;
       }
@@ -149,9 +153,9 @@ export async function runWalkResearchJob(initial, options, runAddressJob) {
         if (!c.checked || c.checkpoint?.stage === 'failed') await process(i, true);
       }
       const accepted = job.data.candidates.filter(c => c.accepted);
-      if (accepted.length < 2) throw failure('INSUFFICIENT_EVIDENCE');
+      if (!job.request.destination && accepted.length < 2) throw failure('INSUFFICIENT_EVIDENCE');
       update({ phase: 'routing' }, 'verifying');
-      const subsets = [accepted, ...(accepted.length === 3 ? [[accepted[0], accepted[1]], [accepted[0], accepted[2]], [accepted[1], accepted[2]]] : [])];
+      const subsets = [accepted, ...(accepted.length === 3 ? [[accepted[0], accepted[1]], [accepted[0], accepted[2]], [accepted[1], accepted[2]]] : []), ...(job.request.destination ? [...accepted.map(item=>[item]), []] : [])];
       for (const subset of subsets) {
         signal.throwIfAborted();
         try {

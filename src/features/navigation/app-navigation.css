@@ -1,0 +1,8 @@
+.app-navigation{z-index:1000;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:calc(78px + env(safe-area-inset-bottom));min-height:calc(78px + env(safe-area-inset-bottom));padding:7px 10px calc(7px + env(safe-area-inset-bottom));background:#fffefa;border-top:1px solid #203e3818;color:var(--map-green);box-shadow:0 -8px 28px #203e3814}
+.app-navigation button,.app-navigation>a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px;border:0;background:transparent;color:#6e796a;font-size:var(--text-meta);font-weight:700;line-height:1.1;border-radius:var(--radius-md);text-decoration:none;cursor:pointer}
+.app-navigation button svg,.app-navigation>a svg{width:22px;height:22px}
+.app-navigation [aria-current=page]{color:#203e38;background:#e7eee5}
+.app-navigation :is(button,a):focus-visible{outline:var(--focus-ring);outline-offset:-3px}
+.app-navigation--standalone{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));left:12px;height:calc(78px + env(safe-area-inset-bottom));border:1px solid #203e3818;border-radius:24px;box-shadow:0 8px 30px #203e3830}
+@media(min-width:700px){.app-navigation--standalone{right:auto;bottom:18px;left:50%;width:420px;transform:translateX(-50%);border:1px solid #203e3818;border-radius:var(--radius-lg);box-shadow:0 5px 25px #203e3812}}
+@media(orientation:landscape) and (max-height:560px) and (pointer:coarse){.app-navigation--standalone{right:12px;bottom:calc(12px + env(safe-area-inset-bottom));left:12px;width:auto;border-radius:24px;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}}

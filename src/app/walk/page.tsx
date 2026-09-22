@@ -1,5 +1,6 @@
-import { WalkBuilder } from "@/features/walk-builder/walk-builder";
+import { Suspense } from "react";
+import { WalkScreen } from "@/features/walks/walk-screen";
 
 export default function WalkPage() {
-  return <WalkBuilder />;
+  return <Suspense fallback={<main className="walk-screen"><p role="status">Открываем прогулки…</p></main>}><WalkScreen /></Suspense>;
 }

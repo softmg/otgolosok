@@ -84,6 +84,8 @@ export type WalkStep = {
     min_fixes: number;
     max_accuracy_m: number;
   };
+  // Universal walk views keep stops visible while their story is preparing.
+  status?: "not_requested" | "preparing" | "text_ready" | "ready" | "failed" | "review_required" | "insufficient_evidence" | "unavailable";
   audio?: {
     url: string;
     duration_sec: number;

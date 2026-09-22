@@ -1,0 +1,15 @@
+.app-header{display:flex;align-items:center;justify-content:space-between;gap:24px;max-width:1120px;margin:0 auto;padding:24px 0 32px;color:var(--ink)}
+.app-header a{text-decoration:none;color:inherit;display:flex;align-items:center;min-height:48px}
+.app-header>span{font-size:var(--text-secondary);color:var(--muted)}
+.ui-page{max-width:1040px;margin:auto;padding:0 28px 140px}
+.ui-page h1{font-family:var(--font-body),sans-serif;font-size:var(--text-page);line-height:1.2;letter-spacing:-.04em;margin:0 0 12px}
+.ui-page h2{font-family:var(--font-body),sans-serif;font-size:var(--text-section);margin:0 0 16px;letter-spacing:-.025em}
+.ui-page p{line-height:1.55}
+.ui-eyebrow{font-size:var(--text-meta);font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.ui-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 20px;border:1px solid transparent;border-radius:14px;background:#203e38;color:white;font:600 var(--text-control)/1.4 var(--font-body),sans-serif;cursor:pointer;text-decoration:none}
+.ui-button.secondary{background:#eef1ed;color:#203e38}.ui-button.quiet{background:transparent;color:#203e38;border-color:#d5ddd6}.ui-button.danger{background:#fff0eb;color:#982e24}
+.ui-button:disabled{opacity:.55;cursor:not-allowed}.ui-button:focus-visible,.ui-field input:focus-visible{outline:var(--focus-ring);outline-offset:3px}
+.ui-field{display:grid;gap:8px;font-size:var(--text-secondary);font-weight:650}.ui-field input{width:100%;min-height:52px;padding:12px 14px;border:1px solid #cbd4cd;border-radius:12px;background:white;color:var(--ink);font:400 var(--text-control)/1.5 var(--font-body),sans-serif}
+.ui-notice{padding:12px 16px;border-radius:12px;background:#edf2ed;color:#203e38;font-size:var(--text-secondary);overflow-wrap:anywhere}.ui-notice[role=alert]{background:#fff0eb;color:#8b3023}
+.ui-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.ui-muted{color:var(--muted);font-size:var(--text-secondary)}
+@media(max-width:600px){.ui-page{padding:0 20px 120px}.app-header{padding:16px 0 24px}.app-header>span{display:none}}

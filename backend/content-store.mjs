@@ -124,6 +124,19 @@ export function createContentStore({db,now,transaction}) {
       return {total,places:rows.slice(0,limit).map(row=>({...viewPlace(row),story:row.story_json?decode(row.story_json):null,audio:decode(row.audio_json),
         textStatus:row.story_json?"approved":Number(row.text_count)?"draft":"none",distanceM:row.distance_m==null?null:Number(row.distance_m)})),hasMore:rows.length>limit};
     },
+    listWalkCandidates({lat,lon,radius,limit=500}={}) {
+      if(!Number.isFinite(lat)||!Number.isFinite(lon)||!Number.isFinite(radius)||lat<55.05||lat>56.05||lon<36.75||lon>38.25||radius<50||radius>5000||!Number.isSafeInteger(limit)||limit<1||limit>500)throw fail("BAD_REQUEST");
+      const latDelta=radius/111320,lonDelta=radius/(111320*Math.cos(lat*Math.PI/180));
+      const distanceSql=`6371000*2*asin(min(1,sqrt(pow(sin(radians(p.lat-?)/2),2)+cos(radians(?))*cos(radians(p.lat))*pow(sin(radians(p.lon-?)/2),2))))`;
+      const rows=db.prepare(`SELECT p.id,p.name,p.address,p.lat,p.lon,
+        (SELECT approved_story_json FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) story_json,
+        (SELECT verification FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) verification,
+        (SELECT audio_json FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL AND t.audio_json IS NOT NULL AND t.audio_json<>'null' ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) audio_json,
+        ${distanceSql} distance_m FROM places p WHERE p.archived=0 AND p.lat BETWEEN ? AND ? AND p.lon BETWEEN ? AND ? AND ${distanceSql}<=?
+        ORDER BY distance_m,p.name,p.id LIMIT ?`).all(lat,lat,lon,lat-latDelta,lat+latDelta,lon-lonDelta,lon+lonDelta,lat,lat,lon,radius,limit);
+      return rows.map(row=>({id:row.id,address:(row.address??`Москва, ${row.name}`).slice(0,180),location:{lat:row.lat,lon:row.lon},
+        readiness:row.audio_json?"audio":row.story_json&&row.verification!=="test_placeholder"?"story":"none"}));
+    },
     getPlace(id) {
       const place=viewPlace(db.prepare("SELECT * FROM places WHERE id=? AND archived=0").get(id));
       if(!place)return null;

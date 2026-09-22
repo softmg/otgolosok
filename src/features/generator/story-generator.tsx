@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { BrandMark } from "../brand/brand-mark";
 import { useRouter } from "next/navigation";
 import { formatPlaybackTime } from "@/lib/audio/playback-progress";
 import { jobUrl, isStorySaved, saveStoryOffline, removeSavedStory, savedStories } from "./offline";
@@ -137,7 +138,7 @@ export function StoryGenerator() {
 
   const activeIndex=job?stages.indexOf(job.stage as typeof stages[number]):-1;
   return <main className="shell generator-shell">
-    <header className="masthead"><Link className="wordmark" href="/" prefetch={false}>Отголосок<span aria-hidden="true">.</span></Link><span><Link className="generator-home" href="/account" prefetch={false}>Кабинет</Link> · <Link className="generator-home" href="/" prefetch={false}>На карту</Link></span></header>
+    <header className="masthead"><Link className="wordmark" href="/" prefetch={false}><BrandMark /></Link><span><Link className="generator-home" href="/account" prefetch={false}>Кабинет</Link> · <Link className="generator-home" href="/" prefetch={false}>На карту</Link></span></header>
     <section className="generator-intro" aria-labelledby="generator-title">
       <h1 id="generator-title">История одного дома</h1>
       <p>Укажите адрес в Москве. Найдём источники, подготовим короткий рассказ и озвучим его. Ориентир — 5–10 минут, если материалов достаточно.</p>

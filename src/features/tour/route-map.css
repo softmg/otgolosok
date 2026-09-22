@@ -1,0 +1,19 @@
+.route-map-live {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: clamp(260px, 45svh, 440px);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--sunken);
+}
+
+.route-map-live .map-attribution {
+  bottom: 8px;
+}
+
+.route-map-live .leaflet-bottom.leaflet-right {
+  top: 12px;
+  right: 12px;
+  bottom: auto;
+}

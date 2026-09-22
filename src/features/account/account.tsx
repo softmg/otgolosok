@@ -1,21 +1,102 @@
-﻿"use client";
+"use client";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
-import { accountApi, AuthUser, getSession, signOut, signOutEverywhere } from "../auth/client";
+import { useEffect, useState, type FormEvent } from "react";
+import { AppHeader } from "../navigation/app-header";
+import { accountApi, type AuthUser, getSession, signOut, signOutEverywhere } from "../auth/client";
+import { AUTH_CHANNEL, isSignOutChannelEvent, isSignOutStorageEvent } from "../auth/session-events";
 import { savedStories } from "../generator/offline";
 import type { GenerationJob } from "../generator/types";
-import "../auth/auth.css";
+import { clearOfflineScope } from "../walks/offline";
+import { mergePage } from "./pagination";
+import "./account.css";
 
-type Walk={id:string;title:string;revision:number;updatedAt:string};
-type RequestItem={jobId:string;operation:string;createdAt:string};
-type Favorite={type:string;id:string;createdAt:string};
+type RequestItem = { jobId: string; operation: string; createdAt: string };
+type Favorite = { type: string; id: string; createdAt: string; title?: string; href?: string | null };
+type Section = "requests" | "favorites";
+export function Account() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [offline, setOffline] = useState<GenerationJob[]>([]);
+  const [name, setName] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [cursors, setCursors] = useState<Record<Section, string | null>>({ requests: null, favorites: null });
+  const [attempt, setAttempt] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"logout" | "all" | "delete" | null>(null);
+  const [password, setPassword] = useState("");
 
-export function Account(){
-  const[user,setUser]=useState<AuthUser|null>(null),[walks,setWalks]=useState<Walk[]>([]),[requests,setRequests]=useState<RequestItem[]>([]),[favorites,setFavorites]=useState<Favorite[]>([]),[offlineStories,setOfflineStories]=useState<GenerationJob[]>([]),[name,setName]=useState(""),[error,setError]=useState("");
-  useEffect(()=>{let active=true;const signedOut=()=>location.replace("/login?returnTo=/account");let channel:BroadcastChannel|undefined;try{channel=new BroadcastChannel("otgolosok:auth");channel.addEventListener("message",signedOut);}catch{/* Browser storage event remains available. */}addEventListener("storage",signedOut);void(async()=>{try{const current=await getSession();if(!current){signedOut();return;}const[data,requestData,favoriteData,savedData]=await Promise.all([accountApi("/api/me/walks"),accountApi("/api/me/requests"),accountApi("/api/me/favorites"),savedStories().catch(()=>[])]);if(active){setUser(current);setName(current.name);setWalks(data.walks);setRequests(requestData.requests);setFavorites(favoriteData.favorites);setOfflineStories(savedData);}}catch(e){if(active)setError(e instanceof Error?e.message:"Ошибка");}})();return()=>{active=false;channel?.close();removeEventListener("storage",signedOut);};},[]);
-  async function save(e:FormEvent){e.preventDefault();try{const data=await accountApi("/api/me",{method:"PATCH",body:JSON.stringify({name})});setUser(data.user);}catch(e){setError(e instanceof Error?e.message:"Ошибка");}}
-  async function importDraft(){try{const raw=localStorage.getItem("otgolosok:walk:v1");if(!raw)throw new Error("На этом устройстве нет локального черновика.");const draft=JSON.parse(raw);if(!confirm(`Перенести локальную прогулку «${draft.title||"Моя прогулка"}»? Локальная копия останется на устройстве.`))return;const key="otgolosok:account:pending-import",importId=localStorage.getItem(key)||crypto.randomUUID();localStorage.setItem(key,importId);const data=await accountApi("/api/me/import",{method:"POST",body:JSON.stringify({importId,walk:{title:draft.title||"Моя прогулка",snapshot:draft}})});localStorage.removeItem(key);setWalks(current=>[data.result.walk,...current.filter(w=>w.id!==data.result.walk.id)]);}catch(e){setError(e instanceof Error?e.message:"Ошибка импорта");}}
-  async function logout(all=false){try{await(all?signOutEverywhere():signOut());}catch(e){setError(e instanceof Error?e.message:"Вы вышли локально.");}finally{localStorage.removeItem("otgolosok:account:last");location.replace("/");}}
-  async function removeAccount(){if(!confirm("Удалить аккаунт, прогулки и избранное без возможности восстановления?"))return;const password=prompt("Для подтверждения введите текущий пароль:");if(!password)return;try{await accountApi("/api/me",{method:"DELETE",body:JSON.stringify({password})});location.replace("/");}catch(e){setError(e instanceof Error?e.message:"Не удалось удалить аккаунт.");}}
-  return <main className="account-shell"><header><Link href="/" className="wordmark">Отголосок<span>.</span></Link></header><section className="account-panel"><p className="kicker">Личный кабинет</p><h1>{user?.name??"Загрузка…"}</h1>{error&&<p role="alert" className="form-error">{error}</p>}{user&&<><p>{user.email}</p><form onSubmit={save}><label>Имя<input value={name} onChange={e=>setName(e.target.value)} maxLength={80}/></label><button className="account-button">Сохранить профиль</button></form><h2>Мои прогулки</h2>{walks.length?<ul className="account-list">{walks.map(w=><li className="account-item" key={w.id}><Link href={`/walk?id=${w.id}`}><strong>{w.title}</strong></Link><br/><small>{new Date(w.updatedAt).toLocaleString("ru")}</small></li>)}</ul>:<p>Пока нет сохранённых прогулок.</p>}<h2>Сохранено на устройстве</h2>{offlineStories.length?<ul className="account-list">{offlineStories.map(item=><li className="account-item" key={item.id}><Link href={`/create?job=${item.id}`}><strong>{item.story?.title||"Сохранённая история"}</strong></Link><br/><small>{item.address} · доступно без сети</small></li>)}</ul>:<p>Пока нет историй для прослушивания без сети.</p>}<p className="account-note">Откройте готовую историю и выберите «Сохранить для прогулки без сети». Четыре записи первой прогулки сохраняются автоматически.</p><h2>Запросы</h2>{requests.length?<ul className="account-list">{requests.map(item=><li className="account-item" key={`${item.jobId}:${item.createdAt}`}><Link href={`/create?job=${item.jobId}`}>{item.operation==="walk_research"?"Исследование прогулки":"История"}</Link><br/><small>{new Date(item.createdAt).toLocaleString("ru")}</small></li>)}</ul>:<p>Запросов пока нет.</p>}<h2>Избранное</h2>{favorites.length?<ul className="account-list">{favorites.map(item=><li className="account-item" key={`${item.type}:${item.id}`}>{item.type}: {item.id}</li>)}</ul>:<p>Избранного пока нет.</p>}<div className="account-actions"><Link href="/walk" className="account-button">Собрать прогулку</Link><button className="text-button" onClick={()=>void importDraft()}>Импортировать черновик с устройства</button><button className="text-button" onClick={()=>logout()}>Выйти</button><button className="text-button" onClick={()=>logout(true)}>Выйти везде</button><button className="text-button" onClick={()=>void removeAccount()}>Удалить аккаунт</button></div></>}</section></main>;
+  useEffect(() => {
+    let active = true;
+    const signedOut = () => location.replace("/login?returnTo=/account");
+    const onStorage = (event: StorageEvent) => { if (isSignOutStorageEvent(event)) signedOut(); };
+    const onMessage = (event: MessageEvent) => { if (isSignOutChannelEvent(event)) signedOut(); };
+    let channel: BroadcastChannel | undefined;
+    try { channel = new BroadcastChannel(AUTH_CHANNEL); channel.addEventListener("message", onMessage); } catch { /* Storage fallback. */ }
+    addEventListener("storage", onStorage);
+    const fail = (key: string, caught: unknown) => { if (active) setErrors(current => ({ ...current, [key]: caught instanceof Error ? caught.message : "Не удалось загрузить раздел." })); };
+    void (async () => {
+      try {
+        const current = await getSession();
+        if (!active) return;
+        if (!current) { signedOut(); return; }
+        setUser(current); setName(current.name); setLoaded(true);
+        await Promise.all([
+          accountApi("/api/me/requests").then(data => { if (active) { setRequests(data.requests); setCursors(v => ({ ...v, requests: data.nextCursor ?? null })); } }).catch(e => fail("requests", e)),
+          accountApi("/api/me/favorites").then(data => { if (active) { setFavorites(data.favorites); setCursors(v => ({ ...v, favorites: data.nextCursor ?? null })); } }).catch(e => fail("favorites", e)),
+          savedStories().then(data => { if (active) setOffline(data); }).catch(e => fail("offline", e)),
+        ]);
+      } catch (caught) { fail("profile", caught); if (active) setLoaded(true); }
+    })();
+    return () => { active = false; channel?.close(); removeEventListener("storage", onStorage); };
+  }, [attempt]);
+
+  async function loadMore(kind: Section) {
+    const cursor = cursors[kind]; if (!cursor || busy) return; setBusy(kind);
+    try {
+      const data = await accountApi(`/api/me/${kind}?cursor=${encodeURIComponent(cursor)}`);
+      if (kind === "requests") setRequests(current => mergePage(current, data.requests, (item: RequestItem) => `${item.jobId}:${item.createdAt}`));
+      else setFavorites(current => mergePage(current, data.favorites, (item: Favorite) => `${item.type}:${item.id}`));
+      setCursors(current => ({ ...current, [kind]: data.nextCursor ?? null }));
+    } catch (caught) { setErrors(current => ({ ...current, [kind]: caught instanceof Error ? caught.message : "Не удалось загрузить следующую страницу." })); }
+    finally { setBusy(null); }
+  }
+  async function save(event: FormEvent) {
+    event.preventDefault(); if (busy) return; setBusy("profile"); setNotice("");
+    try { const data = await accountApi("/api/me", { method: "PATCH", body: JSON.stringify({ name: name.trim() }) }); setUser(data.user); setName(data.user.name); setNotice("Имя сохранено."); setEditing(false); }
+    catch (caught) { setErrors(current => ({ ...current, profile: caught instanceof Error ? caught.message : "Не удалось сохранить имя." })); }
+    finally { setBusy(null); }
+  }
+  async function confirm(event: FormEvent) {
+    event.preventDefault(); if (!confirmAction || busy) return; setBusy("settings");
+    try {
+      if (confirmAction === "delete") await accountApi("/api/me", { method: "DELETE", body: JSON.stringify({ password }) });
+      else {
+        if (user) await clearOfflineScope(user.id);
+        await (confirmAction === "all" ? signOutEverywhere() : signOut());
+      }
+      if (user && confirmAction === "delete") await clearOfflineScope(user.id);
+      setPassword(""); location.replace("/");
+    } catch (caught) { setErrors(current => ({ ...current, settings: caught instanceof Error ? caught.message : "Не удалось выполнить действие." })); }
+    finally { setBusy(null); setPassword(""); }
+  }
+  const more = (kind: Section) => cursors[kind] && <button className="ui-button secondary" disabled={busy !== null} onClick={() => void loadMore(kind)}>Показать ещё</button>;
+  return <main className="ui-page profile-page"><AppHeader />
+    {Object.entries(errors).map(([key, text]) => <p key={key} role="alert" className="ui-notice">{text} <button className="profile-link" onClick={() => { setErrors({}); setAttempt(v => v + 1); }}>Повторить загрузку</button></p>)}
+    {!loaded && <p role="status">Открываем профиль…</p>}
+    {user && <>
+      <header className="profile-hero"><div className="profile-avatar" aria-hidden="true">{user.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toLocaleUpperCase("ru")}</div><div className="profile-identity"><h1>{user.name}</h1><p>{user.email}</p></div><button type="button" className="profile-edit" aria-label="Редактировать профиль" aria-expanded={editing} aria-controls="profile-edit-form" disabled={busy !== null} onClick={() => { setName(user.name); setEditing(value => !value); setNotice(""); }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m16 3 5 5M4 20l5-1L21 7a2 2 0 0 0-4-4L5 15z" /></svg></button></header>
+      {editing && <form id="profile-edit-form" className="profile-edit-form" onSubmit={save}><label className="ui-field">Ваше имя<input autoFocus value={name} onChange={e => setName(e.target.value)} required maxLength={80} autoComplete="name" disabled={busy !== null} /></label><div className="ui-row"><button className="ui-button" disabled={busy !== null || !name.trim() || name.trim() === user.name}>Сохранить изменения</button><button type="button" className="ui-button quiet" disabled={busy !== null} onClick={() => { setEditing(false); setName(user.name); }}>Отменить</button></div></form>}
+      {notice && <p className="ui-notice" role="status">{notice}</p>}
+      <Link className="profile-history" href="/history"><span className="profile-icon" aria-hidden="true">↗</span><span><strong>Мои прогулки</strong><small>Сохранённые маршруты и черновики</small></span><span aria-hidden="true">→</span></Link>
+      <div className="profile-columns">
+      <section className="profile-section"><h2>Сохранённое</h2><details><summary>Избранное <span>{favorites.length || ""}</span></summary>{favorites.length ? <ul className="profile-list">{favorites.map(item => <li key={`${item.type}:${item.id}`}>{item.href && /^\/(?:walk|create)\?/.test(item.href) ? <Link href={item.href}>{item.title || "Сохранённый материал"}</Link> : <span>Материал недоступен</span>}</li>)}</ul> : <p className="ui-muted">Здесь появятся любимые истории и прогулки.</p>}{more("favorites")}</details><details><summary>Доступно без сети <span>{offline.length || ""}</span></summary>{offline.length ? <ul className="profile-list">{offline.map(item => <li key={item.id}><Link href={`/create?job=${item.id}`}>{item.story?.title || "Сохранённая история"}</Link><small>{item.address}</small></li>)}</ul> : <p className="ui-muted">Откройте прогулку и сохраните готовые записи для прослушивания без интернета.</p>}</details><details><summary>Подготовка историй</summary>{requests.length ? <ul className="profile-list">{requests.map(item => <li key={`${item.jobId}:${item.createdAt}`}><Link href={item.operation === "walk_research" ? "/?walk=create&resume=1" : `/create?job=${item.jobId}`}>{item.operation === "walk_research" ? "Исследование прогулки" : "История места"}</Link><small>{new Date(item.createdAt).toLocaleString("ru-RU")}</small></li>)}</ul> : <p className="ui-muted">Вы ещё не заказывали истории.</p>}{more("requests")}</details></section></div>
+      <section className="profile-section profile-settings"><h2>Настройки аккаунта</h2><div className="ui-row"><button className="ui-button quiet" onClick={() => setConfirmAction("logout")}>Выйти</button><button className="ui-button quiet" onClick={() => setConfirmAction("all")}>Выйти на всех устройствах</button><button className="profile-link profile-danger" onClick={() => setConfirmAction("delete")}>Удалить аккаунт</button></div>
+      {confirmAction && <form className="profile-confirm" onSubmit={confirm}><h3>{confirmAction === "delete" ? "Удалить аккаунт навсегда?" : "Подтвердите выход"}</h3><p>{confirmAction === "delete" ? "Прогулки в аккаунте и избранное будут удалены без возможности восстановления. Локальные черновики останутся." : "Приватные материалы для прослушивания без сети будут удалены с этого устройства. Прогулки в аккаунте сохранятся."}</p>{confirmAction === "delete" && <label className="ui-field">Текущий пароль<input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required maxLength={128} /></label>}<div className="ui-row"><button className="ui-button danger" disabled={busy !== null}>{confirmAction === "delete" ? "Удалить навсегда" : "Подтвердить выход"}</button><button type="button" className="ui-button secondary" disabled={busy !== null} onClick={() => { setConfirmAction(null); setPassword(""); }}>Отмена</button></div></form>}
+      </section>
+    </>}
+  </main>;
 }

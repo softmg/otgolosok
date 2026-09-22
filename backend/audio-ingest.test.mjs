@@ -28,6 +28,15 @@ test("audio ingestion rejects size, type, corrupt probe and overlong output",asy
   await assert.rejects(ingestAudio(request(Buffer.from("wav")),directory,{execImpl}),{code:"AUDIO_DURATION"});
 });
 
+test("audio ingestion checks the upload checksum before publishing shared audio",async t=>{
+  const directory=await mkdtemp(join(tmpdir(),"audio-ingest-checksum-"));t.after(()=>rm(directory,{recursive:true,force:true}));
+  const existing=join(directory,`${"b".repeat(64)}.mp3`);await writeFile(existing,"published");let ffmpegCalled=false;
+  const execImpl=async()=>{ffmpegCalled=true;throw new Error("must not encode a rejected upload");};
+  await assert.rejects(ingestAudio(request(Buffer.from("wrong upload")),directory,{expectedUploadSha256:"a".repeat(64),execImpl}),{code:"AUDIO_CHECKSUM"});
+  assert.equal(ffmpegCalled,false);assert.deepEqual(await readFile(existing),Buffer.from("published"));
+  assert.deepEqual((await (await import("node:fs/promises")).readdir(directory)).sort(),[`${"b".repeat(64)}.mp3`]);
+});
+
 test("audio ingestion bounds concurrent uploads",async t=>{
   const directory=await mkdtemp(join(tmpdir(),"audio-ingest-busy-"));t.after(()=>rm(directory,{recursive:true,force:true}));let release;
   const waiting=new Promise(resolve=>{release=resolve;});const execImpl=async(command,args)=>{if(command==="ffmpeg"){await waiting;await writeFile(args.at(-1),"x");return{stdout:""};}return{stdout:JSON.stringify({format:{duration:"10"}})};};

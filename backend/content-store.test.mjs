@@ -67,6 +67,7 @@ test("catalog nearby query returns approved cards ordered by distance",t=>{
   const batch=store.createBatch({requestKey:"nearby-query",placeIds:["osm:node:1"],limit:1});const job=store.claimContentJob();const story={title:"Готовая история",paragraphs:[{text:"Проверенный текст",factIds:["f1"]}]};
   store.completeContentJob(job.id,{story,evidence:{}});store.approvePlaceText("osm:node:1");
   const nearby=store.listPlaces({status:"ready",lat:55.7501,lon:37.6101,radius:1000});assert.equal(nearby.places[0].id,"osm:node:1");assert.ok(nearby.places[0].distanceM<20);
+  assert.deepEqual(store.listWalkCandidates({lat:55.75,lon:37.61,radius:2000}).map(item=>[item.id,item.readiness]),[["osm:node:1","story"],["osm:way:2","none"]]);
   assert.equal(store.listPlaces({status:"ready",lat:55.9,lon:37.9,radius:100}).places.length,0);assert.equal(store.getBatch(batch.id).counts.ready,1);
 });
 

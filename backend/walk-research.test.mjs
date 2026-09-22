@@ -12,6 +12,17 @@ import { createResearchDiscovery, publicWalkResearch, validateWalkResearch, walk
 const input = { start: { address: 'Москва, Стартовая улица, 1', location: { lat: 55.75, lon: 37.61 } }, mode: 'loop', minutes: 30, consent: true, recoveryToken: '12345678-1234-4234-8234-123456789abc' };
 const candidates = Array.from({ length: 3 }, (_, i) => ({ place: { address: `Москва, Тестовая улица, ${i+2}`, location: { lat: 55.752+i*.001, lon: 37.61 } }, provenance: { source: 'OpenStreetMap', type: 'way', id: i+1 } }));
 
+test('destination participates in research identity and survives normalized requests', () => {
+  const destination={address:'Москва, Финишная улица, 2',location:{lat:55.755,lon:37.61}};
+  const request={...input,mode:'open',destination};
+  const normalized=validateWalkResearch(request);
+  assert.deepEqual(normalized.destination.location,destination.location);
+  assert.notEqual(walkResearchKey(normalized),walkResearchKey({...normalized,destination:undefined}));
+  assert.notEqual(walkResearchKey(normalized),walkResearchKey({...normalized,destination:{...destination,location:{...destination.location,lat:55.756}}}));
+  assert.throws(()=>validateWalkResearch({...request,mode:'loop'}));
+  assert.throws(()=>validateWalkResearch({...request,destination:input.start}));
+});
+
 function fixture(t, config = {}) {
   const store = createStore(':memory:', { maxDaily: 60, ...config });
   t.after(() => store.close());

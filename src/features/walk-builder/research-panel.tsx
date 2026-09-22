@@ -72,7 +72,7 @@ export function ResearchPanel({ draft, current, persist, offered, disabled, choo
     const controller = new AbortController(); actionRef.current = controller;
     setBusy(retry ? "Продолжаем исследование…" : "Отправляем исследование…"); setError("");
     try {
-      const snapshot = { start: latest.start!, mode: latest.mode, minutes: latest.minutes };
+      const snapshot = { start: latest.start!, ...(latest.destination ? {destination:latest.destination} : {}), mode: latest.mode, minutes: latest.minutes };
       const expected: ResearchRef = retry ? latest.research! : { request: snapshot, stops: latest.stops, id: null, recoveryToken: latest.research && researchKey(latest.research.request) === researchKey(snapshot) ? latest.research.recoveryToken : crypto.randomUUID() };
       // The synchronous storage comparison also rejects stale tabs before any POST.
       if (!persist({ ...latest, research: expected })) return;
@@ -110,8 +110,7 @@ export function ResearchPanel({ draft, current, persist, offered, disabled, choo
       setRestore(n => n + 1);
     }}>Проверить статус</button> : null}
     {error ? <p className="walk-warning" role="alert">{error}</p> : null}
-    {ref?.id ? <p className="walk-muted">ID исследования: {ref.id}</p> : null}
-    {ref ? <p className="walk-muted">Если черновик сохранён, можно уйти и вернуться к «Моей прогулке» в этом браузере. При ошибке сохранения скачайте черновик с ID перед уходом. Проверка статуса не запускает новую работу. Уже принятая сервером задача продолжается, даже когда страница закрыта.</p> : null}
+    {ref ? <details className="creation-details"><summary>Как продолжить позже</summary><p>Исследование продолжается после закрытия страницы. Вернитесь к прогулке из истории в этом браузере. Если сохранить черновик не удалось, скачайте его перед уходом.</p>{ref.id && <p className="walk-muted">ID исследования: {ref.id}</p>}</details> : null}
     {ref && !matches && !draft.researchApplied ? <p>Параметры или остановки изменены. Сохранённое исследование остаётся доступно, но его маршрут нельзя применить к этой версии прогулки.</p> : null}
     {canStart || visibleJob?.canRetry ? <>
       <p>Проверим не более 3 адресов поблизости. Подтверждений может не хватить, и прогулка не гарантирована. Время подготовки заранее неизвестно. Исследование и повтор расходуют общий лимит сервиса.</p>

@@ -1,6 +1,6 @@
 import { createServer as httpServer } from "node:http";
 import { createReadStream } from "node:fs";
-import { rm, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { resolve, join, extname, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createStore } from "./store.mjs";
@@ -12,12 +12,16 @@ import { safeError, startWorker } from "./pipeline.mjs";
 import { createPlaceResolver } from "./places.mjs";
 import { createWalkPlanner } from "./walks.mjs";
 import { adminAuth, adminDetail, adminSummary } from "./admin.mjs";
-import { validateWalkResearch, publicWalkResearch } from "./walk-research.mjs";
+import { validateWalkResearch, publicWalkResearch, walkResearchKey } from "./walk-research.mjs";
 import { createBackendLogger } from "./logs.mjs";
 import { ingestAudio } from "./audio-ingest.mjs";
 import { startContentWorker } from "./content-pipeline.mjs";
 import { createAuth, authRequestHandler, authSession, sessionCsrfToken, validSessionCsrf, verifySessionPassword } from "./auth.mjs";
+import { favoriteSummary } from "./favorite-summary.mjs";
 import { createAccountStore } from "./account-store.mjs";
+import { resolveWalkView } from "./walk-view.mjs";
+import { builtinRoutes } from "./builtin-routes.mjs";
+import { catalogWalkView } from "./walk-catalog.mjs";
 import { normalizeForSpeech } from "./text-normalizer.mjs";
 import { loadLocalTtsConfig } from "./local-tts.mjs";
 import { createTtsApiClient } from "./tts-api-client.mjs";
@@ -57,7 +61,8 @@ export async function sendFile(req,res,path,type,immutable=false) {
   res.once("close",()=>stream.destroy());stream.once("error",()=>res.destroy());stream.pipe(res);
 }
 
-export function createApp({store,provider,yandexTts=null,origin,audioDirectory,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=createWalkPlanner(),discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{}}) {
+export function createApp({store,provider,yandexTts=null,origin,audioDirectory,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{}}) {
+  const walkPlanner=planWalk??createWalkPlanner({candidateProvider:query=>store.listWalkCandidates?.(query)??[]});
   const speechProviders={openai:provider,yandex:yandexTts};
   const ttsProviders=[{id:"openai",label:"OpenAI",available:Boolean(provider),...ttsVoiceOptions("openai",provider?.voice)},
     {id:"yandex",label:"Яндекс SpeechKit",available:Boolean(yandexTts),...ttsVoiceOptions("yandex",yandexTts?.voice)}];
@@ -84,11 +89,20 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
         if(url.pathname==="/api/me/walks"&&req.method==="GET"){json(res,200,accountStore.listWalks(session.user.id,...Object.values(accountQuery())));return;}
         if(url.pathname==="/api/me/walks"&&req.method==="POST"){const input=await body(req,100000);json(res,201,{walk:accountStore.createWalk(session.user.id,input)});return;}
         const ownWalk=new RegExp(`^/api/me/walks/(${UUID})$`).exec(url.pathname);
+        const ownWalkView=new RegExp(`^/api/me/walks/(${UUID})/view$`).exec(url.pathname);
+        if(ownWalkView&&req.method==="GET"){
+          const walk=accountStore.getWalk(session.user.id,ownWalkView[1]);
+          if(!walk){json(res,404,{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;}
+          if(walk.snapshotError){json(res,409,{error:{code:"INVALID_WALK",message:"Снимок прогулки повреждён. Скачайте исходную копию и восстановите её."}});return;}
+          json(res,200,resolveWalkView(walk.snapshot,walk.revision,store));return;
+        }
+        const ownWalkSharing=new RegExp(`^/api/me/walks/(${UUID})/sharing$`).exec(url.pathname);
+        if(ownWalkSharing&&req.method==="PUT"){const input=await body(req);if(Object.keys(input).some(key=>!["revision","enabled"].includes(key))){throw failure("BAD_REQUEST");}const walk=accountStore.setWalkSharing(session.user.id,ownWalkSharing[1],input.revision,input.enabled);json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;}
         if(ownWalk&&req.method==="GET"){const walk=accountStore.getWalk(session.user.id,ownWalk[1]);json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Walk not found."}});return;}
         if(ownWalk&&req.method==="PATCH"){const walk=accountStore.updateWalk(session.user.id,ownWalk[1],await body(req,100000));json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Walk not found."}});return;}
         if(ownWalk&&req.method==="DELETE"){json(res,accountStore.deleteWalk(session.user.id,ownWalk[1])?200:404,{success:true});return;}
         if(url.pathname==="/api/me/requests"&&req.method==="GET"){json(res,200,accountStore.listRequests(session.user.id,...Object.values(accountQuery())));return;}
-        if(url.pathname==="/api/me/favorites"&&req.method==="GET"){json(res,200,accountStore.listFavorites(session.user.id,...Object.values(accountQuery())));return;}
+        if(url.pathname==="/api/me/favorites"&&req.method==="GET"){const data=accountStore.listFavorites(session.user.id,...Object.values(accountQuery()));json(res,200,{...data,favorites:data.favorites.map(item=>favoriteSummary(item,{userId:session.user.id,accountStore,store,routes:builtinRoutes}))});return;}
         if(url.pathname==="/api/me/import"&&req.method==="POST"){json(res,200,{result:accountStore.importLocal(session.user.id,await body(req,110000))});return;}
         const favorite=/^\/api\/me\/favorites\/(story|walk)\/([a-zA-Z0-9-]{1,128})$/.exec(url.pathname);
         if(favorite&&req.method==="PUT"){accountStore.setFavorite(session.user.id,favorite[1],favorite[2]);json(res,200,{success:true});return;}
@@ -141,12 +155,12 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
           if(expectedProfile?.configSha256&&configSha256!==expectedProfile.configSha256)throw failure("BAD_REQUEST");
           if(expectedProfile?.modelSha256&&String(req.headers["x-tts-model-sha256"]??"")!==expectedProfile.modelSha256)throw failure("BAD_REQUEST");
           if(expectedProfile?.speaker&&String(req.headers["x-tts-voice"]??"")!==expectedProfile.speaker)throw failure("BAD_REQUEST");
-          const uploaded=await audioIngest(req,audioDirectory);
-          if(uploaded.uploadSha256!==expected){await rm(join(audioDirectory,`${uploaded.artifact.sha256}.mp3`),{force:true});throw failure("AUDIO_CHECKSUM");}
+          const uploaded=await audioIngest(req,audioDirectory,{expectedUploadSha256:expected});
+          if(uploaded.uploadSha256!==expected)throw failure("AUDIO_CHECKSUM");
           const artifact={...uploaded.artifact,model:String(req.headers["x-tts-model"]??"external").slice(0,100),voice:String(req.headers["x-tts-voice"]??"external").slice(0,64),
             ...(preparationVersion?{preparationVersion,preparedTextSha256:String(req.headers["x-tts-prepared-text-sha256"]??"")||null}:{}),...(configSha256?{configSha256}:{})};
           try {json(res,200,{job:store.acceptExternalAudio(workerMatch[1],{workerId:effectiveWorkerId,generation,leaseToken,uploadId,uploadSha256:expected,artifact})});}
-          catch(error){if(!store.getExternalAudio(workerMatch[1])?.receipt)await rm(join(audioDirectory,`${artifact.sha256}.mp3`),{force:true});throw error;}
+          catch(error){throw error;}
           return;
         }
         json(res,405,{error:{code:"METHOD_NOT_ALLOWED",message:"Method not allowed."}});return;
@@ -163,12 +177,20 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
             if(job?.kind!=="walk_research")job=null;
           } else {
             const entries=[...url.searchParams];
-            if(entries.length!==5||new Set(entries.map(([k])=>k)).size!==5||entries.some(([k,v])=>!["lat","lon","mode","minutes","recoveryToken"].includes(k)||!v.trim()))throw failure("BAD_REQUEST");
+            if(![5,7].includes(entries.length)||new Set(entries.map(([k])=>k)).size!==entries.length||entries.some(([k,v])=>!["lat","lon","mode","minutes","recoveryToken","destinationLat","destinationLon"].includes(k)||!v.trim()))throw failure("BAD_REQUEST");
             const q=Object.fromEntries(entries);
             if(!/^(30|60|90)$/.test(q.minutes)||![q.lat,q.lon].every(v=>/^-?\d+(?:\.\d+)?$/.test(v)))throw failure("BAD_REQUEST");
-            const request=validateWalkResearch({start:{location:{lat:Number(q.lat),lon:Number(q.lon)}},mode:q.mode,minutes:Number(q.minutes)},true);
+            if ((q.destinationLat === undefined) !== (q.destinationLon === undefined) || (q.destinationLat !== undefined && ![q.destinationLat,q.destinationLon].every(v=>/^-?\d+(?:\.\d+)?$/.test(v)))) throw failure("BAD_REQUEST");
+            const request=validateWalkResearch({start:{location:{lat:Number(q.lat),lon:Number(q.lon)}},mode:q.mode,minutes:Number(q.minutes),...(q.destinationLat?{destination:{location:{lat:Number(q.destinationLat),lon:Number(q.destinationLon)}}}:{})},true);
             job=store.lookupWalkResearch(request,q.recoveryToken);
-            if(auth&&job&&!accountStore.ownsRequest(session.user.id,job.id))accountStore.attachRequest(session.user.id,job.id,"walk_research",q.recoveryToken);
+            if(auth&&job&&!accountStore.ownsRequest(session.user.id,job.id)) {
+              if(!accountStore.beginGeneration){accountStore.attachRequest(session.user.id,job.id,"walk_research",q.recoveryToken);}
+              else {
+              const intent=accountStore.beginGeneration(session.user.id,q.recoveryToken,"walk_research",walkResearchKey(request),0,Number(process.env.USER_DAILY_GENERATION_LIMIT??6));
+              if(intent.jobId&&intent.jobId!==job.id)throw failure("CONFLICT");
+              accountStore.completeGeneration(session.user.id,q.recoveryToken,job.id);
+              }
+            }
           }
         } else if(req.method==="POST"&&(!researchMatch[1]||researchMatch[2])) {
           if(!origin||req.headers.origin!==origin||![undefined,"same-origin","none"].includes(req.headers["sec-fetch-site"])) {json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
@@ -181,10 +203,12 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
             const quotaKey=`walk-retry-${researchMatch[1]}-${input.revision}`;if(auth)accountStore.reserveGeneration(session.user.id,quotaKey,3,Number(process.env.USER_DAILY_GENERATION_LIMIT??6));
             try{job=store.retryWalkResearch(researchMatch[1],input.revision);}catch(error){if(auth)accountStore.releaseGeneration(session.user.id,quotaKey);throw error;}
           } else {
-            const existing=store.lookupWalkResearch(validateWalkResearch(input),input.recoveryToken);if(auth&&!existing)accountStore.reserveGeneration(session.user.id,input.recoveryToken,3,Number(process.env.USER_DAILY_GENERATION_LIMIT??6));
-            try {job=store.createWalkResearch(input,{allowCreate:Boolean(provider)});if(auth&&job)accountStore.attachRequest(session.user.id,job.id,"walk_research",input.recoveryToken);}
+            const request=validateWalkResearch(input),existing=store.lookupWalkResearch(request,input.recoveryToken);
+            const intent=auth&&accountStore.beginGeneration?accountStore.beginGeneration(session.user.id,input.recoveryToken,"walk_research",walkResearchKey(request),existing?0:3,Number(process.env.USER_DAILY_GENERATION_LIMIT??6)):null;
+            if(auth&&!accountStore.beginGeneration&&!existing)accountStore.reserveGeneration(session.user.id,input.recoveryToken,3,Number(process.env.USER_DAILY_GENERATION_LIMIT??6));
+            try {job=intent?.jobId?store.get(intent.jobId):store.createWalkResearch(input,{allowCreate:Boolean(provider)});if(auth&&job){if(accountStore.completeGeneration)accountStore.completeGeneration(session.user.id,input.recoveryToken,job.id);else accountStore.attachRequest(session.user.id,job.id,"walk_research",input.recoveryToken);}}
             catch(error) {
-              if(auth&&!existing)accountStore.releaseGeneration(session.user.id,input.recoveryToken);
+              if(auth&&!intent?.jobId){if(accountStore.cancelGeneration)accountStore.cancelGeneration(session.user.id,input.recoveryToken);else if(!existing)accountStore.releaseGeneration(session.user.id,input.recoveryToken);}
               if(error.code!=="PROVIDER_UNAVAILABLE")throw error;
               json(res,503,{error:{code:"PROVIDER_UNAVAILABLE",message:"Story provider unavailable."}});return;
             }
@@ -370,6 +394,15 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
       const publicPlace=/^\/api\/content\/places\/(osm:(?:node|way|relation):\d+)$/.exec(url.pathname);
       if(req.method==="GET"&&publicPlace){const place=store.getPublishedPlace(publicPlace[1]);json(res,place?200:404,place?{place}:{error:{code:"NOT_FOUND",message:"Place text not found."}});return;}
       const publishedWalk=/^\/api\/story-walks\/([a-z0-9][a-z0-9-]{0,127})$/.exec(url.pathname);
+      if(req.method==="GET"&&url.pathname==="/api/story-walks"){json(res,200,{walks:builtinRoutes.filter(route=>route.walk?.steps?.length).map(route=>({id:route.id,title:route.title,subtitle:route.subtitle,durationMin:route.duration_min}))});return;}
+      const sharedWalk=new RegExp(`^/api/story-walks/shared/(${UUID})$`).exec(url.pathname);
+      if(req.method==="GET"&&sharedWalk){
+        const walk=accountStore?.getSharedWalk(sharedWalk[1]);
+        if(!walk||walk.snapshotError){json(res,404,{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;}
+        json(res,200,resolveWalkView(walk.snapshot,walk.revision,store));return;
+      }
+      const catalogView=/^\/api\/story-walks\/([a-z0-9][a-z0-9-]{0,127})\/view$/.exec(url.pathname);
+      if(req.method==="GET"&&catalogView){const route=store.getPublishedWalk(catalogView[1]);json(res,route?200:404,route?catalogWalkView(route):{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;}
       if(req.method==="GET"&&publishedWalk) {
         const route=store.getPublishedWalk(publishedWalk[1]);
         json(res,route?200:404,route??{error:{code:"NOT_FOUND",message:"Walk not found."}});return;
@@ -391,7 +424,7 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
       if(req.method==="POST") {
         if(req.headers.origin!==origin||![undefined,"same-origin","none"].includes(req.headers["sec-fetch-site"])) {json(res,403,{error:{message:"Откройте подготовку истории на сайте."}});return;}
         if(url.pathname==="/api/walk-plan") {
-          try {json(res,200,await planWalk(await body(req,8192)));}
+          try {json(res,200,await walkPlanner(await body(req,8192)));}
           catch(error) {
             const messages={WALK_INVALID:"Проверьте начало, остановки и параметры прогулки.",WALK_BUSY:"Планировщик занят. Повторите через пару секунд.",WALK_NOT_FOUND:"Не удалось построить пешеходную прогулку в выбранное время. Измените точки или длительность.",WALK_STOPS_NOT_FOUND:"Рядом со стартом недостаточно достопримечательностей в каталоге. Добавьте остановки вручную или выберите другое начало прогулки.",WALK_DISCOVERY_UNAVAILABLE:"Не удалось автоматически подобрать остановки. Попробуйте позже или добавьте остановки вручную.",WALK_UNAVAILABLE:"Пешеходный маршрутизатор временно недоступен. Попробуйте позже."};
             const code=error.code==="BAD_REQUEST"?"WALK_INVALID":Object.hasOwn(messages,error.code)?error.code:"WALK_UNAVAILABLE";
@@ -406,9 +439,10 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
           if(!session||!accountStore){json(res,401,{error:{code:"UNAUTHORIZED",message:"Войдите, чтобы подготовить историю."}});return;}
           if(Object.keys(input).some((key)=>!["address","idempotencyKey"].includes(key))||typeof input.idempotencyKey!=="string")throw failure("BAD_REQUEST");
           const address=normalizeAddress(input.address),key=addressKey(address),existing=store.getByKey?.(key)??null;
-          if(!existing)accountStore.reserveGeneration?.(session.user.id,input.idempotencyKey,1,Number(process.env.USER_DAILY_GENERATION_LIMIT??6));
-          let job;try{job=store.createOrGet({key,address});}catch(error){if(!existing)accountStore.releaseGeneration?.(session.user.id,input.idempotencyKey);throw error;}
-          accountStore.attachRequest(session.user.id,job.id,"create",input.idempotencyKey);
+          const intent=accountStore.beginGeneration?accountStore.beginGeneration(session.user.id,input.idempotencyKey,"create",key,existing?0:1,Number(process.env.USER_DAILY_GENERATION_LIMIT??6)):{created:true,jobId:null};
+          if(!accountStore.beginGeneration&&!existing)accountStore.reserveGeneration?.(session.user.id,input.idempotencyKey,1,Number(process.env.USER_DAILY_GENERATION_LIMIT??6));
+          let job;try{job=intent.jobId?store.get(intent.jobId):store.createOrGet({key,address});if(!job)throw failure("CONFLICT");if(accountStore.completeGeneration)accountStore.completeGeneration(session.user.id,input.idempotencyKey,job.id);else accountStore.attachRequest(session.user.id,job.id,"create",input.idempotencyKey);}
+          catch(error){if(!intent.jobId){if(accountStore.cancelGeneration)accountStore.cancelGeneration(session.user.id,input.idempotencyKey);else if(!existing)accountStore.releaseGeneration?.(session.user.id,input.idempotencyKey);}throw error;}
           json(res,200,publicJob(job));worker?.wake();return;
         }
         const retry=new RegExp(`^/api/story-jobs/(${UUID})/retry$`).exec(url.pathname);

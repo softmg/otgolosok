@@ -7,31 +7,32 @@
   margin: auto;
   padding: 0 clamp(1rem, 3vw, 3.5rem) 4rem;
   color: var(--ink);
-  font: 400 1rem/1.55 var(--font-body), sans-serif;
+  font: var(--weight-regular) var(--text-body)/var(--leading-body) var(--font-body), sans-serif;
+  --admin-radius: var(--radius-sm);
+  --admin-compact: var(--text-secondary);
 }
 .admin-desk h1, .admin-desk h2, .admin-desk h3, .admin-desk h4 { color: var(--admin-green); font-family: inherit; line-height: 1.25; text-wrap: balance; }
-.admin-desk h1 { margin: 0 0 .35rem; font-size: 2rem; font-weight: 750; letter-spacing: -.03em; }
-.admin-desk h2 { font-size: 1.375rem; font-weight: 750; letter-spacing: -.02em; }
-.admin-desk h3 { margin-bottom: .75rem; font-size: 1.125rem; font-weight: 750; }
-.admin-desk h4 { font-size: .95rem; }
+.admin-desk h1 { margin: 0 0 .35rem; font-size: var(--text-page); font-weight: 750; letter-spacing: -.03em; }
+.admin-desk h2 { font-size: var(--text-section); font-weight: 750; letter-spacing: -.02em; }
+.admin-desk h3 { margin-bottom: .75rem; font-size: var(--text-body); font-weight: 750; }
+.admin-desk h4 { font-size: var(--text-control); }
 .admin-desk p + p { margin-top: .5rem; }
 .admin-masthead { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; min-height: 5rem; border-bottom: 1px solid var(--line); }
-.admin-wordmark { margin-right: auto; font-family: var(--font-display), serif; font-size: 2rem; font-weight: 700; letter-spacing: -.035em; line-height: 1; }
-.admin-wordmark span { color: var(--admin-orange); }
-.admin-context { color: var(--muted); font-size: .8rem; font-weight: 700; }
+.admin-wordmark { margin-right: auto; font-size: var(--text-page); line-height: 1; }
+.admin-context { color: var(--muted); font-size: var(--text-secondary); font-weight: 700; }
 .admin-heading { padding-top: 2rem; }
 .admin-heading > p { max-width: 45rem; color: var(--muted); }
-.admin-status { min-height: 3rem; padding-block: .75rem; color: var(--teal); font-size: .9rem; font-weight: 650; }
+.admin-status { min-height: 3rem; padding-block: .75rem; color: var(--teal); font-size: var(--text-secondary); font-weight: 650; }
 .admin-error, .admin-callout { margin-bottom: 1.5rem; padding: 1rem 1.25rem; border: 1px solid color-mix(in srgb, var(--admin-orange) 35%, var(--line)); background: #f2e5dc; overflow-wrap: anywhere; }
 .admin-callout h3 { margin-bottom: .4rem; }
-.admin-desk button { min-height: 2.75rem; padding: .55rem .9rem; border: 1px solid var(--admin-green); border-radius: .35rem; background: transparent; color: var(--admin-green); cursor: pointer; font-weight: 650; line-height: 1.35; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+.admin-desk button { min-height: var(--control-min); padding: .55rem .9rem; border: 1px solid var(--admin-green); border-radius: var(--admin-radius); background: transparent; color: var(--admin-green); cursor: pointer; font-size: var(--text-control); font-weight: 650; line-height: 1.35; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
 .admin-desk button:hover:not(:disabled) { background: var(--admin-green-soft); }
 .admin-desk button:active:not(:disabled) { background: #cfdcd3; }
 .admin-desk button:disabled { opacity: .45; cursor: not-allowed; }
 .admin-desk button.admin-primary { border-color: var(--admin-green); background: var(--admin-green); color: #fff; }
 .admin-desk button.admin-primary:hover:not(:disabled) { border-color: #142d28; background: #142d28; }
-.admin-desk input:not([type=checkbox]), .admin-desk textarea, .admin-desk select { width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem .75rem; border: 1px solid #8a827a; border-radius: .35rem; background: var(--raised); color: var(--ink); font: inherit; }
-.admin-desk textarea { resize: vertical; font-size: 1rem; line-height: 1.65; }
+.admin-desk input:not([type=checkbox]), .admin-desk textarea, .admin-desk select { width: 100%; min-width: 0; min-height: var(--control-min); padding: .65rem .75rem; border: 1px solid #8a827a; border-radius: var(--admin-radius); background: var(--raised); color: var(--ink); font: inherit; font-size: var(--text-control); }
+.admin-desk textarea { resize: vertical; font-size: var(--text-control); line-height: 1.65; }
 .admin-desk input::placeholder { color: #625b55; opacity: 1; }
 .admin-desk a:focus-visible, .admin-desk button:focus-visible, .admin-desk input:focus-visible, .admin-desk textarea:focus-visible, .admin-desk select:focus-visible, .admin-desk audio:focus-visible { outline: 3px solid var(--admin-orange); outline-offset: 2px; }
 .admin-desk input[type=checkbox] { width: 1.2rem; height: 1.2rem; flex: 0 0 auto; margin-top: .15rem; accent-color: var(--admin-green); }
@@ -39,39 +40,39 @@
 .admin-desk label { display: block; margin-bottom: .45rem; font-weight: 650; }
 .admin-login { width: min(34rem, 100%); margin: 1rem 0 4rem; padding: 1.5rem; border: 1px solid var(--line); background: var(--raised); }
 .admin-login h2 { margin: .4rem 0 1.5rem; }
-.admin-login p:not(.admin-context) { margin: .75rem 0 1.25rem; color: var(--muted); font-size: .875rem; }
+.admin-login p:not(.admin-context) { margin: .75rem 0 1.25rem; color: var(--muted); font-size: var(--text-secondary); }
 .admin-workspace { border-top: 1px solid var(--ink); }
 .admin-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); }
 .admin-desk .admin-tabs button { min-width: 9rem; border: 0; border-radius: 0; color: var(--muted); }
 .admin-desk .admin-tabs button[aria-current=page] { box-shadow: inset 0 -3px var(--admin-orange); color: var(--admin-green); background: transparent; }
 .admin-addresses { padding-top: 1.75rem; }
 .admin-section-head, .admin-actions, .admin-row-actions, .admin-pagination { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
-.admin-meta { color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; }
+.admin-meta { color: var(--muted); font-size: var(--text-secondary); overflow-wrap: anywhere; }
 .admin-filters { display: grid; grid-template-columns: minmax(18rem, 1fr) minmax(12rem, .35fr) minmax(12rem, .35fr) auto; align-items: end; gap: .75rem; margin: 1.25rem 0; padding: 1rem; background: var(--sunken); }
-.admin-filters label { margin: 0; color: var(--muted); font-size: .8rem; }
+.admin-filters label { margin: 0; color: var(--muted); font-size: var(--text-secondary); }
 .admin-filters label > span { display: block; margin-bottom: .35rem; }
 .admin-filter-submit { min-width: 6rem; }
 .admin-content-filter { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin: 1.25rem 0 .75rem; }
 .admin-content-filter label { color: var(--muted); font-size: .8rem; font-weight: 700; }
 .admin-content-filter select { min-width: 11rem; }
 .admin-table-wrap { width: 100%; overflow-x: auto; border-block: 1px solid var(--line); background: var(--raised); overscroll-behavior-inline: contain; }
-.admin-table { width: 100%; min-width: 58rem; border-collapse: collapse; font-size: .875rem; }
+.admin-table { width: 100%; min-width: 58rem; border-collapse: collapse; font-size: var(--text-secondary); }
 .admin-table th, .admin-table td { padding: .8rem .75rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
-.admin-table thead th { color: var(--muted); background: var(--sunken); font-size: .75rem; font-weight: 750; }
+.admin-table thead th { color: var(--muted); background: var(--sunken); font-size: var(--text-meta); font-weight: 750; }
 .admin-table tbody th { width: 31%; font-weight: 600; }
 .admin-table tbody tr:last-child > * { border-bottom: 0; }
 .admin-table tbody tr:hover > * { background: color-mix(in srgb, var(--admin-green-soft) 48%, transparent); }
 .admin-table tbody tr[data-current=true] > * { background: var(--admin-green-soft); }
 .admin-desk .admin-address-link { display: block; min-height: 0; max-width: 36rem; padding: .1rem 0; border: 0; color: var(--ink); text-align: left; overflow-wrap: anywhere; }
 .admin-desk .admin-address-link:hover:not(:disabled) { background: transparent; color: var(--admin-orange); text-decoration: underline; text-underline-offset: .2em; }
-.admin-row-id, .admin-row-error { display: block; margin-top: .25rem; color: var(--muted); font-size: .72rem; font-weight: 500; }
+.admin-row-id, .admin-row-error { display: block; margin-top: .25rem; color: var(--muted); font-size: var(--text-meta); font-weight: 500; }
 .admin-row-error { max-width: 22rem; color: var(--admin-orange); }
 .admin-stage { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .5rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); white-space: nowrap; }
 .admin-stage::before { width: .42rem; height: .42rem; border-radius: 50%; background: #8a6420; content: ""; }
 .admin-stage-ready::before { background: var(--teal); }
 .admin-stage-failed::before, .admin-stage-insufficient_evidence::before { background: var(--admin-orange); }
 .admin-row-actions { justify-content: flex-start; flex-wrap: nowrap; }
-.admin-desk .admin-row-actions button { min-height: 2.25rem; padding: .35rem .55rem; font-size: .75rem; }
+.admin-desk .admin-row-actions button { min-height: 2.25rem; padding: .35rem .55rem; font-size: var(--text-meta); }
 .admin-pagination { justify-content: flex-end; margin-top: .75rem; }
 .admin-document { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 2px solid var(--admin-green); min-width: 0; }
 #admin-document-title, #admin-addresses-title { scroll-margin-top: 1.5rem; }
@@ -86,25 +87,25 @@
 .admin-editor > .admin-meta { margin-bottom: 1rem; }
 .admin-paragraph { margin-bottom: 1rem; padding-block: 1.25rem; border-bottom: 1px solid var(--line); }
 .admin-desk .admin-fact-picks { margin: 1rem 0; }
-.admin-fact-picks legend { margin-bottom: .4rem; color: var(--muted); font-size: .8rem; font-weight: 700; }
-.admin-desk .admin-fact-picks label, .admin-desk .admin-confirm { display: flex; align-items: flex-start; gap: .65rem; padding: .4rem 0; font-size: .85rem; font-weight: 400; cursor: pointer; }
+.admin-fact-picks legend { margin-bottom: .4rem; color: var(--muted); font-size: var(--text-secondary); font-weight: 700; }
+.admin-desk .admin-fact-picks label, .admin-desk .admin-confirm { display: flex; align-items: flex-start; gap: .65rem; padding: .4rem 0; font-size: var(--text-secondary); font-weight: 400; cursor: pointer; }
 .admin-fact-picks b { color: var(--admin-orange); }
 .admin-evidence { min-width: 0; padding-left: 1.5rem; border-left: 1px solid var(--line); }
 .admin-fact { padding: 1.1rem 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
-.admin-fact blockquote { margin: .75rem 0 .5rem; padding-left: .8rem; border-left: 1px solid var(--admin-orange); font-size: .95rem; white-space: pre-wrap; }
+.admin-fact blockquote { margin: .75rem 0 .5rem; padding-left: .8rem; border-left: 1px solid var(--admin-orange); font-size: var(--text-control); white-space: pre-wrap; }
 .admin-evidence a, .admin-result a { color: var(--admin-orange); text-decoration: underline; text-underline-offset: .2em; }
 .admin-publish, .admin-narration { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--admin-green); }
 .admin-publish > button { margin-top: 1rem; }
 .admin-narration { padding-bottom: .5rem; }
 .admin-narration-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .admin-current-voice { display: grid; min-width: 11rem; padding-left: 1rem; border-left: 1px solid var(--line); }
-.admin-current-voice span, .admin-current-voice small { color: var(--muted); font-size: .72rem; }
+.admin-current-voice span, .admin-current-voice small { color: var(--muted); font-size: var(--text-meta); }
 .admin-audio { display: flex; align-items: center; gap: .75rem; margin-top: 1rem; }
 .admin-audio audio { width: min(36rem, 100%); }
 .admin-tts { display: grid; grid-template-columns: 10rem minmax(12rem, 22rem); align-items: center; gap: .75rem 1rem; max-width: 34rem; margin-top: 1.25rem; }
 .admin-tts label { margin: 0; }
 .admin-tts .admin-meta { grid-column: 1 / -1; }
-.admin-desk .admin-confirm { max-width: 46rem; margin-top: 1.25rem; font-size: .95rem; }
+.admin-desk .admin-confirm { max-width: 46rem; margin-top: 1.25rem; font-size: var(--text-control); }
 .admin-narration > .admin-primary { margin-top: 1rem; min-width: 13rem; }
 .admin-result { margin-top: 1.25rem; }
 .admin-empty { margin-top: 2rem; padding: 2.5rem 0; border-top: 1px solid var(--line); }
