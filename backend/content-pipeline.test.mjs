@@ -50,6 +50,41 @@ test("enriched search does not bypass failed identity verification", async t => 
   assert.equal(f.store.getPlace(catalog.places[0].placeId).text, null);
 });
 
+test("offline location context is persisted and reaches both model stages without changing the place address",async t=>{
+  const f=fixture(t),prompts=[];
+  let checkpoint;
+  const save=f.store.updateContentCheckpoint;
+  f.store.updateContentCheckpoint=(id,value)=>{checkpoint=structuredClone(value);save(id,value);};
+  const locationContext={version:1,status:"matched",location:catalog.places[0].location,
+    source:{source:"fixture",sourceSha256:"b".repeat(64)},containingBuilding:null,
+    nearbyAddresses:[{osmId:"osm:way:10",address:"Москва, Тестовая улица, 7",distanceMeters:20,relation:"nearby"}],
+    street:{name:"Тестовая улица"},district:null};
+  const response=f.provider.response;
+  f.provider.response=async(prompt,options)=>{prompts.push(prompt);return response(prompt,options);};
+  const job=f.store.claimContentJob();
+  const result=await runContentJob(job,{store:f.store,provider:f.provider,resolveLocation:()=>locationContext,
+    fetchPage:async url=>({url,contentType:"text/html",html:f.page})});
+  assert.ok(result.story);
+  for(const prompt of prompts.slice(0,2)) {
+    const context=JSON.parse(prompt.match(/^OSM PLACE CONTEXT[^:]*: (.+)$/m)[1]);
+    assert.deepEqual(context.locationContext,locationContext);
+    assert.equal(context.postalAddress,null);
+    assert.ok(context.searchQueries.some(query=>query.includes("Тестовая улица, 7")));
+  }
+  assert.equal(f.store.getPlace(job.place.id).address,null);
+  assert.deepEqual(checkpoint.locationContext,locationContext);
+});
+
+test("an unreadable configured address index stops the attempt before paid research",async t=>{
+  const f=fixture(t);
+  const result=await runContentJob(f.store.claimContentJob(),{store:f.store,provider:f.provider,
+    resolveLocation:()=>{throw Object.assign(new Error(),{code:"OSM_ADDRESS_LOOKUP_FAILED"});}});
+  assert.equal(result.state,"failed");
+  assert.equal(result.error.code,"OSM_ADDRESS_LOOKUP_FAILED");
+  assert.equal(f.queue.length,4);
+  assert.equal(f.store.getPlace(catalog.places[0].placeId).text,null);
+});
+
 test("OSM worker invalidates legacy editorial checkpoints without refetching saved sources",async t=>{
   const f=fixture(t),job=f.store.claimContentJob(),checkpoint={sources:[{id:"s1",url:f.url,title:"Источник",publisher:"one.example",text:f.page}],evidence:{placeName:"Старый объект",resolvedAddress:"Москва",facts:[{id:"f1",claim:"Старый факт"}]},draft:{title:"Старый черновик",paragraphs:[]}};
   f.store.updateContentCheckpoint(job.id,checkpoint);job.checkpoint=checkpoint;f.queue.shift();

@@ -79,3 +79,21 @@ test("nearby OSM addresses are bounded search landmarks, never the object's addr
   assert.ok(context.searchQueries.includes("Памятник Г. Галилею Москва, рядом с Москва, Ближняя улица, 1"));
   assert.deepEqual(enrichOsmContext({ name: "Без координат" }, { nearbyElements: [element(2, 55.75, "Улица")] }).nearbyLandmarks, []);
 });
+
+test("offline geocoding adds street, district and host-building search hints while retaining the missing postal address", () => {
+  const locationContext={version:1,status:"matched",source:{source:"full-osm",sourceSha256:"b".repeat(64)},
+    containingBuilding:{osmId:"osm:way:7",address:"Москва, Новая улица, 5",distanceMeters:0,relation:"point_in_building"},
+    nearbyAddresses:[],street:{name:"Новая улица"},district:{name:"Тестовый район"}};
+  const place={id:"osm:node:1",name:"А. Блоку",tags:{historic:"memorial"},locationContext};
+  const context=enrichOsmContext(place,{nearbyElements:[]});
+  assert.equal(context.postalAddress,null);
+  assert.match(context.locationHint,/Новая улица/);
+  assert.match(context.locationHint,/Тестовый район/);
+  assert.ok(context.searchQueries.some(query=>query.includes("Новая улица, 5")));
+  assert.equal(context.nearbyLandmarksSource.sourceSha256,"b".repeat(64));
+  const partial=enrichOsmContext({...place,tags:{...place.tags,"addr:street":"Новая улица"}},{nearbyElements:[]});
+  assert.equal(partial.postalAddress,null);
+  assert.ok(partial.searchQueries.some(query=>query.includes("Новая улица, 5")));
+  const existing=enrichOsmContext({...place,postalAddress:"Москва, Своя улица, 2"},{nearbyElements:[]});
+  assert.equal(existing.locationHint,"Москва, Своя улица, 2");
+});

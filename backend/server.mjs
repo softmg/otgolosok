@@ -16,6 +16,7 @@ import { validateWalkResearch, publicWalkResearch, walkResearchKey } from "./wal
 import { createBackendLogger } from "./logs.mjs";
 import { ingestAudio } from "./audio-ingest.mjs";
 import { startContentWorker } from "./content-pipeline.mjs";
+import { openOsmGeocoder } from "./osm-geocoder.mjs";
 import { createAuth, authRequestHandler, authSession, sessionCsrfToken, validSessionCsrf, verifySessionPassword } from "./auth.mjs";
 import { favoriteSummary } from "./favorite-summary.mjs";
 import { createAccountStore } from "./account-store.mjs";
@@ -61,13 +62,13 @@ export async function sendFile(req,res,path,type,immutable=false) {
   res.once("close",()=>stream.destroy());stream.once("error",()=>res.destroy());stream.pipe(res);
 }
 
-export function createApp({store,provider,yandexTts=null,origin,audioDirectory,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{}}) {
+export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin,audioDirectory,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{}}) {
   const walkPlanner=planWalk??createWalkPlanner({candidateProvider:query=>store.listWalkCandidates?.(query)??[]});
   const speechProviders={openai:provider,yandex:yandexTts};
   const ttsProviders=[{id:"openai",label:"OpenAI",available:Boolean(provider),...ttsVoiceOptions("openai",provider?.voice)},
     {id:"yandex",label:"Яндекс SpeechKit",available:Boolean(yandexTts),...ttsVoiceOptions("yandex",yandexTts?.voice)}];
   const worker=(provider||yandexTts)&&workerEnabled?startWorker({store,provider,speechProviders,audioDirectory,discoverResearch,planResearchWalk,logs}):null;
-  const contentWorker=provider&&workerEnabled?startContentWorker({store,provider,logs,concurrency:Number(process.env.CONTENT_WORKER_CONCURRENCY??1),autoApprove:process.env.CONTENT_AUTO_APPROVE==="true"}):null;
+  const contentWorker=provider&&workerEnabled?startContentWorker({store,provider,logs,resolveLocation:osmGeocoder ? place=>osmGeocoder.resolve(place) : null,concurrency:Number(process.env.CONTENT_WORKER_CONCURRENCY??1),autoApprove:process.env.CONTENT_AUTO_APPROVE==="true"}):null;
   const ttsApiWorker=workerEnabled&&localTts.transport==="http"&&ttsApiClient?startTtsApiWorker({store,client:ttsApiClient,audioDirectory,profileId:localTts.defaultProfile,logs}):null;
   const authorizeAdmin=adminAuth(adminToken);
   const legacyAdminEnabled=allowLegacyAdminToken??(!auth||process.env.ALLOW_LEGACY_ADMIN_TOKEN==="true");
@@ -483,7 +484,7 @@ export function createApp({store,provider,yandexTts=null,origin,audioDirectory,s
     }
   });
   server.requestTimeout=310000;server.headersTimeout=10000;server.keepAliveTimeout=5000;
-  return {server,close:async()=>{await Promise.all([worker?.stop(),contentWorker?.stop(),ttsApiWorker?.stop()]);await new Promise((done)=>server.close(done));server.closeAllConnections();await closeAuth();}};
+  return {server,close:async()=>{await Promise.all([worker?.stop(),contentWorker?.stop(),ttsApiWorker?.stop()]);osmGeocoder?.close();await new Promise((done)=>server.close(done));server.closeAllConnections();await closeAuth();}};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {
@@ -501,7 +502,8 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   const appOrigin=process.env.APP_ORIGIN??`http://127.0.0.1:${port}`;
   const authRuntime=await createAuth({databasePath:join(directory,"auth.sqlite"),baseURL:appOrigin,secret:process.env.BETTER_AUTH_SECRET,production:process.env.NODE_ENV==="production"});
   const accountStore=createAccountStore(authRuntime.database);
-  const app=createApp({store,provider,yandexTts,origin:appOrigin,audioDirectory:join(directory,"audio"),staticDirectory:process.env.STATIC_DIR,localTts,ttsApiClient,logs,auth:authRuntime.auth,authSecret:process.env.BETTER_AUTH_SECRET??"development-only-better-auth-secret-32",accountStore,closeAuth:authRuntime.close});
+  const osmGeocoder=openOsmGeocoder(join(directory,"osm-addresses.sqlite"));
+  const app=createApp({store,provider,osmGeocoder,yandexTts,origin:appOrigin,audioDirectory:join(directory,"audio"),staticDirectory:process.env.STATIC_DIR,localTts,ttsApiClient,logs,auth:authRuntime.auth,authSecret:process.env.BETTER_AUTH_SECRET??"development-only-better-auth-secret-32",accountStore,closeAuth:authRuntime.close});
   app.server.listen(port,process.env.HOST??"127.0.0.1",()=>console.log(`Story service listening on ${port}; provider ${provider?"configured":"unavailable"}`));
   let stopping=false;
   for(const signal of ["SIGINT","SIGTERM"])process.on(signal,async()=>{if(stopping)return;stopping=true;await app.close();try {await logs?.close();} catch {console.error("Airouter logs delivery failed");}store.close();});

@@ -15,6 +15,7 @@ const CONTENT_FAILURES = {
   INVALID_DRAFT: "Черновик не прошёл проверку формата. Можно повторить попытку.",
   INTERRUPTED: "Подготовка прервана. Задание можно повторить.",
   PREPARATION_FAILED: "Не удалось подготовить текст. Можно повторить попытку.",
+  OSM_ADDRESS_LOOKUP_FAILED: "Не удалось прочитать адресные ориентиры OSM. Проверьте локальный адресный индекс перед повтором.",
 };
 
 /** The code drives filtering and routing, the message is what the editor reads, so a failure carries both. */
@@ -22,8 +23,8 @@ export function contentFailureMessage(code) {
   return errorMessages[code] ?? CONTENT_FAILURES[code] ?? CONTENT_FAILURES.PREPARATION_FAILED;
 }
 
-function placePrompt(place) {
-  return researchPrompt(place.address,{id:place.id,name:place.name,postalAddress:place.address,location:place.location,geometry:place.geometry,tags:place.tags});
+function placeContext(place, locationContext) {
+  return {id:place.id,name:place.name,postalAddress:place.address,location:place.location,geometry:place.geometry,tags:place.tags,locationContext};
 }
 
 function sourcesFrom(result) {
@@ -38,16 +39,18 @@ function invalidateEditorialCheckpoint(checkpoint) {
   return retained;
 }
 
-export async function runContentJob(job,{store,provider,fetchPage=fetchSource,signal,timeoutMs=600000,autoApprove=false}) {
+export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=600000,autoApprove=false}) {
   const deadline=AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])]);let checkpoint=job.checkpoint??{};
   const save=patch=>{checkpoint={...checkpoint,...patch};store.updateContentCheckpoint(job.id,checkpoint);};
   const call=async(prompt,options={})=>{const result=await provider.response(prompt,{...options,signal:deadline});const tokens=usageTokens(result.usage);if(tokens)save({usageTokens:Number(checkpoint.usageTokens??0)+tokens});return result;};
   try {
+    if(resolveLocation && !checkpoint.locationContext) save({locationContext:resolveLocation(job.place)});
+    const context=placeContext(job.place,checkpoint.locationContext);
     if(checkpoint.evidence?.version!==EDITORIAL_EVIDENCE_VERSION){checkpoint=invalidateEditorialCheckpoint(checkpoint);store.updateContentCheckpoint(job.id,checkpoint);}
-    if(!checkpoint.research&&!checkpoint.sources){const research=await call(placePrompt(job.place),{search:true,timeoutMs:180000,maxTokens:3000});const sources=sourcesFrom(research);if(!sources.length)throw failure("INSUFFICIENT_EVIDENCE");save({research:{sources}});}
+    if(!checkpoint.research&&!checkpoint.sources){const research=await call(researchPrompt(job.place.address,context),{search:true,timeoutMs:180000,maxTokens:3000});const sources=sourcesFrom(research);if(!sources.length)throw failure("INSUFFICIENT_EVIDENCE");save({research:{sources}});}
     if(!checkpoint.sources){const results=await Promise.allSettled(checkpoint.research.sources.map(async(source,index)=>{const page=await fetchPage(source.url,{signal:deadline});const text=await sourceText(page,{keywords:[job.place.name,job.place.address]});if(text.length<300)throw failure("SOURCE_EMPTY");return{id:`s${index+1}`,url:page.url,title:source.title,publisher:new URL(page.url).hostname.split(".").slice(-2).join("."),text};}));
       const sources=results.filter(result=>result.status==="fulfilled").map(result=>result.value);if(!sources.length)throw failure("SOURCE_ACCESS_FAILED");save({sources,sourceFailures:results.filter(result=>result.status==="rejected").map(result=>result.reason?.code??"SOURCE_FAILED")});}
-    if(!checkpoint.evidence){const anchor=job.place.address;const placeContext={id:job.place.id,name:job.place.name,postalAddress:job.place.address,location:job.place.location,geometry:job.place.geometry,tags:job.place.tags};const facts=await requestStructured(provider,factsPrompt(anchor,checkpoint.sources,placeContext),{signal:deadline,timeoutMs:150000,maxTokens:5500});
+    if(!checkpoint.evidence){const anchor=job.place.address;const facts=await requestStructured(provider,factsPrompt(anchor,checkpoint.sources,context),{signal:deadline,timeoutMs:150000,maxTokens:5500});
       const raw={...facts.value,addressConfirmed:facts.value.addressConfirmed===true,resolvedAddress:facts.value.resolvedAddress||job.place.address||job.place.name,placeName:facts.value.placeName||job.place.name};
       save({evidence:validateFacts(raw,checkpoint.sources,{requireEditorialScope:true}),editorialVersion:EDITORIAL_EVIDENCE_VERSION});}
     if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:job.place.address??job.place.name,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),onReview:review=>save({review})});save({draft});}

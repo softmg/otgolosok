@@ -72,9 +72,10 @@ export function enrichOsmContext(place, { nearbyElements = discoveryCatalog.elem
   const type = objectType(tags);
   const qualify = (name, prefix = type) => prefix && !namedTypes.test(name) ? `${prefix} ${name}` : name;
   const postalAddress = text(place.postalAddress) || text(place.address) || osmPostalAddress(tags);
+  const geocoded = place.locationContext?.status === "matched" ? place.locationContext : null;
   const locationHint = postalAddress || unique([
-    text(tags["addr:city"]) || "Москва", text(tags["addr:suburb"]),
-    text(tags["addr:street"]) || text(tags["addr:place"]),
+    text(tags["addr:city"]) || "Москва", text(tags["addr:suburb"]) || text(geocoded?.district?.name),
+    text(tags["addr:street"]) || text(tags["addr:place"]) || (text(geocoded?.street?.name) ? `около ${geocoded.street.name}` : ""),
   ]).join(", ");
   const searchName = qualify(names[0] || "");
   const searchNames = names.map(name => qualify(name));
@@ -84,9 +85,10 @@ export function enrichOsmContext(place, { nearbyElements = discoveryCatalog.elem
   }
   const identifiers = prefix => Object.fromEntries(["wikidata", "wikipedia"]
     .filter(key => text(tags[`${prefix}${key}`])).map(key => [key, text(tags[`${prefix}${key}`])]));
-  const landmarks = nearbyLandmarks(place, nearbyElements);
+  const geocodedLandmarks = geocoded ? [geocoded.containingBuilding, ...(geocoded.nearbyAddresses ?? [])].filter(Boolean) : [];
+  const landmarks = geocodedLandmarks.length ? geocodedLandmarks : nearbyLandmarks(place, nearbyElements);
   const searchQueries = searchNames.map(name => `${name} ${locationHint}`);
-  if (!postalAddress && !text(tags["addr:street"]) && !text(tags["addr:place"])) {
+  if (!postalAddress && (geocodedLandmarks.length || (!text(tags["addr:street"]) && !text(tags["addr:place"])))) {
     for (const landmark of landmarks) {
       for (const name of searchNames) searchQueries.push(`${name} ${locationHint}, рядом с ${landmark.address}`);
       if (landmark.name) searchQueries.push(`${searchName} ${locationHint} ${landmark.name}`);
@@ -96,7 +98,7 @@ export function enrichOsmContext(place, { nearbyElements = discoveryCatalog.elem
     ...place, postalAddress, objectType: type, searchName, locationHint,
     alternateNames: names.slice(1),
     searchQueries: unique(searchQueries), nearbyLandmarks: landmarks,
-    nearbyLandmarksSource: { source: discoveryCatalog.source, sourceSha256: discoveryCatalog.sourceSha256,
+    nearbyLandmarksSource: geocodedLandmarks.length ? geocoded.source : { source: discoveryCatalog.source, sourceSha256: discoveryCatalog.sourceSha256,
       attribution: discoveryCatalog.attribution },
     objectIdentifiers: identifiers(""), subjectIdentifiers: identifiers("subject:"),
   };
