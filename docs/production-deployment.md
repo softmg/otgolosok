@@ -10,9 +10,11 @@ The generator target uses `deploy-scripts/otgolosok-generator-compose.yml`.
 Do not deploy the root development Compose file over production. Nginx remains
 in its existing project; the single generator and Valhalla share the
 `otgolosok-generator` project and external `otgolosoksoftmgtech-net` network.
-Traefik routes `/api/story-*`, exactly `/api/walk-plan`, exactly
-`/api/walk-research-jobs`, and `/api/walk-research-jobs/` descendants (including
-`/:id/retry`) to the generator with priority 100.
+Traefik routes the whole `/api/` prefix on `otgolosok.softmg.tech` to the
+generator with priority 100, so new API paths need no ingress change; the
+authoritative rule is the `traefik.http.routers.otgolosok-generator.rule` label
+in `deploy-scripts/otgolosok-generator-compose.yml`. Production Nginx serves
+only the static export and does not proxy the API.
 Admin API authentication remains in the backend.
 
 Универсальная прогулка использует существующие static export и API-прокси:
