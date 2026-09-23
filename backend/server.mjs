@@ -276,7 +276,11 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
         if(req.method==="POST"&&url.pathname==="/api/story-admin/content/batches") {
           if(!origin||req.headers.origin!==origin) {json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
           const input=await body(req,65536);if(input.mode==="text-and-audio"&&!input.ttsProfile)input.ttsProfile=localTts.defaultProfile;
-          const batch=store.createBatch(input);json(res,200,{batch});contentWorker?.wake();return;
+          let batch;
+          try{batch=store.createBatch(input);}
+          catch(error){if(error.code!=="NO_ELIGIBLE_PLACES")throw error;
+            json(res,409,{error:{code:error.code,message:"Все места, прошедшие проверку пригодности, уже поставлены в очередь."}});return;}
+          json(res,200,{batch});contentWorker?.wake();return;
         }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/identity-candidates") {
           const entries=[...url.searchParams];

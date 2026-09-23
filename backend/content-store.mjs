@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { sha256 } from "./domain.mjs";
-import { CONTENT_PROFILE_VERSION } from "./place-eligibility.mjs";
+import { assessPlaceEligibility, CONTENT_PROFILE_VERSION } from "./place-eligibility.mjs";
 import { osmPostalAddress } from "./osm-context.mjs";
 import { IDENTITY_RULES_VERSION, IDENTITY_TIERS } from "./identity-triage.mjs";
 
@@ -112,6 +112,20 @@ export function createContentStore({db,now,transaction}) {
       db.prepare("INSERT INTO batch_items VALUES (?,?,?,?,?,?)").run(id,place.id,job.id,job.state,null,timestamp);}
     return viewBatch(db.prepare("SELECT * FROM content_batches WHERE id=?").get(id),batchCounts(id));
   }
+  /**
+   * Without an explicit list a batch takes the next places, by name, that pass the regular eligibility filter
+   * and have no text job for this profile yet — the same rule as `create-osm-batch.mjs --next`.
+   */
+  function nextEligiblePlaces(limit,textProfile) {
+    const jobExists=db.prepare("SELECT 1 FROM content_jobs WHERE input_key=?"),places=[];
+    for(const row of db.prepare("SELECT * FROM places WHERE archived=0 ORDER BY name,id").iterate()){
+      if(!assessPlaceEligibility({name:row.name,address:row.address,location:{lat:row.lat,lon:row.lon},tags:decode(row.tags_json)}).eligible)continue;
+      if(jobExists.get(contentInputKey(row,textProfile)))continue;
+      places.push(row);if(places.length>=limit)break;
+    }
+    if(!places.length)throw fail("NO_ELIGIBLE_PLACES");
+    return places;
+  }
   const currentCandidates=`FROM place_identity_candidates c JOIN places p ON p.id=c.place_id
     WHERE p.archived=0 AND c.content_hash=p.content_hash AND c.rules_version=?`;
   const viewCandidate=row=>({placeId:row.place_id,name:row.name,address:row.address,tier:row.tier,score:Number(row.score),category:row.category,
@@ -195,7 +209,7 @@ export function createContentStore({db,now,transaction}) {
         let places;
         if(placeIds!==null){if(!Array.isArray(placeIds)||!placeIds.length||placeIds.length>limit||placeIds.some(id=>typeof id!=="string"))throw fail("BAD_REQUEST");
           const select=db.prepare("SELECT * FROM places WHERE id=? AND archived=0");places=placeIds.map(id=>select.get(id));if(places.some(place=>!place))throw fail("BAD_REQUEST");}
-        else places=db.prepare("SELECT * FROM places WHERE archived=0 ORDER BY name,id LIMIT ?").all(limit);
+        else places=nextEligiblePlaces(limit,textProfile);
         return insertBatch({requestKey,name,places,textProfile,mode,ttsProfile,identityPolicy,state:"running"});
       });
     },

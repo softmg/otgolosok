@@ -252,7 +252,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
 
       <section className="admin-review" aria-labelledby="content-new-batch-title">
         <h3 id="content-new-batch-title">Новая партия</h3>
-        <p className="admin-meta">Берёт указанное число мест из каталога по алфавиту и ставит их в очередь подготовки.</p>
+        <p className="admin-meta">Берёт следующие по алфавиту места, которые прошли проверку пригодности и ещё не стоят в очереди. Места со слабой идентификацией сюда не попадают — для них есть отдельный пилот.</p>
         <form className="admin-filters content-batch-form" onSubmit={event => {
           event.preventDefault();
           void run("Создание партии…", async signal => {

@@ -106,7 +106,7 @@ test("raw profile bypasses server normalization and requires a capable worker",a
 
 test("editing approved place text invalidates a leased older audio version",async t=>{
   const f=await fixture(t,{enqueueBase:false});f.tick();f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),places:[{placeId:"osm:node:1",osmType:"node",osmId:1,name:"Дом",location:{lat:55.7,lon:37.6},tags:{historic:"yes"}}]});
-  const batch=f.store.createBatch({requestKey:"place-audio",limit:1,mode:"text-and-audio",ttsProfile:"silero-ru-v1"});const content=f.store.claimContentJob();f.store.completeContentJob(content.id,{story,evidence:{}});const approved=f.store.approvePlaceText("osm:node:1",story);
+  const batch=f.store.createBatch({requestKey:"place-audio",placeIds:["osm:node:1"],limit:1,mode:"text-and-audio",ttsProfile:"silero-ru-v1"});const content=f.store.claimContentJob();f.store.completeContentJob(content.id,{story,evidence:{}});const approved=f.store.approvePlaceText("osm:node:1",story);
   assert.equal(approved.text.story.title,story.title);
   await f.store.enqueueExternalAudio({sourceJobId:`place-text:${approved.text.id}`,sourceRevision:0,story,profileId:"silero-ru-v1"});const claim=f.store.claimExternalAudio({workerId:"unique-edit-worker",requestId:"unique-edit-lease-0001",profileIds:["silero-ru-v1"]});
   f.tick();f.store.approvePlaceText("osm:node:1",{...story,title:"Новая версия",paragraphs:story.paragraphs.map((p,i)=>i? p:{...p,text:p.text+" Дополнение."})});
@@ -128,7 +128,7 @@ test("a new approved place text keeps old audio until its replacement succeeds",
 
 test("only the latest requested profile publishes when engines finish out of order",async t=>{
   const f=await fixture(t,{enqueueBase:false});f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),places:[{placeId:"osm:node:12",osmType:"node",osmId:12,name:"Дом",location:{lat:55.7,lon:37.6},tags:{historic:"yes"}}]});
-  f.store.createBatch({requestKey:"target-profile",limit:1});const content=f.store.claimContentJob();f.store.completeContentJob(content.id,{story,evidence:{}});const approved=f.store.approvePlaceText("osm:node:12",story);
+  f.store.createBatch({requestKey:"target-profile",placeIds:["osm:node:12"],limit:1});const content=f.store.claimContentJob();f.store.completeContentJob(content.id,{story,evidence:{}});const approved=f.store.approvePlaceText("osm:node:12",story);
   const sourceJobId=`place-text:${approved.text.id}`;await f.store.enqueueExternalAudio({sourceJobId,sourceRevision:0,story,profileId:"silero-ru-v1"});await f.store.enqueueExternalAudio({sourceJobId,sourceRevision:0,story,profileId:"f5-ru-v1"});
   const silero=f.store.claimExternalAudio({workerId:"silero",requestId:"target-silero-1",profileIds:["silero-ru-v1"]});const f5=f.store.claimExternalAudio({workerId:"f5",requestId:"target-f5-0001",profileIds:["f5-ru-v1"]});
   const artifact=(engine,char)=>({url:`/api/story-audio/${char.repeat(64)}.mp3`,sha256:char.repeat(64),bytes:100,durationSec:60,model:engine,voice:"voice",provider:"external",synthetic:true});

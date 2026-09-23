@@ -128,7 +128,7 @@ test("OSM text stays private until approval and approved audio attaches to the p
   const artifact={url:`/api/story-audio/${"c".repeat(64)}.mp3`,sha256:"c".repeat(64),bytes:100,durationSec:60,model:"external",voice:"xenia",provider:"external",synthetic:true};
   const f=await fixture(t,{workerToken:"worker-secret",audioIngest:async req=>{for await(const chunk of req){void chunk;}return{uploadSha256:"d".repeat(64),artifact};}});
   f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[{placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}}]});
-  f.store.createBatch({requestKey:"content-api-1",limit:1,mode:"text-and-audio",ttsProfile:"silero-ru-v1"});
+  f.store.createBatch({requestKey:"content-api-1",placeIds:["osm:node:7"],limit:1,mode:"text-and-audio",ttsProfile:"silero-ru-v1"});
   const paragraph=("Проверенный рассказ о московском парке, его истории, архитектуре и людях. ").repeat(9).trim();
   const job=f.store.claimContentJob(),story={title:"Парк",paragraphs:[{text:paragraph,factIds:["f1","f2","f3"]},{text:paragraph,factIds:["f4","f5"]}]};
   f.store.completeContentJob(job.id,{story,evidence:{facts:[]}});
@@ -144,14 +144,17 @@ test("OSM text stays private until approval and approved audio attaches to the p
 
 test("public OSM catalog validates and serves nearby approved places",async t=>{
   const f=await fixture(t);f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),places:[{placeId:"osm:node:8",osmType:"node",osmId:8,name:"Сад",location:{lat:55.75,lon:37.61},tags:{leisure:"garden"}}]});
-  f.store.createBatch({requestKey:"nearby-http",limit:1});const job=f.store.claimContentJob(),story={title:"История сада",paragraphs:[{text:"Проверенный текст сада",factIds:["f1"]}]};f.store.completeContentJob(job.id,{story,evidence:{}});f.store.approvePlaceText("osm:node:8");
+  f.store.createBatch({requestKey:"nearby-http",placeIds:["osm:node:8"],limit:1});const job=f.store.claimContentJob(),story={title:"История сада",paragraphs:[{text:"Проверенный текст сада",factIds:["f1"]}]};f.store.completeContentJob(job.id,{story,evidence:{}});f.store.approvePlaceText("osm:node:8");
   const response=await fetch(`${f.base}/api/content/places?status=ready&lat=55.75&lon=37.61&radius=500`);assert.equal(response.status,200);const result=await response.json();assert.equal(result.places[0].id,"osm:node:8");assert.ok(result.places[0].distanceM<1);
   assert.equal((await fetch(`${f.base}/api/content/places?lat=55.75&lon=37.61`)).status,400);
 });
 
 test("admin manages content batches and revocable worker credentials",async t=>{
   const f=await fixture(t);f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[{placeId:"osm:node:8",osmType:"node",osmId:8,name:"Музей",location:{lat:55.75,lon:37.61},tags:{tourism:"museum"}}]});
-  const created=await f.post("/api/story-admin/content/batches",{requestKey:"content-api-2",name:"API",limit:1,textProfile:"story-v1",mode:"text-only"});assert.equal(created.status,200);
+  // The place has no address or identifier, so the default selection finds nothing; an explicit list is the editor's choice.
+  const none=await f.post("/api/story-admin/content/batches",{requestKey:"content-api-0",name:"API",limit:1,textProfile:"story-v1",mode:"text-only"});
+  assert.equal(none.status,409);assert.equal((await none.json()).error.code,"NO_ELIGIBLE_PLACES");
+  const created=await f.post("/api/story-admin/content/batches",{requestKey:"content-api-2",name:"API",placeIds:["osm:node:8"],limit:1,textProfile:"story-v1",mode:"text-only"});assert.equal(created.status,200);
   const batch=(await created.json()).batch;assert.equal((await fetch(`${f.base}/api/story-admin/content/batches/${batch.id}`)).status,200);
   const issued=await f.post("/api/story-admin/content/workers",{name:"GPU",profiles:["silero-ru-v1"]});assert.equal(issued.status,201);
   const worker=(await issued.json()).worker;assert.equal(worker.token.length,64);
@@ -189,7 +192,7 @@ test("admin can start a bounded bulk audio backfill", async t => {
   f.store.importPlaces({ source: "fixture", sourceSha256: "a".repeat(64), rulesVersion: "v1", coverage: "fixture", places: [
     { placeId: "osm:node:8", osmType: "node", osmId: 8, name: "Музей", location: { lat: 55.75, lon: 37.61 }, tags: { tourism: "museum" } },
   ] });
-  const batch = f.store.createBatch({ requestKey: "bulk-audio-api", name: "Audio", limit: 1, mode: "text-only" });
+  const batch = f.store.createBatch({ requestKey: "bulk-audio-api", name: "Audio", placeIds: ["osm:node:8"], limit: 1, mode: "text-only" });
   const job = f.store.claimContentJob();
   const story = {
     title: "История музея",

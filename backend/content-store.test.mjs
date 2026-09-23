@@ -32,7 +32,7 @@ test("catalog imports idempotently and batches deduplicate text jobs",t=>{
   const first=store.createBatch({requestKey:"request-0001",name:"Pilot",limit:2});
   const repeated=store.createBatch({requestKey:"request-0001",name:"Ignored",limit:2});
   assert.equal(repeated.id,first.id);assert.equal(first.counts.total,2);
-  const second=store.createBatch({requestKey:"request-0002",name:"Second",limit:2});
+  const second=store.createBatch({requestKey:"request-0002",name:"Second",placeIds:["osm:node:1","osm:way:2"],limit:2});
   assert.equal(second.counts.total,2);
   const job=store.claimContentJob();assert.ok(["Музей","Памятник"].includes(job.place.name));
   store.completeContentJob(job.id,{story:{title:"Музей",paragraphs:[{text:"Текст",factIds:["f1"]}]},evidence:{facts:[]}});
@@ -172,4 +172,21 @@ test("batch items filter by error code and report the codes present in the curre
   for(const invalid of [{error:""},{error:"lowercase"},{error:"WITH SPACE"},{error:"A".repeat(65)},{error:5}]) {
     assert.throws(()=>store.listBatchItems(batch.id,invalid),{code:"BAD_REQUEST"});
   }
+});
+
+test("a batch without an explicit list takes only the next eligible places without a text job",t=>{
+  const store=createStore(":memory:");t.after(()=>store.close());
+  const point={lat:55.75,lon:37.61};
+  store.importPlaces({...catalog,places:[
+    {placeId:"osm:node:21",osmType:"node",osmId:21,name:"А. Б. Иванову",location:point,tags:{historic:"memorial"}},
+    {placeId:"osm:node:22",osmType:"node",osmId:22,name:"Бобёр",location:point,tags:{tourism:"artwork"}},
+    {placeId:"osm:node:23",osmType:"node",osmId:23,name:"Галерея на Арбате",location:point,tags:{tourism:"gallery","addr:street":"Арбат","addr:housenumber":"3"}},
+    {placeId:"osm:node:24",osmType:"node",osmId:24,name:"Дом с идентификатором",location:point,tags:{historic:"building",wikidata:"Q24"}},
+  ]});
+  const first=store.createBatch({requestKey:"eligible-0001",name:"Next",limit:1});
+  assert.deepEqual(store.getBatch(first.id).items.map(item=>item.placeId),["osm:node:23"],"weakly identified places come first alphabetically but are skipped");
+  const second=store.createBatch({requestKey:"eligible-0002",name:"Next",limit:5});
+  assert.deepEqual(store.getBatch(second.id).items.map(item=>item.placeId),["osm:node:24"],"already queued places are not taken again");
+  assert.throws(()=>store.createBatch({requestKey:"eligible-0003",name:"Next",limit:5}),{code:"NO_ELIGIBLE_PLACES"});
+  assert.equal(store.createBatch({requestKey:"eligible-0002",name:"Repeat",limit:5}).id,second.id,"a repeated request still returns the first batch");
 });
