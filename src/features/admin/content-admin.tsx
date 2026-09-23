@@ -9,6 +9,7 @@ import {
   type ContentPlaceSummary, type ContentStatusFilter, type ContentWorker, type Draft,
 } from "./model";
 import { skeletonRows } from "./table-skeleton";
+import { IdentityCandidates } from "./identity-candidates";
 import "./content-admin.css";
 
 type ContentAdminProps = { api: AdminApi; busy: string; run: AdminRun; onDirtyChange: (dirty: boolean) => void };
@@ -275,6 +276,8 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
         </form>
       </section>
 
+      <IdentityCandidates api={api} busy={busy} run={run} onPilotCreated={async (_created, signal) => { await loadOverview(signal); setBatchPage(0); }} />
+
       <section className="admin-review" aria-labelledby="content-batches-title">
         <div className="admin-section-head">
           <div>
@@ -288,7 +291,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
           <tbody>{loading.overview ? skeletonRows(4, batchRows.length) : batchRows.map(item => {
             const segments = progressSegments(item.counts);
             return <tr key={item.id} data-current={batch?.id === item.id || undefined}>
-              <th scope="row">{item.name}<span className="admin-row-id">{item.id.slice(0, 8)} · {item.mode === "text-only" ? "только текст" : "текст и озвучка"} · создана {moment(item.createdAt)}</span></th>
+              <th scope="row">{item.name}<span className="admin-row-id">{item.id.slice(0, 8)} · {item.mode === "text-only" ? "только текст" : "текст и озвучка"}{item.identityPolicy === "weak_identity" ? " · слабая идентификация, публикация после утверждения" : ""} · создана {moment(item.createdAt)}</span></th>
               <td><span className={`admin-stage content-batch-state-${item.state}`}>{batchStates[item.state] ?? item.state}</span></td>
               <td>
                 <div className="content-progress" aria-hidden="true">{segments.map(segment => segment.value

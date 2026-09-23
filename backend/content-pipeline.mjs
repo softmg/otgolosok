@@ -5,6 +5,7 @@ import { researchPrompt, factsPrompt } from "./prompts.mjs";
 import { requestStructured, usageTokens } from "./model-output.mjs";
 import { writeStory } from "./story-writing.mjs";
 import { errorMessages } from "./pipeline.mjs";
+import { restrictWeakIdentityEvidence } from "./identity-triage.mjs";
 
 /** Codes only this pipeline raises; the shared errorMessages cover the rest. The editor reads these in the batch list. */
 const CONTENT_FAILURES = {
@@ -15,6 +16,7 @@ const CONTENT_FAILURES = {
   INVALID_DRAFT: "Черновик не прошёл проверку формата. Можно повторить попытку.",
   INTERRUPTED: "Подготовка прервана. Задание можно повторить.",
   PREPARATION_FAILED: "Не удалось подготовить текст. Можно повторить попытку.",
+  IDENTITY_UNCONFIRMED: "Источники не называют объект так, как он подписан в OSM. Проверьте вручную, о том ли месте найдены материалы.",
   OSM_ADDRESS_LOOKUP_FAILED: "Не удалось прочитать адресные ориентиры OSM. Проверьте локальный адресный индекс перед повтором.",
 };
 
@@ -46,13 +48,16 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
   try {
     if(resolveLocation && !checkpoint.locationContext) save({locationContext:resolveLocation(job.place)});
     const context=placeContext(job.place,checkpoint.locationContext);
-    if(checkpoint.evidence?.version!==EDITORIAL_EVIDENCE_VERSION){checkpoint=invalidateEditorialCheckpoint(checkpoint);store.updateContentCheckpoint(job.id,checkpoint);}
+    // A job moved to weak_identity after its evidence was saved must be re-checked under the stricter rules.
+    const weakEvidenceMissing=job.identityPolicy==="weak_identity"&&checkpoint.evidence&&checkpoint.evidence.identityPolicy!=="weak_identity";
+    if(checkpoint.evidence?.version!==EDITORIAL_EVIDENCE_VERSION||weakEvidenceMissing){checkpoint=invalidateEditorialCheckpoint(checkpoint);store.updateContentCheckpoint(job.id,checkpoint);}
     if(!checkpoint.research&&!checkpoint.sources){const research=await call(researchPrompt(job.place.address,context),{search:true,timeoutMs:180000,maxTokens:3000});const sources=sourcesFrom(research);if(!sources.length)throw failure("INSUFFICIENT_EVIDENCE");save({research:{sources}});}
     if(!checkpoint.sources){const results=await Promise.allSettled(checkpoint.research.sources.map(async(source,index)=>{const page=await fetchPage(source.url,{signal:deadline});const text=await sourceText(page,{keywords:[job.place.name,job.place.address]});if(text.length<300)throw failure("SOURCE_EMPTY");return{id:`s${index+1}`,url:page.url,title:source.title,publisher:new URL(page.url).hostname.split(".").slice(-2).join("."),text};}));
       const sources=results.filter(result=>result.status==="fulfilled").map(result=>result.value);if(!sources.length)throw failure("SOURCE_ACCESS_FAILED");save({sources,sourceFailures:results.filter(result=>result.status==="rejected").map(result=>result.reason?.code??"SOURCE_FAILED")});}
     if(!checkpoint.evidence){const anchor=job.place.address;const facts=await requestStructured(provider,factsPrompt(anchor,checkpoint.sources,context),{signal:deadline,timeoutMs:150000,maxTokens:5500});
       const raw={...facts.value,addressConfirmed:facts.value.addressConfirmed===true,resolvedAddress:facts.value.resolvedAddress||job.place.address||job.place.name,placeName:facts.value.placeName||job.place.name};
-      save({evidence:validateFacts(raw,checkpoint.sources,{requireEditorialScope:true}),editorialVersion:EDITORIAL_EVIDENCE_VERSION});}
+      const evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true});
+      save({evidence:job.identityPolicy==="weak_identity"?restrictWeakIdentityEvidence(evidence,job.place):evidence,editorialVersion:EDITORIAL_EVIDENCE_VERSION});}
     if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:job.place.address??job.place.name,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),onReview:review=>save({review})});save({draft});}
     const completed=store.completeContentJob(job.id,{story:checkpoint.draft,evidence:checkpoint.evidence,verification:"automatic",autoApprove});
     if(autoApprove&&completed.story.audioDisposition!=="not_applicable_short_text")for(const profileId of completed.audioProfiles)await store.enqueueExternalAudio({sourceJobId:`place-text:${completed.id}`,sourceRevision:0,
@@ -60,7 +65,7 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
     return completed;
   } catch(error) {
     const code=["TimeoutError","AbortError"].includes(error?.name)?"TIMEOUT":error?.code??"PREPARATION_FAILED";
-    const state=code==="INSUFFICIENT_EVIDENCE"?"insufficient_evidence":["REVIEW_REQUIRED","ADDRESS_UNCLEAR"].includes(code)?"review_required":"failed";
+    const state=code==="INSUFFICIENT_EVIDENCE"?"insufficient_evidence":["REVIEW_REQUIRED","ADDRESS_UNCLEAR","IDENTITY_UNCONFIRMED"].includes(code)?"review_required":"failed";
     return store.failContentJob(job.id,{code,message:contentFailureMessage(code)},state);
   }
 }

@@ -278,6 +278,20 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
           const input=await body(req,65536);if(input.mode==="text-and-audio"&&!input.ttsProfile)input.ttsProfile=localTts.defaultProfile;
           const batch=store.createBatch(input);json(res,200,{batch});contentWorker?.wake();return;
         }
+        if(req.method==="GET"&&url.pathname==="/api/story-admin/content/identity-candidates") {
+          const entries=[...url.searchParams];
+          if(entries.some(([key,value])=>!["tier","category","q","queue","limit","offset"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
+          json(res,200,store.listIdentityCandidates({tier:url.searchParams.get("tier")??"all",category:url.searchParams.get("category")??"all",q:url.searchParams.get("q")??"",
+            queue:url.searchParams.get("queue")??"all",limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0)}));return;
+        }
+        if(req.method==="POST"&&url.pathname==="/api/story-admin/content/identity-candidates/pilot") {
+          if(!origin||req.headers.origin!==origin){json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
+          const input=await body(req,4096);if(Object.keys(input).some(key=>!["requestKey","limit","mode"].includes(key)))throw failure("BAD_REQUEST");
+          try{json(res,200,store.createIdentityPilot({requestKey:input.requestKey,limit:input.limit,mode:input.mode??"text-only",ttsProfile:localTts.defaultProfile}));}
+          catch(error){if(error.code!=="NO_IDENTITY_CANDIDATES")throw error;
+            json(res,409,{error:{code:error.code,message:"Нет кандидатов уровня «авто» без заданий. Пересчитайте оценку после обновления каталога."}});}
+          return;
+        }
         const batchItems=/^\/api\/story-admin\/content\/batches\/([a-f0-9-]+)\/items$/.exec(url.pathname);
         if(batchItems&&req.method==="GET"){
           const entries=[...url.searchParams];

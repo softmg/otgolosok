@@ -285,3 +285,27 @@ test("worker lease secret is mandatory wherever worker leases can be issued",()=
     else assert.equal(workerLeaseSecret({env,transport,randomSecret:random}),expected,name);
   }
 });
+
+test("admin lists weak identity candidates and starts only a bounded paused pilot",async t=>{
+  const f=await fixture(t),name="Музей-квартира Александра Солженицына";
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[{placeId:"osm:node:9",osmType:"node",osmId:9,name,location:{lat:55.75,lon:37.61},tags:{name,tourism:"museum"}}]});
+  const contentHash=f.store.listPlaces().places[0].contentHash;
+  f.store.replaceIdentityCandidates([{placeId:"osm:node:9",contentHash,tier:"auto",score:95,category:"tourism:museum",reasons:[],signals:["inside_address_building"],location:{status:"matched"}}]);
+  const list=await fetch(`${f.base}/api/story-admin/content/identity-candidates?tier=auto&limit=10&offset=0`);assert.equal(list.status,200);
+  const page=await list.json();assert.equal(page.total,1);assert.equal(page.items[0].placeId,"osm:node:9");assert.deepEqual(page.tiers,{auto:1,enrich:0,manual:0});assert.equal(page.pilotLimit,50);
+  for(const query of ["tier=maybe","limit=-1","page=2","tier=auto&tier=manual","category=%D0%BC"])assert.equal((await fetch(`${f.base}/api/story-admin/content/identity-candidates?${query}`)).status,400,query);
+  assert.equal((await f.post("/api/story-admin/content/identity-candidates/pilot",{requestKey:"identity-http-1",limit:1},"https://other.test")).status,403);
+  assert.equal((await f.post("/api/story-admin/content/identity-candidates/pilot",{requestKey:"identity-http-1",limit:51})).status,400);
+  assert.equal((await f.post("/api/story-admin/content/identity-candidates/pilot",{requestKey:"identity-http-1",limit:1,tier:"enrich"})).status,400);
+  const created=await f.post("/api/story-admin/content/identity-candidates/pilot",{requestKey:"identity-http-1",limit:1,mode:"text-only"});assert.equal(created.status,200);
+  const pilot=await created.json();assert.equal(pilot.created,true);assert.equal(pilot.batch.state,"paused");assert.equal(pilot.batch.identityPolicy,"weak_identity");
+  const again=await (await f.post("/api/story-admin/content/identity-candidates/pilot",{requestKey:"identity-http-1",limit:1})).json();assert.equal(again.batch.id,pilot.batch.id);assert.equal(again.created,false);
+  const empty=await f.post("/api/story-admin/content/identity-candidates/pilot",{requestKey:"identity-http-2",limit:1});assert.equal(empty.status,409);
+  assert.match((await empty.json()).error.message,/Пересчитайте оценку/);
+});
+
+test("weak identity candidates are editor-only",async t=>{
+  const f=await fixture(t,{auth:{api:{getSession:async()=>null}}});
+  assert.equal((await fetch(`${f.base}/api/story-admin/content/identity-candidates`)).status,401);
+  assert.equal((await f.post("/api/story-admin/content/identity-candidates/pilot",{requestKey:"identity-http-3",limit:1})).status,401);
+});

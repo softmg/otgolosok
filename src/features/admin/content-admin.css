@@ -77,3 +77,18 @@
 @media (prefers-reduced-motion: reduce) {
   .content-loading-spinner { animation: none; }
 }
+
+/* Tier counts reuse the batch count buttons; the selected tier reads as the current filter. */
+.content-admin .identity-tiers { margin: .5rem 0 .25rem; }
+.content-admin .identity-tiers button[aria-pressed=true] b { color: var(--admin-green); }
+.content-admin .identity-tiers button[aria-pressed=true] { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
+.content-admin .identity-filters { grid-template-columns: minmax(12rem, 1fr) minmax(10rem, .6fr) minmax(8rem, .4fr) auto; }
+.identity-tier-auto::before { background: var(--teal); }
+.identity-tier-enrich::before { background: #8a6420; }
+.identity-tier-manual::before { background: var(--admin-orange); }
+.identity-reasons { color: var(--admin-orange); }
+.identity-pilot { margin-top: 1.5rem; padding-left: 1rem; border-left: 3px solid var(--admin-green); }
+.identity-pilot h4 { margin: 0 0 .35rem; }
+@media (max-width: 45rem) {
+  .content-admin .identity-filters { grid-template-columns: minmax(0, 1fr); }
+}

@@ -14,6 +14,8 @@ export type Summary = {
 export type TtsProvider = "openai" | "yandex";
 export type ContentBatch = {
   id: string; name: string; state: string; mode: string; textProfile: string; ttsProfile: string | null;
+  /** "weak_identity" marks a triage pilot: stricter evidence and publication only after an editor approves. */
+  identityPolicy?: "standard" | "weak_identity";
   createdAt: string; updatedAt: string;
   counts: { total: number; queued: number; working: number; ready: number; failed: number };
 };
@@ -150,4 +152,59 @@ export const stages: Record<string, string> = {
   review_required: "Нужна редактура", queued: "В очереди", researching: "Поиск источников",
   verifying: "Проверка фактов", writing: "Подготовка текста",
   voicing: "Озвучивание", ready: "Готово", failed: "Ошибка", insufficient_evidence: "Недостаточно источников",
+};
+
+/** Triage of places the regular filter skips with weak_identity; see backend/identity-triage.mjs. */
+export type IdentityTier = "auto" | "enrich" | "manual";
+export type IdentityTierFilter = "all" | IdentityTier;
+export type IdentityQueueFilter = "all" | "none" | "queued";
+export type IdentityLocation = {
+  status: string;
+  building?: { address: string; relation: string } | null;
+  nearestAddress?: { address: string; distanceMeters: number } | null;
+  street?: { name: string; distanceMeters: number } | null;
+  district?: string | null;
+};
+export type IdentityCandidate = {
+  placeId: string; name: string; address: string | null; tier: IdentityTier; score: number; category: string;
+  reasons: string[]; signals: string[]; location: IdentityLocation; assessedAt: string;
+  job: { state: string; identityPolicy: string } | null;
+};
+export type IdentityCandidatePage = {
+  items: IdentityCandidate[]; total: number; hasMore: boolean; tiers: Record<IdentityTier, number>;
+  categories: { category: string; count: number }[]; stale: number; rulesVersion: string; assessedAt: string | null; pilotLimit: number;
+};
+
+export const identityTiers: Record<IdentityTier, { label: string; hint: string }> = {
+  auto: { label: "Автогенерация", hint: "Надёжно привязаны к месту; можно включать в ограниченный пилот." },
+  enrich: { label: "Нужно обогащение", hint: "Сначала нужен адрес или внешний идентификатор." },
+  manual: { label: "Только вручную", hint: "Название или тип не позволяют автоматически определить объект." },
+};
+export const identityQueueOptions: { value: IdentityQueueFilter; label: string }[] = [
+  { value: "all", label: "Все" },
+  { value: "none", label: "Без задания" },
+  { value: "queued", label: "С заданием" },
+];
+export const identityReasons: Record<string, string> = {
+  uninformative_name: "Название из инициалов или слишком короткое",
+  missing_specific_type: "Нет конкретного типа объекта",
+  short_name: "Короткое название",
+  duplicate_name: "Такое же название у других мест",
+  toponym_name: "Название совпадает с улицей или площадью",
+  no_address_anchor: "Нет адресного здания рядом",
+  no_location_context: "Нет адресных ориентиров OSM",
+};
+export const identitySignals: Record<string, string> = {
+  informative_name: "Содержательное название",
+  specific_type: "Конкретный тип",
+  typed_name: "Тип в названии",
+  distinctive_name: "Развёрнутое название",
+  unique_name: "Уникальное название",
+  inside_address_building: "Внутри адресного здания",
+  on_address_building_edge: "На контуре адресного здания",
+  nearby_address_50m: "Адрес в пределах 50 м",
+  street_100m: "Улица в пределах 100 м",
+  district: "Известен район",
+  area_geometry: "Контур объекта",
+  extra_tags: "Дополнительные теги OSM",
 };
