@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { parseMapJobs, placeFromQuery, rememberMapJob, readMapJobs } from "./map-jobs";
+import { isMoscowPoint, MOSCOW_CENTER, parseMapJobs, placeFromQuery, rememberMapJob, readMapJobs } from "./map-jobs";
 import type { GenerationJob } from "../generator/types";
 
 const id="11111111-1111-4111-a111-111111111111";
@@ -28,5 +28,10 @@ describe("map bookmarks",()=>{
     vi.stubGlobal("localStorage",{getItem:()=>{throw new Error("denied");},setItem:()=>{throw new Error("denied");}});
     expect(()=>rememberMapJob({id,address:place.address} as GenerationJob,place)).not.toThrow();
     expect(readMapJobs()).toEqual([]);
+  });
+});
+describe("возврат к карте Москвы",()=>{
+  it("ведёт в точку внутри каталога, чтобы после перехода были видны истории",()=>{
+    expect(isMoscowPoint(MOSCOW_CENTER)).toBe(true);
   });
 });

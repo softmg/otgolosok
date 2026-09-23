@@ -44,6 +44,9 @@
 .around-geo-message svg{width:18px;height:18px}
 .around-geo-message>div{min-width:0;flex:1;max-height:35svh;overflow:auto;overscroll-behavior:contain}
 .around-geo-message>div>p{margin:0}
+.around-geo-message .around-geo-link{display:inline;padding:0;border:0;background:none;color:inherit;font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.around-geo-nowrap{white-space:nowrap}
+.around-geo-message .around-geo-link:focus-visible{outline:3px solid #246b90;outline-offset:2px}
 .around-geo-message>button{align-self:flex-start;min-width:44px;min-height:44px;justify-content:center;align-items:center}
 .around-geo-help summary{cursor:pointer;padding:12px 0;text-decoration:underline;text-underline-offset:3px}
 .around-geo-help summary:focus-visible{outline:3px solid #246b90;outline-offset:3px}

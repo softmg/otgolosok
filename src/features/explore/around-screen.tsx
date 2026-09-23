@@ -13,7 +13,7 @@ import { stageLabels, terminalStages, type GenerationJob } from "../generator/ty
 import { ExploreMap, type MapFocus, type MapItem, type MapViewState } from "./explore-map";
 import { ExploreIcon } from "./icons";
 import { AppNavigation } from "../navigation/app-navigation";
-import { isMoscowPoint, readMapJobs, type MapJob } from "./map-jobs";
+import { isMoscowPoint, MOSCOW_CENTER, readMapJobs, type MapJob } from "./map-jobs";
 import { nearbyRadii, nearbyStoryCatalog, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
 import { selectExplorePanel } from "./panel-state";
 import { rememberGeoPromptDismissal, shouldShowGeoPrompt } from "./geo-prompt";
@@ -49,7 +49,7 @@ export function AroundScreen({route,onStart,children,updateAvailable,initialTab}
   const [focus,setFocus]=useState<MapFocus|null>(null);
   const [user,setUser]=useState<(Coordinates&{accuracyM:number})|null>(null);
   const [nearbyCenter,setNearbyCenter]=useState<Coordinates|null>(null),[nearbyRadius,setNearbyRadius]=useState<NearbyRadius>(200);
-  const [geo,setGeo]=useState<"idle"|"loading"|"ready"|"error"|"denied">("idle"),[geoMessage,setGeoMessage]=useState("");
+  const [geo,setGeo]=useState<"idle"|"loading"|"ready"|"error"|"denied">("idle"),[geoMessage,setGeoMessage]=useState(""),[geoOutside,setGeoOutside]=useState(false);
   const [prompt,setPrompt]=useState(false);
   const [mapHintVisible,setMapHintVisible]=useState(true);
   const [tracked]=useState<MapJob[]>(()=>typeof window==="undefined"?[]:readMapJobs()),[jobs,setJobs]=useState<Record<string,GenerationJob>>({});
@@ -151,7 +151,7 @@ export function AroundScreen({route,onStart,children,updateAvailable,initialTab}
   }
   function submitSearch(event:FormEvent){event.preventDefault();if(query.trim().length>=3)void findPlace(query.trim());}
   function locate(){
-    const version=++geoVersion.current;setGeo("loading");setGeoMessage("");
+    const version=++geoVersion.current;setGeo("loading");setGeoMessage("");setGeoOutside(false);
     if(geoTimer.current)clearTimeout(geoTimer.current);
     const fail=(message:string,denied=false)=>{if(version!==geoVersion.current)return;geoVersion.current++;if(geoTimer.current)clearTimeout(geoTimer.current);setGeo(denied?"denied":"error");setGeoMessage(message);if(denied)setPrompt(false);};
     if(!navigator.geolocation){fail("Геолокация недоступна. Выберите дом на карте или найдите адрес.");return;}
@@ -161,9 +161,11 @@ export function AroundScreen({route,onStart,children,updateAvailable,initialTab}
       const point={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy};
       setUser(point);setFocus(point);setGeo("ready");setPrompt(false);
       setNearbyCenter(point.accuracyM<=50&&isMoscowPoint(point)?point:null);
-      setGeoMessage(!isMoscowPoint(point)?"Вы сейчас за пределами нашего каталога. Пока доступны истории Москвы.":point.accuracyM>50?`Положение приблизительное: точность около ${Math.round(point.accuracyM)} м. Выберите точку на карте, чтобы точно искать рядом.`:"");
+      setGeoOutside(!isMoscowPoint(point));
+      setGeoMessage(!isMoscowPoint(point)?"Вы сейчас за пределами нашего каталога.":point.accuracyM>50?`Положение приблизительное: точность около ${Math.round(point.accuracyM)} м. Выберите точку на карте, чтобы точно искать рядом.`:"");
     },error=>fail(error.code===1?"Нет доступа к геолокации. Можно разрешить его в настройках или выбрать место на карте.":"Не удалось определить положение. Выберите дом на карте или повторите попытку.",error.code===1),{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
   }
+  function showMoscow(){setFocus({...MOSCOW_CENTER,zoom:12});setGeoMessage("");setGeoOutside(false);}
   function metadata(pin:StoryPin){return [pin.duration?`${Math.ceil(pin.duration/60)} мин · аудио`:pin.status,user?`${distanceLabel(distance(user,pin.location))} по прямой`:null].filter(Boolean).join(" · ");}
   const createHref=place?.address?`/create?${new URLSearchParams({address:place.address,lat:String(place.location.lat),lon:String(place.location.lon)})}`:"/create?new=1";
   const walkStart=place?.address?place:active;
@@ -186,7 +188,7 @@ export function AroundScreen({route,onStart,children,updateAvailable,initialTab}
     {tab==="nearby"?<>
       {!search?<button className="around-locate around-icon" type="button" aria-label="Моё местоположение" onClick={locate} disabled={geo==="loading"}><ExploreIcon name="locate"/></button>:null}
       <div className="around-bottom">
-        {geoMessage&&!search?<div className="around-geo-message"><div><p role="status">{geoMessage}</p>{geo==="denied"?<details className="around-geo-help">
+        {geoMessage&&!search?<div className="around-geo-message"><div><p role="status">{geoMessage}{geoOutside?<> Пока доступны истории <span className="around-geo-nowrap"><button type="button" className="around-geo-link" onClick={showMoscow}>Москвы</button>.</span></>:null}</p>{geo==="denied"?<details className="around-geo-help">
           <summary>Как разрешить геолокацию</summary>
           <p><strong>На iPhone и iPad</strong></p>
           <ol>
@@ -198,7 +200,7 @@ export function AroundScreen({route,onStart,children,updateAvailable,initialTab}
           <p>В другом браузере откройте настройки разрешений этого сайта и разрешите доступ к местоположению. Также проверьте геолокацию на устройстве.</p>
           <a href="https://support.apple.com/ru-ru/102515" target="_blank" rel="noopener noreferrer">Инструкция Apple ↗</a>
           <button className="around-text-button" type="button" onClick={locate}>Проверить снова</button>
-        </details>:null}</div><button type="button" aria-label="Скрыть сообщение" onClick={()=>setGeoMessage("")}><ExploreIcon name="close"/></button></div>:null}
+        </details>:null}</div><button type="button" aria-label="Скрыть сообщение" onClick={()=>{setGeoMessage("");setGeoOutside(false);}}><ExploreIcon name="close"/></button></div>:null}
         {prompt&&!active&&!place&&!placeBusy&&!placeError&&!search?<section className="around-location-card" aria-labelledby="location-title"><button type="button" className="around-icon around-location-close" aria-label="Закрыть карточку" onClick={dismissGeoPrompt}><ExploreIcon name="close"/></button><h2 id="location-title">Смотрите истории рядом с вами</h2><button type="button" className="around-primary" onClick={locate} disabled={geo==="loading"}>{geo==="loading"?"Определяем положение…":geo==="denied"||geo==="error"?"Проверить снова":"Включить геолокацию"}<ExploreIcon name="locate"/></button></section>
         :active?<section className="around-place-card" aria-labelledby="selected-place-title"><div className="around-card-label"><span>{active.pending?"Готовим для вас":active.chapter!==undefined?`По дороге · часть ${active.chapter+1}`:"История места"}</span><button type="button" className="around-icon" aria-label="Закрыть карточку" onClick={()=>setSelected(undefined)}><ExploreIcon name="close"/></button></div><h2 id="selected-place-title">{active.title}</h2>{active.title!==active.address?<p>{active.address}</p>:null}<small>{metadata(active)}</small>{active.paragraphs?.length?<div className="around-story-text">{active.paragraphs.map((paragraph,index)=><p key={index}>{paragraph}</p>)}</div>:null}{active.audioUrl?<audio controls preload="metadata" src={active.audioUrl}>Ваш браузер не поддерживает аудио.</audio>:null}{active.chapter!==undefined?<button type="button" className="around-primary" onClick={()=>onStart(active.chapter)}>Слушать эту часть <ExploreIcon name="headphones"/></button>:active.jobId?<Link className="around-primary" href={`/create?job=${active.jobId}`} prefetch={false}>{active.duration?"Открыть и слушать":"Открыть подготовку"}<ExploreIcon name={active.duration?"headphones":"arrow"}/></Link>:active.placeId&&!active.paragraphs?.length?<p>Проверенный текст доступен в карточке места{active.audioUrl?"; запись можно слушать здесь.":"; озвучивание ещё не готово."}</p>:null}</section>
         :explorePanel==="place"?<section className="around-place-card" aria-labelledby="new-place-title"><header className="around-place-heading"><h2 id="new-place-title">{placeBusy?"Определяем адрес…":place?.address??"О чём расскажет этот дом?"}</h2><button type="button" className="around-icon" aria-label="Закрыть выбранное место" onClick={()=>{lookup.current?.abort();setPlace(null);setPlaceBusy(false);setPlaceError("");setNearbyCenter(null);}}><ExploreIcon name="close"/></button></header>{placeError?<p role="status">{placeError}</p>:placeBusy?<p role="status">Смотрим, какой дом находится рядом с выбранной точкой.</p>:!place?.address?<p>У этой точки нет точного номера дома. Введите адрес, чтобы мы искали историю нужного здания.</p>:null}{!placeBusy?<Link className="around-primary" href={createHref} prefetch={false}>{place?.address?"Подготовить историю этого дома":"Ввести адрес вручную"}<ExploreIcon name="plus"/></Link>:null}{place?.address?<Link className="around-secondary" href={walkHref} onClick={rememberOpener} prefetch={false}>Создать прогулку отсюда <ExploreIcon name="walk"/></Link>:null}</section>
