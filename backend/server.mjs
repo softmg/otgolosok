@@ -3,6 +3,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { resolve, join, extname, sep } from "node:path";
 import { pathToFileURL } from "node:url";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { createStore } from "./store.mjs";
 import { createProvider } from "./provider.mjs";
 import { createYandexTts } from "./yandex-tts.mjs";
@@ -29,6 +30,20 @@ import { createTtsApiClient } from "./tts-api-client.mjs";
 import { startTtsApiWorker } from "./tts-api-worker.mjs";
 
 const UUID = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}";
+// Digests keep the comparison constant-time regardless of the candidate length.
+function sameSecret(expected,candidate) {
+  if(typeof expected!=="string"||!expected||typeof candidate!=="string")return false;
+  const digest=value=>createHash("sha256").update(value).digest();
+  return timingSafeEqual(digest(expected),digest(candidate));
+}
+
+// Lease tokens are HMACs, so a known fallback secret would let any worker forge them.
+export function workerLeaseSecret({env=process.env,transport,randomSecret=()=>randomBytes(32).toString("hex")}={}) {
+  const secret=env.WORKER_LEASE_SECRET;
+  const required=transport!=="http"&&(env.NODE_ENV==="production"||Boolean(env.WORKER_API_TOKEN));
+  if(required&&(typeof secret!=="string"||secret.length<32))throw new Error("WORKER_LEASE_SECRET must contain at least 32 characters when external TTS workers are enabled");
+  return secret||randomSecret();
+}
 function json(res,status,value) {
   res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"});
   res.end(JSON.stringify(value));
@@ -114,13 +129,14 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
         if(localTts.transport==="http"){json(res,503,{error:{code:"WORKER_DISABLED",message:"HTTP TTS transport is active."}});return;}
         const rawToken=typeof req.headers.authorization==="string"&&req.headers.authorization.startsWith("Bearer ")?req.headers.authorization.slice(7):"";
         const credential=store.authenticateWorkerToken(rawToken);
-        if((!workerToken||req.headers.authorization!==`Bearer ${workerToken}`)&&!credential){res.setHeader("WWW-Authenticate","Bearer");json(res,401,{error:{code:"UNAUTHORIZED",message:"Worker authentication required."}});return;}
+        if(!sameSecret(workerToken,rawToken)&&!credential){res.setHeader("WWW-Authenticate","Bearer");json(res,401,{error:{code:"UNAUTHORIZED",message:"Worker authentication required."}});return;}
         if(url.search)throw failure("BAD_REQUEST");
         const workerId=String(req.headers["x-worker-id"]??"");
         if(!workerId||workerId.length>100)throw failure("BAD_REQUEST");
         if(req.method==="POST"&&url.pathname==="/api/worker/v1/claim") {
           const input=await body(req,4096);
-          if(Object.keys(input).some(key=>!["requestId","profileIds","textPreparationVersions","version"].includes(key)))throw failure("BAD_REQUEST");
+          if(Object.keys(input).some(key=>!["requestId","profileIds","textPreparationVersions","version"].includes(key))
+            ||!Array.isArray(input.profileIds)||!input.profileIds.length||input.profileIds.length>20||input.profileIds.some(profile=>typeof profile!=="string"))throw failure("BAD_REQUEST");
           const profileIds=credential?input.profileIds.filter(profile=>credential.profiles.includes(profile)):input.profileIds;
           if(!profileIds.length){json(res,403,{error:{code:"FORBIDDEN",message:"Worker profile not permitted."}});return;}
           store.recordWorkerHeartbeat({credentialId:credential?.id??"static",workerName:workerId,version:input.version,profileIds});
@@ -143,7 +159,8 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
         }
         if(req.method==="POST"&&workerMatch[2]==="fail") {
           const input=await body(req,2048);
-          json(res,200,{job:store.failExternalAudio(workerMatch[1],{workerId:effectiveWorkerId,generation,leaseToken,...input})});return;
+          if(Object.keys(input).some(key=>!["failureId","code","message"].includes(key)))throw failure("BAD_REQUEST");
+          json(res,200,{job:store.failExternalAudio(workerMatch[1],{workerId:effectiveWorkerId,generation,leaseToken,failureId:input.failureId,code:input.code,message:input.message})});return;
         }
         if(req.method==="PUT"&&workerMatch[2]==="result") {
           const uploadId=String(req.headers["x-upload-id"]??""),expected=String(req.headers["x-content-sha256"]??"");
@@ -496,10 +513,9 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {
   const directory=resolve(process.env.DATA_DIR??"backend/data");
-  if(process.env.WORKER_API_TOKEN&&!process.env.WORKER_LEASE_SECRET)throw new Error("WORKER_LEASE_SECRET is required when WORKER_API_TOKEN is configured");
   const localTts=loadLocalTtsConfig(process.env);
   const ttsApiClient=localTts.transport==="http"?createTtsApiClient({baseUrl:process.env.TTS_API_URL,token:process.env.TTS_API_TOKEN}):null;
-  const store=createStore(join(directory,"jobs.sqlite"),{maxDaily:Number(process.env.MAX_DAILY_JOBS??6),maxActive:2,workerLeaseSecret:process.env.WORKER_LEASE_SECRET,normalizeExternalText:normalizeForSpeech,externalTtsProfiles:localTts.profiles});
+  const store=createStore(join(directory,"jobs.sqlite"),{maxDaily:Number(process.env.MAX_DAILY_JOBS??6),maxActive:2,workerLeaseSecret:workerLeaseSecret({transport:localTts.transport}),normalizeExternalText:normalizeForSpeech,externalTtsProfiles:localTts.profiles});
   store.recoverInterrupted();
   store.recoverContentJobs();
   const provider=process.env.OPENAI_API_KEY&&process.env.OPENAI_BASE_URL?createProvider({apiKey:process.env.OPENAI_API_KEY,baseUrl:process.env.OPENAI_BASE_URL,model:process.env.STORY_MODEL,writerModel:process.env.WRITER_MODEL}):null;

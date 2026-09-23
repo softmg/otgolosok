@@ -4,7 +4,7 @@ import { mkdtemp,writeFile,rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createStore } from "./store.mjs";
-import { createApp } from "./server.mjs";
+import { createApp, workerLeaseSecret } from "./server.mjs";
 import { sessionCsrfToken } from "./auth.mjs";
 
 async function fixture(t,options={}) {
@@ -244,4 +244,44 @@ test('walk errors are sanitized and walk-only body allowance is bounded',async(t
   assert.equal((await f.post('/api/story-jobs',{address:'x'.repeat(2100)})).status,400);
   const malformed=await fetch(f.base+'/api/walk-plan',{method:'POST',headers:{Origin:'https://otgolosok.test','Content-Type':'application/json'},body:'{'});
   assert.equal(malformed.status,400);assert.equal((await malformed.json()).error.code,'WALK_INVALID');
+});
+
+test("worker failure body cannot replace the authenticated lease identity",async t=>{
+  const f=await fixture(t);
+  const story={title:"Дом",address:"Москва, дом 1",paragraphs:[{text:("История московского дома. ").repeat(30),factIds:["f1"]},{text:("Архитектура и судьба места. ").repeat(30),factIds:["f2"]}]};
+  const source=f.store.createOrGet({key:"lease-identity",address:story.address}),ready=f.store.update(source.id,{stage:"failed",data:{story}},source.revision);
+  await f.store.enqueueExternalAudio({sourceJobId:ready.id,sourceRevision:ready.revision,story,profileId:"silero-ru-v1"});
+  const owner=f.store.createWorkerCredential({name:"Owner",profiles:["silero-ru-v1"]}),other=f.store.createWorkerCredential({name:"Other",profiles:["silero-ru-v1"]});
+  const ownerHeaders={Authorization:`Bearer ${owner.token}`,"X-Worker-Id":"gpu","Content-Type":"application/json"};
+  const claim=await fetch(f.base+"/api/worker/v1/claim",{method:"POST",headers:ownerHeaders,body:JSON.stringify({requestId:"lease-identity-1",profileIds:["silero-ru-v1"]})}).then(value=>value.json());
+  const otherHeaders={Authorization:`Bearer ${other.token}`,"X-Worker-Id":"gpu","Content-Type":"application/json","X-Lease-Generation":"1","X-Lease-Token":"forged"};
+  const response=await fetch(`${f.base}/api/worker/v1/jobs/${claim.job.id}/fail`,{method:"POST",headers:otherHeaders,
+    body:JSON.stringify({failureId:"failure-0001",code:"CRASHED",workerId:`${owner.id}:gpu`,generation:claim.job.leaseGeneration,leaseToken:claim.job.leaseToken})});
+  assert.equal(response.status,400);
+  assert.equal(f.store.getExternalAudio(claim.job.id).state,"leased");
+});
+
+test("worker claim rejects malformed profile lists as a client error",async t=>{
+  const f=await fixture(t,{workerToken:"worker-secret"});
+  const headers={Authorization:"Bearer worker-secret","X-Worker-Id":"gpu","Content-Type":"application/json"};
+  for(const profileIds of [undefined,"silero-ru-v1",{0:"silero-ru-v1"},[1]]) {
+    const response=await fetch(f.base+"/api/worker/v1/claim",{method:"POST",headers,body:JSON.stringify({requestId:"malformed-1",profileIds})});
+    assert.equal(response.status,400,JSON.stringify(profileIds));
+  }
+  assert.equal((await fetch(f.base+"/api/worker/v1/claim",{method:"POST",headers:{...headers,Authorization:"Bearer worker-secreT"},body:JSON.stringify({requestId:"malformed-2",profileIds:["silero-ru-v1"]})})).status,401);
+});
+
+test("worker lease secret is mandatory wherever worker leases can be issued",()=>{
+  const strong="s".repeat(32),random=()=>"random-development-secret";
+  for(const [name,env,transport,expected] of [
+    ["production worker transport without secret",{NODE_ENV:"production"},"worker",Error],
+    ["production worker transport with short secret",{NODE_ENV:"production",WORKER_LEASE_SECRET:"short"},"worker",Error],
+    ["static worker token without secret",{WORKER_API_TOKEN:"token"},"worker",Error],
+    ["production worker transport with strong secret",{NODE_ENV:"production",WORKER_LEASE_SECRET:strong},"worker",strong],
+    ["production HTTP transport does not lease jobs",{NODE_ENV:"production"},"http","random-development-secret"],
+    ["development without secret gets a process-local secret",{},"worker","random-development-secret"],
+  ]) {
+    if(expected===Error)assert.throws(()=>workerLeaseSecret({env,transport,randomSecret:random}),/WORKER_LEASE_SECRET/,name);
+    else assert.equal(workerLeaseSecret({env,transport,randomSecret:random}),expected,name);
+  }
 });
