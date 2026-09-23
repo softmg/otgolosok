@@ -17,6 +17,20 @@ in `deploy-scripts/otgolosok-generator-compose.yml`. Production Nginx serves
 only the static export and does not proxy the API.
 Admin API authentication remains in the backend.
 
+## Заголовки безопасности
+
+CSP страниц собирается вместе со статикой: `scripts/build-content-security-policy.mjs`
+после `next build` вставляет в каждый HTML `<meta http-equiv="Content-Security-Policy">`
+с SHA-256 хешами inline-скриптов этой страницы. `'unsafe-inline'` для скриптов не
+используется. Новый внешний источник (другой сервер тайлов, шрифты, API в браузере)
+нужно добавить в `scripts/content-security-policy.mjs`, иначе браузер его заблокирует.
+
+`frame-ancestors`, HSTS, `X-Frame-Options`, `Referrer-Policy` и `Permissions-Policy`
+в `<meta>` не работают и отдаются ingress: в production это Traefik middleware, которое
+`deploy-otgolosok-prod` включает через `SECURITY_HEADERS=1` в `deploy-static.sh`,
+а в Docker Compose этого репозитория — `docker/security-headers.conf`, подключённый в
+каждом `location` (`add_header` уровня location отменяет унаследованные).
+
 Универсальная прогулка использует существующие static export и API-прокси:
 прямые `/walk`, `/walk/` и `/walk.html` открывают одну оболочку, а query-параметры
 выбирают документ в браузере. Аккаунтные `/api/me/*` и публичные

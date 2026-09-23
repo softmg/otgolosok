@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:https": "next dev --experimental-https",
-    "build": "node scripts/build-walk-catalog.mjs && node scripts/build-map.mjs && next build && node scripts/build-service-worker.mjs",
+    "build": "node scripts/build-walk-catalog.mjs && node scripts/build-map.mjs && next build && node scripts/build-content-security-policy.mjs && node scripts/build-service-worker.mjs",
     "start": "pnpm dlx serve out",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
