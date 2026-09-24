@@ -561,7 +561,6 @@ export function createStore(
         modelSha256:configured.modelSha256??null,speaker:configured.speaker??null,configVersion:configured.configVersion??"1",
         configSha256:configured.configSha256??null,referenceSha256:configured.referenceSha256??null,textPreparation:configured.textPreparation??null,
         chunking:configured.chunking??"sentence-v1",maximumBytes:64*1024*1024,maximumDurationSec:600,
-        minimumPublicationDurationSec:configured.minimumPublicationDurationSec??30,
         maximumPublicationDurationSec:configured.maximumPublicationDurationSec??150};
       const inputKey = sha256(JSON.stringify({version:rawContract?"external-audio-v2":"external-audio-v1",sourceJobId,sourceRevision,spokenTextHash,profileId,normalizer:normalizerVersion,profile}));
       return transaction(() => {
@@ -711,8 +710,8 @@ export function createStore(
         if(textSource?(!textSource.approved_story_json||!hasValidStoryText({...JSON.parse(textSource.approved_story_json),address:"OSM place"})
           ||sha256(JSON.parse(textSource.approved_story_json).paragraphs.map(paragraph=>paragraph.text).join("\n\n"))!==payload.sourceTextHash)
           :(!source||source.revision!==Number(row.source_revision)||!hasValidStoryText(source.data?.story)))throw codedError("CONFLICT");
-        const duration=Number(artifact.durationSec),minimum=Number(payload.profile?.minimumPublicationDurationSec??0),maximum=Number(payload.profile?.maximumPublicationDurationSec??600);
-        if(!Number.isFinite(duration)||duration<minimum||duration>maximum)throw codedError("AUDIO_DURATION");
+        const duration=artifact.durationSec,maximum=Number(payload.profile?.maximumPublicationDurationSec??600);
+        if(typeof duration!=="number"||!Number.isFinite(duration)||duration<=0||duration>maximum)throw codedError("AUDIO_DURATION");
         const timestamp=isoNow(now),receipt={jobId:id,uploadId,uploadSha256,artifact,acceptedAt:timestamp};
         db.prepare(`UPDATE external_audio_jobs SET state='succeeded',upload_id=?,upload_sha256=?,receipt_json=?,
           lease_token_hash=NULL,lease_expires_at=NULL,claim_request_id=NULL,error_json=NULL,updated_at=? WHERE id=?`)

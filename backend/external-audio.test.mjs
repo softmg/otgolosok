@@ -1,5 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { DatabaseSync } from "node:sqlite";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { createStore } from "./store.mjs";
 
 const story={title:"Дом",address:"Москва, дом 1",wordCount:104,paragraphs:[
@@ -90,7 +94,7 @@ test("external audio stores the immutable normalized script and profile contract
   const source=store.createOrGet({key:"normalized-source",address:story.address});const ready=store.update(source.id,{stage:"failed",data:{story}},source.revision);
   await store.enqueueExternalAudio({sourceJobId:ready.id,sourceRevision:ready.revision,story,profileId:"silero-ru-v1"});
   const claim=store.claimExternalAudio({workerId:"gpu",requestId:"normalized-0001",profileIds:["silero-ru-v1"]});
-  assert.match(claim.spokenText,/^НОРМАЛИЗОВАНО:/);assert.equal(claim.normalizerVersion,"test-normalizer");assert.equal(claim.profile.chunking,"sentence-v1");assert.equal(claim.profile.maximumBytes,64*1024*1024);assert.equal(claim.profile.minimumPublicationDurationSec,30);
+  assert.match(claim.spokenText,/^НОРМАЛИЗОВАНО:/);assert.equal(claim.normalizerVersion,"test-normalizer");assert.equal(claim.profile.chunking,"sentence-v1");assert.equal(claim.profile.maximumBytes,64*1024*1024);assert.equal(claim.profile.maximumPublicationDurationSec,150);
 });
 
 test("raw profile bypasses server normalization and requires a capable worker",async t=>{
@@ -136,7 +140,24 @@ test("only the latest requested profile publishes when engines finish out of ord
   f.store.acceptExternalAudio(f5.id,{workerId:"f5",generation:f5.leaseGeneration,leaseToken:f5.leaseToken,uploadId:"f5-upload-01",uploadSha256:"d".repeat(64),artifact:artifact("f5","d")});assert.equal(f.store.getPlace("osm:node:12").text.audio.model,"f5");
 });
 
-test("publication duration is enforced by the frozen TTS profile",async t=>{
-  const f=await fixture(t),claim=f.store.claimExternalAudio({workerId:"duration-worker",requestId:"duration-claim",profileIds:["silero-ru-v1"]});
-  assert.throws(()=>f.store.acceptExternalAudio(claim.id,{workerId:"duration-worker",generation:claim.leaseGeneration,leaseToken:claim.leaseToken,uploadId:"duration-upload",uploadSha256:"a".repeat(64),artifact:{sha256:"b".repeat(64),durationSec:10}}),{code:"AUDIO_DURATION"});
+test("short external audio is accepted even when a frozen legacy profile has a 30-second minimum",async t=>{
+  const directory=mkdtempSync(join(tmpdir(),"short-audio-")),path=join(directory,"jobs.sqlite");
+  t.after(()=>rmSync(directory,{recursive:true,force:true}));
+  const store=createStore(path,{workerLeaseSecret:"test-secret"});t.after(()=>store.close());
+  const original=store.createOrGet({key:"legacy-duration",address:story.address}),source=store.update(original.id,{stage:"failed",data:{story}},original.revision);
+  const queued=await store.enqueueExternalAudio({sourceJobId:source.id,sourceRevision:source.revision,story});
+  const db=new DatabaseSync(path);
+  db.prepare("UPDATE external_audio_jobs SET payload_json=json_set(payload_json,'$.profile.minimumPublicationDurationSec',30) WHERE id=?").run(queued.id);
+  db.close();
+  const claim=store.claimExternalAudio({workerId:"duration-worker",requestId:"duration-claim",profileIds:["silero-ru-v1"]});
+  assert.equal(claim.profile.minimumPublicationDurationSec,30);
+  const accepted=store.acceptExternalAudio(claim.id,{workerId:"duration-worker",generation:claim.leaseGeneration,leaseToken:claim.leaseToken,uploadId:"duration-upload",uploadSha256:"a".repeat(64),artifact:{sha256:"b".repeat(64),durationSec:10}});
+  assert.equal(accepted.state,"succeeded");
+});
+
+test("external audio still rejects missing, zero and overlong duration",async t=>{
+  for(const [index,durationSec] of [undefined,0,151].entries()) {
+    const f=await fixture(t),claim=f.store.claimExternalAudio({workerId:"duration-worker",requestId:`duration-boundary-${index}`,profileIds:["silero-ru-v1"]});
+    assert.throws(()=>f.store.acceptExternalAudio(claim.id,{workerId:"duration-worker",generation:claim.leaseGeneration,leaseToken:claim.leaseToken,uploadId:`duration-upload-${index}`,uploadSha256:"a".repeat(64),artifact:{sha256:"b".repeat(64),durationSec}}),{code:"AUDIO_DURATION"});
+  }
 });
