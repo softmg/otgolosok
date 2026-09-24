@@ -80,6 +80,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
   const [audioJobs, setAudioJobs] = useState<ContentAudioJob[]>([]);
   const [workerToken, setWorkerToken] = useState("");
   const [ttsTransport, setTtsTransport] = useState<"worker" | "http">("worker");
+  const [workerStatusLoaded, setWorkerStatusLoaded] = useState(false);
   // Freshness is read off the clock when the list arrives: during render `Date.now()` would be impure and the
   // callout would silently go stale anyway, because nothing re-renders the component as the window expires.
   const [workerOnline, setWorkerOnline] = useState(false);
@@ -124,6 +125,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
       setTtsTransport(workerList.transport);
       setWorkerOnline(workerList.workers.some(worker => !worker.revokedAt && worker.lastSeenAt
         && Date.now() - new Date(worker.lastSeenAt).valueOf() < HEARTBEAT_WINDOW_MS));
+      setWorkerStatusLoaded(true);
     });
   }
 
@@ -247,7 +249,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
             setNotice(`В очередь поставлено: ${result.queued}. Повторено: ${result.retried}. Проверено: ${result.inspected}${result.hasMore ? " — нажмите ещё раз для продолжения" : ""}.`);
           })}>Озвучить тексты без аудио</button>
         </div>
-        {ttsTransport === "worker" && !workerOnline && <p className="admin-callout">Нет online-воркера TTS. Сначала подключите воркер.</p>}
+        {workerStatusLoaded && ttsTransport === "worker" && !workerOnline && <p className="admin-callout">Нет online-воркера TTS. Сначала подключите воркер.</p>}
       </section>
 
       <section className="admin-review" aria-labelledby="content-new-batch-title">

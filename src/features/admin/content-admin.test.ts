@@ -160,6 +160,22 @@ afterEach(async () => {
 });
 
 describe("подключение TTS", () => {
+  it("не показывает предупреждение о воркере до загрузки данных", async () => {
+    await act(async () => { root.unmount(); });
+    let release!: () => void;
+    const promise = new Promise<void>(resolve => { release = resolve; });
+    gate = { promise, open: release };
+    root = createRoot(container);
+    act(() => { root.render(createElement(Harness)); });
+
+    expect(container.textContent).toContain("Загружаем статистику каталога");
+    expect(container.textContent).not.toContain("Нет online-воркера TTS");
+
+    gate = null;
+    await act(async () => { release(); await promise; });
+    expect(container.textContent).toContain("Нет online-воркера TTS");
+  });
+
   it("в HTTP-режиме не предлагает выпускать недействующий ключ воркера", async () => {
     transport = "http";
     await click(buttons("Обновить")[0]);
