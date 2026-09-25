@@ -190,3 +190,38 @@ test("a batch without an explicit list takes only the next eligible places witho
   assert.throws(()=>store.createBatch({requestKey:"eligible-0003",name:"Next",limit:5}),{code:"NO_ELIGIBLE_PLACES"});
   assert.equal(store.createBatch({requestKey:"eligible-0002",name:"Repeat",limit:5}).id,second.id,"a repeated request still returns the first batch");
 });
+
+test("restart from facts keeps fetched sources and drops everything derived from them", t => {
+  const store = createStore(":memory:", { maxDaily: 100, maxActive: 100 }); t.after(() => store.close()); store.importPlaces(catalog);
+  const batch = store.createBatch({ requestKey: "restart-facts", placeIds: ["osm:node:1"], limit: 1 });
+  const job = store.claimContentJob();
+  const checkpoint = { research: { sources: [{ url: "https://one.example" }] }, sources: [{ id: "s1", text: "Текст" }], sourceFailures: [], locationContext: { status: "matched" },
+    evidence: { facts: [] }, editorialVersion: 2, factsRejection: { code: "PLACE_UNCLEAR" }, draft: { title: "Черновик" }, draftCandidateRaw: { text: "Черновик" },
+    review: { approved: false }, reviewRounds: [{ round: 1 }] };
+  store.updateContentCheckpoint(job.id, checkpoint);
+  store.failContentJob(job.id, { code: "REVIEW_REQUIRED", message: "Проверка" }, "review_required");
+  assert.ok(store.retryBatchItem(batch.id, "osm:node:1", { restartFrom: "facts" }));
+  const retried = store.claimContentJob();
+  assert.deepEqual(Object.keys(retried.checkpoint).sort(), ["locationContext", "research", "sourceFailures", "sources"]);
+  assert.equal(retried.attempts, 1);
+});
+
+test("a queued item can be reset to an earlier stage, but auto retry leaves it alone", t => {
+  const store = createStore(":memory:", { maxDaily: 100, maxActive: 100 }); t.after(() => store.close()); store.importPlaces(catalog);
+  const batch = store.createBatch({ requestKey: "restart-queued", placeIds: ["osm:node:1"], limit: 1 });
+  const job = store.claimContentJob();
+  store.updateContentCheckpoint(job.id, { sources: [{ id: "s1" }], evidence: { facts: [] } });
+  store.failContentJob(job.id, { code: "REVIEW_REQUIRED", message: "Проверка" }, "review_required");
+  assert.ok(store.retryBatchItem(batch.id, "osm:node:1", { restartFrom: "auto" }));
+  assert.equal(store.retryBatchItem(batch.id, "osm:node:1", { restartFrom: "auto" }), null);
+  assert.ok(store.retryBatchItem(batch.id, "osm:node:1", { restartFrom: "facts" }));
+  assert.deepEqual(store.claimContentJob().checkpoint, { sources: [{ id: "s1" }] });
+  assert.throws(() => store.retryBatchItem(batch.id, "osm:node:1", { restartFrom: "draft" }), { code: "BAD_REQUEST" });
+});
+
+test("restart from facts on a job without a checkpoint starts clean", t => {
+  const store = createStore(":memory:", { maxDaily: 100, maxActive: 100 }); t.after(() => store.close()); store.importPlaces(catalog);
+  const batch = store.createBatch({ requestKey: "restart-empty", placeIds: ["osm:node:1"], limit: 1 });
+  assert.ok(store.retryBatchItem(batch.id, "osm:node:1", { restartFrom: "facts" }));
+  assert.equal(store.claimContentJob().checkpoint, null);
+});

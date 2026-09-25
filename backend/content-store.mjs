@@ -21,6 +21,9 @@ export const BATCH_ITEM_STATES = {
 
 export const IDENTITY_PILOT_LIMIT = 50;
 const IDENTITY_POLICIES = ["standard", "weak_identity"];
+// Everything derived from the facts step onward; research and fetched sources stay, so a restart repeats no paid search.
+const FACTS_STAGE_KEYS = ["evidence","editorialVersion","factsRejection","draft","draftCandidateRaw","review","reviewRounds"];
+const factsCheckpoint = json => {if(!json)return null;const checkpoint=JSON.parse(json);for(const key of FACTS_STAGE_KEYS)delete checkpoint[key];return encode(checkpoint);};
 const contentInputKey = (place,profile) => sha256(encode({placeId:place.id,contentHash:place.content_hash,profile,profileVersion:CONTENT_PROFILE_VERSION}));
 
 function addressOf(place) {
@@ -311,8 +314,14 @@ export function createContentStore({db,now,transaction}) {
         for(const {text_job_id} of pending){const references=Number(db.prepare("SELECT count(*) n FROM batch_items WHERE text_job_id=? AND state IN ('queued','retry_wait','working')").get(text_job_id).n);if(!references)db.prepare("UPDATE content_jobs SET state='cancelled',updated_at=? WHERE id=? AND state IN ('queued','retry_wait')").run(timestamp,text_job_id);}
         for(const {place_id} of db.prepare("SELECT place_id FROM batch_items WHERE batch_id=?").all(id))cancelAudioForPlace(place_id,timestamp);}
       return this.getBatch(id);});},
-    retryBatchItem(batchId,placeId,{restartFrom="auto"}={}) {return transaction(()=>{if(!["auto","research"].includes(restartFrom))throw fail("BAD_REQUEST");const item=db.prepare("SELECT * FROM batch_items WHERE batch_id=? AND place_id=?").get(batchId,placeId);if(!item||!["failed","review_required","insufficient_evidence","retry_wait"].includes(item.state))return null;
-      const timestamp=iso(now);db.prepare("UPDATE content_jobs SET state='queued',attempts=0,next_attempt_at=?,error_json=NULL,checkpoint_json=CASE WHEN ?='research' THEN NULL ELSE checkpoint_json END,updated_at=? WHERE id=?").run(timestamp,restartFrom,timestamp,item.text_job_id);
+    /**
+     * restartFrom: "auto" resumes from the checkpoint, "facts" keeps fetched sources and extracts facts again (no paid search),
+     * "research" starts over. A still queued item may be reset to an earlier stage, since no attempt has started on it.
+     */
+    retryBatchItem(batchId,placeId,{restartFrom="auto"}={}) {return transaction(()=>{if(!["auto","facts","research"].includes(restartFrom))throw fail("BAD_REQUEST");const item=db.prepare("SELECT * FROM batch_items WHERE batch_id=? AND place_id=?").get(batchId,placeId);
+      const retryable=["failed","review_required","insufficient_evidence","retry_wait",...(restartFrom==="auto"?[]:["queued"])];if(!item||!retryable.includes(item.state))return null;
+      const job=db.prepare("SELECT checkpoint_json FROM content_jobs WHERE id=?").get(item.text_job_id),checkpoint=restartFrom==="research"?null:restartFrom==="facts"?factsCheckpoint(job?.checkpoint_json):job?.checkpoint_json??null;
+      const timestamp=iso(now);db.prepare("UPDATE content_jobs SET state='queued',attempts=0,next_attempt_at=?,error_json=NULL,checkpoint_json=?,updated_at=? WHERE id=?").run(timestamp,checkpoint,timestamp,item.text_job_id);
       db.prepare("UPDATE batch_items SET state='queued',error_json=NULL,updated_at=? WHERE batch_id=? AND place_id=?").run(timestamp,batchId,placeId);return this.getBatch(batchId);});},
     claimContentJob() {return transaction(()=>{const timestamp=iso(now);const row=db.prepare(`SELECT j.* FROM content_jobs j WHERE j.state IN ('queued','retry_wait') AND j.next_attempt_at<=? AND j.attempts<j.max_attempts
         AND EXISTS(SELECT 1 FROM batch_items i JOIN content_batches b ON b.id=i.batch_id WHERE i.text_job_id=j.id AND i.state IN ('queued','retry_wait') AND b.state='running') ORDER BY j.priority DESC,j.created_at,j.id LIMIT 1`).get(timestamp);
