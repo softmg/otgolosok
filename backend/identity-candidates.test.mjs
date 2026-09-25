@@ -139,7 +139,7 @@ function pipelineProvider(facts) {
   const text = "Музей-квартира открыта в доме, где жил писатель, и рассказывает о его работе. ".repeat(4).trim();
   const queue = [
     { text: "Найден источник", sources: [{ url: "https://one.example/museum", title: "Музей" }] },
-    { value: { addressConfirmed: true, identityNote: "Источник описывает музей", placeName: "Музей-квартира Александра Солженицына", resolvedAddress: "Москва", facts } },
+    { value: { identityConfirmed: true, addressConfirmed: true, identityNote: "Источник описывает музей", placeName: "Музей-квартира Александра Солженицына", resolvedAddress: "Москва", facts } },
     { text: `${text}\n\n${text}` },
     { value: { approved: true, issues: [], checks: { substantive: true, subjectAligned: true, audioClear: true },
       paragraphFacts: [{ paragraph: 1, factIds: ["f1", "f2"] }, { paragraph: 2, factIds: ["f2"] }],

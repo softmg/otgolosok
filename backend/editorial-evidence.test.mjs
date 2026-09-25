@@ -35,3 +35,32 @@ test("legacy editorial evidence remains readable",()=>{
   assert.equal(evidence.facts.length,1);
   assert.equal(evidence.facts[0].kind,undefined);
 });
+
+const placeFact=(kind,subjectRelation="object")=>({claim:`Факт вида ${kind} об объекте.`,kind,subjectRelation,...(kind==="content"?{contentReason:"Сообщает автора и время создания"}:{}),
+  topic:"place_history",scope:"site",location:"Памятник",distanceMeters:null,evidence:[{sourceId:"s1",quote}]});
+const content=placeFact("content"),identity=placeFact("identity"),address=placeFact("address"),neighbourIdentity=placeFact("identity","site_context");
+
+// An OSM place is identified by name, type and location; the user-entered address pipeline keeps the address as its identity.
+for(const [name,input,options,expected] of [
+  ["address mode still requires the address",{addressConfirmed:false,identityConfirmed:true,facts:[identity,content]},{identityMode:"address"},{code:"ADDRESS_UNCLEAR"}],
+  ["address mode ignores identityConfirmed",{addressConfirmed:true,facts:[content]},{identityMode:"address"},["content"]],
+  ["place without an address keeps identity and drops address facts",{addressConfirmed:false,identityConfirmed:true,facts:[identity,address,content]},{identityMode:"place"},["identity","content"]],
+  ["place with a confirmed address keeps address facts",{addressConfirmed:true,identityConfirmed:true,facts:[identity,address,content]},{identityMode:"place"},["identity","address","content"]],
+  ["confirmed address anchors a place without an identity fact",{addressConfirmed:true,identityConfirmed:true,facts:[content]},{identityMode:"place"},["content"]],
+  ["unconfirmed identity stops even with an address",{addressConfirmed:true,identityConfirmed:false,facts:[identity,content]},{identityMode:"place"},{code:"PLACE_UNCLEAR"}],
+  ["missing identityConfirmed is not a confirmation",{addressConfirmed:true,facts:[identity,content]},{identityMode:"place"},{code:"PLACE_UNCLEAR"}],
+  ["no address and no identity fact about the object",{addressConfirmed:false,identityConfirmed:true,facts:[content]},{identityMode:"place"},{code:"PLACE_UNCLEAR"}],
+  ["an identity fact about the site does not identify the object",{addressConfirmed:false,identityConfirmed:true,facts:[neighbourIdentity,content]},{identityMode:"place"},{code:"PLACE_UNCLEAR"}],
+]) test(`identityMode: ${name}`,()=>{
+  const run=()=>validateFacts({...base,...input},sources,{requireEditorialScope:true,...options});
+  if(!Array.isArray(expected)){assert.throws(run,expected);return;}
+  const evidence=run();
+  assert.deepEqual(evidence.facts.map(fact=>fact.kind),expected);
+  if(options.identityMode==="place")assert.equal(evidence.addressConfirmed,input.addressConfirmed);
+  else assert.equal(Object.hasOwn(evidence,"addressConfirmed"),false);
+});
+
+test("identityMode place needs classified facts and rejects unknown modes",()=>{
+  assert.throws(()=>validateFacts({...base,identityConfirmed:true},sources,{identityMode:"place"}),TypeError);
+  assert.throws(()=>validateFacts(base,sources,{requireEditorialScope:true,identityMode:"name"}),TypeError);
+});

@@ -5,7 +5,7 @@ import { contentFailureMessage, runContentJob, startContentWorker } from "./cont
 import { errorMessages } from "./pipeline.mjs";
 
 const catalog={source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[{placeId:"osm:node:1",osmType:"node",osmId:1,name:"Памятник без адреса",location:{lat:55.75,lon:37.61},tags:{historic:"memorial",wikidata:"Q1"}}]};
-function fixture(t,{audio=false}={}){const store=createStore(":memory:",{maxDaily:100,maxActive:100});t.after(()=>store.close());store.importPlaces(catalog);store.createBatch({requestKey:`pipeline-${audio?"audio":"text"}`,limit:1,mode:audio?"text-and-audio":"text-only",ttsProfile:audio?"silero-ru-v1":null});const url="https://one.example/place",page="Памятник установлен в Москве и создан известным архитектором. ".repeat(12);const facts=[1,2,3].map(index=>({claim:`Факт ${index}`,kind:"content",subjectRelation:"object",contentReason:"Раскрывает историю памятника",topic:"place_history",scope:"building",location:"Памятник",distanceMeters:null,evidence:[{sourceId:"s1",quote:"Памятник установлен в Москве и создан известным архитектором."}]}));const part="Памятник установлен в Москве и связан с историей города. Источник рассказывает о его создании и работе архитектора. ".repeat(3).trim(),text=`${part}\n\n${part}`;const queue=[{text:"Найден официальный источник",sources:[{url,title:"Источник"}]},{value:{addressConfirmed:true,identityNote:"Источник описывает памятник",placeName:"Памятник",resolvedAddress:"Памятник, Москва",facts}},{text},{value:{approved:true,issues:[],checks:{substantive:true,subjectAligned:true,audioClear:true},paragraphFacts:[{paragraph:1,factIds:["f1","f2"]},{paragraph:2,factIds:["f2","f3"]}],claims:[{paragraph:1,text:"Памятник установлен в Москве",factIds:["f1","f2"],supported:true,address:false},{paragraph:2,text:"Памятник установлен в Москве",factIds:["f2","f3"],supported:true,address:false}]}}];const provider={writerModel:"writer",response:async()=>({usage:{total_tokens:1},...queue.shift()})};return{store,provider,url,page,queue};}
+function fixture(t,{audio=false}={}){const store=createStore(":memory:",{maxDaily:100,maxActive:100});t.after(()=>store.close());store.importPlaces(catalog);store.createBatch({requestKey:`pipeline-${audio?"audio":"text"}`,limit:1,mode:audio?"text-and-audio":"text-only",ttsProfile:audio?"silero-ru-v1":null});const url="https://one.example/place",page="Памятник установлен в Москве и создан известным архитектором. ".repeat(12);const facts=[1,2,3].map(index=>({claim:`Факт ${index}`,kind:"content",subjectRelation:"object",contentReason:"Раскрывает историю памятника",topic:"place_history",scope:"building",location:"Памятник",distanceMeters:null,evidence:[{sourceId:"s1",quote:"Памятник установлен в Москве и создан известным архитектором."}]}));const part="Памятник установлен в Москве и связан с историей города. Источник рассказывает о его создании и работе архитектора. ".repeat(3).trim(),text=`${part}\n\n${part}`;const queue=[{text:"Найден официальный источник",sources:[{url,title:"Источник"}]},{value:{identityConfirmed:true,addressConfirmed:true,identityNote:"Источник описывает памятник",placeName:"Памятник",resolvedAddress:"Памятник, Москва",facts}},{text},{value:{approved:true,issues:[],checks:{substantive:true,subjectAligned:true,audioClear:true},paragraphFacts:[{paragraph:1,factIds:["f1","f2"]},{paragraph:2,factIds:["f2","f3"]}],claims:[{paragraph:1,text:"Памятник установлен в Москве",factIds:["f1","f2"],supported:true,address:false},{paragraph:2,text:"Памятник установлен в Москве",factIds:["f2","f3"],supported:true,address:false}]}}];const provider={writerModel:"writer",response:async()=>({usage:{total_tokens:1},...queue.shift()})};return{store,provider,url,page,queue};}
 
 test("OSM place uses plain writer text and one source",async t=>{const f=fixture(t);const result=await runContentJob(f.store.claimContentJob(),{store:f.store,provider:f.provider,fetchPage:async url=>({url,contentType:"text/html",html:f.page})});assert.equal(result.story.title,"Памятник");assert.equal(result.story.facts.length,3);});
 
@@ -38,14 +38,15 @@ test("imported OSM identity reaches research and verification with nearby addres
 
 test("enriched search does not bypass failed identity verification", async t => {
   const f = fixture(t);
-  f.queue[1].value.addressConfirmed = false;
+  f.queue[1].value.identityConfirmed = false;
   f.queue[1].value.identityNote = "В источнике описан другой памятник";
   const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider,
     fetchPage: async url => ({ url, contentType: "text/html", html: f.page }) });
   assert.equal(result.state, "review_required");
-  assert.equal(result.error.code, "ADDRESS_UNCLEAR");
+  assert.equal(result.error.code, "PLACE_UNCLEAR");
   // The code drives filtering; the message is what the editor reads, so it must not be the code again.
-  assert.equal(result.error.message, errorMessages.ADDRESS_UNCLEAR);
+  assert.equal(result.error.message, contentFailureMessage("PLACE_UNCLEAR"));
+  assert.notEqual(result.error.message, contentFailureMessage("PREPARATION_FAILED"));
   assert.equal(f.queue.length, 2);
   assert.equal(f.store.getPlace(catalog.places[0].placeId).text, null);
 });
@@ -114,14 +115,15 @@ const rejectedReview = issue => ({ value: { approved: false, issues: [issue], ch
 
 test("a facts rejection keeps the model's explanation and quotes for the editor", async t => {
   const f = fixture(t), last = recordCheckpoints(f.store);
-  f.queue[1].value.addressConfirmed = false;
+  f.queue[1].value.identityConfirmed = false;
   f.queue[1].value.identityNote = "Источник описывает другой памятник";
   const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
-  assert.equal(result.error.code, "ADDRESS_UNCLEAR");
+  assert.equal(result.error.code, "PLACE_UNCLEAR");
   const rejection = last().factsRejection;
-  assert.equal(rejection.code, "ADDRESS_UNCLEAR");
+  assert.equal(rejection.code, "PLACE_UNCLEAR");
   assert.equal(rejection.identityNote, "Источник описывает другой памятник");
-  assert.equal(rejection.addressConfirmed, false);
+  assert.equal(rejection.identityConfirmed, false);
+  assert.equal(rejection.addressConfirmed, true);
   assert.equal(rejection.facts.length, 3);
   assert.equal(rejection.facts[0].evidence[0].quote, "Памятник установлен в Москве и создан известным архитектором.");
   assert.equal(last().evidence, undefined);
@@ -139,7 +141,7 @@ test("a weak_identity rejection shows which quotes the model offered", async t =
 test("model output in a rejection is clipped to the evidence limits", async t => {
   const f = fixture(t), last = recordCheckpoints(f.store);
   const fact = f.queue[1].value.facts[0];
-  Object.assign(f.queue[1].value, { addressConfirmed: false, identityNote: "я".repeat(5000), placeName: { injected: true },
+  Object.assign(f.queue[1].value, { identityConfirmed: false, identityNote: "я".repeat(5000), placeName: { injected: true },
     facts: Array.from({ length: 20 }, () => ({ ...fact, evidence: Array.from({ length: 6 }, () => ({ sourceId: "s1", quote: "ц".repeat(900) })) })) });
   await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
   const rejection = last().factsRejection;
@@ -153,7 +155,7 @@ test("model output in a rejection is clipped to the evidence limits", async t =>
 test("a successful retry drops the previous facts rejection", async t => {
   const f = fixture(t), last = recordCheckpoints(f.store);
   const facts = structuredClone(f.queue[1].value);
-  f.queue[1].value.addressConfirmed = false;
+  f.queue[1].value.identityConfirmed = false;
   await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
   assert.ok(last().factsRejection);
   const [batch] = f.store.listBatches();
@@ -177,4 +179,35 @@ test("both review rounds are kept when the rewrite is rejected again", async t =
   assert.deepEqual(rounds.map(round => [round.round, round.approved, round.issues[0]]), [[1, false, "Первое замечание"], [2, false, "Второе замечание"]]);
   assert.deepEqual(rounds[1].unsupportedClaims, [{ paragraph: 1, text: "Памятник установлен в Москве" }]);
   assert.deepEqual(last().review.issues, ["Второе замечание"]);
+});
+
+test("a park identified without an address is written and reviewed by its name, not an address", async t => {
+  const f = fixture(t), prompts = [];
+  const facts = f.queue[1].value.facts;
+  Object.assign(f.queue[1].value, { identityConfirmed: true, addressConfirmed: false, resolvedAddress: "Памятник, Москва",
+    facts: [{ ...facts[0], claim: "Памятник стоит в сквере.", kind: "identity", contentReason: undefined },
+      { ...facts[1], claim: "Москва, Тестовая улица, 7.", kind: "address" }, facts[2]] });
+  // The address fact is dropped, so the remaining facts are f1 (identity) and f2 (content).
+  const review = f.queue[3].value;
+  review.paragraphFacts = [{ paragraph: 1, factIds: ["f1", "f2"] }, { paragraph: 2, factIds: ["f2"] }];
+  review.claims = review.claims.map(claim => ({ ...claim, factIds: ["f1", "f2"] }));
+  const response = f.provider.response;
+  f.provider.response = async (prompt, options) => { prompts.push(prompt); return response(prompt, options); };
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
+  assert.ok(result.story);
+  assert.equal(result.story.facts.some(fact => fact.claim.includes("Тестовая улица")), false);
+  const reviewPrompt = prompts.find(prompt => prompt.startsWith("Audit this Russian text"));
+  assert.match(reviewPrompt, /Check requested place "Памятник без адреса \(OSM: historic=memorial\)"/);
+  assert.match(reviewPrompt, /Do not reject the text because it does not state or match a postal address/);
+});
+
+test("a place with a confirmed address keeps the address-based review", async t => {
+  const f = fixture(t), prompts = [];
+  const response = f.provider.response;
+  f.provider.response = async (prompt, options) => { prompts.push(prompt); return response(prompt, options); };
+  await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
+  const review = prompts.find(prompt => prompt.startsWith("Audit this Russian text"));
+  assert.doesNotMatch(review, /identified by its name and type/);
+  const facts = prompts.find(prompt => prompt.startsWith("You are a careful Russian urban-history researcher"));
+  assert.match(facts, /"identityConfirmed":true\|false/);
 });

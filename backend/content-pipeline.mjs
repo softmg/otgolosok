@@ -16,6 +16,7 @@ const CONTENT_FAILURES = {
   INVALID_DRAFT: "Черновик не прошёл проверку формата. Можно повторить попытку.",
   INTERRUPTED: "Подготовка прервана. Задание можно повторить.",
   PREPARATION_FAILED: "Не удалось подготовить текст. Можно повторить попытку.",
+  PLACE_UNCLEAR: "Источники не позволяют уверенно определить объект. Проверьте, о том ли месте найдены материалы.",
   IDENTITY_UNCONFIRMED: "Источники не называют объект так, как он подписан в OSM. Проверьте вручную, о том ли месте найдены материалы.",
   OSM_ADDRESS_LOOKUP_FAILED: "Не удалось прочитать адресные ориентиры OSM. Проверьте локальный адресный индекс перед повтором.",
 };
@@ -27,6 +28,12 @@ export function contentFailureMessage(code) {
 
 function placeContext(place, locationContext) {
   return {id:place.id,name:place.name,postalAddress:place.address,location:place.location,geometry:place.geometry,tags:place.tags,locationContext};
+}
+
+/** How the reviewer sees a place identified without a postal address: its OSM name and type. */
+function placeLabel(place) {
+  const tags=place.tags??{},type=["historic","tourism","leisure","memorial","artwork_type","amenity"].filter(key=>typeof tags[key]==="string").map(key=>`${key}=${tags[key]}`).join(", ");
+  return type?`${place.name} (OSM: ${type})`:place.name;
 }
 
 function sourcesFrom(result) {
@@ -76,10 +83,12 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
       const anchor=job.place.address;const facts=await requestStructured(provider,factsPrompt(anchor,checkpoint.sources,context),{signal:deadline,timeoutMs:150000,maxTokens:5500});
       const raw={...facts.value,addressConfirmed:facts.value.addressConfirmed===true,resolvedAddress:facts.value.resolvedAddress||job.place.address||job.place.name,placeName:facts.value.placeName||job.place.name};
       let evidence;
-      try{evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true});if(job.identityPolicy==="weak_identity")evidence=restrictWeakIdentityEvidence(evidence,job.place);}
+      try{evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true,identityMode:"place"});if(job.identityPolicy==="weak_identity")evidence=restrictWeakIdentityEvidence(evidence,job.place);}
       catch(error){if(error?.code)save({factsRejection:factsRejection(error.code,facts.value)});throw error;}
       save({evidence,editorialVersion:EDITORIAL_EVIDENCE_VERSION});}
-    if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:job.place.address??job.place.name,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),
+    // Evidence saved before identityMode "place" has no addressConfirmed flag: it was validated against the address.
+    const placeIdentified=checkpoint.evidence.addressConfirmed===false;
+    if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:placeIdentified?placeLabel(job.place):job.place.address??job.place.name,placeIdentified,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),
       onReview:(review,round=1)=>save({review,reviewRounds:[...(round>1?checkpoint.reviewRounds??[]:[]),reviewRound(round,review)]})});save({draft});}
     const completed=store.completeContentJob(job.id,{story:checkpoint.draft,evidence:checkpoint.evidence,verification:"automatic",autoApprove});
     if(autoApprove&&completed.story.audioDisposition!=="not_applicable_short_text")for(const profileId of completed.audioProfiles)await store.enqueueExternalAudio({sourceJobId:`place-text:${completed.id}`,sourceRevision:0,
@@ -87,7 +96,7 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
     return completed;
   } catch(error) {
     const code=["TimeoutError","AbortError"].includes(error?.name)?"TIMEOUT":error?.code??"PREPARATION_FAILED";
-    const state=code==="INSUFFICIENT_EVIDENCE"?"insufficient_evidence":["REVIEW_REQUIRED","ADDRESS_UNCLEAR","IDENTITY_UNCONFIRMED"].includes(code)?"review_required":"failed";
+    const state=code==="INSUFFICIENT_EVIDENCE"?"insufficient_evidence":["REVIEW_REQUIRED","ADDRESS_UNCLEAR","PLACE_UNCLEAR","IDENTITY_UNCONFIRMED"].includes(code)?"review_required":"failed";
     return store.failContentJob(job.id,{code,message:contentFailureMessage(code)},state);
   }
 }

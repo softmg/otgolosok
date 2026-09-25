@@ -40,7 +40,7 @@ function parseForRequestedProfile(text,requestedProfile) {
     throw error;}
 }
 
-export async function writeStory(evidence,{profile="story-v1",provider,address=evidence.resolvedAddress,signal,onCandidate=()=>{},onReview=()=>{}}={}) {
+export async function writeStory(evidence,{profile="story-v1",provider,address=evidence.resolvedAddress,placeIdentified=false,signal,onCandidate=()=>{},onReview=()=>{}}={}) {
   let effectiveProfile=profile,downgradeReason,result=await provider.response(draftPrompt(evidence,effectiveProfile),{model:provider.writerModel,signal,timeoutMs:180000,maxTokens:3200});
   let parsed;
   try{({parsed,effectiveProfile,downgradeReason}=parseForRequestedProfile(result.text,profile));}
@@ -51,7 +51,7 @@ export async function writeStory(evidence,{profile="story-v1",provider,address=e
   }
   onCandidate({text:result.text.slice(0,32000),validationIssues:[],...(downgradeReason?{downgradeReason}:{})});
   const draft={title:evidence.placeName,address:evidence.resolvedAddress,paragraphs:parsed.paragraphs,wordCount:parsed.wordCount,effectiveProfile};
-  let review=await requestStructured(provider,reviewPrompt(address,{...draft,paragraphs:draft.paragraphs.map((p,index)=>({paragraph:index+1,text:p.text}))},evidence),{signal,timeoutMs:120000,maxTokens:1800});
+  let review=await requestStructured(provider,reviewPrompt(address,{...draft,paragraphs:draft.paragraphs.map((p,index)=>({paragraph:index+1,text:p.text}))},evidence,{placeIdentified}),{signal,timeoutMs:120000,maxTokens:1800});
   onReview(review.value,1);
   let links;
   try{links=acceptReview(review.value,draft.paragraphs,evidence);}
@@ -61,7 +61,7 @@ export async function writeStory(evidence,{profile="story-v1",provider,address=e
     try{({parsed,effectiveProfile,downgradeReason}=parseForRequestedProfile(result.text,profile));}
     catch(rewriteError){onCandidate({text:String(result.text??"").slice(0,32000),validationIssues:[{code:rewriteError.code,path:"text",actual:rewriteError.message}]});throw rewriteError;}
     onCandidate({text:result.text.slice(0,32000),validationIssues:[],...(downgradeReason?{downgradeReason}:{})});draft.paragraphs=parsed.paragraphs;draft.wordCount=parsed.wordCount;draft.effectiveProfile=effectiveProfile;
-    review=await requestStructured(provider,reviewPrompt(address,{...draft,paragraphs:draft.paragraphs.map((p,index)=>({paragraph:index+1,text:p.text}))},evidence),{signal,timeoutMs:120000,maxTokens:1800});onReview(review.value,2);links=acceptReview(review.value,draft.paragraphs,evidence);
+    review=await requestStructured(provider,reviewPrompt(address,{...draft,paragraphs:draft.paragraphs.map((p,index)=>({paragraph:index+1,text:p.text}))},evidence,{placeIdentified}),{signal,timeoutMs:120000,maxTokens:1800});onReview(review.value,2);links=acceptReview(review.value,draft.paragraphs,evidence);
   }
   draft.paragraphs=draft.paragraphs.map((paragraph,index)=>({...paragraph,factIds:links.get(index+1)}));
   const used=new Set(draft.paragraphs.flatMap(paragraph=>paragraph.factIds));
