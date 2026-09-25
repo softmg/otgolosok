@@ -65,6 +65,11 @@ The site directory is `/srv/sites/otgolosok.softmg.tech`:
 - `generator-data`: existing SQLite database and audio; preserve this directory.
 - `valhalla-data`: persistent Moscow graph, built from BBBike Moscow.osm.pbf.
 - `backups`: private deployment archives including credentials and stopped SQLite.
+  После успешной выкладки `deploy-otgolosok-generator` оставляет три последних
+  `backups/generator-*` и образы `otgolosok-generator:rollback-*` только к ним; остальные
+  удаляются (архив ≈ 0,8 ГБ, диск VPS — 38 ГБ). Ссылки на более старые архивы ниже —
+  история выкладок, самих файлов уже нет (24 архива удалены 25.09.2026). Бэкапы
+  `ingress-*`, `env-*` и каталоги внутри `generator-data` ротация не трогает.
 
 Valhalla is pinned to
 `ghcr.io/valhalla/valhalla-scripted@sha256:64b8f444a39521a8409ae39c8c1f5a80ec8d7167af906d9767c0bbea704fadc7`.
