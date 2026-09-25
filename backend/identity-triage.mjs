@@ -92,6 +92,7 @@ function nameVariants(place) {
   return [...new Set(values.map(text).filter(value => value.length >= 4))];
 }
 
+const PATRONYMIC = /(?:ович|евич|ич|овна|евна|ична|инична)$/u;
 const tokens = value => identityNameKey(value).split(/[\s,.:;!?()«»—–-]+/u).filter(token => token.length >= 3 && !stopWords.has(token));
 // A stem tolerates Russian case endings: "сквере Бунина" names "Сквер Бунина".
 const stem = token => token.slice(0, Math.max(4, token.length - 2));
@@ -104,9 +105,12 @@ export function quoteNamesPlace(quote, place) {
   const quoteTokens = tokens(quote);
   const present = token => quoteTokens.some(candidate => candidate.startsWith(stem(token)));
   return nameVariants(place).some(variant => {
-    const all = tokens(variant);
+    const words = variant.split(/\s+/u);
+    // "Василий Семёнович Лановой": sources about a mural or plaque usually drop the patronymic, so first name and surname suffice.
+    const fullName = words.length === 3 && words.every(word => /^[А-ЯЁ][а-яё-]+$/u.test(word)) && PATRONYMIC.test(words[1]);
+    const all = tokens(fullName ? `${words[0]} ${words[2]}` : variant);
     if (!all.length) return false;
-    const proper = variant.split(/\s+/u).slice(1).filter(word => /^[«"]?[А-ЯЁA-Z]/u.test(word)).flatMap(tokens);
+    const proper = fullName ? all : words.slice(1).filter(word => /^[«"]?[А-ЯЁA-Z]/u.test(word)).flatMap(tokens);
     const required = proper.length ? proper : all.length <= 2 ? all : [];
     return required.every(present) && all.filter(present).length / all.length >= 0.6;
   });
