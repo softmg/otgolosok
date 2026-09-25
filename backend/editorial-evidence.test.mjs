@@ -64,3 +64,40 @@ test("identityMode place needs classified facts and rejects unknown modes",()=>{
   assert.throws(()=>validateFacts({...base,identityConfirmed:true},sources,{identityMode:"place"}),TypeError);
   assert.throws(()=>validateFacts(base,sources,{requireEditorialScope:true,identityMode:"name"}),TypeError);
 });
+
+test("quotes match despite stress marks the model dropped or moved", () => {
+  const stressed = "Собо́р Чу́да Архистрати́га Михаи́ла в Хо́нех — утраченный православный храм в Московском Кремле.";
+  const stressedSources = [{ ...sources[0], text: `${stressed} `.repeat(6) }];
+  const quoteFact = { ...placeFact("identity"), evidence: [{ sourceId: "s1", quote: "Собор Чуда Архистрати́га Миха́ила в Хо́нех — утраченный православный храм" }] };
+  const evidence = validateFacts({ ...base, addressConfirmed: false, identityConfirmed: true, facts: [quoteFact, { ...content, evidence: [{ sourceId: "s1", quote: stressed }] }] },
+    stressedSources, { requireEditorialScope: true, identityMode: "place" });
+  assert.deepEqual(evidence.facts.map(fact => fact.kind), ["identity", "content"]);
+});
+
+test("an identity quote that fails the exact-excerpt check is reported apart from an unidentified place", () => {
+  const misquoted = { ...identity, evidence: [{ sourceId: "s1", quote: "Эту цитату модель придумала, в источнике её нет." }] };
+  assert.throws(() => validateFacts({ ...base, addressConfirmed: false, identityConfirmed: true, facts: [misquoted, content] }, sources,
+    { requireEditorialScope: true, identityMode: "place" }), { code: "IDENTITY_QUOTE_INVALID" });
+  assert.throws(() => validateFacts({ ...base, addressConfirmed: false, identityConfirmed: true, facts: [content] }, sources,
+    { requireEditorialScope: true, identityMode: "place" }), { code: "PLACE_UNCLEAR" });
+});
+
+// Listeners see resolvedAddress as the place's address, so a house number needs a confirmed address fact.
+for (const [resolvedAddress, addressConfirmed, expected] of [
+  ["Москва, Большая Ордынка, двор дома 17", false, "Памятник"],
+  ["Москва, улица Остоженка, 51/10", false, "Памятник"],
+  ["Москва, проспект Мира, 119 с50", false, "Памятник"],
+  ["Сиреневый бульвар, вл77", false, "Памятник"],
+  ["Москва, район Сокольники, начало улицы Гастелло", false, "Москва, район Сокольники, начало улицы Гастелло"],
+  ["Москва, 1-я Тверская-Ямская улица", false, "Москва, 1-я Тверская-Ямская улица"],
+  ["Москва, парк 850-летия Москвы", false, "Москва, парк 850-летия Москвы"],
+  ["Москва, улица Остоженка, 51/10", true, "Москва, улица Остоженка, 51/10"],
+]) test(`resolvedAddress "${resolvedAddress}" with addressConfirmed=${addressConfirmed}`, () => {
+  const evidence = validateFacts({ ...base, resolvedAddress, addressConfirmed, identityConfirmed: true, facts: [identity, content] }, sources,
+    { requireEditorialScope: true, identityMode: "place" });
+  assert.equal(evidence.resolvedAddress, expected);
+});
+
+test("the address pipeline keeps resolvedAddress as returned", () => {
+  assert.equal(validateFacts({ ...base, resolvedAddress: "Москва, Арбат, 21" }, sources, { requireEditorialScope: true }).resolvedAddress, "Москва, Арбат, 21");
+});

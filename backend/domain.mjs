@@ -46,10 +46,13 @@ export function pageText(html) {
 }
 
 export function comparable(text) {
-  return text.normalize("NFKC").toLocaleLowerCase("ru").replace(/ё/g, "е")
+  // Stress marks (Собо́р, Михаи́ла) are common in Wikipedia and models drop or move them when quoting.
+  return text.normalize("NFKC").replace(/[\u0300\u0301]/g, "").toLocaleLowerCase("ru").replace(/ё/g, "е")
     .replace(/[«»“”„]/g, '"').replace(/[–—]/g, "-").replace(/\u00ad/g, "").replace(/\s+/g, " ").trim();
 }
 
+// A house number or building part: shown to listeners as an address, so it needs a confirmed kind=address fact.
+const POSTAL_LOCATION = /(?:^|[\s,])(?:д\.|дом[аеу]?|вл\.?|владение|стр\.|строение|корп\.|корпус|к\.?|с\.?)\s*\d|,\s*\d+[а-яё]?(?:\/\d+)?\s*(?:$|,|\s)/iu;
 const shortText = (value, max) => typeof value === "string" && value.trim().length > 0 && value.length <= max;
 
 /** Quotes must exist in the fetched page, not merely in a search snippet. */
@@ -98,12 +101,16 @@ export function validateFacts(result, sources, { requireEditorialScope = false, 
   });
   const used = new Set(facts.flatMap((fact) => fact.evidence.map((proof) => proof.sourceId)));
   // Without a confirmed own address, only an identity fact about the object itself anchors the story to this place.
-  if (!addressAllowed && !facts.some(fact => fact.kind === "identity" && fact.subjectRelation === "object")) throw failure("PLACE_UNCLEAR");
+  if (!addressAllowed && !facts.some(fact => fact.kind === "identity" && fact.subjectRelation === "object")) {
+    // The model named the object, but its quote did not survive the exact-excerpt check: an editor can verify it by hand.
+    const offered = Array.isArray(result.facts) && result.facts.some(fact => fact?.kind === "identity" && fact?.subjectRelation === "object");
+    throw failure(offered ? "IDENTITY_QUOTE_INVALID" : "PLACE_UNCLEAR");
+  }
   if (!facts.length || (requireEditorialScope && !facts.some(fact=>fact.kind === "content"))) throw failure("INSUFFICIENT_EVIDENCE");
   return { ...(requireEditorialScope?{version:EDITORIAL_EVIDENCE_VERSION}:result.version===undefined?{}:{version:result.version}),
     identityNote:shortText(result.identityNote,1000)?result.identityNote.trim():undefined,
     ...(identityMode === "place" ? { addressConfirmed: addressAllowed } : {}),
-    placeName: result.placeName.trim(), resolvedAddress: result.resolvedAddress.trim(), facts,
+    placeName: result.placeName.trim(), resolvedAddress: addressAllowed || !POSTAL_LOCATION.test(result.resolvedAddress) ? result.resolvedAddress.trim() : result.placeName.trim(), facts,
     sources: sources.filter((source) => used.has(source.id)) };
 }
 

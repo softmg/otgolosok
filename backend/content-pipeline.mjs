@@ -16,6 +16,7 @@ const CONTENT_FAILURES = {
   INVALID_DRAFT: "Черновик не прошёл проверку формата. Можно повторить попытку.",
   INTERRUPTED: "Подготовка прервана. Задание можно повторить.",
   PREPARATION_FAILED: "Не удалось подготовить текст. Можно повторить попытку.",
+  IDENTITY_QUOTE_INVALID: "Модель подтвердила объект, но её цитата-подтверждение не совпала с текстом источника дословно. Проверьте источник вручную.",
   PLACE_UNCLEAR: "Источники не позволяют уверенно определить объект. Проверьте, о том ли месте найдены материалы.",
   IDENTITY_UNCONFIRMED: "Источники не называют объект так, как он подписан в OSM. Проверьте вручную, о том ли месте найдены материалы.",
   OSM_ADDRESS_LOOKUP_FAILED: "Не удалось прочитать адресные ориентиры OSM. Проверьте локальный адресный индекс перед повтором.",
@@ -96,7 +97,7 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
     return completed;
   } catch(error) {
     const code=["TimeoutError","AbortError"].includes(error?.name)?"TIMEOUT":error?.code??"PREPARATION_FAILED";
-    const state=code==="INSUFFICIENT_EVIDENCE"?"insufficient_evidence":["REVIEW_REQUIRED","ADDRESS_UNCLEAR","PLACE_UNCLEAR","IDENTITY_UNCONFIRMED"].includes(code)?"review_required":"failed";
+    const state=code==="INSUFFICIENT_EVIDENCE"?"insufficient_evidence":["REVIEW_REQUIRED","ADDRESS_UNCLEAR","PLACE_UNCLEAR","IDENTITY_QUOTE_INVALID","IDENTITY_UNCONFIRMED"].includes(code)?"review_required":"failed";
     return store.failContentJob(job.id,{code,message:contentFailureMessage(code)},state);
   }
 }
