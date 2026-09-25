@@ -1,6 +1,6 @@
 # План: ложные остановки генерации текстов OSM-мест
 
-Status: in progress since 2026-09-25.
+Status: in progress since 2026-09-25, фазы 1–3 реализованы (коммиты 663163c, 3f12493, 467f382); фазы 4–5 ждут выкладки и подтверждения пользователя.
 
 > Заметка для агентов: план — снимок на дату выше. Факты о коде ниже проверены 25.09.2026,
 > но перед правкой перепроверьте их по актуальному коду.
@@ -127,7 +127,9 @@ Production на 25.09.2026: 6 107 мест, 1 110 текстов. Все 1 743 �
    текущее поведение). В режиме `"place"`:
    - `identityConfirmed !== true` → новый код `PLACE_UNCLEAR`;
    - обязателен хотя бы один факт `kind:"identity"` с `subjectRelation:"object"`, иначе
-     `PLACE_UNCLEAR`;
+     `PLACE_UNCLEAR`; **реализовано иначе:** только когда `addressConfirmed !== true`. На production
+     такой факт есть у 1 016 из 1 110 готовых текстов; безусловное требование остановило бы ~8 %
+     мест, которые сейчас проходят, а подтверждённый адрес и так служит якорем;
    - при `addressConfirmed !== true` факты `kind:"address"` отбрасываются, а в evidence
      пишется `addressConfirmed:false`, чтобы автор и проверка не утверждали адрес.
 3. `content-pipeline.mjs:58–59` вызывает `validateFacts(..., {requireEditorialScope:true, identityMode:"place"})`.
@@ -141,6 +143,11 @@ Production на 25.09.2026: 6 107 мест, 1 110 текстов. Все 1 743 �
 **Образцы.** Опции `validateFacts` — существующий `requireEditorialScope`. Тесты правил
 evidence — `backend/editorial-evidence.test.mjs`, тесты пайплайна — `backend/content-pipeline.test.mjs`.
 
+**Реализация.** В `reviewPrompt` добавлена опция `{placeIdentified}`, её передаёт `writeStory`;
+для OSM она включается, когда в evidence `addressConfirmed === false`, а «requested place» —
+`название (OSM: тип)`. У evidence, сохранённых до изменения, поля `addressConfirmed` нет, и для них
+проверка остаётся адресной. `EDITORIAL_EVIDENCE_VERSION` не менялся.
+
 **Проверка (таблично, `editorial-evidence.test.mjs`).**
 
 | identityMode | identityConfirmed | addressConfirmed | identity-факт об объекте | Ожидание |
@@ -149,7 +156,8 @@ evidence — `backend/editorial-evidence.test.mjs`, тесты пайплайн�
 | place | true | false | есть | evidence без address-фактов |
 | place | true | true | есть | evidence с address-фактами |
 | place | false | true | есть | `PLACE_UNCLEAR` |
-| place | true | true | нет | `PLACE_UNCLEAR` |
+| place | true | true | нет | evidence (адрес — якорь) |
+| place | true | false | нет | `PLACE_UNCLEAR` |
 
 - Тест адресного пайплайна (`pipeline.test.mjs`) без изменений проходит.
 - Тест: парк без адреса, `identityConfirmed:true`, `addressConfirmed:false` → `ready`,
