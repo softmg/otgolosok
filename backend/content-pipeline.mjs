@@ -37,8 +37,24 @@ function sourcesFrom(result) {
 
 function invalidateEditorialCheckpoint(checkpoint) {
   const retained={...checkpoint};
-  for(const key of ["evidence","draft","review","draftCandidateRaw","editorialVersion"])delete retained[key];
+  for(const key of ["evidence","draft","review","reviewRounds","draftCandidateRaw","editorialVersion","factsRejection"])delete retained[key];
   return retained;
+}
+
+const clip=(value,max)=>typeof value==="string"?value.trim().slice(0,max):null;
+
+/** What the model answered when its facts were rejected: without it an editor cannot tell why the place stopped. Model output is untrusted, so only known fields are kept, clipped to the validateFacts limits. */
+function factsRejection(code,value) {
+  const facts=Array.isArray(value?.facts)?value.facts.slice(0,8).map(fact=>({claim:clip(fact?.claim,600),kind:clip(fact?.kind,40),subjectRelation:clip(fact?.subjectRelation,40),
+    evidence:Array.isArray(fact?.evidence)?fact.evidence.slice(0,3).map(proof=>({sourceId:clip(proof?.sourceId,20),quote:clip(proof?.quote,500)})):[]})):[];
+  return {code,addressConfirmed:value?.addressConfirmed===true,...(Object.hasOwn(value??{},"identityConfirmed")?{identityConfirmed:value.identityConfirmed===true}:{}),
+    identityNote:clip(value?.identityNote,1000),placeName:clip(value?.placeName,160),resolvedAddress:clip(value?.resolvedAddress,200),facts};
+}
+
+/** One review round as the editor needs it later: the verdict, blocking issues and the claims the reviewer could not support. */
+function reviewRound(round,review) {
+  const unsupportedClaims=Array.isArray(review?.claims)?review.claims.filter(claim=>claim?.supported!==true).slice(0,20).map(claim=>({paragraph:Number.isInteger(claim?.paragraph)?claim.paragraph:null,text:clip(claim?.text,600)})):[];
+  return {round,approved:review?.approved===true,issues:Array.isArray(review?.issues)?review.issues.slice(0,10).map(issue=>clip(String(issue),600)):[],unsupportedClaims};
 }
 
 export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=600000,autoApprove=false}) {
@@ -54,11 +70,17 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
     if(!checkpoint.research&&!checkpoint.sources){const research=await call(researchPrompt(job.place.address,context),{search:true,timeoutMs:180000,maxTokens:3000});const sources=sourcesFrom(research);if(!sources.length)throw failure("INSUFFICIENT_EVIDENCE");save({research:{sources}});}
     if(!checkpoint.sources){const results=await Promise.allSettled(checkpoint.research.sources.map(async(source,index)=>{const page=await fetchPage(source.url,{signal:deadline});const text=await sourceText(page,{keywords:[job.place.name,job.place.address]});if(text.length<300)throw failure("SOURCE_EMPTY");return{id:`s${index+1}`,url:page.url,title:source.title,publisher:new URL(page.url).hostname.split(".").slice(-2).join("."),text};}));
       const sources=results.filter(result=>result.status==="fulfilled").map(result=>result.value);if(!sources.length)throw failure("SOURCE_ACCESS_FAILED");save({sources,sourceFailures:results.filter(result=>result.status==="rejected").map(result=>result.reason?.code??"SOURCE_FAILED")});}
-    if(!checkpoint.evidence){const anchor=job.place.address;const facts=await requestStructured(provider,factsPrompt(anchor,checkpoint.sources,context),{signal:deadline,timeoutMs:150000,maxTokens:5500});
+    if(!checkpoint.evidence){
+      // A rejection from an earlier attempt must not be mistaken for the outcome of this one.
+      if(checkpoint.factsRejection){checkpoint={...checkpoint};delete checkpoint.factsRejection;store.updateContentCheckpoint(job.id,checkpoint);}
+      const anchor=job.place.address;const facts=await requestStructured(provider,factsPrompt(anchor,checkpoint.sources,context),{signal:deadline,timeoutMs:150000,maxTokens:5500});
       const raw={...facts.value,addressConfirmed:facts.value.addressConfirmed===true,resolvedAddress:facts.value.resolvedAddress||job.place.address||job.place.name,placeName:facts.value.placeName||job.place.name};
-      const evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true});
-      save({evidence:job.identityPolicy==="weak_identity"?restrictWeakIdentityEvidence(evidence,job.place):evidence,editorialVersion:EDITORIAL_EVIDENCE_VERSION});}
-    if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:job.place.address??job.place.name,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),onReview:review=>save({review})});save({draft});}
+      let evidence;
+      try{evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true});if(job.identityPolicy==="weak_identity")evidence=restrictWeakIdentityEvidence(evidence,job.place);}
+      catch(error){if(error?.code)save({factsRejection:factsRejection(error.code,facts.value)});throw error;}
+      save({evidence,editorialVersion:EDITORIAL_EVIDENCE_VERSION});}
+    if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:job.place.address??job.place.name,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),
+      onReview:(review,round=1)=>save({review,reviewRounds:[...(round>1?checkpoint.reviewRounds??[]:[]),reviewRound(round,review)]})});save({draft});}
     const completed=store.completeContentJob(job.id,{story:checkpoint.draft,evidence:checkpoint.evidence,verification:"automatic",autoApprove});
     if(autoApprove&&completed.story.audioDisposition!=="not_applicable_short_text")for(const profileId of completed.audioProfiles)await store.enqueueExternalAudio({sourceJobId:`place-text:${completed.id}`,sourceRevision:0,
       story:{...completed.story,address:job.place.address??job.place.name},profileId,signal:deadline});

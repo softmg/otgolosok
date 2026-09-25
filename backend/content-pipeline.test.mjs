@@ -101,3 +101,80 @@ test("every failure code an OSM job can end with explains itself to the editor",
   }
   assert.equal(contentFailureMessage("ADDRESS_UNCLEAR"),errorMessages.ADDRESS_UNCLEAR);
 });
+
+function recordCheckpoints(store) {
+  const saved = [];
+  const save = store.updateContentCheckpoint;
+  store.updateContentCheckpoint = (id, value) => { saved.push(structuredClone(value)); save(id, value); };
+  return () => saved.at(-1);
+}
+const readPage = page => async url => ({ url, contentType: "text/html", html: page });
+const rejectedReview = issue => ({ value: { approved: false, issues: [issue], checks: { substantive: false, subjectAligned: true, audioClear: true }, paragraphFacts: [],
+  claims: [{ paragraph: 1, text: "Памятник установлен в Москве", factIds: ["f1"], supported: false, address: false }] } });
+
+test("a facts rejection keeps the model's explanation and quotes for the editor", async t => {
+  const f = fixture(t), last = recordCheckpoints(f.store);
+  f.queue[1].value.addressConfirmed = false;
+  f.queue[1].value.identityNote = "Источник описывает другой памятник";
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
+  assert.equal(result.error.code, "ADDRESS_UNCLEAR");
+  const rejection = last().factsRejection;
+  assert.equal(rejection.code, "ADDRESS_UNCLEAR");
+  assert.equal(rejection.identityNote, "Источник описывает другой памятник");
+  assert.equal(rejection.addressConfirmed, false);
+  assert.equal(rejection.facts.length, 3);
+  assert.equal(rejection.facts[0].evidence[0].quote, "Памятник установлен в Москве и создан известным архитектором.");
+  assert.equal(last().evidence, undefined);
+});
+
+test("a weak_identity rejection shows which quotes the model offered", async t => {
+  const f = fixture(t), last = recordCheckpoints(f.store);
+  const job = { ...f.store.claimContentJob(), identityPolicy: "weak_identity" };
+  const result = await runContentJob(job, { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
+  assert.equal(result.error.code, "IDENTITY_UNCONFIRMED");
+  assert.equal(last().factsRejection.code, "IDENTITY_UNCONFIRMED");
+  assert.deepEqual(last().factsRejection.facts.map(fact => fact.kind), ["content", "content", "content"]);
+});
+
+test("model output in a rejection is clipped to the evidence limits", async t => {
+  const f = fixture(t), last = recordCheckpoints(f.store);
+  const fact = f.queue[1].value.facts[0];
+  Object.assign(f.queue[1].value, { addressConfirmed: false, identityNote: "я".repeat(5000), placeName: { injected: true },
+    facts: Array.from({ length: 20 }, () => ({ ...fact, evidence: Array.from({ length: 6 }, () => ({ sourceId: "s1", quote: "ц".repeat(900) })) })) });
+  await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
+  const rejection = last().factsRejection;
+  assert.equal(rejection.identityNote.length, 1000);
+  assert.equal(rejection.placeName, null);
+  assert.equal(rejection.facts.length, 8);
+  assert.equal(rejection.facts[0].evidence.length, 3);
+  assert.equal(rejection.facts[0].evidence[0].quote.length, 500);
+});
+
+test("a successful retry drops the previous facts rejection", async t => {
+  const f = fixture(t), last = recordCheckpoints(f.store);
+  const facts = structuredClone(f.queue[1].value);
+  f.queue[1].value.addressConfirmed = false;
+  await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
+  assert.ok(last().factsRejection);
+  const [batch] = f.store.listBatches();
+  assert.ok(f.store.retryBatchItem(batch.id, catalog.places[0].placeId, { restartFrom: "auto" }));
+  f.queue.unshift({ value: facts });
+  const retried = f.store.claimContentJob();
+  assert.ok(retried.checkpoint.sources, "retry must reuse saved sources instead of searching again");
+  const result = await runContentJob(retried, { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
+  assert.ok(result.story);
+  assert.equal(last().factsRejection, undefined);
+  assert.ok(last().evidence);
+});
+
+test("both review rounds are kept when the rewrite is rejected again", async t => {
+  const f = fixture(t), last = recordCheckpoints(f.store);
+  const text = f.queue[2].text;
+  f.queue.splice(3, 1, rejectedReview("Первое замечание"), { text }, rejectedReview("Второе замечание"));
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
+  assert.equal(result.error.code, "REVIEW_REQUIRED");
+  const rounds = last().reviewRounds;
+  assert.deepEqual(rounds.map(round => [round.round, round.approved, round.issues[0]]), [[1, false, "Первое замечание"], [2, false, "Второе замечание"]]);
+  assert.deepEqual(rounds[1].unsupportedClaims, [{ paragraph: 1, text: "Памятник установлен в Москве" }]);
+  assert.deepEqual(last().review.issues, ["Второе замечание"]);
+});
