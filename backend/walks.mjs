@@ -90,7 +90,7 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
     const unavailable=()=>fail(discovering?'WALK_DISCOVERY_UNAVAILABLE':'WALK_UNAVAILABLE');
     const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(unavailable());},timeoutMs);});
     async function request(url,body,contentType) {
-      const response=await fetchImpl(url,{method:'POST',body,redirect:'error',signal:controller.signal,headers:{'Content-Type':contentType,Accept:'application/json','User-Agent':'Otgolosok/0.1 (+https://otgolosok.softmg.tech)'}});
+      const response=await fetchImpl(url,{method:'POST',body,redirect:'error',signal:controller.signal,headers:{'Content-Type':contentType,Accept:'application/json','User-Agent':'Otgolosok/0.1 (+https://otgolosok.online)'}});
       if(!response?.ok||!response.body?.getReader){await response?.body?.cancel();throw fail('WALK_UNAVAILABLE');}
       const reader=response.body.getReader(),chunks=[];let size=0;
       const cancel=()=>{void reader.cancel().catch(()=>{});};

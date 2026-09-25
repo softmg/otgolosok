@@ -1,6 +1,25 @@
 # Production deployment
 
-Production: https://otgolosok.softmg.tech
+Production: https://otgolosok.online
+
+## Домен
+
+Основной адрес — `otgolosok.online` (регистратор reg.ru, DNS в Cloudflare:
+`A @` и `A www` → `93.189.230.19`). `www.otgolosok.online` и старый
+`otgolosok.softmg.tech` отвечают 301 на `https://otgolosok.online` с сохранением
+пути и query: это отдельный Traefik router `otgolosok-softmg-tech-redirect`,
+который `deploy-otgolosok-prod` создаёт через `PUBLIC_HOST` и `REDIRECT_HOSTS`
+в `deploy-static.sh`. Каталог `/srv/sites/otgolosok.softmg.tech`, сеть
+`otgolosoksoftmgtech-net` и имена Compose-проектов сохранили старый домен — это
+внутренние идентификаторы, переименовывать их не нужно.
+
+Backend принимает только один origin (`APP_ORIGIN=https://otgolosok.online`):
+Better Auth и проверки same-origin отклоняют запросы с других хостов. Поэтому
+старые хосты перенаправляются целиком, а не обслуживают сайт параллельно.
+Сертификаты выпускает Traefik через Let's Encrypt HTTP-01. Если в Cloudflare
+включить проксирование (оранжевое облако), нужен режим SSL «Full (strict)», а
+лимиты по IP в backend начнут видеть адреса Cloudflare вместо клиентов, пока
+Traefik не настроен доверять `X-Forwarded-For` от диапазонов Cloudflare.
 
 Infrastructure scripts live in `/Users/fenix007/projects/utils/services` (not a
 Git repository). Use its `deploy-otgolosok-prod` and
@@ -10,7 +29,7 @@ The generator target uses `deploy-scripts/otgolosok-generator-compose.yml`.
 Do not deploy the root development Compose file over production. Nginx remains
 in its existing project; the single generator and Valhalla share the
 `otgolosok-generator` project and external `otgolosoksoftmgtech-net` network.
-Traefik routes the whole `/api/` prefix on `otgolosok.softmg.tech` to the
+Traefik routes the whole `/api/` prefix on `otgolosok.online` to the
 generator with priority 100, so new API paths need no ingress change; the
 authoritative rule is the `traefik.http.routers.otgolosok-generator.rule` label
 in `deploy-scripts/otgolosok-generator-compose.yml`. Production Nginx serves

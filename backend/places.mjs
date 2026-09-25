@@ -61,7 +61,7 @@ export function createPlaceResolver({fetchImpl=fetch,now=Date.now,baseUrl=proces
     try{
       const url=new URL(point?'reverse':'search',baseUrl.endsWith('/')?baseUrl:baseUrl+'/');
       url.search=new URLSearchParams({...params,format:'jsonv2',addressdetails:'1'}).toString();
-      const response=await fetchImpl(url.toString(),{signal:controller.signal,headers:{'User-Agent':'Otgolosok/0.1 (+https://otgolosok.softmg.tech)',Accept:'application/json','Accept-Language':'ru'}});
+      const response=await fetchImpl(url.toString(),{signal:controller.signal,headers:{'User-Agent':'Otgolosok/0.1 (+https://otgolosok.online)',Accept:'application/json','Accept-Language':'ru'}});
       const payload=await readJson(response,controller);
       if(query&&!Array.isArray(payload))throw fail('PLACE_UNAVAILABLE');
       const value=result(query?payload[0]:payload);

@@ -127,7 +127,7 @@ function requestOnce(url, addresses, request, signal, limits) {
     const options = {
       protocol: url.protocol, hostname: addressHost, port: url.port || undefined,
       path: `${url.pathname}${url.search}`, method: 'GET', lookup,
-      headers: { Host: url.host, Accept: 'text/html,application/xhtml+xml,text/plain,application/pdf', 'Accept-Encoding': 'identity', 'User-Agent': 'Otgolosok/0.1 (+https://otgolosok.softmg.tech)' },
+      headers: { Host: url.host, Accept: 'text/html,application/xhtml+xml,text/plain,application/pdf', 'Accept-Encoding': 'identity', 'User-Agent': 'Otgolosok/0.1 (+https://otgolosok.online)' },
       servername: isIP(addressHost) ? undefined : addressHost, rejectUnauthorized: true,
     };
     try {
