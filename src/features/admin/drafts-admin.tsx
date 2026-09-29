@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
-import { draftClipboardText, pageCount, pageRange, type AdminApi, type AdminRun, type ContentDraft, type ContentDraftPage, type ContentPlace, type Draft } from "./model";
+import { DRAFT_RESEARCH_LIMIT, draftClipboardText, pageCount, pageRange, type AdminApi, type AdminRun, type ContentDraft, type ContentDraftPage, type ContentPlace, type Draft, type DraftResearchResult } from "./model";
 import { PlaceTextFields, placeTextValid } from "./place-text-fields";
 import { skeletonRows } from "./table-skeleton";
 import "./content-admin.css";
@@ -25,6 +25,7 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
   const [place, setPlace] = useState<ContentPlace | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [baseline, setBaseline] = useState("");
+  const [researchCount, setResearchCount] = useState(20);
   const loaded = useRef(false);
   const editorHeading = useRef<HTMLHeadingElement>(null);
   const placeOpener = useRef<HTMLButtonElement | null>(null);
@@ -94,6 +95,21 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
     setPlace(null); setDraft(null); setBaseline("");
   }
 
+  /** Queues drafts for a Perplexity search round; a successful run replaces the draft, a failed one leaves it as is. */
+  function research(target: { placeIds: string[]; name: string } | { limit: number }) {
+    if (!consentToLoseDraft()) return;
+    void run("Постановка черновиков в очередь…", async signal => {
+      const result = await api<DraftResearchResult>("/content/drafts/research", signal, { requestKey: crypto.randomUUID(), ...("limit" in target ? { limit: target.limit } : { placeIds: target.placeIds }) });
+      setPlace(null); setDraft(null); setBaseline("");
+      await load(offset, signal);
+      setNotice("limit" in target
+        ? `Поставлено в очередь на переисследование: ${numbers.format(result.count)}. Партия «${result.batch.name}».`
+        : `Черновик «${target.name}» поставлен в очередь на переисследование.`);
+    });
+  }
+
+  const countValid = Number.isInteger(researchCount) && researchCount >= 1 && researchCount <= DRAFT_RESEARCH_LIMIT;
+
   function approve(current: ContentPlace, story: Draft) {
     void run("Утверждение текста…", async signal => {
       await api(`/content/places/${current.id}/approve`, signal, { story });
@@ -111,6 +127,14 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
       </div>
       <button disabled={disabled} onClick={() => void run("Загрузка черновиков…", signal => load(offset, signal))}>Обновить</button>
     </div>
+    {page.researchAvailable
+      ? <form className="admin-row-actions drafts-research" onSubmit={event => { event.preventDefault(); if (countValid) research({ limit: researchCount }); }}>
+        <label>Сколько черновиков <input type="number" min={1} max={DRAFT_RESEARCH_LIMIT} step={1} value={Number.isNaN(researchCount) ? "" : researchCount}
+          disabled={disabled} onChange={event => setResearchCount(event.currentTarget.valueAsNumber)} /></label>
+        <button type="submit" disabled={disabled || !countValid || !page.unresearched}>Переисследовать через Perplexity</button>
+        <span className="admin-meta">Ещё не проверено через Perplexity: {numbers.format(page.unresearched ?? 0)}. Сначала берутся самые старые черновики; удачный прогон заменяет текст черновика.</span>
+      </form>
+      : !loading && <p className="admin-meta">Переисследование через Perplexity недоступно: на сервере не задана модель поиска.</p>}
     <p className="admin-meta" role="status">{notice || (loading ? "Загружаем черновики…" : `Показано ${pageRange(offset, page.items.length, page.total)} черновиков.`)}</p>
     <div className="admin-table-wrap" aria-busy={loading}><table className="admin-table">
       <caption className="admin-sr-only">Черновики текстов</caption>
@@ -123,6 +147,7 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
         <td><div className="admin-row-actions">
           <button disabled={disabled} aria-label={`Копировать черновик: ${item.name}`} onClick={() => void copy(item)}>Копировать</button>
           <button disabled={disabled} aria-label={`Открыть черновик: ${item.name}`} onClick={event => openPlace(item.placeId, event.currentTarget)}>Открыть</button>
+          {page.researchAvailable && <button disabled={disabled} aria-label={`Переисследовать черновик: ${item.name}`} onClick={() => research({ placeIds: [item.placeId], name: item.name })}>Переисследовать</button>}
         </div></td>
       </tr>
       {place?.id === item.placeId && <tr className="drafts-editor-row"><td colSpan={5}>

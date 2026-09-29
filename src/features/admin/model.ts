@@ -27,6 +27,8 @@ export type ContentItemSource = {
   url: string; title: string | null; sourceId: string | null; publisher: string | null; chars: number; failure: string | null;
   /** A data.mos.ru record matched to the place offline, not a search result. */
   openData?: { datasetId: number; recordId: string; datasetVersion: string } | null;
+  /** Which search found the page when the job also asked Perplexity; null otherwise. */
+  origin?: "perplexity" | "search" | null;
 };
 export type ContentItemFact = {
   claim: string; kind: string | null; subjectRelation: string | null; evidence: { sourceId: string; quote: string }[];
@@ -36,6 +38,8 @@ export type ContentBatchItemDetail = ContentBatchItem & {
   location: { lat: number; lon: number }; tags: Record<string, string>;
   job: { state: string; attempts: number; maxAttempts: number; updatedAt: string };
   sources: ContentItemSource[];
+  /** Outcome of the Perplexity search for a weak_identity job; null when it was not asked. */
+  perplexity?: { status: "ok" | "failed"; code: string | null; count: number } | null;
   model: {
     outcome: "rejected" | "accepted"; identityConfirmed: boolean | null; addressConfirmed: boolean;
     placeName: string | null; resolvedAddress: string | null; identityNote: string | null; facts: ContentItemFact[];
@@ -245,7 +249,10 @@ export type ContentDraft = {
   placeId: string; name: string; address: string | null; location: { lat: number; lon: number };
   text: { id: string; title: string; paragraphs: string[]; verification: string; createdAt: string };
 };
-export type ContentDraftPage = { total: number; hasMore: boolean; items: ContentDraft[] };
+/** `unresearched` counts drafts the bulk re-research would still pick; `researchAvailable` says the server has a search model. */
+export type ContentDraftPage = { total: number; hasMore: boolean; items: ContentDraft[]; unresearched?: number; researchAvailable?: boolean };
+export type DraftResearchResult = { batch: { id: string; name: string }; count: number };
+export const DRAFT_RESEARCH_LIMIT = 50;
 
 /** Plain text for the editor's clipboard: the point with its coordinates, then every paragraph numbered. */
 export function draftClipboardText(draft: ContentDraft) {

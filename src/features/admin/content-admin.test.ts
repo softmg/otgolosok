@@ -83,9 +83,10 @@ const api: AdminApi = async <T,>(path: string): Promise<T> => {
       sources: [
         { url: "https://data.mos.ru/opendata/2801", title: "Портал открытых данных Правительства Москвы: Мемориальные доски города Москвы", sourceId: "d1", publisher: "data.mos.ru", chars: 380, failure: null,
           openData: { datasetId: 2801, recordId: "42", datasetVersion: "3.86 01.04.2026 09:00:00" } },
-        { url: "https://example.org/person", title: "Биография", sourceId: "s1", publisher: "example.org", chars: 4200, failure: null },
-        { url: "https://example.net/down", title: "Недоступная", sourceId: null, publisher: null, chars: 0, failure: "TIMEOUT" },
+        { url: "https://example.org/person", title: "Биография", sourceId: "s1", publisher: "example.org", chars: 4200, failure: null, origin: "perplexity" },
+        { url: "https://example.net/down", title: "Недоступная", sourceId: null, publisher: null, chars: 0, failure: "TIMEOUT", origin: "search" },
       ],
+      perplexity: { status: "ok", code: null, count: 1 },
       model: { outcome: "rejected", identityConfirmed: false, addressConfirmed: false, placeName: "Левон Айрапетян", resolvedAddress: "Москва",
         identityNote: "Источники о человеке, а не о мемориальной доске.", facts: [] },
     } } as T;
@@ -461,7 +462,9 @@ describe("подробности задания партии", () => {
     expect(links).toContain("https://yandex.ru/maps/?pt=37.6198765,55.7512345&z=18&l=map");
     expect(detail.textContent).toContain("Модель не подтвердила, что источники о нём");
     expect(detail.textContent).toContain("Источники о человеке, а не о мемориальной доске.");
-    expect(detail.textContent).toMatch(/4\s200 знаков/);
+    expect(detail.textContent).toMatch(/4\s200 знаков · найдено Perplexity/);
+    expect(detail.textContent).toContain("Perplexity нашёл ссылок: 1.");
+    expect(detail.textContent).not.toMatch(/вовремя · найдено Perplexity/);
     expect(detail.textContent).toContain("d1 · Открытые данные Москвы · набор 2801, версия 3.86 01.04.2026 09:00:00");
     expect(detail.textContent).not.toMatch(/380 знаков/);
     expect(detail.textContent).toContain("не прочитан: страница не ответила вовремя");

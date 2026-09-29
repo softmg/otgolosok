@@ -21,13 +21,15 @@ const place = (index: number): ContentPlace => ({
 });
 
 let container: HTMLDivElement, root: Root, requests: string[], total: number, approved: { path: string; body: unknown }[], dirty: boolean[];
+let researchAvailable: boolean, researched: unknown[];
 const api: AdminApi = async <T,>(path: string, _signal: AbortSignal, body?: unknown) => {
   requests.push(path);
+  if (path === "/content/drafts/research") { researched.push(body); return { batch: { id: "b1", name: "Perplexity · черновики" }, count: 2 } as T; }
   if (path.endsWith("/approve")) { approved.push({ path, body }); total -= 1; return { place: place(1) } as T; }
   if (path.startsWith("/content/places/")) return { place: place(Number(path.split(":").at(-1))) } as T;
   const offset = Number(new URLSearchParams(path.split("?")[1]).get("offset"));
   const items = Array.from({ length: Math.max(0, Math.min(50, total - offset)) }, (_, index) => draft(offset + index + 1 + approved.length));
-  return { total, hasMore: offset + items.length < total, items } satisfies ContentDraftPage as T;
+  return { total, hasMore: offset + items.length < total, items, researchAvailable, unresearched: total } satisfies ContentDraftPage as T;
 };
 const run: AdminRun = async (_label, action) => { await action(new AbortController().signal); };
 
@@ -45,7 +47,7 @@ const button = (label: string) => [...container.querySelectorAll("button")].find
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  requests = []; total = 2; approved = []; dirty = [];
+  requests = []; total = 2; approved = []; dirty = []; researchAvailable = false; researched = [];
   Element.prototype.scrollIntoView = vi.fn();
   container = document.createElement("div");
   document.body.append(container);
@@ -134,5 +136,43 @@ describe("вкладка черновиков", () => {
     await act(async () => { button("Закрыть").click(); });
     expect(container.querySelector("#draft-place-title")).toBeNull();
     expect(document.activeElement?.getAttribute("aria-label")).toBe("Открыть черновик: Место 1");
+  });
+});
+
+describe("переисследование черновиков через Perplexity", () => {
+  it("ставит в очередь выбранное число черновиков и один черновик из строки", async () => {
+    researchAvailable = true;
+    await mount();
+    expect(container.textContent).toContain("Ещё не проверено через Perplexity: 2.");
+    const count = container.querySelector<HTMLInputElement>(".drafts-research input")!;
+    expect(count.value).toBe("20");
+    await act(async () => { edit(count, "5"); });
+    await act(async () => { button("Переисследовать через Perplexity").click(); });
+    expect(researched).toHaveLength(1);
+    expect(researched[0]).toMatchObject({ limit: 5 });
+    expect((researched[0] as { requestKey: string }).requestKey.length).toBeGreaterThanOrEqual(8);
+    expect(container.textContent).toContain("Поставлено в очередь на переисследование: 2. Партия «Perplexity · черновики».");
+    await act(async () => { button("Переисследовать черновик: Место 2").click(); });
+    expect(researched[1]).toMatchObject({ placeIds: ["osm:node:2"] });
+    expect(researched[1]).not.toHaveProperty("limit");
+    expect(container.textContent).toContain("Черновик «Место 2» поставлен в очередь на переисследование.");
+  });
+
+  it("не отправляет число вне допустимого диапазона", async () => {
+    researchAvailable = true;
+    await mount();
+    const count = container.querySelector<HTMLInputElement>(".drafts-research input")!;
+    for (const value of ["0", "51", ""]) {
+      await act(async () => { edit(count, value); });
+      expect(button("Переисследовать через Perplexity").disabled).toBe(true);
+    }
+    expect(researched).toEqual([]);
+  });
+
+  it("скрывает кнопки, если на сервере нет модели поиска", async () => {
+    await mount();
+    expect(container.textContent).toContain("Переисследование через Perplexity недоступно");
+    expect(button("Переисследовать через Perplexity")).toBeUndefined();
+    expect(button("Переисследовать черновик: Место 1")).toBeUndefined();
   });
 });
