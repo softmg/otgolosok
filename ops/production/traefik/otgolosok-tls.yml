@@ -1,0 +1,12 @@
+tls:
+  options:
+    otgolosok:
+      minVersion: VersionTLS12
+      maxVersion: VersionTLS13
+      alpnProtocols:
+        - h2
+http:
+  middlewares:
+    otgolosok-h2-only:
+      plugin:
+        h2only: {}
