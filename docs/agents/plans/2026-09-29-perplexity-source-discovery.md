@@ -137,6 +137,9 @@ used. Place data is marked as data, never instructions (same convention as `rese
   4. merge: Perplexity first, then Codex, dedupe by normalised URL, cap 8. `INSUFFICIENT_EVIDENCE` only if the merged
      list and open data are both empty;
   5. `checkpoint.research = {sources, perplexity: {status:"ok"|"failed", code?, count, model}}`.
+  6. (Added during implementation.) A successful Perplexity result is saved as `checkpoint.perplexityResearch` before
+     the Codex call and reused on retry, so a regular-search outage does not spend the quota again; it is removed once
+     `research` is saved.
 - Required mode: if `checkpoint.researchMode === "perplexity_required"` (set by draft re-research, step 4) and
   Perplexity fails or `searchSources` is null → throw `failure("PERPLEXITY_UNAVAILABLE")` before the Codex call.
   Add to `CONTENT_FAILURES`: «Perplexity недоступен: вероятно, истекла сессия или закончилась квота. Черновик не
@@ -158,7 +161,7 @@ used. Place data is marked as data, never instructions (same convention as `rese
   of the list). If it was approved in the meantime, keep it untouched and record nothing else. Audio fields are
   not touched (weak_identity texts have no auto audio).
 - `researchDrafts({requestKey, placeIds = null, limit = 20})` in one transaction:
-  - validation: `limit` integer 1–50; `placeIds` 1–50 valid OSM ids, or null; otherwise `BAD_REQUEST`;
+  - validation: `requestKey` 8–100 chars (same rule as other batches); `limit` integer 1–50; `placeIds` 1–50 valid OSM ids, or null; otherwise `BAD_REQUEST`;
   - candidates: draft places (`DRAFT_PLACE`, not archived) whose job for `story-v1` is `ready`, whose latest
     checkpoint has no `research.perplexity.status = 'ok'` (`json_extract`), ordered by the latest text's
     `created_at ASC` (oldest first). With `placeIds`, only those places, and the "already processed" filter does
@@ -191,8 +194,8 @@ used. Place data is marked as data, never instructions (same convention as `rese
   - after success: status line «Поставлено в очередь: N. Партия «…»» and a reload; errors through the existing
     status mechanism.
 - `batch-item-detail.tsx`: show the Perplexity status of the job (`найдено N ссылок` / `недоступен (код)`) and mark
-  sources with `origin:"perplexity"` as «найдено Perplexity». This needs the store's item-detail view to expose
-  `research.perplexity` and the source origin.
+  sources with `origin:"perplexity"` as «найдено Perplexity». The store's item-detail view exposes
+  `perplexity: {status, code, count} | null` and `origin` on every source (`null` for open data and jobs without the search model).
 
 ### 7. Deploy and pilot
 
@@ -200,7 +203,7 @@ Follow `docs/production-deployment.md`, `docs/agents/production-deploy-concurren
 background deploys and parallel agents. Then:
 
 1. Set `RESEARCH_SEARCH_MODEL=perplexity-web/pplx-auto` in production env and restart the generator.
-2. Create the pilot through the existing batch API: 30 random `enrich` places without a job and without open data,
+2. Create the pilot (done with `createStore(...).createBatch` inside the generator container, since the admin API needs a browser session): 30 random `enrich` places without a job and without open data,
    `identityPolicy:"weak_identity"`, then `setBatchPriority` 20 so it runs before the 586 queued jobs.
 3. After it finishes, report: ready / review_required / insufficient_evidence, Perplexity `ok`/`failed` counts,
    how many `ready` texts cite at least one `origin:"perplexity"` source; compare with `ac2a4c4d` (17/30).
