@@ -7,7 +7,10 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { createStore } from "./store.mjs";
 import { createProvider } from "./provider.mjs";
 import { createYandexTts } from "./yandex-tts.mjs";
-import { ttsVoiceOptions } from "./tts-voices.mjs";
+import { isTtsProvider, ttsVoiceOptions } from "./tts-voices.mjs";
+import { createElevenLabsTts, listElevenLabsVoices } from "./elevenlabs-tts.mjs";
+import { createAudioTagger } from "./audio-tags.mjs";
+import { ELEVENLABS_PROFILE_ID, elevenLabsProfile, startSpeechAudioWorker } from "./speech-audio-worker.mjs";
 import { normalizeAddress, addressKey, publicJob, failure } from "./domain.mjs";
 import { errorMessages, safeError, startWorker } from "./pipeline.mjs";
 import { createPlaceResolver } from "./places.mjs";
@@ -93,6 +96,7 @@ export function parseUserDailyLimit(value) {
  * @property {ReturnType<typeof createProvider> | null} [provider]
  * @property {ReturnType<typeof openOsmGeocoder> | null} [osmGeocoder]
  * @property {ReturnType<typeof createYandexTts> | null} [yandexTts]
+ * @property {ReturnType<typeof createElevenLabsTts> | null} [elevenLabsTts]
  * @property {string} origin
  * @property {string} [audioDirectory]
  * @property {string} [staticDirectory]
@@ -118,14 +122,19 @@ export function parseUserDailyLimit(value) {
  */
 
 /** @param {CreateAppOptions} options */
-export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin,audioDirectory,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,promoWalksToken=process.env.PROMO_WALKS_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{},userDailyLimit=6,shutdownGraceMs=20000}) {
+export function createApp({store,provider,osmGeocoder=null,yandexTts=null,elevenLabsTts=null,origin,audioDirectory,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,promoWalksToken=process.env.PROMO_WALKS_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{},userDailyLimit=6,shutdownGraceMs=20000}) {
   const walkPlanner=planWalk??createWalkPlanner({candidateProvider:query=>store.listWalkCandidates?.(query)??[]});
-  const speechProviders={openai:provider,yandex:yandexTts};
+  const speechProviders={openai:provider,yandex:yandexTts,elevenlabs:elevenLabsTts};
   const ttsProviders=[{id:"openai",label:"OpenAI",available:Boolean(provider),...ttsVoiceOptions("openai",provider?.voice)},
-    {id:"yandex",label:"Яндекс SpeechKit",available:Boolean(yandexTts),...ttsVoiceOptions("yandex",yandexTts?.voice)}];
+    {id:"yandex",label:"Яндекс SpeechKit",available:Boolean(yandexTts),...ttsVoiceOptions("yandex",yandexTts?.voice)},
+    {id:"elevenlabs",label:"ElevenLabs v3 (с аудиотегами)",available:Boolean(elevenLabsTts),...ttsVoiceOptions("elevenlabs",elevenLabsTts?.voice,elevenLabsTts?.voices??[])}];
+  // Catalog texts are voiced through the queue: the local TTS profile, or ElevenLabs when it is configured.
+  const audioProfiles=[{id:localTts.defaultProfile,label:localTts.engine==="f5"?"F5 (локальный TTS)":"Silero (локальный TTS)"},
+    ...(elevenLabsTts?[{id:ELEVENLABS_PROFILE_ID,label:"ElevenLabs v3 (с аудиотегами)"}]:[])];
   const worker=(provider||yandexTts)&&workerEnabled?startWorker({store,provider,speechProviders,audioDirectory,discoverResearch,planResearchWalk,logs}):null;
   const contentWorker=provider&&workerEnabled?startContentWorker({store,provider,logs,resolveLocation:osmGeocoder ? place=>osmGeocoder.resolve(place) : null,concurrency:Number(process.env.CONTENT_WORKER_CONCURRENCY??1),autoApprove:process.env.CONTENT_AUTO_APPROVE==="true"}):null;
   const ttsApiWorker=workerEnabled&&localTts.transport==="http"&&ttsApiClient?startTtsApiWorker({store,client:ttsApiClient,audioDirectory,profileId:localTts.defaultProfile,logs}):null;
+  const elevenLabsWorker=workerEnabled&&elevenLabsTts?startSpeechAudioWorker({store,speechProvider:elevenLabsTts,profileId:ELEVENLABS_PROFILE_ID,audioDirectory,logs}):null;
   const authorizeAdmin=adminAuth(adminToken);
   const promoEnabled=typeof promoWalksToken==="string"&&promoWalksToken.length>0;
   if(promoEnabled&&promoWalksToken.length<32)throw new Error("PROMO_WALKS_TOKEN must contain at least 32 characters");
@@ -339,7 +348,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
           const result=await store.enqueueMissingPlaceAudio({profileId:input.profileId??localTts.defaultProfile,limit:input.limit??500});
           json(res,200,result);return;
         }
-        if(req.method==="GET"&&url.pathname==="/api/story-admin/content/workers") {if(url.search)throw failure("BAD_REQUEST");json(res,200,{transport:localTts.transport,workers:store.listWorkerCredentials(),heartbeats:store.listWorkerHeartbeats()});return;}
+        if(req.method==="GET"&&url.pathname==="/api/story-admin/content/workers") {if(url.search)throw failure("BAD_REQUEST");json(res,200,{transport:localTts.transport,audioProfiles,workers:store.listWorkerCredentials(),heartbeats:store.listWorkerHeartbeats()});return;}
         if(req.method==="POST"&&url.pathname==="/api/story-admin/content/workers") {if(localTts.transport==="http"){json(res,503,{error:{code:"WORKER_DISABLED",message:"HTTP TTS transport is active."}});return;}if(!origin||req.headers.origin!==origin){json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
           json(res,201,{worker:store.createWorkerCredential(await body(req,4096))});return;}
         const revokeWorker=new RegExp(`^/api/story-admin/content/workers/(${UUID})/revoke$`).exec(url.pathname);
@@ -401,7 +410,10 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
         if(revoiceContent&&req.method==="POST"){if(!origin||req.headers.origin!==origin){json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
           const input=await body(req,4096),place=store.getPlace(revoiceContent[1]);
           if(!place?.text||place.text.verification!=="editorial"){json(res,404,{error:{code:"NOT_FOUND",message:"Approved place text not found."}});return;}
-          const audioJob=await store.enqueueExternalAudio({sourceJobId:`place-text:${place.text.id}`,sourceRevision:0,story:{...place.text.story,address:place.address??place.name},profileId:input.profileId??localTts.defaultProfile});
+          const profileId=input.profileId??localTts.defaultProfile;
+          if(!audioProfiles.some(profile=>profile.id===profileId))throw failure("BAD_REQUEST");
+          const audioJob=await store.enqueueExternalAudio({sourceJobId:`place-text:${place.text.id}`,sourceRevision:0,story:{...place.text.story,address:place.address??place.name},profileId});
+          if(profileId===ELEVENLABS_PROFILE_ID)elevenLabsWorker?.wake();
           json(res,200,{place,audioJob});return;}
         const retryAudio=new RegExp(`^/api/story-admin/content/audio/(${UUID})/retry$`).exec(url.pathname);
         if(retryAudio&&req.method==="POST"){if(!origin||req.headers.origin!==origin){json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
@@ -487,7 +499,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
               else {const audioJob=await store.enqueueExternalAudio({sourceJobId:source.id,sourceRevision:source.revision,story:source.data?.story,profileId:input.profileId??localTts.defaultProfile});json(res,200,{job:adminDetail(source,Boolean(provider||yandexTts),safeError,ttsProviders,Boolean(provider)),audioJob});return;}
             } else {
               const selected=input.ttsProvider===undefined?"openai":input.ttsProvider;
-              if(!["openai","yandex"].includes(selected))throw failure("BAD_REQUEST");
+              if(!isTtsProvider(selected))throw failure("BAD_REQUEST");
               const options=ttsProviders.find(option=>option.id===selected);
               const voice=input.ttsVoice===undefined?options.defaultVoice:input.ttsVoice;
               if(!options.voices.some(option=>option.id===voice))throw failure("BAD_REQUEST");
@@ -619,10 +631,27 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
     let timer;
     await Promise.race([drained,new Promise(done=>{timer=setTimeout(done,shutdownGraceMs);timer.unref?.();})]);
     clearTimeout(timer);server.closeAllConnections();await drained;
-    await Promise.all([worker?.stop(),contentWorker?.stop(),ttsApiWorker?.stop()]);
+    await Promise.all([worker?.stop(),contentWorker?.stop(),ttsApiWorker?.stop(),elevenLabsWorker?.stop()]);
     osmGeocoder?.close();await closeAuth();
   };
   return {server,close};
+}
+
+/**
+ * ElevenLabs speech needs its key and the text model (it adds the audio tags). The account's voices are read once at
+ * startup; when that fails, only ELEVENLABS_VOICE_ID is offered.
+ * @param {NodeJS.ProcessEnv} env @param {ReturnType<typeof createProvider> | null} provider @param {ReturnType<typeof createBackendLogger>} logs
+ */
+export async function loadElevenLabsTts(env,provider,logs,fetchImpl=fetch) {
+  const apiKey=env.ELEVENLABS_API_KEY?.trim();
+  if(!apiKey)return null;
+  if(!provider){console.warn("ElevenLabs is disabled: audio tags require OPENAI_API_KEY and OPENAI_BASE_URL");return null;}
+  let voices=[];
+  try {voices=await listElevenLabsVoices({apiKey,fetchImpl});}
+  catch(error) {console.warn(`ElevenLabs voices are unavailable (${error?.code??"error"})`);logs?.captureException(error,{operation:"listElevenLabsVoices"});}
+  const voice=env.ELEVENLABS_VOICE_ID?.trim()||voices.find(item=>item.language==="ru")?.id||voices[0]?.id;
+  if(!voice){console.warn("ElevenLabs is disabled: set ELEVENLABS_VOICE_ID");return null;}
+  return createElevenLabsTts({apiKey,voice,voices,tagNarration:createAudioTagger(provider),model:env.ELEVENLABS_MODEL?.trim()||undefined,fetchImpl});
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {
@@ -630,12 +659,14 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   const localTts=loadLocalTtsConfig(process.env);
   const userDailyLimit=parseUserDailyLimit(process.env.USER_DAILY_GENERATION_LIMIT);
   const ttsApiClient=localTts.transport==="http"?createTtsApiClient({baseUrl:process.env.TTS_API_URL,token:process.env.TTS_API_TOKEN}):null;
-  const store=createStore(join(directory,"jobs.sqlite"),{maxActive:2,workerLeaseSecret:workerLeaseSecret({transport:localTts.transport}),normalizeExternalText:normalizeForSpeech,externalTtsProfiles:localTts.profiles});
-  store.recoverInterrupted();
-  store.recoverContentJobs();
   const provider=process.env.OPENAI_API_KEY&&process.env.OPENAI_BASE_URL?createProvider({apiKey:process.env.OPENAI_API_KEY,baseUrl:process.env.OPENAI_BASE_URL,model:process.env.STORY_MODEL,writerModel:process.env.WRITER_MODEL,searchModel:process.env.RESEARCH_SEARCH_MODEL||null}):null;
   const yandexTts=process.env.YANDEX_TTS_API_KEY?createYandexTts({apiKey:process.env.YANDEX_TTS_API_KEY,voice:process.env.YANDEX_TTS_VOICE||"marina"}):null;
   const logs=createBackendLogger();
+  const elevenLabsTts=await loadElevenLabsTts(process.env,provider,logs);
+  const store=createStore(join(directory,"jobs.sqlite"),{maxActive:2,workerLeaseSecret:workerLeaseSecret({transport:localTts.transport}),normalizeExternalText:normalizeForSpeech,
+    externalTtsProfiles:{...localTts.profiles,...(elevenLabsTts?{[ELEVENLABS_PROFILE_ID]:elevenLabsProfile(elevenLabsTts.voice)}:{})}});
+  store.recoverInterrupted();
+  store.recoverContentJobs();
   const port=Number(process.env.PORT??4175);
   const appOrigin=process.env.APP_ORIGIN??`http://127.0.0.1:${port}`;
   const authRuntime=await createAuth({databasePath:join(directory,"auth.sqlite"),baseURL:appOrigin,secret:process.env.BETTER_AUTH_SECRET,production:process.env.NODE_ENV==="production"});
@@ -644,7 +675,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   const osmGeocoder=openOsmGeocoder(join(directory,"osm-addresses.sqlite"));
   try {const swept=await sweepAudioTemporaries(join(directory,"audio"));if(swept)console.log(`Removed ${swept} abandoned temporary audio files`);}
   catch(error) {logs?.captureException(error,{operation:"sweepAudioTemporaries"});}
-  const app=createApp({store,provider,osmGeocoder,yandexTts,origin:appOrigin,audioDirectory:join(directory,"audio"),staticDirectory:process.env.STATIC_DIR,localTts,ttsApiClient,logs,auth:authRuntime.auth,authSecret:process.env.BETTER_AUTH_SECRET??"development-only-better-auth-secret-32",accountStore,closeAuth:authRuntime.close,userDailyLimit});
+  const app=createApp({store,provider,osmGeocoder,yandexTts,elevenLabsTts,origin:appOrigin,audioDirectory:join(directory,"audio"),staticDirectory:process.env.STATIC_DIR,localTts,ttsApiClient,logs,auth:authRuntime.auth,authSecret:process.env.BETTER_AUTH_SECRET??"development-only-better-auth-secret-32",accountStore,closeAuth:authRuntime.close,userDailyLimit});
   app.server.listen(port,process.env.HOST??"127.0.0.1",()=>console.log(`Story service listening on ${port}; provider ${provider?"configured":"unavailable"}`));
   let stopping=false;
   for(const signal of ["SIGINT","SIGTERM"])process.on(signal,async()=>{

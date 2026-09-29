@@ -11,7 +11,8 @@ export type Summary = {
   ttsProvider?: TtsProvider; ttsVoice?: string | null; audio?: Audio | null;
   error: { code?: string; message: string } | null;
 };
-export type TtsProvider = "openai" | "yandex";
+export type TtsProvider = "openai" | "yandex" | "elevenlabs";
+export const ttsProviderLabels: Record<TtsProvider, string> = { openai: "OpenAI", yandex: "Яндекс", elevenlabs: "ElevenLabs" };
 export type ContentBatch = {
   id: string; name: string; state: string; mode: string; textProfile: string; ttsProfile: string | null;
   /** "weak_identity" marks a triage pilot: stricter evidence and publication only after an editor approves. */

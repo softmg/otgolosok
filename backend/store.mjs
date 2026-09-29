@@ -4,7 +4,7 @@ import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { editorialDraft, hasValidStoryText } from "./admin.mjs";
 import { sha256 } from "./domain.mjs";
-import { validVoiceId } from "./tts-voices.mjs";
+import { isTtsProvider, validVoiceId } from "./tts-voices.mjs";
 import { createWalkAdminStore } from "./walk-admin.mjs";
 import { createWalkResearchStore } from "./walk-research-store.mjs";
 import { createContentStore } from "./content-store.mjs";
@@ -409,7 +409,7 @@ export function createStore(
     },
 
     approveAdmin(id, expectedRevision, ttsProvider = "openai", ttsVoice = null) {
-      if (!["openai", "yandex"].includes(ttsProvider)) throw codedError("BAD_REQUEST");
+      if (!isTtsProvider(ttsProvider)) throw codedError("BAD_REQUEST");
       if (ttsVoice !== null && !validVoiceId(ttsVoice)) throw codedError("BAD_REQUEST");
       return transaction(() => {
         const job = decode(findById.get(id));
@@ -425,7 +425,7 @@ export function createStore(
     },
 
     revoiceAdmin(id, expectedRevision, ttsProvider = "openai", ttsVoice = null) {
-      if (!["openai", "yandex"].includes(ttsProvider)) throw codedError("BAD_REQUEST");
+      if (!isTtsProvider(ttsProvider)) throw codedError("BAD_REQUEST");
       if (ttsVoice !== null && !validVoiceId(ttsVoice)) throw codedError("BAD_REQUEST");
       return transaction(() => {
         const job = decode(findById.get(id));
@@ -442,7 +442,7 @@ export function createStore(
     },
 
     retryAdmin(id, expectedRevision, ttsProvider = "openai", ttsVoice = null) {
-      if (!["openai", "yandex"].includes(ttsProvider)) throw codedError("BAD_REQUEST");
+      if (!isTtsProvider(ttsProvider)) throw codedError("BAD_REQUEST");
       if (ttsVoice !== null && !validVoiceId(ttsVoice)) throw codedError("BAD_REQUEST");
       return transaction(() => {
         const job = decode(findById.get(id));
@@ -457,7 +457,7 @@ export function createStore(
     },
 
     regenerateAdmin(id, expectedRevision, ttsProvider = "openai", ttsVoice = null) {
-      if (!["openai", "yandex"].includes(ttsProvider)) throw codedError("BAD_REQUEST");
+      if (!isTtsProvider(ttsProvider)) throw codedError("BAD_REQUEST");
       if (ttsVoice !== null && !validVoiceId(ttsVoice)) throw codedError("BAD_REQUEST");
       return transaction(() => {
         const job = decode(findById.get(id));

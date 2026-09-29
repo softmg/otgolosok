@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createNarration } from "./audio.mjs";
 import { builtinRoutes } from "./builtin-routes.mjs";
 import { sha256 } from "./domain.mjs";
-import { validVoiceId } from "./tts-voices.mjs";
+import { isTtsProvider, validVoiceId } from "./tts-voices.mjs";
 
 const WORKING_STAGES = new Set(["queued", "researching", "verifying", "writing", "voicing"]);
 const CATALOG_CONFLICT_MESSAGE = "Структура главы изменилась в каталоге. Черновик сохранён, но его нужно сверить вручную.";
@@ -369,7 +369,7 @@ export function createWalkAdminStore({ db, now = Date.now, transaction, checkCap
     },
 
     revoiceWalkChapterAdmin(routeId, chapterId, expectedRevision, ttsProvider = "openai", ttsVoice = null) {
-      if (!["openai", "yandex"].includes(ttsProvider) || (ttsVoice !== null && !validVoiceId(ttsVoice))) {
+      if (!isTtsProvider(ttsProvider) || (ttsVoice !== null && !validVoiceId(ttsVoice))) {
         throw codedError("BAD_REQUEST");
       }
       const definition = chapterDefinition(routeId, chapterId);
@@ -411,7 +411,7 @@ export function createWalkAdminStore({ db, now = Date.now, transaction, checkCap
     },
 
     regenerateWalkAdmin(routeId, ttsProvider = "openai", ttsVoice = null) {
-      if (!["openai", "yandex"].includes(ttsProvider) || (ttsVoice !== null && !validVoiceId(ttsVoice))) {
+      if (!isTtsProvider(ttsProvider) || (ttsVoice !== null && !validVoiceId(ttsVoice))) {
         throw codedError("BAD_REQUEST");
       }
       const definition = routeDefinition(routeId);

@@ -431,3 +431,26 @@ test("drafts can be queued for Perplexity re-research only when the search model
   const none=await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-2",limit:20});
   assert.equal(none.status,409);assert.equal(/** @type {any} */ (await none.json()).error.code,"NO_DRAFTS_TO_RESEARCH");
 });
+
+test("place revoicing accepts only configured audio profiles and offers ElevenLabs when it is set up",async t=>{
+  const elevenLabsTts=/** @type {any} */ ({ttsProvider:"elevenlabs",voice:"RuVoice1",voices:[{id:"RuVoice1",label:"Отголосок (ru)"}],speech:async()=>Buffer.from("")});
+  /** @type {[object, string[]][]} */
+  const cases=[[{},["silero-ru-v1"]],[{elevenLabsTts},["silero-ru-v1","elevenlabs-v3"]]];
+  for(const [options,profiles] of cases){
+    const f=await fixture(t,options);
+    f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[{placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}}]});
+    f.store.createBatch({requestKey:"revoice-profile",placeIds:["osm:node:7"],limit:1,mode:"text-only"});
+    const paragraph=("Проверенный рассказ о московском парке, его истории, архитектуре и людях. ").repeat(9).trim();
+    const job=f.store.claimContentJob(),story={title:"Парк",paragraphs:[{text:paragraph,factIds:["f1"]},{text:paragraph,factIds:["f2"]}]};
+    f.store.completeContentJob(job.id,{story,evidence:{facts:[]}});
+    assert.equal((await f.post("/api/story-admin/content/places/osm:node:7/approve",{story})).status,200);
+    const workers=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/workers`)).json());
+    assert.deepEqual(workers.audioProfiles.map(profile=>profile.id),profiles);
+    for(const profileId of ["unknown-profile",...(profiles.includes("elevenlabs-v3")?[]:["elevenlabs-v3"])])
+      assert.equal((await f.post("/api/story-admin/content/places/osm:node:7/audio",{profileId})).status,400,profileId);
+    for(const profileId of profiles){
+      const response=await f.post("/api/story-admin/content/places/osm:node:7/audio",{profileId});
+      assert.equal(response.status,200);assert.equal(/** @type {any} */ (await response.json()).audioJob.profileId,profileId);
+    }
+  }
+});

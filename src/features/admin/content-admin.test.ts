@@ -35,6 +35,8 @@ let placeQueries: URLSearchParams[];
 let items: ContentBatchItem[];
 let transport: "worker" | "http";
 let configuredWorkers: ContentWorker[];
+let audioProfiles: { id: string; label: string }[] | undefined;
+let audioRequests: { path: string; body: unknown }[];
 const onDirtyChange = vi.fn();
 
 /** Mirrors the server: items are narrowed by status and error, while the code list follows the status filter alone. */
@@ -53,8 +55,9 @@ function itemsPage(query: URLSearchParams) {
   };
 }
 
-const api: AdminApi = async <T,>(path: string): Promise<T> => {
+const api: AdminApi = async <T,>(path: string, _signal: AbortSignal, body?: unknown): Promise<T> => {
   if (gate) await gate.promise;
+  if (/^\/content\/places\/[^/]+\/audio$/.test(path)) { audioRequests.push({ path, body }); return { audioJob: {} } as T; }
   if (path.endsWith("/approve")) {
     const place = structuredClone(places[0]);
     if (place.text) place.text.verification = "editorial";
@@ -100,7 +103,7 @@ const api: AdminApi = async <T,>(path: string): Promise<T> => {
     "/content/batches": { batches: [batch] },
     "/content/stats": { places: 2, texts: 1, drafts: 1, audio: 0, awaitingApproval: 1 },
     "/content/audio/bulk": { queued: 0, retried: 0, alreadyQueued: 0, failed: 0, skipped: 0, inspected: 0, hasMore: false, awaitingApproval: 1 },
-    "/content/workers": { transport, workers: configuredWorkers, heartbeats: [] },
+    "/content/workers": { transport, audioProfiles, workers: configuredWorkers, heartbeats: [] },
     "/content/audio": { audioJobs: [] },
   };
   if (!(path in responses)) throw new Error(`Неожиданный запрос: ${path}`);
@@ -165,6 +168,8 @@ beforeEach(async () => {
   items = structuredClone(batchItems);
   transport = "worker";
   configuredWorkers = [];
+  audioProfiles = undefined;
+  audioRequests = [];
   Object.defineProperty(Element.prototype, "scrollIntoView", {
     configurable: true, value: function (this: Element) { scrolled.push(this); },
   });
@@ -479,5 +484,34 @@ describe("подробности задания партии", () => {
     await click(buttons("Подробности")[0]);
     await click(buttons("Повторить")[0]);
     expect(container.querySelector(".content-item-detail")).toBeNull();
+  });
+});
+
+describe("переозвучка места", () => {
+  async function remount() {
+    await act(async () => { root.unmount(); });
+    root = createRoot(container);
+    await act(async () => { root.render(createElement(Harness)); });
+    await click(buttons("Открыть")[0]);
+  }
+
+  it("без ElevenLabs ставит озвучку локальным профилем и не показывает выбор", async () => {
+    audioProfiles = [{ id: "f5-ru-v1", label: "F5 (локальный TTS)" }];
+    await remount();
+    expect(container.querySelector("#content-audio-profile")).toBeNull();
+    await click(buttons("Озвучить заново")[0]);
+    expect(audioRequests).toEqual([{ path: "/content/places/osm:node:1/audio", body: { profileId: "f5-ru-v1" } }]);
+  });
+
+  it("переозвучивает через ElevenLabs и предупреждает об аудиотегах и расходе кредитов", async () => {
+    audioProfiles = [{ id: "f5-ru-v1", label: "F5 (локальный TTS)" }, { id: "elevenlabs-v3", label: "ElevenLabs v3 (с аудиотегами)" }];
+    await remount();
+    expect(container.textContent).toContain("нет online-воркера TTS");
+    await choose("content-audio-profile", "elevenlabs-v3");
+    expect(container.textContent).not.toContain("нет online-воркера TTS");
+    expect(container.textContent).toContain("аудиотеги в квадратных скобках");
+    await click(buttons("Озвучить заново")[0]);
+    expect(audioRequests).toEqual([{ path: "/content/places/osm:node:1/audio", body: { profileId: "elevenlabs-v3" } }]);
+    expect(container.querySelector('[role="status"]')?.textContent).toBe("Озвучка поставлена в очередь.");
   });
 });

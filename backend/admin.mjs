@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { failure, validateDraft, validateFacts } from "./domain.mjs";
 import { validateSourceUrl } from "./safe-fetch.mjs";
-import { validVoiceId } from "./tts-voices.mjs";
+import { isTtsProvider, validVoiceId } from "./tts-voices.mjs";
 
 // A single fixed-size bucket bounds memory and ignores spoofable proxy headers.
 export function adminAuth(token, now = Date.now) {
@@ -75,14 +75,14 @@ const audioView = (value) => {
   if (!url) return null;
   const durationSec = Number.isFinite(value.durationSec) && value.durationSec >= 0 && value.durationSec <= 3600 ? value.durationSec : 0;
   const voice = validVoiceId(value.voice) ? value.voice : null;
-  return { url, durationSec, voice, provider: value.provider === "yandex" ? "yandex" : "openai", model: text(value.model, 100) };
+  return { url, durationSec, voice, provider: isTtsProvider(value.provider) ? value.provider : "openai", model: text(value.model, 100) };
 };
 
 export function adminSummary(job, safeError) {
   const data = object(job.data);
   return { id: job.id, address: text(job.address, 200), stage: job.stage, revision: job.revision,
     updatedAt: job.updatedAt, irrelevant: job.irrelevant === true,
-    ttsProvider: data.ttsProvider === "yandex" ? "yandex" : "openai", ttsVoice: selectedVoice(data),
+    ttsProvider: isTtsProvider(data.ttsProvider) ? data.ttsProvider : "openai", ttsVoice: selectedVoice(data),
     error: job.error ? safeError(job.error) : null };
 }
 
@@ -100,7 +100,7 @@ export function adminDetail(job, providerAvailable, safeError, ttsProviders = []
   const currentAudio = data.audio ?? data.revoice?.previousAudio ?? null;
   const evidence = object(data.evidence), review = object(data.review), factReview = object(data.factReview);
   return { ...adminSummary(job, safeError), ttsProviders, data: {
-    ttsProvider: data.ttsProvider === "yandex" ? "yandex" : "openai",
+    ttsProvider: isTtsProvider(data.ttsProvider) ? data.ttsProvider : "openai",
     ttsVoice: selectedVoice(data), story: draftView(data.story), audio: audioView(currentAudio),
     revoice: data.revoice == null ? null : { requestedAt: text(object(data.revoice).requestedAt, 40) },
     editorDraft: draftView(data.editorDraft), draft: draftView(data.draft), draftCandidate: draftView(data.draftCandidate),

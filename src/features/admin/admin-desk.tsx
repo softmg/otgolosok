@@ -5,7 +5,7 @@ import { BrandMark } from "../brand/brand-mark";
 import { WalkAdmin } from "./walk-admin";
 import { ContentAdmin } from "./content-admin";
 import { DraftsAdmin } from "./drafts-admin";
-import { draftCheck, initialDraft, safeSourceLink, stages, type AdminApi, type Draft, type Job, type Summary, type TtsProvider } from "./model";
+import { draftCheck, initialDraft, safeSourceLink, stages, ttsProviderLabels, type AdminApi, type Draft, type Job, type Summary, type TtsProvider } from "./model";
 import { skeletonRows } from "./table-skeleton";
 import { csrfHeaders, getSession, signOut } from "../auth/client";
 
@@ -27,7 +27,7 @@ function voiceLabel(item: Summary) {
   const voice = item.audio?.voice ?? item.ttsVoice;
   if (!voice) return "Не выбрана";
   const provider = item.audio?.provider ?? item.ttsProvider;
-  return provider ? `${provider === "yandex" ? "Яндекс" : "OpenAI"} · ${voice}` : voice;
+  return provider ? `${ttsProviderLabels[provider] ?? provider} · ${voice}` : voice;
 }
 
 export function AdminDesk() {
@@ -394,7 +394,7 @@ export function AdminDesk() {
                     })}>Сохранить текст</button>
                   </section>
                   <section className="admin-narration" aria-labelledby="admin-narration-title">
-                    <div className="admin-narration-head"><div><h3 id="admin-narration-title">Озвучивание</h3><p className="admin-meta">Выберите сервис и голос для следующего запуска.</p></div>{currentAudio && <div className="admin-current-voice"><span>Сейчас</span><strong>{currentAudio.voice ?? "Голос не указан"}</strong><small>{currentAudio.provider === "yandex" ? "Яндекс" : "OpenAI"}{currentAudio.model ? ` · ${currentAudio.model}` : ""}</small></div>}</div>
+                    <div className="admin-narration-head"><div><h3 id="admin-narration-title">Озвучивание</h3><p className="admin-meta">Выберите сервис и голос для следующего запуска.</p></div>{currentAudio && <div className="admin-current-voice"><span>Сейчас</span><strong>{currentAudio.voice ?? "Голос не указан"}</strong><small>{ttsProviderLabels[currentAudio.provider] ?? currentAudio.provider}{currentAudio.model ? ` · ${currentAudio.model}` : ""}</small></div>}</div>
                     {currentAudio && <div className="admin-audio"><audio controls preload="metadata" src={currentAudio.url}>Ваш браузер не поддерживает воспроизведение аудио.</audio>{currentAudio.durationSec > 0 && <span className="admin-meta">{Math.round(currentAudio.durationSec)} сек.</span>}</div>}
                     <div className="admin-tts">
                       <label htmlFor="admin-tts-provider">Сервис</label><select id="admin-tts-provider" value={ttsProvider} disabled={Boolean(busy) || !narrationEligible || conflict} aria-describedby="admin-tts-note" onChange={event => {

@@ -121,3 +121,5 @@
 .content-admin .drafts-research input { width: 5rem; }
 /* Leaves the opened draft's own row in view above the editor heading. */
 #draft-place-title { scroll-margin-top: 6rem; }
+.content-audio-profile { display: inline-flex; align-items: center; gap: .5rem; }
+.content-audio-profile span { font-weight: 600; }
