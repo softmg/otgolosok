@@ -97,7 +97,7 @@ const api: AdminApi = async <T,>(path: string): Promise<T> => {
   }
   const responses: Record<string, unknown> = {
     "/content/batches": { batches: [batch] },
-    "/content/stats": { places: 2, texts: 1, audio: 0, awaitingApproval: 1 },
+    "/content/stats": { places: 2, texts: 1, drafts: 1, audio: 0, awaitingApproval: 1 },
     "/content/audio/bulk": { queued: 0, retried: 0, alreadyQueued: 0, failed: 0, skipped: 0, inspected: 0, hasMore: false, awaitingApproval: 1 },
     "/content/workers": { transport, workers: configuredWorkers, heartbeats: [] },
     "/content/audio": { audioJobs: [] },
@@ -240,6 +240,9 @@ describe("массовая озвучка", () => {
     await click(buttons("Обновить")[0]);
     const audioStat = [...container.querySelectorAll(".content-stats > div")].find(item => item.querySelector("dt")?.textContent === "Аудио")!;
     expect(audioStat.textContent).toContain("ждут утверждения 1");
+    const textStat = [...container.querySelectorAll(".content-stats > div")].find(item => item.querySelector("dt")?.textContent === "Текстов")!;
+    expect(textStat.querySelector("dd")?.textContent).toBe("1");
+    expect(textStat.querySelector("span")?.textContent).toBe("черновиков 1");
     await click(buttons("Озвучить тексты без аудио")[0]);
     expect(container.querySelector('[role="status"]')?.textContent)
       .toBe("Утверждённых текстов без аудио нет — ставить в очередь нечего. Ждут утверждения, в очередь не ставятся: 1.");
