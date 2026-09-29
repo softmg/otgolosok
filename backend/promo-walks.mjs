@@ -51,7 +51,8 @@ function matches(stored, request) {
  */
 export function createPromoWalkService({ accountStore, planWalk, store, origin }) {
   const plan = async request => {
-    try { return { plan: await planWalk(request.walk, { client: "service:promo-walks" }) }; }
+    // Every automatic stop of a promo walk must tell a published story: the video voices them.
+    try { return { plan: await planWalk(request.walk, { client: "service:promo-walks", storiesOnly: true }) }; }
     catch (error) { return { failure: walkPlanErrorResponse(error) }; }
   };
   const document = (request, planned) => planToWalkDocument(planned, {

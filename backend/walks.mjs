@@ -111,7 +111,7 @@ function decode(shape) {
 
 /**
  * @param {{fetchImpl?: WalkFetch, now?: () => number, routerUrl?: string, overpassUrl?: string,
- *   discoveryElements?: OverpassElement[] | null, candidateProvider?: ((query: {lat: number, lon: number, radius: number, limit: number}) => any) | null,
+ *   discoveryElements?: OverpassElement[] | null, candidateProvider?: ((query: {lat: number, lon: number, radius: number, limit: number, published: boolean}) => any) | null,
  *   timeoutMs?: number, minIntervalMs?: number, maxWaiters?: number, maxWaitMs?: number}} [options]
  */
 export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
@@ -147,7 +147,9 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
     if(recentByClient.size>=1024)for(const [key,value] of recentByClient)if(time-value>=minIntervalMs)recentByClient.delete(key);
     recentByClient.set(client,time);
   };
-  return async function planWalk(input,{client=null}={}) {
+  // storiesOnly: automatic stops come only from places with published content
+  // (promo walks for YouTube Shorts); ordinary walks also take plain landmarks.
+  return async function planWalk(input,{client=null,storiesOnly=false}={}) {
     if(!keys(input,['start','mode','minutes','stops','destination']) || !['loop','open'].includes(input.mode) || ![30,60,90].includes(input.minutes))throw fail('WALK_INVALID');
     const stopLimit=AUTO_STOP_LIMITS[input.minutes];
     const destination=input.destination==null?null:place(input.destination);
@@ -275,7 +277,8 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
         // A loop must also cover the return leg; routing below enforces the actual budget.
         const radius=Math.min(4050,input.minutes*90/(input.mode==='loop'?2:1)),around=`around:${radius},${start.location.lat},${start.location.lon}`;
         let elements=discoveryElements;
-        if(elements===null) {
+        if(storiesOnly)elements=[];
+        else if(elements===null) {
           // An address is the only handle the story pipeline has on a building.
           const query=`[out:json][timeout:8];(${DISCOVERY_TAGS.map(tag=>`nwr(${around})[building]["addr:street"]["addr:housenumber"]${tag};`).join('')});out center tags 160;`;
           const data=await request(overpassUrl,new URLSearchParams({data:query}).toString(),'application/x-www-form-urlencoded');
@@ -284,13 +287,14 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
         }
         let supplied=[];
         if(candidateProvider) {
-          supplied=await candidateProvider({lat:start.location.lat,lon:start.location.lon,radius,limit:500});
+          supplied=await candidateProvider({lat:start.location.lat,lon:start.location.lon,radius,limit:500,published:storiesOnly});
           if(!Array.isArray(supplied)||supplied.length>500||supplied.some(item=>!item||!contentId(item.id)||!clean(item.address,240)||!inBox(item.location)||!Object.hasOwn(readinessRank,item.readiness)))throw unavailable();
         }
         const suppliedById=new Map(supplied.map(item=>[item.id,item]));
         const candidates=[];
         const addCandidate=item=>{
           const p=item.location;
+          if(storiesOnly&&!item.contentId)return;
           if(distance(start.location,p)>radius||distance(start.location,p)<5)return;
           if(destination&&(distance(p,destination.location)<5||distance(start.location,p)+distance(p,destination.location)>input.minutes*90))return;
           if(candidates.some(candidate=>(item.catalogId&&candidate.catalogId===item.catalogId)||candidate.address===item.address||distance(candidate.location,p)<5))return;
