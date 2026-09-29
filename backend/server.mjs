@@ -315,7 +315,18 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,origin
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/batches") {if(url.search)throw failure("BAD_REQUEST");json(res,200,{batches:store.listBatches()});return;}
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/drafts") {
           const entries=[...url.searchParams];if(entries.some(([key,value])=>!["limit","offset"].includes(key)||!/^\d+$/.test(value)))throw failure("BAD_REQUEST");
-          json(res,200,store.listDrafts({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0)}));return;}
+          json(res,200,{...store.listDrafts({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0)}),researchAvailable:Boolean(provider?.searchSources)});return;}
+        if(req.method==="POST"&&url.pathname==="/api/story-admin/content/drafts/research") {
+          if(!origin||req.headers.origin!==origin) {json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
+          const input=await body(req,16384);
+          if(!provider?.searchSources){json(res,409,{error:{code:"SEARCH_DISABLED",message:"Поиск через Perplexity не настроен на сервере."}});return;}
+          if(Object.keys(input??{}).some(key=>!["requestKey","limit","placeIds"].includes(key)))throw failure("BAD_REQUEST");
+          let result;
+          try{result=store.researchDrafts({requestKey:input.requestKey,placeIds:input.placeIds??null,limit:input.limit??20});}
+          catch(error){if(error.code!=="NO_DRAFTS_TO_RESEARCH")throw error;
+            json(res,409,{error:{code:error.code,message:"Нет черновиков, которые можно переисследовать: все уже проверены через Perplexity или стоят в очереди."}});return;}
+          json(res,200,result);contentWorker?.wake();return;
+        }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/stats") {if(url.search)throw failure("BAD_REQUEST");json(res,200,{...store.getContentStats(),audioQueue:store.getExternalAudioStats()});return;}
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/audio") {
           const entries=[...url.searchParams];if(entries.some(([key,value])=>key!=="state"||!value)||entries.length>1)throw failure("BAD_REQUEST");

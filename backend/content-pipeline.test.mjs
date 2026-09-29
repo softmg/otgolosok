@@ -315,3 +315,118 @@ test("a place without open data keeps the search-only behaviour", async t => {
   const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage("") });
   assert.equal(result.error.code, "INSUFFICIENT_EVIDENCE");
 });
+
+// Perplexity source discovery for weak_identity jobs: only its URLs are used, the pipeline fetches and checks them.
+const plaquePage = "Мемориальная доска академику установлена на здании академии. ".repeat(12);
+const urls = (prefix, count) => Array.from({ length: count }, (_, index) => ({ url: `https://${prefix}.example/${index + 1}`, title: `${prefix} ${index + 1}` }));
+/** @param {any} t @param {{found?: {url: string, title?: string}[], search?: {url: string, title?: string}[], fails?: string | null}} [options] */
+function searchFixture(t, { found = urls("pplx", 2), search = urls("codex", 2), fails = null } = {}) {
+  const f = openDataFixture(t, { searchSources: search }), calls = [], failures = [];
+  const provider = { ...f.provider, searchModel: "perplexity-web/pplx-auto", searchSources: async (prompt, options) => {
+    calls.push({ prompt, options }); if (fails) throw Object.assign(new Error(), { code: fails }); return { sources: found }; } };
+  return { ...f, provider, calls, failures, onSearchFailure: code => failures.push(code), last: recordCheckpoints(f.store) };
+}
+const draftText = f => f.store.listDrafts().items.find(item => item.placeId === "osm:node:1")?.text;
+
+test("weak_identity research ranks Perplexity URLs first, dedupes and caps the merged list", async t => {
+  const f = searchFixture(t, { found: [...urls("pplx", 6), { url: "javascript:alert(1)" }], search: [urls("pplx", 1)[0], ...urls("codex", 5)] });
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage), onSearchFailure: f.onSearchFailure });
+  assert.ok(result.story, JSON.stringify(result.error));
+  const research = f.last().research;
+  assert.deepEqual(research.sources.map(source => `${source.origin}:${source.url}`), [
+    ...urls("pplx", 5).map(source => `perplexity:${source.url}`), ...urls("codex", 3).map(source => `search:${source.url}`)]);
+  assert.deepEqual(research.perplexity, { status: "ok", count: 5, model: "perplexity-web/pplx-auto" });
+  assert.match(f.calls[0].prompt, /В\. М\. Клечковскому/);
+  assert.deepEqual(f.failures, []);
+  assert.equal(f.last().perplexityResearch, undefined);
+  const detail = f.store.getBatchItemDetail(f.batch.id, "osm:node:1");
+  assert.deepEqual(detail.perplexity, { status: "ok", code: null, count: 5 });
+  assert.deepEqual(detail.sources.slice(1).map(source => source.origin), [...Array(5).fill("perplexity"), ...Array(3).fill("search")]);
+});
+
+test("a Perplexity failure falls back to the regular search without stopping the job", async t => {
+  for (const code of ["PROVIDER_AUTH", "PROVIDER_REJECTED", "PROVIDER_BUSY", "NO_SEARCH_EVIDENCE"]) {
+    await t.test(code, async t => {
+      const f = searchFixture(t, { fails: code });
+      const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage), onSearchFailure: f.onSearchFailure });
+      assert.ok(result.story, JSON.stringify(result.error));
+      const research = f.last().research;
+      assert.deepEqual(research.sources.map(source => source.url), urls("codex", 2).map(source => source.url));
+      assert.deepEqual(research.perplexity, { status: "failed", code, count: 0, model: "perplexity-web/pplx-auto" });
+      assert.deepEqual(f.failures, [code]);
+    });
+  }
+});
+
+test("Perplexity URLs that are all unusable count as a failed search", async t => {
+  const f = searchFixture(t, { found: [{ url: "ftp://plain.example/" }, { url: "not a url" }, { url: "https://user:pw@secret.example/" }] });
+  await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.deepEqual(f.last().research.perplexity, { status: "failed", code: "NO_SEARCH_EVIDENCE", count: 0, model: "perplexity-web/pplx-auto" });
+});
+
+test("standard jobs never call the search model", async t => {
+  const f = fixture(t);
+  let called = false;
+  const provider = { ...f.provider, searchModel: "perplexity-web/pplx-auto", searchSources: async () => { called = true; return { sources: [] }; } };
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider, fetchPage: readPage(f.page) });
+  assert.ok(result.story, JSON.stringify(result.error));
+  assert.equal(called, false);
+});
+
+test("a regular-search outage after Perplexity does not spend the search quota again on retry", async t => {
+  const f = searchFixture(t);
+  // The first regular search fails with an outage; the scripted answers stay for the retry.
+  const response = f.provider.response;
+  let outage = true;
+  f.provider.response = async (prompt, options) => {
+    if (outage) { outage = false; throw Object.assign(new Error(), { code: "PROVIDER_UNAVAILABLE" }); }
+    return response(prompt, options);
+  };
+  const stopped = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.equal(stopped.error.code, "PROVIDER_UNAVAILABLE");
+  assert.equal(f.last().perplexityResearch.perplexity.status, "ok");
+  f.store.retryBatchItem(f.batch.id, "osm:node:1", { restartFrom: "auto" });
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.ok(result.story, JSON.stringify(result.error));
+  assert.equal(f.calls.length, 1);
+  assert.equal(f.last().research.sources[0].origin, "perplexity");
+  assert.equal(f.last().perplexityResearch, undefined);
+});
+
+test("draft re-research replaces the unapproved draft or stops without touching it", async t => {
+  const f = searchFixture(t);
+  const first = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.ok(first.story, JSON.stringify(first.error));
+  const before = draftText(f);
+
+  f.store.researchDrafts({ requestKey: "draft-redo-fail", placeIds: ["osm:node:1"] });
+  const failing = { ...f.provider, searchSources: async () => { throw Object.assign(new Error(), { code: "PROVIDER_REJECTED" }); } };
+  const queued = f.queue.length;
+  const stopped = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: failing, fetchPage: readPage(plaquePage) });
+  assert.equal(stopped.error.code, "PERPLEXITY_UNAVAILABLE");
+  assert.equal(stopped.state, "failed");
+  assert.equal(stopped.error.message, contentFailureMessage("PERPLEXITY_UNAVAILABLE"));
+  assert.equal(f.queue.length, queued, "the regular search must not run");
+  assert.deepEqual(draftText(f), before);
+
+  f.store.researchDrafts({ requestKey: "draft-redo-ok", placeIds: ["osm:node:1"] });
+  f.queue.push({ text: "Поиск", sources: urls("codex", 1) }, f.factsAnswer, { text: f.text.replaceAll("Её создали", "Её сделали") }, f.review);
+  const redone = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.ok(redone.story, JSON.stringify(redone.error));
+  const after = draftText(f);
+  assert.equal(after.id, before.id);
+  assert.notDeepEqual(after.paragraphs, before.paragraphs);
+  assert.equal(f.store.listDrafts().total, 1);
+});
+
+test("an approval made while a draft is re-researched is kept", async t => {
+  const f = searchFixture(t);
+  await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  f.store.researchDrafts({ requestKey: "draft-redo-key", placeIds: ["osm:node:1"] });
+  const job = f.store.claimContentJob();
+  const approved = f.store.approvePlaceText("osm:node:1");
+  f.queue.push({ text: "Поиск", sources: [] }, f.factsAnswer, { text: f.text.replaceAll("Её создали", "Её сделали") }, f.review);
+  const result = await runContentJob(job, { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.ok(result.story, JSON.stringify(result.error));
+  assert.deepEqual(f.store.getPlace("osm:node:1").text.story, approved.text.story);
+});

@@ -406,3 +406,28 @@ test("drafts list unapproved texts with their paragraphs and leave once approved
   for(const query of ["limit=0","limit=101","offset=-1","limit=abc","status=draft"])
     assert.equal((await fetch(`${f.base}/api/story-admin/content/drafts?${query}`)).status,400,query);
 });
+
+test("drafts can be queued for Perplexity re-research only when the search model is configured",async(t)=>{
+  const searchProvider=/** @type {any} */ ({searchModel:"perplexity-web/pplx-auto",searchSources:async()=>({sources:[]})});
+  const disabled=await fixture(t);
+  assert.equal(/** @type {any} */ (await (await fetch(`${disabled.base}/api/story-admin/content/drafts`)).json()).researchAvailable,false);
+  const off=await disabled.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-0",limit:5});
+  assert.equal(off.status,409);assert.equal(/** @type {any} */ (await off.json()).error.code,"SEARCH_DISABLED");
+
+  const f=await fixture(t,{provider:searchProvider});
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[
+    {placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}}]});
+  f.store.createBatch({requestKey:"research-api-batch",placeIds:["osm:node:7"],limit:1,identityPolicy:"weak_identity"});
+  const job=f.store.claimContentJob();f.store.completeContentJob(job.id,{story:{title:"Парк",paragraphs:[{text:"Абзац",factIds:["f1"]}]},evidence:{facts:[]}});
+  const drafts=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts`)).json());
+  assert.equal(drafts.researchAvailable,true);assert.equal(drafts.unresearched,1);
+  for(const body of [{requestKey:"research-api-1",limit:0},{requestKey:"research-api-1",placeIds:["bad"]},{requestKey:"research-api-1",extra:true},{requestKey:"x",limit:1}])
+    assert.equal((await f.post("/api/story-admin/content/drafts/research",body)).status,400,JSON.stringify(body));
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-1",limit:1},"https://evil.example")).status,403);
+  const csrf=await fetch(`${f.base}/api/story-admin/content/drafts/research`,{method:"POST",headers:{Origin:"https://otgolosok.test","Content-Type":"application/json"},body:JSON.stringify({requestKey:"research-api-1",limit:1})});
+  assert.equal(csrf.status,403);
+  const queued=await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-1",placeIds:["osm:node:7"]});
+  assert.equal(queued.status,200);assert.equal(/** @type {any} */ (await queued.json()).count,1);
+  const none=await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-2",limit:20});
+  assert.equal(none.status,409);assert.equal(/** @type {any} */ (await none.json()).error.code,"NO_DRAFTS_TO_RESEARCH");
+});
