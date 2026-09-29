@@ -43,7 +43,7 @@ test("a dry run plans and resolves the view without storing anything", async t =
   // A published-content stop resolves its story; a plain stop has none to request.
   assert.deepEqual(result.body.view.chapters.map(chapter => chapter.status), ["unavailable", "not_requested"]);
   assert.deepEqual(result.body.view.document.stops.map(stop => stop.storyRef), [{ kind: "osm", id: "osm:way:42" }, null]);
-  assert.deepEqual(calls[0], { input: request().walk, options: { client: "service:promo-walks" } });
+  assert.deepEqual(calls[0], { input: request().walk, options: { client: "service:promo-walks", storiesOnly: true } });
   assert.equal(count(), 0);
 });
 

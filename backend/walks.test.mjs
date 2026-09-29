@@ -354,6 +354,42 @@ test('published audio and stories win the limited slots along a route', async ()
   assert.deepEqual(result.stops.map(item=>item.address),[1,2,3,5,6].map(n=>stop(n).address));
 });
 
+// Promo walks for YouTube Shorts tell a story at every stop, so nearer landmarks without
+// published content must not take the slots, as they do in ordinary walks.
+test('stories-only walks skip nearer landmarks without published content', async () => {
+  const supplied=Array.from({length:8},(_,index)=>{
+    const n=index+1;
+    return {id:`osm:node:${n}`,address:stop(n).address,location:stop(n).location,readiness:n<=3?'none':n===8?'audio':'story'};
+  });
+  const queries=[];
+  const plan=createWalkPlanner({routerUrl:'https://router.test/route',discoveryElements:candidates().elements,
+    candidateProvider:query=>{queries.push(query);return query.published?supplied.filter(item=>item.readiness!=='none'):supplied;},minIntervalMs:0,
+    fetchImpl:async(url,o)=>Response.json(route(JSON.parse(o.body)))});
+  const ordinary=await plan({start,mode:'loop',minutes:30});
+  assert.ok(ordinary.stops.some(item=>!item.contentId),'an ordinary walk still takes nearer landmarks without stories');
+  const stories=await plan({start,mode:'loop',minutes:30},{storiesOnly:true});
+  assert.ok(stories.stops.length>=2);
+  assert.ok(stories.stops.every(item=>/^osm:node:[4-8]$/.test(item.contentId??'')),JSON.stringify(stories.stops));
+  assert.deepEqual(queries.map(query=>query.published),[false,true]);
+});
+
+test('stories-only discovery never queries Overpass', async () => {
+  const supplied=[4,5,6].map(n=>({id:`osm:node:${n}`,address:stop(n).address,location:stop(n).location,readiness:'story'}));
+  const urls=[];
+  const plan=createWalkPlanner({routerUrl:'https://router.test/route',overpassUrl:'https://osm.test/',discoveryElements:null,candidateProvider:()=>supplied,minIntervalMs:0,
+    fetchImpl:async(url,o)=>{urls.push(String(url));return Response.json(route(JSON.parse(o.body)));}});
+  const result=await plan({start,mode:'loop',minutes:30},{storiesOnly:true});
+  assert.ok(result.stops.every(item=>item.contentId));
+  assert.ok(urls.length>0&&urls.every(url=>url.startsWith('https://router.test/')),urls.join(' '));
+});
+
+test('stories-only walks with fewer than two published stories fail honestly', async () => {
+  const supplied=[{id:'osm:node:4',address:stop(4).address,location:stop(4).location,readiness:'story'}];
+  const plan=createWalkPlanner({routerUrl:'https://router.test/route',discoveryElements:candidates().elements,candidateProvider:()=>supplied,minIntervalMs:0,
+    fetchImpl:async(url,o)=>Response.json(route(JSON.parse(o.body)))});
+  await assert.rejects(plan({start,mode:'loop',minutes:30},{storiesOnly:true}),{code:'WALK_STOPS_NOT_FOUND'});
+});
+
 test('map catalog candidates win equal empty slots over fallback discovery', async () => {
   const supplied=Array.from({length:5},(_,index)=>{
     const n=index+6;
