@@ -226,7 +226,7 @@ export function AdminDesk() {
   function changeSection(next: AdminSection) {
     if (next === section || request.current) return;
     if (section === "walks" && walkDirty && !window.confirm("Есть несохранённые правки главы. Отбросить их и открыть другой раздел?")) return;
-    if (section === "content" && contentDirty && !window.confirm("Есть несохранённые правки текста места. Отбросить их и открыть другой раздел?")) return;
+    if ((section === "content" || section === "drafts") && contentDirty && !window.confirm("Есть несохранённые правки текста места. Отбросить их и открыть другой раздел?")) return;
     setSection(next); setWalkDirty(false); setContentDirty(false); setError(""); setNotice("");
     window.history.replaceState(window.history.state, "", next === "addresses" ? (job ? `/admin?job=${job.id}` : "/admin") : `/admin?section=${next}`);
   }
@@ -314,7 +314,7 @@ export function AdminDesk() {
           ) : section === "content" ? (
             <ContentAdmin api={api} busy={busy} run={run} onDirtyChange={setContentDirty} />
           ) : section === "drafts" ? (
-            <DraftsAdmin api={api} busy={busy} run={run} />
+            <DraftsAdmin api={api} busy={busy} run={run} onDirtyChange={setContentDirty} />
           ) : (
             <section className="admin-addresses" aria-labelledby="admin-addresses-title">
               <div className="admin-section-head">

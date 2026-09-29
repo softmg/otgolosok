@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { draftClipboardText, pageCount, pageRange, type AdminApi, type AdminRun, type ContentDraft, type ContentDraftPage } from "./model";
+import { draftClipboardText, pageCount, pageRange, type AdminApi, type AdminRun, type ContentDraft, type ContentDraftPage, type ContentPlace, type Draft } from "./model";
+import { PlaceTextFields, placeTextValid } from "./place-text-fields";
 import { skeletonRows } from "./table-skeleton";
 import "./content-admin.css";
 
@@ -13,14 +14,37 @@ function moment(value: string) {
   return Number.isNaN(date.valueOf()) ? "—" : date.toLocaleString("ru-RU");
 }
 
-/** Generated texts no editor has approved yet, newest first, each copyable as plain text. */
-export function DraftsAdmin({ api, busy, run }: { api: AdminApi; busy: string; run: AdminRun }) {
+type DraftsAdminProps = { api: AdminApi; busy: string; run: AdminRun; onDirtyChange: (dirty: boolean) => void };
+
+/** Generated texts no editor has approved yet, newest first: each can be copied as plain text or opened for editing and approval. */
+export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps) {
   const [page, setPage] = useState<ContentDraftPage>({ total: 0, hasMore: false, items: [] });
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
+  const [place, setPlace] = useState<ContentPlace | null>(null);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [baseline, setBaseline] = useState("");
   const loaded = useRef(false);
+  const editorHeading = useRef<HTMLHeadingElement>(null);
+  const placeOpener = useRef<HTMLButtonElement | null>(null);
+  const pendingNavigation = useRef<"editor" | "list" | null>(null);
   const disabled = Boolean(busy);
+  const dirty = Boolean(draft && JSON.stringify(draft) !== baseline);
+
+  useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
+
+  // Focus moves once the request settles: to the editor after opening, back to the row's button after closing.
+  useEffect(() => {
+    if (busy || !pendingNavigation.current) return;
+    const target = pendingNavigation.current === "editor" ? editorHeading.current : placeOpener.current?.isConnected ? placeOpener.current : null;
+    const block = pendingNavigation.current === "editor" ? "start" : "center";
+    pendingNavigation.current = null;
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block, behavior: "instant" });
+  }, [busy, place]);
 
   async function load(next: number, signal: AbortSignal) {
     setLoading(true);
@@ -49,11 +73,41 @@ export function DraftsAdmin({ api, busy, run }: { api: AdminApi; busy: string; r
     }
   }
 
+  function consentToLoseDraft() {
+    return !dirty || window.confirm("Есть несохранённые правки текста места. Отбросить их и продолжить?");
+  }
+
+  function openPlace(id: string, opener: HTMLButtonElement) {
+    if (!consentToLoseDraft()) return;
+    void run("Загрузка места…", async signal => {
+      const value = (await api<{ place: ContentPlace }>(`/content/places/${id}`, signal)).place;
+      const next = value.text?.draft ?? null;
+      placeOpener.current = opener;
+      pendingNavigation.current = "editor";
+      setPlace(value); setDraft(next); setBaseline(JSON.stringify(next)); setNotice("");
+    });
+  }
+
+  function closePlace() {
+    if (!consentToLoseDraft()) return;
+    pendingNavigation.current = "list";
+    setPlace(null); setDraft(null); setBaseline("");
+  }
+
+  function approve(current: ContentPlace, story: Draft) {
+    void run("Утверждение текста…", async signal => {
+      await api(`/content/places/${current.id}/approve`, signal, { story });
+      setPlace(null); setDraft(null); setBaseline("");
+      await load(offset, signal);
+      setNotice(`Текст утверждён: ${current.name}.`);
+    });
+  }
+
   return <section className="admin-addresses content-admin" aria-labelledby="admin-drafts-title">
     <div className="admin-section-head">
       <div>
         <h2 id="admin-drafts-title">Черновики</h2>
-        <p className="admin-meta">Сгенерированные тексты, которые ещё не утверждены. Утверждение — в разделе «OSM-партии», в карточке места.</p>
+        <p className="admin-meta">Сгенерированные тексты, которые ещё не утверждены. Откройте черновик, чтобы поправить абзацы и утвердить текст.</p>
       </div>
       <button disabled={disabled} onClick={() => void run("Загрузка черновиков…", signal => load(offset, signal))}>Обновить</button>
     </div>
@@ -61,12 +115,15 @@ export function DraftsAdmin({ api, busy, run }: { api: AdminApi; busy: string; r
     <div className="admin-table-wrap" aria-busy={loading}><table className="admin-table">
       <caption className="admin-sr-only">Черновики текстов</caption>
       <thead><tr><th scope="col">Место</th><th scope="col">Заголовок</th><th scope="col">Абзацев</th><th scope="col">Создан</th><th scope="col">Действие</th></tr></thead>
-      <tbody>{loading ? skeletonRows(5, page.items.length) : page.items.map(item => <tr key={item.placeId}>
+      <tbody>{loading ? skeletonRows(5, page.items.length) : page.items.map(item => <tr key={item.placeId} data-current={place?.id === item.placeId || undefined}>
         <th scope="row">{item.name}<span className="admin-row-id">{item.address ? `${item.address} · ` : ""}{item.location.lat}, {item.location.lon}</span></th>
         <td>{item.text.title || "—"}</td>
         <td>{numbers.format(item.text.paragraphs.length)}</td>
         <td>{moment(item.text.createdAt)}</td>
-        <td><button disabled={disabled} aria-label={`Копировать черновик: ${item.name}`} onClick={() => void copy(item)}>Копировать</button></td>
+        <td><div className="admin-row-actions">
+          <button disabled={disabled} aria-label={`Копировать черновик: ${item.name}`} onClick={() => void copy(item)}>Копировать</button>
+          <button disabled={disabled} aria-label={`Открыть черновик: ${item.name}`} onClick={event => openPlace(item.placeId, event.currentTarget)}>Открыть</button>
+        </div></td>
       </tr>)}</tbody>
     </table></div>
     {!loading && !page.items.length && <p className="admin-empty-row" role="status">Черновиков нет.</p>}
@@ -75,5 +132,19 @@ export function DraftsAdmin({ api, busy, run }: { api: AdminApi; busy: string; r
       <span className="admin-meta">Страница {Math.floor(offset / DRAFT_PAGE) + 1} из {pageCount(page.total, DRAFT_PAGE)}</span>
       <button disabled={disabled || !page.hasMore} onClick={() => void run("Загрузка черновиков…", signal => load(offset + DRAFT_PAGE, signal))}>Далее</button>
     </nav>
+
+    {place && <article className="admin-document" aria-labelledby="draft-place-title">
+      <div className="admin-document-head">
+        <div><p className="admin-context">{place.id}</p><h3 id="draft-place-title" ref={editorHeading} tabIndex={-1}>{place.name}</h3>
+          <p className="admin-meta">{place.address ?? "Адрес не указан"}{dirty ? " · есть несохранённые правки" : ""}</p></div>
+        <button disabled={disabled} onClick={closePlace}>Закрыть</button>
+      </div>
+      {draft ? <>
+        <PlaceTextFields draft={draft} disabled={disabled} onChange={setDraft} />
+        <div className="admin-actions">
+          <button className="admin-primary" disabled={disabled || !placeTextValid(draft)} onClick={() => approve(place, draft)}>Утвердить текст</button>
+        </div>
+      </> : <p className="admin-empty">У этого места больше нет текста. Обновите список черновиков.</p>}
+    </article>}
   </section>;
 }

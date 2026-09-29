@@ -11,6 +11,7 @@ import {
 import { skeletonRows } from "./table-skeleton";
 import { IdentityCandidates } from "./identity-candidates";
 import { BatchItemDetail } from "./batch-item-detail";
+import { PlaceTextFields, placeTextValid } from "./place-text-fields";
 import "./content-admin.css";
 
 type ContentAdminProps = { api: AdminApi; busy: string; run: AdminRun; onDirtyChange: (dirty: boolean) => void };
@@ -216,7 +217,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
     setPlace(null); setDraft(null); setBaseline("");
   }
 
-  const draftValid = Boolean(draft?.title.trim() && draft.paragraphs.length && draft.paragraphs.every(item => item.text.trim()));
+  const draftValid = placeTextValid(draft);
 
   return (
     <section className="admin-addresses content-admin" aria-labelledby="admin-content-title">
@@ -454,14 +455,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
             <button disabled={disabled} onClick={closePlace}>Закрыть</button>
           </div>
           {draft ? <>
-            <label htmlFor="content-title">Заголовок</label>
-            <input id="content-title" value={draft.title} disabled={disabled}
-              onChange={event => setDraft({ ...draft, title: event.target.value })} />
-            {draft.paragraphs.map((paragraph, index) => <div className="admin-paragraph" key={index}>
-              <label htmlFor={`content-paragraph-${index}`}>Абзац {index + 1}</label>
-              <textarea id={`content-paragraph-${index}`} rows={6} value={paragraph.text} disabled={disabled}
-                onChange={event => setDraft({ ...draft, paragraphs: draft.paragraphs.map((value, i) => i === index ? { ...value, text: event.target.value } : value) })} />
-            </div>)}
+            <PlaceTextFields draft={draft} disabled={disabled} onChange={setDraft} />
             <div className="admin-actions">
               <button className="admin-primary" disabled={disabled || !draftValid} onClick={() => void run("Утверждение текста…", async signal => {
                 const value = (await api<{ place: ContentPlace }>(`/content/places/${place.id}/approve`, signal, { story: draft })).place;
