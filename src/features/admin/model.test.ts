@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { audioBackfillNotice, batchItemStates, contentErrorOptions, contentStatusOptions, contentStatusStates, draftCheck, initialDraft, pageCount, pageRange, safeSourceLink, type Draft, type Fact, type Job } from "./model";
+import { audioBackfillNotice, batchItemStates, contentErrorOptions, contentStatusOptions, contentStatusStates, draftCheck, draftClipboardText, initialDraft, pageCount, pageRange, safeSourceLink, type Draft, type Fact, type Job } from "./model";
 
 const facts: Fact[] = Array.from({ length: 5 }, (_, index) => ({
   id: `f${index + 1}`, claim: "Verified claim", interesting: true, evidence: [],
@@ -103,4 +103,20 @@ describe("bulk voicing notice", () => {
     ["partial failures and waiting texts", { ...base, queued: 2, retried: 1, failed: 1, inspected: 4, awaitingApproval: 3 },
       "В очередь поставлено: 2. Повторено: 1. Проверено: 4. Ошибок: 1. Ждут утверждения, в очередь не ставятся: 3."],
   ])("%s", (_name, result, expected) => { expect(audioBackfillNotice(result)).toBe(expected); });
+});
+
+describe("draft clipboard text", () => {
+  const draft = {
+    placeId: "osm:node:4142950214", name: "Мишка с мячом", address: null, location: { lat: 55.7370823, lon: 37.6084488 },
+    text: { id: "t1", title: "Скульптура «Мишка с мячом»", paragraphs: ["Её создала скульптор Воробьева.", "Медведь стоит на передних лапах."], verification: "automatic", createdAt: "2026-09-28T17:00:00Z" },
+  };
+  it("lists the point with coordinates and then every paragraph by number", () => {
+    expect(draftClipboardText(draft)).toBe([
+      "Место: Мишка с мячом", "Координаты: 55.7370823, 37.6084488", "OSM: osm:node:4142950214", "Заголовок: Скульптура «Мишка с мячом»", "",
+      "Абзац 1: Её создала скульптор Воробьева.", "Абзац 2: Медведь стоит на передних лапах.",
+    ].join("\n"));
+  });
+  it("adds the address when the place has one", () => {
+    expect(draftClipboardText({ ...draft, address: "Москва, Крымский Вал, 2" }).split("\n")[1]).toBe("Адрес: Москва, Крымский Вал, 2");
+  });
 });

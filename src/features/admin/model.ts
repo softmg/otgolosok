@@ -240,3 +240,23 @@ export const identitySignals: Record<string, string> = {
   area_geometry: "Контур объекта",
   extra_tags: "Дополнительные теги OSM",
 };
+
+export type ContentDraft = {
+  placeId: string; name: string; address: string | null; location: { lat: number; lon: number };
+  text: { id: string; title: string; paragraphs: string[]; verification: string; createdAt: string };
+};
+export type ContentDraftPage = { total: number; hasMore: boolean; items: ContentDraft[] };
+
+/** Plain text for the editor's clipboard: the point with its coordinates, then every paragraph numbered. */
+export function draftClipboardText(draft: ContentDraft) {
+  const { lat, lon } = draft.location;
+  return [
+    `Место: ${draft.name}`,
+    ...(draft.address ? [`Адрес: ${draft.address}`] : []),
+    `Координаты: ${lat}, ${lon}`,
+    `OSM: ${draft.placeId}`,
+    `Заголовок: ${draft.text.title}`,
+    "",
+    ...draft.text.paragraphs.map((paragraph, index) => `Абзац ${index + 1}: ${paragraph}`),
+  ].join("\n");
+}

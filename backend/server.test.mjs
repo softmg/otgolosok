@@ -383,3 +383,26 @@ test("a short promo walks token stops the server from starting",t=>{
   const store=createStore(":memory:",{maxActive:1});t.after(()=>store.close());
   assert.throws(()=>createApp({store,provider:null,origin:"https://otgolosok.test",audioDirectory:tmpdir(),workerEnabled:false,promoWalksToken:"short"}),/PROMO_WALKS_TOKEN must contain at least 32 characters/);
 });
+
+test("drafts list unapproved texts with their paragraphs and leave once approved",async(t)=>{
+  const f=await fixture(t);
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[
+    {placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}},
+    {placeId:"osm:node:8",osmType:"node",osmId:8,name:"Сквер",location:{lat:55.76,lon:37.62},tags:{leisure:"park"}}]});
+  f.store.createBatch({requestKey:"drafts-api-1",placeIds:["osm:node:7","osm:node:8"],limit:2});
+  const story=title=>({title,paragraphs:[{text:`${title}: первый абзац`,factIds:["f1"]},{text:`${title}: второй абзац`,factIds:["f2"]}]});
+  // Claim order is not guaranteed: each job gets the story of its own place.
+  for(let index=0;index<2;index++){const job=f.store.claimContentJob();f.store.completeContentJob(job.id,{story:story(job.place.name),evidence:{facts:[]}});}
+  const list=async()=>/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?limit=10&offset=0`)).json());
+  const drafts=await list();
+  assert.equal(drafts.total,2);
+  assert.deepEqual(drafts.items.find(item=>item.placeId==="osm:node:7"),{placeId:"osm:node:7",name:"Парк",address:null,location:{lat:55.75,lon:37.61},
+    text:{id:drafts.items.find(item=>item.placeId==="osm:node:7").text.id,title:"Парк",paragraphs:["Парк: первый абзац","Парк: второй абзац"],verification:"automatic",
+      createdAt:drafts.items.find(item=>item.placeId==="osm:node:7").text.createdAt}});
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/stats`)).json()).drafts,2);
+  assert.equal((await f.post("/api/story-admin/content/places/osm:node:7/approve",{story:story("Парк")})).status,200);
+  assert.deepEqual((await list()).items.map(item=>item.placeId),["osm:node:8"]);
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/stats`)).json()).drafts,1);
+  for(const query of ["limit=0","limit=101","offset=-1","limit=abc","status=draft"])
+    assert.equal((await fetch(`${f.base}/api/story-admin/content/drafts?${query}`)).status,400,query);
+});

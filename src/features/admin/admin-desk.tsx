@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "../brand/brand-mark";
 import { WalkAdmin } from "./walk-admin";
 import { ContentAdmin } from "./content-admin";
+import { DraftsAdmin } from "./drafts-admin";
 import { draftCheck, initialDraft, safeSourceLink, stages, type AdminApi, type Draft, type Job, type Summary, type TtsProvider } from "./model";
 import { skeletonRows } from "./table-skeleton";
 import { csrfHeaders, getSession, signOut } from "../auth/client";
 
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const PAGE_SIZE = 50;
-type AdminSection = "addresses" | "walks" | "content";
+type AdminSection = "addresses" | "walks" | "content" | "drafts";
 type RelevanceFilter = "active" | "irrelevant" | "all";
 
 class ApiError extends Error {
@@ -199,7 +200,7 @@ export function AdminDesk() {
         accept((await api<{ job: Job }>(`/${id}`, signal)).job);
         pendingNavigation.current = "editor";
       } else if (id) setError("В ссылке указан неверный идентификатор задания. Выберите задание из списка.");
-      else if (["walks","content"].includes(params.get("section") ?? "")) setSection(params.get("section") as AdminSection);
+      else if (["walks","content","drafts"].includes(params.get("section") ?? "")) setSection(params.get("section") as AdminSection);
     });
   // `sessionRestored` makes this effect a one-time client-side restore.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -305,12 +306,15 @@ export function AdminDesk() {
             <button disabled={Boolean(busy)} aria-current={section === "addresses" ? "page" : undefined} onClick={() => changeSection("addresses")}>Адреса</button>
             <button disabled={Boolean(busy)} aria-current={section === "walks" ? "page" : undefined} onClick={() => changeSection("walks")}>Прогулки</button>
             <button disabled={Boolean(busy)} aria-current={section === "content" ? "page" : undefined} onClick={() => changeSection("content")}>OSM-партии</button>
+            <button disabled={Boolean(busy)} aria-current={section === "drafts" ? "page" : undefined} onClick={() => changeSection("drafts")}>Черновики</button>
           </nav>
 
           {section === "walks" ? (
             <WalkAdmin api={api} busy={busy} run={run} openJob={openJob} onDirtyChange={setWalkDirty} />
           ) : section === "content" ? (
             <ContentAdmin api={api} busy={busy} run={run} onDirtyChange={setContentDirty} />
+          ) : section === "drafts" ? (
+            <DraftsAdmin api={api} busy={busy} run={run} />
           ) : (
             <section className="admin-addresses" aria-labelledby="admin-addresses-title">
               <div className="admin-section-head">

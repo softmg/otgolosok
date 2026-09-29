@@ -15,7 +15,7 @@ import "./content-admin.css";
 
 type ContentAdminProps = { api: AdminApi; busy: string; run: AdminRun; onDirtyChange: (dirty: boolean) => void };
 type Stats = {
-  places: number; texts: number; audio: number; awaitingApproval?: number;
+  places: number; texts: number; drafts?: number; audio: number; awaitingApproval?: number;
   jobs?: Record<string, number>; external?: Record<string, number>;
   textUsageTokens?: number; oldestTextQueuedAt?: string | null;
   audioQueue?: { oldestQueuedAt: string | null; averageAttemptSec: number | null; artifactBytes: number; artifacts: number };
@@ -231,7 +231,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
 
       {stats ? <dl className="content-stats">
         <div><dt>Мест в каталоге</dt><dd>{numbers.format(stats.places)}</dd></div>
-        <div><dt>Текстов</dt><dd>{numbers.format(stats.texts)}</dd></div>
+        <div><dt>Текстов</dt><dd>{numbers.format(stats.texts)}{stats.drafts != null ? <small> (черновиков: {numbers.format(stats.drafts)})</small> : null}</dd></div>
         <div><dt>Аудио</dt><dd>{numbers.format(stats.audio)}</dd>{stats.awaitingApproval ? <span>ждут утверждения {numbers.format(stats.awaitingApproval)}</span> : null}</div>
         <div><dt>Очередь текстов</dt><dd>{numbers.format(stats.jobs?.queued ?? 0)}</dd><span>в работе {numbers.format(stats.jobs?.working ?? 0)}</span></div>
         <div><dt>Очередь аудио</dt><dd>{numbers.format(stats.external?.queued ?? 0)}</dd><span>у воркеров {numbers.format(stats.external?.leased ?? 0)}</span></div>

@@ -62,6 +62,9 @@ function viewBatch(row,counts={}) {
       working:Number(counts.working??0),ready:Number(counts.ready??0),failed:Number(counts.failed??0)}};
 }
 
+// A draft: the place has a generated text and none of its texts is approved yet (the catalog "draft" filter).
+const DRAFT_PLACE="EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id) AND NOT EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)";
+
 export function createContentStore({db,now,transaction}) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS osm_imports (id TEXT PRIMARY KEY, source TEXT NOT NULL, source_sha256 TEXT NOT NULL,
@@ -188,7 +191,7 @@ export function createContentStore({db,now,transaction}) {
       const filters=["p.archived=0"],params=[];
       if(q.trim()){filters.push("(instr(casefold(p.name),casefold(?))>0 OR instr(casefold(COALESCE(p.address,'')),casefold(?))>0)");params.push(q.trim(),q.trim());}
       if(status==="ready")filters.push("EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)");
-      if(status==="draft")filters.push("EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id) AND NOT EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)");
+      if(status==="draft")filters.push(DRAFT_PLACE);
       if(status==="missing")filters.push("NOT EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id)");
       if(lat!==null){const latDelta=radius/111320,lonDelta=radius/(111320*Math.cos(lat*Math.PI/180));filters.push("p.lat BETWEEN ? AND ? AND p.lon BETWEEN ? AND ?");params.push(lat-latDelta,lat+latDelta,lon-lonDelta,lon+lonDelta);}
       const distanceSql=lat===null?"NULL":`6371000*2*asin(min(1,sqrt(pow(sin(radians(p.lat-?)/2),2)+cos(radians(?))*cos(radians(p.lat))*pow(sin(radians(p.lon-?)/2),2))))`;
@@ -375,6 +378,19 @@ export function createContentStore({db,now,transaction}) {
     getBatch(id) {const row=db.prepare("SELECT * FROM content_batches WHERE id=?").get(id);if(!row)return null;
       const items=db.prepare(`SELECT i.*,p.name,p.address FROM batch_items i JOIN places p ON p.id=i.place_id WHERE i.batch_id=? ORDER BY p.name,p.id`).all(id)
       .map(item=>({placeId:item.place_id,name:item.name,address:item.address,state:item.state,error:decode(item.error_json)}));return {...viewBatch(row,batchCounts(id)),items};},
+    /** Drafts newest first with the latest generated text of each place: what an editor still has to approve. */
+    listDrafts({limit=50,offset=0}={}) {
+      if(!Number.isSafeInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(offset)||offset<0)throw fail("BAD_REQUEST");
+      const where=`p.archived=0 AND ${DRAFT_PLACE}`;
+      const rows=db.prepare(`SELECT p.id,p.name,p.address,p.lat,p.lon,t.id text_id,t.story_json,t.verification,t.created_at FROM places p
+        JOIN place_texts t ON t.id=(SELECT x.id FROM place_texts x WHERE x.place_id=p.id ORDER BY x.created_at DESC,x.rowid DESC LIMIT 1)
+        WHERE ${where} ORDER BY t.created_at DESC,p.id LIMIT ? OFFSET ?`).all(limit+1,offset);
+      const total=Number(db.prepare(`SELECT count(*) n FROM places p WHERE ${where}`).get().n);
+      return {total,hasMore:rows.length>limit,items:rows.slice(0,limit).map(row=>{const story=decode(row.story_json)??{};
+        return {placeId:row.id,name:row.name,address:row.address,location:{lat:row.lat,lon:row.lon},
+          text:{id:row.text_id,title:typeof story.title==="string"?story.title:"",paragraphs:(Array.isArray(story.paragraphs)?story.paragraphs:[]).map(paragraph=>typeof paragraph?.text==="string"?paragraph.text:"").filter(Boolean),
+            verification:row.verification,createdAt:row.created_at}};})};
+    },
     getContentStats() {
       const places=Number(db.prepare("SELECT count(*) n FROM places WHERE archived=0").get().n);
       const texts=Number(db.prepare("SELECT count(*) n FROM place_texts").get().n);
@@ -385,7 +401,8 @@ export function createContentStore({db,now,transaction}) {
       // Aggregate inside SQLite: checkpoints hold fetched sources and together exceed the service heap.
       const usage=Number(db.prepare(`SELECT total(json_extract(checkpoint_json,'$.usageTokens')) n FROM content_jobs
         WHERE json_valid(checkpoint_json) AND json_type(checkpoint_json,'$.usageTokens') IN ('integer','real')`).get().n);
-      return {places,texts,audio,awaitingApproval:this.countTextsAwaitingApproval(),jobs,external,oldestTextQueuedAt:oldest,textUsageTokens:usage};
+      const drafts=Number(db.prepare(`SELECT count(*) n FROM places p WHERE p.archived=0 AND ${DRAFT_PLACE}`).get().n);
+      return {places,texts,drafts,audio,awaitingApproval:this.countTextsAwaitingApproval(),jobs,external,oldestTextQueuedAt:oldest,textUsageTokens:usage};
     },
     /** Texts the bulk voicing skips until an editor approves them: no approved story and no audio yet. */
     countTextsAwaitingApproval() {
