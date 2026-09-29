@@ -127,3 +127,17 @@
 «скульптурный портрет отца Александра», а цитата «Памятник о.Александру Меню» ушла в `content`. Проверка
 ищет называющую цитату только среди фактов `identity`. Пять мест партии «weak_identity auto · выходные 25.09»
 стоят в общей очереди с приоритетом 0.
+
+## Пилот Perplexity для `enrich` (29 сентября 2026 года)
+
+Партия `a6de823e` «Пилот Perplexity · enrich · 30 мест · 29.09»: случайные места `enrich` без задания и без
+открытых данных, поиск `perplexity-web/pplx-auto` плюс обычный поиск (до 5 + 3 адресов). Perplexity ответил
+на 29 заданий из 30, по 5 ссылок. Итог: 14 `ready`, 8 `review_required` (4 `PLACE_UNCLEAR`, 3 `IDENTITY_UNCONFIRMED`,
+1 `REVIEW_REQUIRED`), 3 `insufficient_evidence`, 5 `failed PROVIDER_REJECTED`. Без пяти сбоев шлюза — 14 из 25
+(56 %), у прошлого пилота `ac2a4c4d` без Perplexity было 17 из 30 (57 %) на другой выборке. Доля готовых текстов
+заметно не выросла, но 12 из 14 готовых текстов опираются хотя бы на одну страницу, найденную Perplexity.
+
+`PROVIDER_REJECTED` не связан с Perplexity: шлюз отвечал `400 The 'gpt-5.6-sol' model is not supported when using
+Codex with a ChatGPT account` от аккаунта Codex, добавленного в OmniRoute 29.09 в 07:45 UTC, и OmniRoute не
+переключался на другой аккаунт. Такие задания можно повторить с `restartFrom:"auto"`: факты сохранены, Perplexity
+повторно не вызывается.
