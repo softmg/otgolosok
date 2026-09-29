@@ -10,7 +10,7 @@ store.recoverInterrupted();
 const address=normalizeAddress(process.argv[2]);
 const job=store.createOrGet({key:addressKey(address),address});
 if(process.argv.includes("--retry")&&job.stage==="failed")store.retry(job.id,job.revision);
-const provider=createProvider({baseUrl:process.env.OPENAI_BASE_URL,apiKey:process.env.OPENAI_API_KEY,model:process.env.STORY_MODEL,writerModel:process.env.WRITER_MODEL});
+const provider=createProvider({baseUrl:process.env.OPENAI_BASE_URL,apiKey:process.env.OPENAI_API_KEY,model:process.env.STORY_MODEL,writerModel:process.env.WRITER_MODEL,searchModel:process.env.RESEARCH_SEARCH_MODEL||null});
 const timer=setInterval(()=>{const current=store.get(job.id);console.log(current.id,current.stage);},15000);
 try {
   const claimed=store.claimNext();

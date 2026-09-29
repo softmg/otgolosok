@@ -622,7 +622,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   const store=createStore(join(directory,"jobs.sqlite"),{maxActive:2,workerLeaseSecret:workerLeaseSecret({transport:localTts.transport}),normalizeExternalText:normalizeForSpeech,externalTtsProfiles:localTts.profiles});
   store.recoverInterrupted();
   store.recoverContentJobs();
-  const provider=process.env.OPENAI_API_KEY&&process.env.OPENAI_BASE_URL?createProvider({apiKey:process.env.OPENAI_API_KEY,baseUrl:process.env.OPENAI_BASE_URL,model:process.env.STORY_MODEL,writerModel:process.env.WRITER_MODEL}):null;
+  const provider=process.env.OPENAI_API_KEY&&process.env.OPENAI_BASE_URL?createProvider({apiKey:process.env.OPENAI_API_KEY,baseUrl:process.env.OPENAI_BASE_URL,model:process.env.STORY_MODEL,writerModel:process.env.WRITER_MODEL,searchModel:process.env.RESEARCH_SEARCH_MODEL||null}):null;
   const yandexTts=process.env.YANDEX_TTS_API_KEY?createYandexTts({apiKey:process.env.YANDEX_TTS_API_KEY,voice:process.env.YANDEX_TTS_VOICE||"marina"}):null;
   const logs=createBackendLogger();
   const port=Number(process.env.PORT??4175);
