@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { draftClipboardText, pageCount, pageRange, type AdminApi, type AdminRun, type ContentDraft, type ContentDraftPage, type ContentPlace, type Draft } from "./model";
 import { PlaceTextFields, placeTextValid } from "./place-text-fields";
 import { skeletonRows } from "./table-skeleton";
@@ -115,7 +115,7 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
     <div className="admin-table-wrap" aria-busy={loading}><table className="admin-table">
       <caption className="admin-sr-only">Черновики текстов</caption>
       <thead><tr><th scope="col">Место</th><th scope="col">Заголовок</th><th scope="col">Абзацев</th><th scope="col">Создан</th><th scope="col">Действие</th></tr></thead>
-      <tbody>{loading ? skeletonRows(5, page.items.length) : page.items.map(item => <tr key={item.placeId} data-current={place?.id === item.placeId || undefined}>
+      <tbody>{loading ? skeletonRows(5, page.items.length) : page.items.map(item => <Fragment key={item.placeId}><tr data-current={place?.id === item.placeId || undefined}>
         <th scope="row">{item.name}<span className="admin-row-id">{item.address ? `${item.address} · ` : ""}{item.location.lat}, {item.location.lon}</span></th>
         <td>{item.text.title || "—"}</td>
         <td>{numbers.format(item.text.paragraphs.length)}</td>
@@ -124,7 +124,23 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
           <button disabled={disabled} aria-label={`Копировать черновик: ${item.name}`} onClick={() => void copy(item)}>Копировать</button>
           <button disabled={disabled} aria-label={`Открыть черновик: ${item.name}`} onClick={event => openPlace(item.placeId, event.currentTarget)}>Открыть</button>
         </div></td>
-      </tr>)}</tbody>
+      </tr>
+      {place?.id === item.placeId && <tr className="drafts-editor-row"><td colSpan={5}>
+        <article className="admin-document" aria-labelledby="draft-place-title">
+          <div className="admin-document-head">
+            <div><p className="admin-context">{place.id}</p><h3 id="draft-place-title" ref={editorHeading} tabIndex={-1}>{place.name}</h3>
+              <p className="admin-meta">{place.address ?? "Адрес не указан"}{dirty ? " · есть несохранённые правки" : ""}</p></div>
+            <button disabled={disabled} onClick={closePlace}>Закрыть</button>
+          </div>
+          {draft ? <>
+            <PlaceTextFields draft={draft} disabled={disabled} onChange={setDraft} />
+            <div className="admin-actions">
+              <button className="admin-primary" disabled={disabled || !placeTextValid(draft)} onClick={() => approve(place, draft)}>Утвердить текст</button>
+            </div>
+          </> : <p className="admin-empty">У этого места больше нет текста. Обновите список черновиков.</p>}
+        </article>
+      </td></tr>}
+      </Fragment>)}</tbody>
     </table></div>
     {!loading && !page.items.length && <p className="admin-empty-row" role="status">Черновиков нет.</p>}
     <nav className="admin-pagination" aria-label="Страницы черновиков">
@@ -132,19 +148,5 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
       <span className="admin-meta">Страница {Math.floor(offset / DRAFT_PAGE) + 1} из {pageCount(page.total, DRAFT_PAGE)}</span>
       <button disabled={disabled || !page.hasMore} onClick={() => void run("Загрузка черновиков…", signal => load(offset + DRAFT_PAGE, signal))}>Далее</button>
     </nav>
-
-    {place && <article className="admin-document" aria-labelledby="draft-place-title">
-      <div className="admin-document-head">
-        <div><p className="admin-context">{place.id}</p><h3 id="draft-place-title" ref={editorHeading} tabIndex={-1}>{place.name}</h3>
-          <p className="admin-meta">{place.address ?? "Адрес не указан"}{dirty ? " · есть несохранённые правки" : ""}</p></div>
-        <button disabled={disabled} onClick={closePlace}>Закрыть</button>
-      </div>
-      {draft ? <>
-        <PlaceTextFields draft={draft} disabled={disabled} onChange={setDraft} />
-        <div className="admin-actions">
-          <button className="admin-primary" disabled={disabled || !placeTextValid(draft)} onClick={() => approve(place, draft)}>Утвердить текст</button>
-        </div>
-      </> : <p className="admin-empty">У этого места больше нет текста. Обновите список черновиков.</p>}
-    </article>}
   </section>;
 }

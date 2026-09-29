@@ -94,6 +94,8 @@ describe("вкладка черновиков", () => {
     await act(async () => { button("Открыть черновик: Место 1").click(); });
     expect(requests.at(-1)).toBe("/content/places/osm:node:1");
     expect(container.querySelector("#draft-place-title")?.textContent).toBe("Место 1");
+    const rows = [...container.querySelectorAll("tbody > tr")];
+    expect(rows.map(row => row.querySelector("#draft-place-title") ? "editor" : row.querySelector("th")?.firstChild?.textContent)).toEqual(["Место 1", "editor", "Место 2"]);
     expect(document.activeElement?.id).toBe("draft-place-title");
     const second = container.querySelector<HTMLTextAreaElement>("#content-paragraph-1")!;
     expect(second.value).toBe("Второй абзац 1.");
