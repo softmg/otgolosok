@@ -1,6 +1,6 @@
 # Бульварное кольцо: сверка с туром IZI Travel
 
-**Состояние:** редакционный пакет подготовлен, публикация ожидает восстановления SSH-доступа. Дата проверки: 30 сентября 2026 года.
+**Состояние:** пакет опубликован в production; проверены все 36 карточек через публичный API. Дата проверки: 30 сентября 2026 года.
 
 [Тур IZI Travel](https://izi.travel/ru/7bb4-bulvarnoe-kolco-progulka-s-audiogid-ru-ot-prechistenskikh-vorot-do-petrovki/ru) просмотрен с купленным доступом пользователя. Все 40 глав сопоставлены с production-каталогом по названию, адресу и объекту OSM. Получилось 36 самостоятельных мест: несколько глав рассказывают об одной площади или бульваре.
 
@@ -16,46 +16,46 @@
 
 | № | Глава тура | Решение | Карточка |
 |---|---|---|---|
-| 1 | Площадь Пречистенские ворота | Новое место и текст | [osm:relation:3365908](https://otgolosok.softmg.tech/api/content/places/osm:relation:3365908) |
-| 2 | Гоголевский бульвар, 2. Высшие женские курсы. | Уже есть; без изменений | [osm:relation:2150666](https://otgolosok.softmg.tech/api/content/places/osm:relation:2150666) |
-| 3 | улица Волхонка | Новое место и текст | [osm:way:45048841](https://otgolosok.softmg.tech/api/content/places/osm:way:45048841) |
-| 4 | Храм Христа Спасителя | Уже есть; без изменений | [osm:relation:7314898](https://otgolosok.softmg.tech/api/content/places/osm:relation:7314898) |
-| 5 | улица Пречистенка | Новое место и текст | [osm:way:46178921](https://otgolosok.softmg.tech/api/content/places/osm:way:46178921) |
-| 6 | Гоголевский бульвар, 3. Дело Филипповых | Новое место и текст | [osm:way:129213001](https://otgolosok.softmg.tech/api/content/places/osm:way:129213001) |
-| 7 | Памятник М. А. Шолохову | Уже есть; без изменений | [osm:node:1352865160](https://otgolosok.softmg.tech/api/content/places/osm:node:1352865160) |
-| 8 | Гоголевский бульвар, 10 | Новое место и текст | [osm:relation:2156517](https://otgolosok.softmg.tech/api/content/places/osm:relation:2156517) |
-| 9 | переулок Сивцев Вражек | Новое место и текст | [osm:way:25006967](https://otgolosok.softmg.tech/api/content/places/osm:way:25006967) |
-| 10 | Памятник Н. В. Гоголю | Первый текст | [osm:node:253043145](https://otgolosok.softmg.tech/api/content/places/osm:node:253043145) |
-| 11 | Наземный павильон станции метро «Арбатская» | Новое место и текст | [osm:relation:3339829](https://otgolosok.softmg.tech/api/content/places/osm:relation:3339829) |
-| 12 | Кинотеатр "Художественный" | Дополнение | [osm:way:35814561](https://otgolosok.softmg.tech/api/content/places/osm:way:35814561) |
-| 13 | площадь Арбатские Ворота | Новое место и текст | [osm:node:4948141391](https://otgolosok.softmg.tech/api/content/places/osm:node:4948141391) |
-| 14 | Никитский бульвар, 6 | Новое место и текст | [osm:relation:3366074](https://otgolosok.softmg.tech/api/content/places/osm:relation:3366074) |
-| 15 | Моссельпром (Калашный пер., 10) | Новое место и текст | [osm:way:255069618](https://otgolosok.softmg.tech/api/content/places/osm:way:255069618) |
-| 16 | Никитский бульвар, 7 | Дополнение | [osm:relation:5371132](https://otgolosok.softmg.tech/api/content/places/osm:relation:5371132) |
-| 17 | Никитский бульвар, 8а. Центральный дом журналистов | Уже есть; без изменений | [osm:way:46966391](https://otgolosok.softmg.tech/api/content/places/osm:way:46966391) |
-| 18 | Большая Никитская улица, 23 | Уже есть; без изменений | [osm:relation:2833814](https://otgolosok.softmg.tech/api/content/places/osm:relation:2833814) |
-| 19 | Тверской бульвар (около памятника Тимирязеву) | Новое место и текст | [osm:relation:3366106](https://otgolosok.softmg.tech/api/content/places/osm:relation:3366106) |
-| 20 | Здание ТАСС | Уже есть; без изменений | [osm:relation:7239516](https://otgolosok.softmg.tech/api/content/places/osm:relation:7239516) |
-| 21 | Памятник К.А. Тимирязеву | Дополнение | [osm:node:416562791](https://otgolosok.softmg.tech/api/content/places/osm:node:416562791) |
-| 22 | Тверской бульвар | Новое место и текст | [osm:relation:3366106](https://otgolosok.softmg.tech/api/content/places/osm:relation:3366106) |
-| 23 | Дом-музей М.Н. Ермоловой | Дополнение | [osm:way:312412195](https://otgolosok.softmg.tech/api/content/places/osm:way:312412195) |
-| 24 | Памятник Сергею Есенину | Первый текст | [osm:node:2623288251](https://otgolosok.softmg.tech/api/content/places/osm:node:2623288251) |
-| 25 | МХАТ им. А. М. Горького | Уже есть; без изменений | [osm:way:47675276](https://otgolosok.softmg.tech/api/content/places/osm:way:47675276) |
-| 26 | Театр им. А. С. Пушкина (Тверской бульвар, 23) | Новое место и текст | [osm:relation:5507696](https://otgolosok.softmg.tech/api/content/places/osm:relation:5507696) |
-| 27 | Здание Литературного института им. А. М. Горького (Тверской бульвар, 25) | Новое место и текст | [osm:relation:5507698](https://otgolosok.softmg.tech/api/content/places/osm:relation:5507698) |
-| 28 | Утраченная церковь св. Дмитрия Солунского | Новое место и текст | [osm:relation:3366117](https://otgolosok.softmg.tech/api/content/places/osm:relation:3366117) |
-| 29 | Тверская площадь | Новое место и текст | [osm:relation:3366117](https://otgolosok.softmg.tech/api/content/places/osm:relation:3366117) |
-| 30 | Пушкинская площадь | Новое место и текст | [osm:relation:3366117](https://otgolosok.softmg.tech/api/content/places/osm:relation:3366117) |
-| 31 | Памятник А.С. Пушкину | Уже есть; без изменений | [osm:node:416562790](https://otgolosok.softmg.tech/api/content/places/osm:node:416562790) |
-| 32 | «Известия». Бывший особняк И.Н. Римского-Корсакова | Новое место и текст | [osm:relation:3366117](https://otgolosok.softmg.tech/api/content/places/osm:relation:3366117) |
-| 33 | Страстной бульвар, 9 | Новое место и текст | [osm:way:46846651](https://otgolosok.softmg.tech/api/content/places/osm:way:46846651) |
-| 34 | Страстной бульвар, 10. Университетская типография | Новое место и текст | [osm:way:52609039](https://otgolosok.softmg.tech/api/content/places/osm:way:52609039) |
-| 35 | Страстной бульвар, 11 | Новое место и текст | [osm:way:46846669](https://otgolosok.softmg.tech/api/content/places/osm:way:46846669) |
-| 36 | Страстной бульвар, 15. Дворец Гагариных. Английский клуб | Дополнение | [osm:relation:6478948](https://otgolosok.softmg.tech/api/content/places/osm:relation:6478948) |
-| 37 | Памятник В. В. Высоцкому | Уже есть; без изменений | [osm:node:416562789](https://otgolosok.softmg.tech/api/content/places/osm:node:416562789) |
-| 38 | Ул. Петровка, 25. Усадьба Губиных | Уже есть; без изменений | [osm:way:47138172](https://otgolosok.softmg.tech/api/content/places/osm:way:47138172) |
-| 39 | Петровка. Петровский монастырь | Новое место и текст | [osm:relation:3138564](https://otgolosok.softmg.tech/api/content/places/osm:relation:3138564) |
-| 40 | Сад «Эрмитаж» | Дополнение | [osm:relation:6741551](https://otgolosok.softmg.tech/api/content/places/osm:relation:6741551) |
+| 1 | Площадь Пречистенские ворота | Новое место и текст | [osm:relation:3365908](https://otgolosok.online/api/content/places/osm:relation:3365908) |
+| 2 | Гоголевский бульвар, 2. Высшие женские курсы. | Уже есть; без изменений | [osm:relation:2150666](https://otgolosok.online/api/content/places/osm:relation:2150666) |
+| 3 | улица Волхонка | Новое место и текст | [osm:way:45048841](https://otgolosok.online/api/content/places/osm:way:45048841) |
+| 4 | Храм Христа Спасителя | Уже есть; без изменений | [osm:relation:7314898](https://otgolosok.online/api/content/places/osm:relation:7314898) |
+| 5 | улица Пречистенка | Новое место и текст | [osm:way:46178921](https://otgolosok.online/api/content/places/osm:way:46178921) |
+| 6 | Гоголевский бульвар, 3. Дело Филипповых | Новое место и текст | [osm:way:129213001](https://otgolosok.online/api/content/places/osm:way:129213001) |
+| 7 | Памятник М. А. Шолохову | Уже есть; без изменений | [osm:node:1352865160](https://otgolosok.online/api/content/places/osm:node:1352865160) |
+| 8 | Гоголевский бульвар, 10 | Новое место и текст | [osm:relation:2156517](https://otgolosok.online/api/content/places/osm:relation:2156517) |
+| 9 | переулок Сивцев Вражек | Новое место и текст | [osm:way:25006967](https://otgolosok.online/api/content/places/osm:way:25006967) |
+| 10 | Памятник Н. В. Гоголю | Первый текст | [osm:node:253043145](https://otgolosok.online/api/content/places/osm:node:253043145) |
+| 11 | Наземный павильон станции метро «Арбатская» | Новое место и текст | [osm:relation:3339829](https://otgolosok.online/api/content/places/osm:relation:3339829) |
+| 12 | Кинотеатр "Художественный" | Дополнение | [osm:way:35814561](https://otgolosok.online/api/content/places/osm:way:35814561) |
+| 13 | площадь Арбатские Ворота | Новое место и текст | [osm:node:4948141391](https://otgolosok.online/api/content/places/osm:node:4948141391) |
+| 14 | Никитский бульвар, 6 | Новое место и текст | [osm:relation:3366074](https://otgolosok.online/api/content/places/osm:relation:3366074) |
+| 15 | Моссельпром (Калашный пер., 10) | Новое место и текст | [osm:way:255069618](https://otgolosok.online/api/content/places/osm:way:255069618) |
+| 16 | Никитский бульвар, 7 | Дополнение | [osm:relation:5371132](https://otgolosok.online/api/content/places/osm:relation:5371132) |
+| 17 | Никитский бульвар, 8а. Центральный дом журналистов | Уже есть; без изменений | [osm:way:46966391](https://otgolosok.online/api/content/places/osm:way:46966391) |
+| 18 | Большая Никитская улица, 23 | Уже есть; без изменений | [osm:relation:2833814](https://otgolosok.online/api/content/places/osm:relation:2833814) |
+| 19 | Тверской бульвар (около памятника Тимирязеву) | Новое место и текст | [osm:relation:3366106](https://otgolosok.online/api/content/places/osm:relation:3366106) |
+| 20 | Здание ТАСС | Уже есть; без изменений | [osm:relation:7239516](https://otgolosok.online/api/content/places/osm:relation:7239516) |
+| 21 | Памятник К.А. Тимирязеву | Дополнение | [osm:node:416562791](https://otgolosok.online/api/content/places/osm:node:416562791) |
+| 22 | Тверской бульвар | Новое место и текст | [osm:relation:3366106](https://otgolosok.online/api/content/places/osm:relation:3366106) |
+| 23 | Дом-музей М.Н. Ермоловой | Дополнение | [osm:way:312412195](https://otgolosok.online/api/content/places/osm:way:312412195) |
+| 24 | Памятник Сергею Есенину | Первый текст | [osm:node:2623288251](https://otgolosok.online/api/content/places/osm:node:2623288251) |
+| 25 | МХАТ им. А. М. Горького | Уже есть; без изменений | [osm:way:47675276](https://otgolosok.online/api/content/places/osm:way:47675276) |
+| 26 | Театр им. А. С. Пушкина (Тверской бульвар, 23) | Новое место и текст | [osm:relation:5507696](https://otgolosok.online/api/content/places/osm:relation:5507696) |
+| 27 | Здание Литературного института им. А. М. Горького (Тверской бульвар, 25) | Новое место и текст | [osm:relation:5507698](https://otgolosok.online/api/content/places/osm:relation:5507698) |
+| 28 | Утраченная церковь св. Дмитрия Солунского | Новое место и текст | [osm:relation:3366117](https://otgolosok.online/api/content/places/osm:relation:3366117) |
+| 29 | Тверская площадь | Новое место и текст | [osm:relation:3366117](https://otgolosok.online/api/content/places/osm:relation:3366117) |
+| 30 | Пушкинская площадь | Новое место и текст | [osm:relation:3366117](https://otgolosok.online/api/content/places/osm:relation:3366117) |
+| 31 | Памятник А.С. Пушкину | Уже есть; без изменений | [osm:node:416562790](https://otgolosok.online/api/content/places/osm:node:416562790) |
+| 32 | «Известия». Бывший особняк И.Н. Римского-Корсакова | Новое место и текст | [osm:relation:3366117](https://otgolosok.online/api/content/places/osm:relation:3366117) |
+| 33 | Страстной бульвар, 9 | Новое место и текст | [osm:way:46846651](https://otgolosok.online/api/content/places/osm:way:46846651) |
+| 34 | Страстной бульвар, 10. Университетская типография | Новое место и текст | [osm:way:52609039](https://otgolosok.online/api/content/places/osm:way:52609039) |
+| 35 | Страстной бульвар, 11 | Новое место и текст | [osm:way:46846669](https://otgolosok.online/api/content/places/osm:way:46846669) |
+| 36 | Страстной бульвар, 15. Дворец Гагариных. Английский клуб | Дополнение | [osm:relation:6478948](https://otgolosok.online/api/content/places/osm:relation:6478948) |
+| 37 | Памятник В. В. Высоцкому | Уже есть; без изменений | [osm:node:416562789](https://otgolosok.online/api/content/places/osm:node:416562789) |
+| 38 | Ул. Петровка, 25. Усадьба Губиных | Уже есть; без изменений | [osm:way:47138172](https://otgolosok.online/api/content/places/osm:way:47138172) |
+| 39 | Петровка. Петровский монастырь | Новое место и текст | [osm:relation:3138564](https://otgolosok.online/api/content/places/osm:relation:3138564) |
+| 40 | Сад «Эрмитаж» | Дополнение | [osm:relation:6741551](https://otgolosok.online/api/content/places/osm:relation:6741551) |
 
 ## Существенные уточнения
 
@@ -73,13 +73,13 @@
 
 Пакет проверен на локальной базе, заполненной настоящими строками каталога и истории текстов. Используются реальные координаты объектов OpenStreetMap, полученные через Overpass 30 сентября 2026 года; для протяжённых улиц это центр выбранного участка, а не реконструкция точного положения рассказчика в экскурсии.
 
-Частичный импорт выполняется с `complete: false`: он не архивирует остальные места. Перед изменениями проверяются отсутствие OSM-дублей, актуальность исходной версии карточки и отсутствие незавершённых заданий генерации для неё. Все изменения входят в одну SQLite-транзакцию.
+Частичный импорт выполняется с `complete: false`: он не архивирует остальные места. Перед изменениями проверяются отсутствие OSM-дублей, актуальность исходной версии карточки и состояние незавершённых заданий генерации для неё. Все изменения входят в одну SQLite-транзакцию.
 
 Новые карточки получают редакционно утверждённый текст. Для дополнений штатный `approvePlaceText` создаёт новую редакцию, сохраняя прежнюю; факты и источники добавляются с отдельным префиксом идентификаторов. Уточнения имеют явное происхождение в `evidence_json.editorialReview`.
 
 Проверено: 26 публикаций в пробной транзакции; повторное применение пропускает все 26; искусственная ошибка в последнем дополнении откатывает весь пакет, включая 18 новых мест. Связи абзацев с фактами и фактов с источниками проверены.
 
-`pnpm check` завершился успешно: ESLint, TypeScript, 404 frontend-теста в 56 файлах, 489 backend-тестов, Ruff, Pyright, 19 Python-тестов и 12 subtests, production-сборка. Проверка production API ожидает публикации.
+`pnpm check` завершился успешно: ESLint, TypeScript, 404 frontend-теста в 56 файлах, 489 backend-тестов, Ruff, Pyright, 19 Python-тестов и 12 subtests, production-сборка. После публикации `pnpm check` повторно прошёл целиком. Через публичный API проверены все 36 карточек; 26 изменённых рассказов полностью совпадают с проверенной редакцией.
 
 ## Ограничения и дальнейшие исправления
 
@@ -89,8 +89,16 @@
 
 Полный будущий импорт OSM с `complete: true` способен архивировать вручную добавленные места, если их нет в новом входном наборе. Перед полным импортом нужно учитывать этот пакет в наборе объектов; устойчивое решение: отдельная политика сохранения редакционных дополнений. Сейчас новый механизм не добавлялся.
 
-## Возобновление публикации
+## Публикация в production
 
-Production-база пока не менялась. SSH-сервер принимает публичный ключ, но macOS не может получить парольную фразу из заблокированной связки ключей (`User interaction is not allowed`). Пользователю отправлен запрос разблокировать Mac/связку; передавать пароль в чат не требуется.
+SSH-доступ восстановлен после разблокировки связки ключей. Пакет применён одной транзакцией: 18 новых мест, 20 первых рассказов и шесть новых редакций существующих текстов. Повторный пробный запуск пропустил все 26 уже загруженных рассказов, не создавая новых мест, текстов или импортов.
 
-Локальные служебные материалы находятся в игнорируемой папке `backend/data/izi-boulevard-review/`: `bundle-private.json` содержит ожидаемые исходные версии карточек, `apply.mjs` выполняет ограниченную транзакцию, `check.log` содержит успешные общие проверки. Они нужны для продолжения текущей операции и не входят в публичный пакет. После восстановления доступа следует повторить пробный прогон на production, сохранить резервную копию затрагиваемых строк, применить пакет и проверить 36 карточек через публичный API. При несовпадении исходной версии операция остановится до записи; потребуется повторная сверка изменившейся карточки.
+Перед записью сохранена резервная копия затронутых строк: `/data/ops-backups/boulevard-ring-2026-09-30/before.json` в постоянном томе контейнера. Папка имеет права `0700`, файл резервной копии `0600`. Копия включает прежние места, тексты, OSM-псевдонимы, аудиозадания, затронутые задания генерации и элементы пакетов. Идентификатор частичного импорта: `937c5447-eb32-42b9-bb62-4cc296391542`.
+
+Для памятника Гоголю нашлось одно ещё не начатое задание `7d109cc3-23b9-4d20-b119-5acc4b6457c4`: `queued`, ноль попыток. Оно и связанные элементы пакетов отменены в той же транзакции с причиной «Заменено редакционным текстом». Другие незавершённые задания не затронуты; при изменении состояния этого задания операция остановилась бы. На локальной копии отдельно проверен откат отмены задания при ошибке в последнем рассказе.
+
+Рабочий публичный адрес: https://otgolosok.online, подтверждён `APP_ORIGIN` контейнера. Старый `otgolosok.softmg.tech` уже не разрешается в DNS; имя папки на сервере при этом осталось прежним. Ссылки в этой сверке и основной адрес в README исправлены.
+
+Через HTTPS проверены 36 из 36 карточек; все 26 опубликованных редакций точно совпали с пакетом, включая факты и источники. Для HTTP-проверки использован curl с HTTP/2: Python urllib без ALPN получал HTTP 505. Главная страница открывается в браузере и показывает карту. Повторная озвучка не запускалась, ранее опубликованные аудиозаписи шести дополненных карточек сохранены.
+
+Локальные служебные материалы находятся в игнорируемой папке `backend/data/izi-boulevard-review/`: исходные снимки, скрипт ограниченной загрузки, результаты публикации и проверок. Они не входят в публичный редакционный пакет. Корневая файловая система production-контейнера доступна только для чтения; скрипт выполнен через stdin, а пакет и резервная копия сохранены в постоянном томе `/data`.

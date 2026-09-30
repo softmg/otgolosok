@@ -297,7 +297,7 @@ docker compose down
 
 ## Деплой
 
-Production: https://otgolosok.softmg.tech. Статическая сборка публикуется через
+Production: https://otgolosok.online. Статическая сборка публикуется через
 проект `services`, Nginx и Traefik с HTTPS:
 
 ```bash
