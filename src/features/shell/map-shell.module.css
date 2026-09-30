@@ -105,13 +105,19 @@
   display: flex;
   flex-direction: column;
   gap: var(--shell-gap);
-  max-height: 40%;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-.dock > .notices {
+/*
+ * Next to a sheet the notices keep their size and leave the sheet the rest, up to a cap.
+ * The cap is taken from the frame: the dock is as tall as its content, so a percentage
+ * would resolve against the notices themselves and clip even a single one.
+ * Alone they shrink with the dock like a sheet and scroll only when the dock runs out.
+ */
+.dock > .notices:not(:last-child) {
   flex: none;
+  max-height: 40cqh;
 }
 
 .notices > * {
