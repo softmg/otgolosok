@@ -17,14 +17,14 @@ import { AppNavigation } from "../navigation/app-navigation";
 import { isMoscowPoint, MOSCOW_CENTER, readMapJobs, type MapJob } from "./map-jobs";
 import { nearbyRadii, nearbyStoryCatalog, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
 import { selectExplorePanel } from "./panel-state";
-import { openDataAttribution, type SourceAttribution, type StorySourceRef } from "./source-attribution";
+import { openDataAttribution, type SourceAttribution } from "./source-attribution";
+import { usePublishedCatalog } from "./use-published-catalog";
 import { rememberGeoPromptDismissal, shouldShowGeoPrompt } from "./geo-prompt";
 import "./explore.css";
 import { toUserMessage } from "@/lib/errors/user-message";
 
 type Place = {label:string; address:string|null; location:Coordinates};
 type StoryPin = MapItem & {address:string; duration?:number; chapter?:number; jobId?:string; placeId?:string; audioUrl?:string; status?:string; paragraphs?:string[]; attribution?:SourceAttribution};
-type CatalogPlace = {id:string;name:string;address:string|null;location:Coordinates;story:{title:string;paragraphs:Array<{text:string}>;sources?:StorySourceRef[];facts?:unknown[]}|null;audio:{url:string;durationSec:number}|null;distanceM:number|null};
 // Keep the nearby viewport across client-side navigation, independently of walk maps.
 const nearbyMapView: MapViewState = {current:null};
 const MELNIKOV: StoryPin = {id:"4c76cc5f-0fcd-41db-a36e-e63cce9b3f09",jobId:"4c76cc5f-0fcd-41db-a36e-e63cce9b3f09",title:"Воздушные телефоны Дома Мельникова",address:"Кривоарбатский переулок, 10",location:{lat:55.74805556,lon:37.58944444},duration:56};
@@ -57,7 +57,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   const [prompt,setPrompt]=useState(false);
   const [mapHintVisible,setMapHintVisible]=useState(true);
   const [tracked]=useState<MapJob[]>(()=>typeof window==="undefined"?[]:readMapJobs()),[jobs,setJobs]=useState<Record<string,GenerationJob>>({});
-  const [catalog,setCatalog]=useState<CatalogPlace[]>([]);
+  const {places:catalog,total:catalogTotal,status:catalogStatus,retry:retryCatalog}=usePublishedCatalog();
   const lookup=useRef<AbortController|null>(null),geoVersion=useRef(0),geoTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const input=useRef<HTMLInputElement>(null);
 
@@ -70,12 +70,6 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     const timer=setTimeout(()=>setPrompt(shouldShowGeoPrompt(localStorage)),0);
     return()=>clearTimeout(timer);
   },[]);
-  useEffect(()=>{
-    const controller=new AbortController(),params=new URLSearchParams({limit:"100",status:"ready"});
-    if(nearbyCenter){params.set("lat",String(nearbyCenter.lat));params.set("lon",String(nearbyCenter.lon));params.set("radius","5000");}
-    fetch(`/api/content/places?${params}`,{signal:controller.signal,cache:"no-store"}).then(response=>response.ok?response.json():Promise.reject()).then(value=>setCatalog(Array.isArray(value.places)?value.places:[])).catch(()=>{});
-    return()=>controller.abort();
-  },[nearbyCenter]);
   useEffect(()=>{
     if(!tracked.length)return;
     let disposed=false,running=false;
@@ -183,6 +177,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     <div className={`around-content${creating?" creation-open":""}${search?" searching":""}`}>
       <header className="around-header">
         <div className="around-topline"><Link href="/" prefetch={false} className="around-brand"><BrandMark /></Link><button className="around-icon" type="button" aria-label={search?"Закрыть поиск":"Найти адрес"} onClick={()=>search?setSearch(false):openSearch()}><ExploreIcon name={search?"close":"search"}/></button></div>
+        {catalogStatus!=="ready"?<div className="around-catalog-status"><span role="status">{catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalog.length} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="error"?<button type="button" className="around-text-button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null}
         {search?<form className="around-search" onSubmit={submitSearch}><label htmlFor="map-address">Какой дом вас интересует?</label><div><input id="map-address" ref={input} value={query} onChange={event=>setQuery(event.target.value)} minLength={3} maxLength={180} required placeholder="Улица и номер дома в Москве" autoComplete="off"/><button type="submit" disabled={placeBusy||query.trim().length<3} aria-label="Найти дом"><ExploreIcon name="arrow"/></button></div><Link href={`/create?${new URLSearchParams(query.trim()?{address:query.trim()}:{new:"1"})}`} prefetch={false}>Ввести адрес для истории вручную →</Link></form>:null}
       </header>
     </div>

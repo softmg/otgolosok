@@ -11,6 +11,8 @@
 .around-brand{font-size:var(--text-control)}
 .around-icon{display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;width:44px;min-width:44px;height:44px;border-radius:50%}
 .around-topline .around-icon{margin-left:auto}
+.around-catalog-status{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;font-size:var(--text-secondary);line-height:1.5}
+.around-catalog-status .around-text-button{min-height:44px;margin:0;padding:8px 0}
 .around-search{margin-top:15px;padding:16px;border:1px solid #d5d8cc;border-radius:20px;background:#fffcf5;box-shadow:0 8px 24px #203e3810}
 .around-search label{display:block;margin-bottom:10px;font-size:var(--text-secondary);font-weight:750}
 .around-search>div{display:flex;gap:6px}

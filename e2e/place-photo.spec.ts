@@ -6,7 +6,7 @@ const title = "Кинотеатр «Художественный»";
 
 async function openPlace(page: Page, id = "osm:way:35814561") {
   await page.route("**/api/**", route => route.fulfill({ json: { user: null, items: [], walks: [] } }));
-  await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: [{
+  await page.route("**/api/content/places?*", route => route.fulfill({ json: { total: 1, hasMore: false, places: [{
     id, name: title, address: "Москва, Арбатская площадь, 14",
     location: { lat: 55.7249, lon: 37.6507 },
     story: { title, paragraphs: [{ text: "История кинотеатра. ".repeat(120) }] },
