@@ -6,6 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AroundScreen } from "./around-screen";
 import type { MapItem } from "./explore-map";
 import type { Route } from "../tour/types";
+import exampleRoute from "../../../public/data/routes/paveletskaya.json";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({}), usePathname: () => "/", useSearchParams: () => new URLSearchParams() }));
 vi.mock("../walk-builder/walk-creation-panel", () => ({ WalkCreationPanel: () => null }));
@@ -42,6 +43,50 @@ it("renders every approved place beyond the first hundred", async () => {
   await act(async () => root.render(createElement(AroundScreen, { route, onStart: () => {}, updateAvailable: false })));
   expect(markers()).toHaveLength(205);
   expect(container.querySelector('[data-place="osm:node:205"]')?.textContent).toBe("История 205");
+});
+
+it("does not add built-in walk stops or the Melnikov demo to the public map", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
+  await act(async () => root.render(createElement(AroundScreen, { route: exampleRoute as Route, onStart: () => {}, updateAvailable: false })));
+  expect(container.querySelectorAll("[data-place]")).toHaveLength(0);
+});
+
+it("preserves the explicitly opened current chapter without adding the other walk stops", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
+  let started: number | undefined;
+  await act(async () => root.render(createElement(AroundScreen, {
+    route: exampleRoute as Route, openChapter: 2, onStart: index => { started = index; }, updateAvailable: false,
+  })));
+  expect(container.querySelectorAll("[data-place]")).toHaveLength(1);
+  expect(container.querySelector('[data-place="housing"]')?.textContent).toBe("Жизнь после смены");
+  const start = [...container.querySelectorAll("button")].find(button => button.textContent?.includes("Слушать эту часть"));
+  await act(async () => start!.click());
+  expect(started).toBe(2);
+});
+
+it("does not recommend built-in places after geolocation", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
+  vi.stubGlobal("navigator", { geolocation: { getCurrentPosition: (success: PositionCallback) => success({ coords: { latitude: 55.7249, longitude: 37.6507, accuracy: 10 } } as GeolocationPosition) } });
+  await act(async () => root.render(createElement(AroundScreen, { route: exampleRoute as Route, onStart: () => {}, updateAvailable: false })));
+  await act(async () => (container.querySelector('[aria-label="Моё местоположение"]') as HTMLButtonElement).click());
+  expect(container.querySelectorAll(".nearby-story-list li")).toHaveLength(0);
+  expect(container.textContent).toContain("В этом радиусе пока нет готовой проверенной истории.");
+});
+
+it("shows loading before the first response and progress until the final page", async () => {
+  let finish!: (response: Response) => void;
+  const fetcher = vi.fn(() => new Promise<Response>(resolve => { finish = resolve; }));
+  vi.stubGlobal("fetch", fetcher);
+  await act(async () => root.render(createElement(AroundScreen, { route, onStart: () => {}, updateAvailable: false })));
+  expect(container.querySelector('.around-catalog-status [role="status"]')?.textContent).toContain("Загружаем места");
+  await act(async () => finish(response(0)));
+  expect(container.querySelector('.around-catalog-status [role="status"]')?.textContent).toContain("100 из 205");
+  expect(container.querySelector("progress")?.value).toBe(100);
+  await act(async () => finish(response(100)));
+  expect(container.querySelector('.around-catalog-status [role="status"]')?.textContent).toContain("200 из 205");
+  await act(async () => finish(response(200)));
+  expect(container.querySelector(".around-catalog-status")).toBeNull();
+  expect(markers()).toHaveLength(205);
 });
 
 it("keeps loaded markers after a failed page and completes the catalog on retry", async () => {

@@ -15,7 +15,7 @@ import { ExploreMap, type MapFocus, type MapItem, type MapViewState } from "./ex
 import { ExploreIcon } from "./icons";
 import { AppNavigation } from "../navigation/app-navigation";
 import { isMoscowPoint, MOSCOW_CENTER, readMapJobs, type MapJob } from "./map-jobs";
-import { nearbyRadii, nearbyStoryCatalog, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
+import { nearbyRadii, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
 import { selectExplorePanel } from "./panel-state";
 import { openDataAttribution, type SourceAttribution } from "./source-attribution";
 import { usePublishedCatalog } from "./use-published-catalog";
@@ -27,7 +27,6 @@ type Place = {label:string; address:string|null; location:Coordinates};
 type StoryPin = MapItem & {address:string; duration?:number; chapter?:number; jobId?:string; placeId?:string; audioUrl?:string; status?:string; paragraphs?:string[]; attribution?:SourceAttribution};
 // Keep the nearby viewport across client-side navigation, independently of walk maps.
 const nearbyMapView: MapViewState = {current:null};
-const MELNIKOV: StoryPin = {id:"4c76cc5f-0fcd-41db-a36e-e63cce9b3f09",jobId:"4c76cc5f-0fcd-41db-a36e-e63cce9b3f09",title:"Воздушные телефоны Дома Мельникова",address:"Кривоарбатский переулок, 10",location:{lat:55.74805556,lon:37.58944444},duration:56};
 function distance(a:Coordinates,b:Coordinates){
   const rad=Math.PI/180,dlat=(b.lat-a.lat)*rad,dlon=(b.lon-a.lon)*rad;
   return 12742000*Math.asin(Math.min(1,Math.sqrt(Math.sin(dlat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dlon/2)**2)));
@@ -99,14 +98,14 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   },[tracked]);
 
   const pins=useMemo<StoryPin[]>(()=>{
-    const chapters=getWalkChapters(route).map((chapter,index)=>({id:chapter.id,title:chapter.title,address:chapter.place,location:chapter.location,duration:chapter.audio?.duration_sec,chapter:index,number:index+1}));
-    const own=tracked.filter(item=>item.id!==MELNIKOV.id).map(item=>{
+    const chapters=getWalkChapters(route).flatMap((chapter,index)=>index===openChapter?[{id:chapter.id,title:chapter.title,address:chapter.place,location:chapter.location,duration:chapter.audio?.duration_sec,chapter:index,number:index+1}]:[]);
+    const own=tracked.map(item=>{
       const job=jobs[item.id];return {...item,jobId:item.id,title:job?.story?.title??item.address,duration:job?.audio?.durationSec,pending:job?!terminalStages.has(job.stage):false,status:job?stageLabels[job.stage]:"Открыть подготовку"};
     });
     const places=catalog.map(place=>({id:place.id,placeId:place.id,title:place.story?.title??place.name,address:place.address??place.name,location:place.location,duration:place.audio?.durationSec,audioUrl:place.audio?.url,status:place.audio?"Готово к прослушиванию":"Текст готов",paragraphs:place.story?.paragraphs?.map(paragraph=>paragraph.text).filter(Boolean),attribution:openDataAttribution(place.story?.sources)}));
-    return [...chapters,MELNIKOV,...own,...places.filter(place=>![...chapters,MELNIKOV,...own].some(existing=>existing.id===place.id))];
-  },[route,tracked,jobs,catalog]);
-  const recommendations=useMemo(()=>nearbyCenter?recommendNearbyStories(nearbyCenter,nearbyRadius,[...nearbyStoryCatalog(route),...catalog.filter(place=>place.audio&&place.story).map(place=>({id:place.id,title:place.story!.title,address:place.address??place.name,location:place.location,durationSec:place.audio!.durationSec,sourceCount:place.story!.sources?.length??1,factCount:place.story!.facts?.length??1}))]):[],[nearbyCenter,nearbyRadius,route,catalog]);
+    return [...chapters,...own,...places.filter(place=>![...chapters,...own].some(existing=>existing.id===place.id))];
+  },[route,openChapter,tracked,jobs,catalog]);
+  const recommendations=useMemo(()=>nearbyCenter?recommendNearbyStories(nearbyCenter,nearbyRadius,catalog.filter(place=>place.audio&&place.story).map(place=>({id:place.id,title:place.story!.title,address:place.address??place.name,location:place.location,durationSec:place.audio!.durationSec,sourceCount:place.story!.sources?.length??1,factCount:place.story!.facts?.length??1}))):[],[nearbyCenter,nearbyRadius,catalog]);
   const visible=useMemo(()=>[...pins].sort((a,b)=>user?distance(user,a.location)-distance(user,b.location):0),[pins,user]);
   const creationItems=useMemo(()=>[
     ...visible.filter(pin=>!creationMap.items.some(point=>distance(pin.location,point.location)<15)).map(pin=>({...pin,compact:true})),
@@ -122,9 +121,6 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   function selectRecommendation(id:string){
     const direct=pins.find(pin=>pin.id===id);
     if(direct){select(direct);return;}
-    const chapterIndex=getWalkChapters(route).findIndex(chapter=>chapter.content_id===id);
-    const chapter=pins.find(pin=>pin.chapter===chapterIndex);
-    if(chapter)select(chapter);
   }
   function openSearch(){setSearch(true);setPrompt(false);}
   function dismissGeoPrompt(){rememberGeoPromptDismissal(localStorage);setPrompt(false);}
@@ -177,7 +173,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     <div className={`around-content${creating?" creation-open":""}${search?" searching":""}`}>
       <header className="around-header">
         <div className="around-topline"><Link href="/" prefetch={false} className="around-brand"><BrandMark /></Link><button className="around-icon" type="button" aria-label={search?"Закрыть поиск":"Найти адрес"} onClick={()=>search?setSearch(false):openSearch()}><ExploreIcon name={search?"close":"search"}/></button></div>
-        {catalogStatus!=="ready"?<div className="around-catalog-status"><span role="status">{catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalog.length} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="error"?<button type="button" className="around-text-button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null}
+        {catalogStatus!=="ready"?<div className="around-catalog-status"><span role="status" aria-atomic="true">{catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalog.length} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="loading"?<progress aria-label="Загрузка мест на карте" max={catalogTotal||1} value={catalogTotal?catalog.length:undefined}/>:null}{catalogStatus==="error"?<button type="button" className="around-text-button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null}
         {search?<form className="around-search" onSubmit={submitSearch}><label htmlFor="map-address">Какой дом вас интересует?</label><div><input id="map-address" ref={input} value={query} onChange={event=>setQuery(event.target.value)} minLength={3} maxLength={180} required placeholder="Улица и номер дома в Москве" autoComplete="off"/><button type="submit" disabled={placeBusy||query.trim().length<3} aria-label="Найти дом"><ExploreIcon name="arrow"/></button></div><Link href={`/create?${new URLSearchParams(query.trim()?{address:query.trim()}:{new:"1"})}`} prefetch={false}>Ввести адрес для истории вручную →</Link></form>:null}
       </header>
     </div>

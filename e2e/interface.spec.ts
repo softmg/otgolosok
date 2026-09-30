@@ -373,36 +373,6 @@ for (const [width, height, insets] of shortPortraits) {
   });
 }
 
-test("часть прогулки без текста не добавляет область прокрутки в порядок фокуса", async ({ page }) => {
-  await page.goto("/");
-  await page.locator(".explore-pin", { hasText: "1" }).first().click();
-  await expect(page.getByRole("button", { name: "Слушать эту часть" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Текст истории", exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Закрыть карточку", exact: true }).focus();
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Слушать эту часть" })).toBeFocused();
-});
-
-test("после выхода из прогулки карта открывает карточку текущей части и ставит на неё фокус", async ({ page }) => {
-  await page.goto("/");
-  await page.locator(".explore-pin", { hasText: "2" }).first().click();
-  await page.getByRole("button", { name: "Слушать эту часть" }).click();
-  // Выходим не из той части, с которой начали: карта должна открыть текущую.
-  await page.getByRole("button", { name: /^Дальше:/ }).click();
-  await page.getByRole("button", { name: "Выйти из прогулки", exact: true }).click();
-  await expect(page.locator(".around-story-card .around-card-label")).toContainText("По дороге · часть 3");
-  await expect(page.getByRole("button", { name: "Слушать эту часть" })).toBeFocused();
-});
-
-test("после завершения маршрута карта открывает карточку последней части и ставит на неё фокус", async ({ page }) => {
-  await page.goto("/");
-  await page.locator(".explore-pin", { hasText: "4" }).first().click();
-  await page.getByRole("button", { name: "Слушать эту часть" }).click();
-  await page.getByRole("button", { name: "Закончить маршрут", exact: true }).click();
-  await expect(page.locator(".around-story-card .around-card-label")).toContainText("По дороге · часть 4");
-  await expect(page.getByRole("button", { name: "Слушать эту часть" })).toBeFocused();
-});
-
 test("подпись карты размером 11 пикселей без подчёркивания", async ({ page }) => {
   await page.goto("/");
   const attribution = page.getByRole("link", { name: "© OpenStreetMap", exact: true });
