@@ -550,3 +550,18 @@ increasing graph coverage or concurrency.
   Первое задание пилота получило 5 ссылок от Perplexity.
 - Очереди «Открытые данные · 524 мест» и «Объекты наследия · 92 мест» остаются на паузе: после
   возобновления каждое их задание weak_identity тоже будет тратить запрос Perplexity.
+
+## Переозвучка через ElevenLabs — 2026-09-30, 07:34 UTC
+
+- В `.generator.env` добавлены `ELEVENLABS_API_KEY` (из локального `.env`, без вывода значения),
+  `ELEVENLABS_VOICE_ID=9ivxhQ6xIsHd6R3Xc635` («Отголосок2») и `ELEVENLABS_MODEL=eleven_v3`;
+  копия прежнего файла — `backups/env-20260930T072514Z-elevenlabs/`.
+- Выложены `80c078c`, затем `f5c3a3f` (только генератор). Резервные копии:
+  `backups/generator-20260930T072717Z/`, `backups/generator-20260930T073420Z/`.
+- API ElevenLabs не обслуживает российский VPS: на любой запрос отвечает редиректом на страницу об
+  ограничениях по странам. Backend при запуске пишет `ElevenLabs is disabled: the API is not available
+  from this server's country` и не предлагает сервис в `/admin`. Нужен прокси `ELEVENLABS_BASE_URL`,
+  см. [заметку](agents/elevenlabs-region-block.md). Фронтенд с выбором профиля для мест не выкладывался:
+  без ElevenLabs выбор не показывается.
+- Проверка: `elevenlabs-tts.mjs` в контейнере совпал с локальным по SHA-256; `/`, `/admin`,
+  `/api/story-service` — 200, генератор healthy.
