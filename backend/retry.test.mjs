@@ -13,11 +13,13 @@ test("a transient response is retried and the success returned", async () => {
   assert.deepEqual(timer.waits, [250]);
 });
 
-test("Retry-After is honoured and capped", async () => {
-  for (const [header, expected] of /** @type {Array<[string, number]>} */ ([["2", 2000], ["60", 8000], [new Date(Date.now() + 3000).toUTCString(), 3000]])) {
+test("Retry-After is honoured and capped", async t => {
+  // HTTP dates have whole-second precision; elapsed wall time must not make this test flaky.
+  t.mock.method(Date, "now", () => Date.parse("2026-09-28T10:00:00.125Z"));
+  for (const [header, expected] of /** @type {Array<[string, number]>} */ ([["2", 2000], ["60", 8000], ["Mon, 28 Sep 2026 10:00:03 GMT", 2875], ["Mon, 28 Sep 2026 10:01:00 GMT", 8000]])) {
     const statuses = [429, 200], timer = recorder();
     await fetchWithRetry(async () => reply(statuses.shift(), { "Retry-After": header }), "https://api.test", {}, timer);
-    assert.ok(Math.abs(timer.waits[0] - expected) <= 1000, `${header}: ${timer.waits[0]}`);
+    assert.deepEqual(timer.waits, [expected], header);
   }
 });
 
