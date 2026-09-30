@@ -42,9 +42,19 @@ describe("walk draft", () => {
     expect(validStops(start, [])).toBe(false);
     expect(validStops(start, [start])).toBe(false);
     expect(validStops(start, [stop, stop])).toBe(false);
-    const distinct = Array.from({ length: 10 }, (_, index) => ({ address: `Москва, Арбат, ${index + 10}`, location: { lat: 55.752 + index * 0.001, lon: 37.604 } }));
+    const distinct = Array.from({ length: 40 }, (_, index) => ({ address: `Москва, Арбат, ${index + 10}`, location: { lat: 55.752 + index * 0.001, lon: 37.604 } }));
     expect(validStops(start, distinct)).toBe(true);
-    expect(validStops(start, [...distinct, { address: "Москва, Арбат, 20", location: { lat: 55.762, lon: 37.604 } }])).toBe(false);
+    expect(validStops(start, [...distinct, { address: "Москва, Арбат, 50", location: { lat: 55.792, lon: 37.604 } }])).toBe(false);
+  });
+  it.each([11, 28, 40])("restores all %i stops and rejects oversized or reordered routes", count => {
+    const stops = Array.from({ length: count }, (_, index) => ({ address: `Москва, Арбат, ${index + 10}`, location: { lat: 55.752 + index * 0.001, lon: 37.604 } }));
+    const draft = { ...emptyDraft(), start, stops, route: { ...route, stops } };
+    expect(parseDraft(JSON.stringify(draft)).stops).toEqual(stops);
+    expect(isPlan(draft.route)).toBe(true);
+    expect(() => parseDraft(JSON.stringify({ ...draft, route: { ...draft.route, stops: stops.toReversed() } }))).toThrow();
+    const oversized = Array.from({ length: 41 }, (_, index) => ({ ...stop, address: `Москва, Арбат, ${index + 1}` }));
+    expect(isPlan({ ...route, stops: oversized })).toBe(false);
+    expect(() => parseDraft(JSON.stringify({ ...draft, stops: oversized, route: null }))).toThrow();
   });
   it("all planning edits invalidate geometry but preserve successful IDs and uncertain intent", () => {
     const jobs = [{ place: start, id: "12345678-1234-1234-1234-123456789abc", stage: "ready" as const }];

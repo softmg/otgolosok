@@ -6,7 +6,7 @@ import { placeFromQuery, rememberMapJob } from "../explore/map-jobs";
 import { jobUrl } from "../generator/offline";
 import { terminalStages, type GenerationJob } from "../generator/types";
 import type { Coordinates } from "../tour/types";
-import { DRAFT_KEY, editDraft, emptyDraft, isJobId, isPlace, isPlan, isStage, parseDraft, rememberStory, storyAddressKey, saveDraft, validStops, type Draft, type Place } from "./model";
+import { DRAFT_KEY, manualStopLimit, editDraft, emptyDraft, isJobId, isPlace, isPlan, isStage, parseDraft, rememberStory, storyAddressKey, saveDraft, validStops, type Draft, type Place } from "./model";
 import { request, RejectedRequest, shouldOfferResearch } from "./request";
 import { accountApi, getSession } from "../auth/client";
 import { draftToWalkDocument, walkDocumentToDraft } from "../walks/adapters";
@@ -124,6 +124,10 @@ export function useWalkDraft() {
   }, []);
 
   function persist(next: Draft) {
+    if (next.stops.length > manualStopLimit(next.start, next.jobs)) {
+      setError(`В прогулке может быть не больше ${manualStopLimit(next.start, next.jobs)} остановок с учётом истории начальной точки.`);
+      return false;
+    }
     current.current = next; setDraft(next);
     if (!writable.current) return false;
     try {
@@ -225,7 +229,7 @@ export function useWalkDraft() {
     else if (target === "destination") edit({ destination: candidate, mode: "open" });
     else {
       const stops = [...draft.stops, candidate];
-      if (!validStops(draft.start, stops)) { setError("Добавьте от 1 до 10 разных мест, не совпадающих друг с другом."); return; }
+      if (!validStops(draft.start, stops, draft.destination, draft.jobs)) { setError(`Добавьте от 1 до ${manualStopLimit(draft.start, draft.jobs)} разных мест, не совпадающих друг с другом.`); return; }
       edit({ stops }); setSelection("manual");
     }
     setCandidate(null); setQuery("");
@@ -238,7 +242,7 @@ export function useWalkDraft() {
     try {
       const result = await request("/api/walk-plan", controller.signal, { start: snapshot.start, mode: snapshot.mode, minutes: snapshot.minutes, ...(snapshot.destination ? {destination:snapshot.destination} : {}), ...(selection === "manual" ? { stops: snapshot.stops } : {}) });
       if (controller.signal.aborted) return;
-      if (!isPlan(result) || !validStops(snapshot.start, result.stops, snapshot.destination) || result.walkingMinutes > snapshot.minutes || (selection === "manual" && JSON.stringify(result.stops) !== JSON.stringify(snapshot.stops))) throw new Error("Сервис вернул некорректный маршрут. Попробуйте построить заново.");
+      if (!isPlan(result) || !validStops(snapshot.start, result.stops, snapshot.destination, snapshot.jobs) || result.walkingMinutes > snapshot.minutes || (selection === "manual" && JSON.stringify(result.stops) !== JSON.stringify(snapshot.stops))) throw new Error("Сервис вернул некорректный маршрут. Попробуйте построить заново.");
       persist({ ...current.current, stops: result.stops, route: result }); setAutoRoute(selection === "auto"); setSelection("manual");
       setMessage("");
     } catch (caught) { if (!controller.signal.aborted) {

@@ -1,3 +1,4 @@
+import { MAX_WALK_STOPS } from "./walk-document.mjs";
 import discoveryCatalog from './walk-discovery-catalog.json' with { type: 'json' };
 
 const fail = (code) => Object.assign(new Error(code), {code});
@@ -15,7 +16,6 @@ const distance = (a,b) => {
   const h = Math.sin((b.lat-a.lat)*rad/2)**2 + Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin((b.lon-a.lon)*rad/2)**2;
   return 12742000 * Math.asin(Math.sqrt(Math.min(1,h)));
 };
-const MAX_WALK_STOPS = 10;
 const AUTO_STOP_LIMITS = {30:5,60:8,90:10};
 const NEAR_ROUTE_METERS = 50;
 // Automatic walks without a destination aim for at least this share of the chosen walking time.

@@ -47,3 +47,15 @@ describe("локальная библиотека прогулок", () => {
     expect(store.getItem(WALK_LIBRARY_KEY)).toBeNull();
   });
 });
+
+it.each([11, 28, 40])("восстанавливает сохранённый v1-черновик из %i точек после перезагрузки", count => {
+  const store = storage();
+  const stops = Array.from({ length: count }, (_, index) => ({ address: `Москва, Арбат, ${index + 2}`, location: { lat: 55.751 + index * 0.001, lon: 37.601 } }));
+  const saved = JSON.stringify({ ...legacy, stops });
+  store.setItem("otgolosok:walk:v1", saved);
+  expect(migrateLocalWalks(store, () => first)).toBe(first);
+  expect(getLocalWalk(store, first)?.document.stops.map(stop => stop.place)).toEqual(stops);
+  expect(migrateLocalWalks(store, () => second)).toBe(first);
+  expect(listLocalWalks(store)).toHaveLength(1);
+  expect(store.getItem("otgolosok:walk:v1")).toBe(saved);
+});
