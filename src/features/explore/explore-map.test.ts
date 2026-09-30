@@ -7,6 +7,10 @@ vi.mock("react",()=>({
   useState:()=>[true,vi.fn()],
   useEffect:(effect:()=>void|(()=>void))=>mock.effects.push(effect),
 }));
+vi.mock("./map-clusters",()=>({
+  loadMapLibrary:()=>import("leaflet"),
+  createMapClusters:()=>({addTo:vi.fn().mockReturnThis(),addLayers:vi.fn()}),
+}));
 vi.mock("leaflet",()=>{
   const layer=()=>({addTo:vi.fn().mockReturnThis(),on:vi.fn().mockReturnThis(),clearLayers:vi.fn()});
   return {

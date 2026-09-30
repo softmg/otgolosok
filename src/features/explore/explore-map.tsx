@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import type { Coordinates } from "../tour/types";
+import { createMapClusters, loadMapLibrary } from "./map-clusters";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 import "./map-dots.css";
 
 export type MapItem = {id:string; title:string; location:Coordinates; number?:number; pending?:boolean; compact?:boolean};
@@ -15,19 +17,19 @@ export function ExploreMap({items,selectedId,focus,user,onSelect,onPoint,geometr
   geometry?: Coordinates[]; mapLabel?: string; viewState?: MapViewState; routePadding?: {top:number;right:number;bottom:number;left:number};
 }) {
   const container = useRef<HTMLDivElement>(null);
-  const runtime = useRef<{L:typeof Leaflet; map:Leaflet.Map; markers:Leaflet.LayerGroup; markerById:Map<string,{marker:Leaflet.Marker; look:string}>; position:Leaflet.LayerGroup; route:Leaflet.LayerGroup}|null>(null);
-  const handlers = useRef({onSelect,onPoint});
+  const runtime = useRef<{L:typeof Leaflet; map:Leaflet.Map; markers:Leaflet.LayerGroup; clusters:Leaflet.MarkerClusterGroup; markerById:Map<string,{marker:Leaflet.Marker; look:string; clustered:boolean; location:Coordinates}>; position:Leaflet.LayerGroup; route:Leaflet.LayerGroup}|null>(null);
+  const handlers = useRef({onSelect,onPoint,selectedId});
   const appliedFocus = useRef<Coordinates|null>(null);
   const [ready,setReady] = useState(false);
   const [tileError,setTileError] = useState(false);
   const [mapError,setMapError] = useState(false);
-  useEffect(()=>{handlers.current={onSelect,onPoint};},[onSelect,onPoint]);
+  useEffect(()=>{handlers.current={onSelect,onPoint,selectedId};},[onSelect,onPoint,selectedId]);
 
   useEffect(()=>{
     let disposed=false;
     let observer:ResizeObserver|undefined;
     let saveView:(()=>void)|undefined;
-    void import("leaflet").then((L)=>{
+    void loadMapLibrary().then((L)=>{
       if(disposed||!container.current)return;
       const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
       const saved=viewState?.current;
@@ -42,7 +44,7 @@ export function ExploreMap({items,selectedId,focus,user,onSelect,onPoint,geometr
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,updateWhenIdle:true,keepBuffer:1}).on("tileerror",()=>setTileError(true)).on("tileload",()=>setTileError(false)).addTo(map);
       L.control.zoom({position:"bottomright",zoomInTitle:"Приблизить",zoomOutTitle:"Отдалить"}).addTo(map);
       map.on("click",(event:Leaflet.LeafletMouseEvent)=>handlers.current.onPoint({lat:event.latlng.lat,lon:event.latlng.lng}));
-      runtime.current={L,map,markers:L.layerGroup().addTo(map),markerById:new Map(),position:L.layerGroup().addTo(map),route:L.layerGroup().addTo(map)};
+      runtime.current={L,map,markers:L.layerGroup().addTo(map),clusters:createMapClusters(L).addTo(map),markerById:new Map(),position:L.layerGroup().addTo(map),route:L.layerGroup().addTo(map)};
       observer=new ResizeObserver(()=>{if(!disposed)map.invalidateSize();});observer.observe(container.current);
       setReady(true);
     }).catch(()=>{if(!disposed)setMapError(true);});
@@ -65,32 +67,46 @@ export function ExploreMap({items,selectedId,focus,user,onSelect,onPoint,geometr
   useEffect(()=>{
     const rt=runtime.current;if(!rt||!ready)return;
     const wanted=new Set(items.map(item=>item.id));
-    for(const [id,entry] of rt.markerById)if(!wanted.has(id)){entry.marker.remove();rt.markerById.delete(id);}
+    for(const [id,entry] of rt.markerById)if(!wanted.has(id)){(entry.clustered?rt.clusters:rt.markers).removeLayer(entry.marker);rt.markerById.delete(id);}
+    const additions:Leaflet.Marker[]=[];
     for(const item of items) {
       const active=item.id===selectedId;
+      const clustered=!active&&item.number===undefined&&!item.pending;
       // Marker contents are fixed symbols/numbers, never upstream HTML.
       const label=item.number ? String(item.number) : item.pending ? "…" : "♪";
       const look=JSON.stringify([item.title,label,item.compact??false,item.pending??false,active]);
       const position:[number,number]=[item.location.lat,item.location.lon];
       const existing=rt.markerById.get(item.id);
       if(existing) {
-        const current=existing.marker.getLatLng();
-        if(current.lat!==position[0]||current.lng!==position[1])existing.marker.setLatLng(position);
-        if(existing.look===look)continue;
+        // Spiderfying moves the marker temporarily; compare source coordinates.
+        const current=existing.location;
+        if(current.lat!==position[0]||current.lon!==position[1]){
+          existing.marker.setLatLng(position);
+          existing.location={...item.location};
+        }
+        if(existing.look===look&&existing.clustered===clustered)continue;
       }
       const icon=item.compact ? rt.L.divIcon({className:"explore-dot",html:"<span></span>",iconSize:[32,32],iconAnchor:[16,16]}) : rt.L.divIcon({className:`explore-pin${active?" selected":""}${item.pending?" pending":""}`,html:`<span><b>${label}</b></span>`,iconSize:[44,52],iconAnchor:[22,48]});
       let marker=existing?.marker;
       if(marker) {
         // A div icon reuses its element, so focus and listeners survive the update.
         Object.assign(marker.options,{title:item.title,alt:item.title});
-        marker.setIcon(icon).setZIndexOffset(item.compact?-1000:0);
+        marker.setIcon(icon).setZIndexOffset(active?1000:item.compact?-1000:0);
       } else {
-        marker=rt.L.marker(position,{icon,title:item.title,alt:item.title,keyboard:true,zIndexOffset:item.compact?-1000:0,bubblingMouseEvents:false}).addTo(rt.markers);
+        marker=rt.L.marker(position,{icon,title:item.title,alt:item.title,keyboard:true,zIndexOffset:active?1000:item.compact?-1000:0,bubblingMouseEvents:false});
         marker.on("click",()=>handlers.current.onSelect(item.id));
+        marker.on("add",()=>marker?.getElement()?.setAttribute("aria-pressed",String(handlers.current.selectedId===item.id)));
+      }
+      if(!existing||existing.clustered!==clustered){
+        const hadFocus=marker.getElement()===document.activeElement;
+        if(existing)(existing.clustered?rt.clusters:rt.markers).removeLayer(marker);
+        if(clustered)additions.push(marker);else rt.markers.addLayer(marker);
+        if(hadFocus)marker.getElement()?.focus({preventScroll:true});
       }
       marker.getElement()?.setAttribute("aria-pressed",String(active));
-      rt.markerById.set(item.id,{marker,look});
+      rt.markerById.set(item.id,{marker,look,clustered,location:{...item.location}});
     }
+    rt.clusters.addLayers(additions);
   },[items,selectedId,ready]);
 
   useEffect(()=>{

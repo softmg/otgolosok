@@ -1,11 +1,17 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const places = Array.from({ length: 1438 }, (_, index) => ({
   id: `osm:node:${index + 1}`, name: `Каталог: ${index + 1}`, address: "Москва",
-  location: index === 1437 ? { lat: 55.7249, lon: 37.6507 } : { lat: 55.76, lon: 37.6 + index * 0.00001 },
+  location: index === 1437 ? { lat: 55.7249, lon: 37.6507 } : { lat: 55.726, lon: 37.649 + (index % 50) * 0.000005 },
   story: { title: `Каталог: ${index + 1}`, paragraphs: [{ text: `Рассказ о месте ${index + 1}.` }] },
   audio: null,
 }));
+
+async function representedPlaces(page: Page) {
+  return page.locator(".leaflet-marker-pane").evaluate(pane =>
+    [...pane.querySelectorAll<HTMLElement>("[data-cluster-count]")].reduce((total, node) => total + Number(node.dataset.clusterCount), 0)
+    + pane.querySelectorAll('.explore-pin[title^="Каталог:"]').length);
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("otgolosok:explore:geo-prompt-dismissed", "1"));
@@ -20,8 +26,8 @@ test("карта показывает все 1438 мест и открывает
     return route.fulfill({ json: { places: places.slice(offset, offset + 100), total: places.length, hasMore: offset + 100 < places.length } });
   });
   await page.goto("/");
-  await expect(page.locator('.leaflet-marker-icon[title^="Каталог:"]')).toHaveCount(1438);
-  await expect(page.locator(".leaflet-marker-icon")).toHaveCount(1438);
+  await expect.poll(() => representedPlaces(page)).toBe(1438);
+  expect(await page.locator(".leaflet-marker-icon").count()).toBeLessThan(30);
   await expect(page.locator(".around-catalog-status")).toHaveCount(0);
   await page.getByTitle("Каталог: 1438", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Каталог: 1438", exact: true })).toBeVisible();
@@ -61,7 +67,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
       await page.screenshot({ path: info.outputPath("catalog-loading.png") });
       lastPage();
       await expect(page.locator(".around-catalog-status")).toHaveCount(0);
-      await expect(page.locator(".leaflet-marker-icon")).toHaveCount(101);
+      await expect.poll(() => representedPlaces(page)).toBe(101);
     } finally { firstPage(); lastPage(); }
   });
 }
@@ -76,9 +82,41 @@ test("после сбоя второй страницы точки остают�
   });
   await page.goto("/");
   await expect(page.getByRole("status").filter({ hasText: "Не все места загрузились." })).toBeVisible();
-  await expect(page.locator('.leaflet-marker-icon[title^="Каталог:"]')).toHaveCount(100);
+  await expect.poll(() => representedPlaces(page)).toBe(100);
   unavailable = false;
   await page.getByRole("button", { name: "Повторить загрузку мест" }).click();
-  await expect(page.locator('.leaflet-marker-icon[title^="Каталог:"]')).toHaveCount(101);
+  await expect.poll(() => representedPlaces(page)).toBe(101);
   await expect(page.locator(".around-catalog-status")).toHaveCount(0);
 });
+
+for (const coincident of [false, true]) {
+  test(coincident ? "совпадающие места раскрываются веером и доступны по отдельности" : "группа раскрывается с клавиатуры и снова объединяется при отдалении", async ({ page }, info) => {
+    const sample = places.slice(0, 2).map((place, index) => ({ ...place,
+      location: { lat: 55.7249, lon: coincident ? 37.6507 : 37.6505 + index * 0.0004 },
+    }));
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: sample, total: 2, hasMore: false } }));
+    await page.goto("/");
+    const group = page.getByRole("button", { name: "Мест: 2. Нажмите, чтобы раскрыть группу" });
+    await expect(group).toBeVisible();
+    await expect(page.locator(".explore-pin")).toHaveCount(0);
+    await page.screenshot({ path: info.outputPath("cluster.png") });
+    await group.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator('.explore-pin[title^="Каталог:"]')).toHaveCount(2);
+    await expect(page.locator(".around-place-card")).toHaveCount(0);
+    await page.screenshot({ path: info.outputPath("expanded.png") });
+    if (!coincident) {
+      for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Отдалить", exact: true }).click();
+      await expect(group).toBeVisible();
+      await expect.poll(() => representedPlaces(page)).toBe(2);
+      await group.click();
+      await expect(page.locator('.explore-pin[title^="Каталог:"]')).toHaveCount(2);
+    }
+    await page.getByTitle("Каталог: 2", { exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Каталог: 2", exact: true })).toBeVisible();
+    await expect(page.getByTitle("Каталог: 2", { exact: true })).toHaveAttribute("aria-pressed", "true");
+    expect(errors).toEqual([]);
+  });
+}
