@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, createElement } from "react";
+import { act, createElement, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Summary } from "./model";
@@ -104,4 +104,14 @@ describe("прелоадер очереди адресов", () => {
     await openGate();
     expect(queueTable().textContent).toContain("По этим условиям ничего не найдено");
   });
+});
+
+
+it("восстанавливает сессию после повторного запуска эффектов в StrictMode", async () => {
+  await act(async () => root.unmount());
+  root = createRoot(container);
+  await act(async () => root.render(createElement(StrictMode, null, createElement(AdminDesk))));
+  expect(container.textContent).not.toContain("Восстановление сессии…");
+  expect(buttons("Прогулки")[0].disabled).toBe(false);
+  expect(rows()).toBe(jobs.length);
 });

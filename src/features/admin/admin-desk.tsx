@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "../brand/brand-mark";
-import { WalkAdmin } from "./walk-admin";
+import { WalkAdminSection as WalkAdmin } from "./shared-walk-admin";
 import { ContentAdmin } from "./content-admin";
 import { DraftsAdmin } from "./drafts-admin";
 import { draftCheck, initialDraft, safeSourceLink, stages, ttsProviderLabels, type AdminApi, type Draft, type Job, type Summary, type TtsProvider } from "./model";
 import { skeletonRows } from "./table-skeleton";
+import { readFetch } from "../auth/read-fetch";
 import { csrfHeaders, getSession, signOut } from "../auth/client";
 
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
@@ -72,7 +73,7 @@ export function AdminDesk() {
     heading.scrollIntoView({ block: "start", behavior: "instant" });
   }, [authenticated, busy, job, section]);
 
-  useEffect(() => () => { request.current?.abort(); request.current = null; }, []);
+  useEffect(() => () => { request.current?.abort(); request.current = null; sessionRestored.current = false; }, []);
   useEffect(() => {
     if (!hasUnsavedWork && !busy) return;
     const guard = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
@@ -119,7 +120,7 @@ export function AdminDesk() {
 
   const api: AdminApi = async <T,>(path: string, signal: AbortSignal, body?: unknown): Promise<T> => {
     const endpoint = path.startsWith("/walks") ? `/api/story-admin${path}` : path.startsWith("/content/") ? `/api/story-admin${path}` : `/api/story-admin/jobs${path}`;
-    const response = await fetch(endpoint, {
+    const response = await (path.startsWith("/walks/shared?") && body === undefined ? readFetch : fetch)(endpoint, {
       method: body === undefined ? "GET" : "POST", cache: "no-store", credentials: "same-origin",
       redirect: "error", signal,
       headers: { ...(body === undefined ? {} : { "Content-Type": "application/json", ...csrfHeaders() }) },
@@ -182,6 +183,7 @@ export function AdminDesk() {
     sessionRestored.current = true;
     void run("Восстановление сессии…", async signal => {
       const user = await getSession();
+      signal.throwIfAborted();
       if (!user) {
         window.location.replace(`/login?returnTo=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
         return;

@@ -312,6 +312,12 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
           json(res,status,{error:{code:status===429?"ADMIN_THROTTLED":"UNAUTHORIZED",message:"Admin authentication required."}});return;
         }
         if(roleAuthorized&&!["GET","HEAD"].includes(req.method)&&!validSessionCsrf(authSecret,session.session.id,req.headers["x-csrf-token"])) {json(res,403,{error:{code:"CSRF",message:"Refresh the editor and retry."}});return;}
+        if(req.method==="GET"&&url.pathname==="/api/story-admin/walks/shared") {
+          const entries=[...url.searchParams];
+          if(entries.some(([key,value])=>!["limit","offset","q","author","mode"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
+          if(!accountStore){json(res,503,{error:{code:"UNAVAILABLE",message:"Хранилище прогулок недоступно."}});return;}
+          json(res,200,accountStore.listSharedWalksAdmin({limit:Number(url.searchParams.get("limit")??25),offset:Number(url.searchParams.get("offset")??0),q:url.searchParams.get("q")??"",author:url.searchParams.get("author")??"",mode:url.searchParams.get("mode")??"all"}));return;
+        }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/walks") {
           const entries=[...url.searchParams];
           if(entries.some(([key,value])=>!["limit","offset"].includes(key)||!/^\d+$/.test(value))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
