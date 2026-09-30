@@ -39,7 +39,7 @@ export function WalkMap({ chapters, index, path, user, distanceToNextM, onSelect
     () => chapters.map((chapter, position) => ({
       id: chapter.id,
       title: `Часть ${position + 1}: ${chapter.title}. ${chapter.place}`,
-      location: chapter.location,
+      location: chapter.trigger_location ?? chapter.location,
       number: position + 1,
     })),
     [chapters],

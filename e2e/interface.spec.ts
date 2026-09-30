@@ -462,7 +462,7 @@ test("прогулка из Александровского сада с чет�
   await page.goto("/?walk=create&resume=1");
   await expect(page.locator(".leaflet-overlay-pane path")).toBeVisible();
   await page.getByRole("link", { name: "Начать прогулку", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Ваш маршрут", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: draft.title, exact: true })).toBeVisible();
   await expect(page.getByText("Некорректные данные прогулки.", { exact: true })).toHaveCount(0);
   const map = page.locator(".walk-session-map");
   await map.scrollIntoViewIfNeeded();
