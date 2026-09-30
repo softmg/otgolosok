@@ -64,3 +64,6 @@ next-env.d.ts
 
 # data.mos.ru snapshots from backend/import-open-data.mjs --fetch
 /open-data/
+
+# Cloudflare Wrangler local state
+.wrangler/

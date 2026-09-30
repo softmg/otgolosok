@@ -646,9 +646,9 @@ export async function loadElevenLabsTts(env,provider,logs,fetchImpl=fetch) {
   const apiKey=env.ELEVENLABS_API_KEY?.trim();
   if(!apiKey)return null;
   if(!provider){console.warn("ElevenLabs is disabled: audio tags require OPENAI_API_KEY and OPENAI_BASE_URL");return null;}
-  const baseUrl=elevenLabsApi(env.ELEVENLABS_BASE_URL?.trim());
+  const baseUrl=elevenLabsApi(env.ELEVENLABS_BASE_URL?.trim()),proxyToken=env.ELEVENLABS_PROXY_TOKEN?.trim()||undefined;
   let voices=[];
-  try {voices=await listElevenLabsVoices({apiKey,baseUrl,fetchImpl});}
+  try {voices=await listElevenLabsVoices({apiKey,baseUrl,proxyToken,fetchImpl});}
   catch(error) {
     // A blocked region fails every synthesis too: offering the service would only produce failed jobs.
     if(error?.code==="TTS_REGION_BLOCKED"){console.warn("ElevenLabs is disabled: the API is not available from this server's country; set ELEVENLABS_BASE_URL to a proxy");return null;}
@@ -656,7 +656,7 @@ export async function loadElevenLabsTts(env,provider,logs,fetchImpl=fetch) {
   }
   const voice=env.ELEVENLABS_VOICE_ID?.trim()||voices.find(item=>item.language==="ru")?.id||voices[0]?.id;
   if(!voice){console.warn("ElevenLabs is disabled: set ELEVENLABS_VOICE_ID");return null;}
-  return createElevenLabsTts({apiKey,voice,voices,tagNarration:createAudioTagger(provider),model:env.ELEVENLABS_MODEL?.trim()||undefined,baseUrl,fetchImpl});
+  return createElevenLabsTts({apiKey,voice,voices,tagNarration:createAudioTagger(provider),model:env.ELEVENLABS_MODEL?.trim()||undefined,baseUrl,proxyToken,fetchImpl});
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {

@@ -53,6 +53,9 @@ export function elevenLabsApi(value) {
   return url.href.replace(/\/$/, "");
 }
 
+/** The shared secret of the proxy in ops/elevenlabs-proxy; the API itself needs none. */
+const proxyHeaders = token => token ? { "X-Proxy-Token": token } : {};
+
 async function request(fetchImpl, url, init) {
   let response;
   try { response = await fetchWithRetry(fetchImpl, url, { ...init, redirect: "manual" }, RETRY); }
@@ -67,12 +70,12 @@ async function request(fetchImpl, url, init) {
 
 /**
  * Voices of the account (requires the "Voices: Read" key permission), Russian ones first.
- * @param {{apiKey: string, baseUrl?: string, fetchImpl?: typeof fetch, signal?: AbortSignal}} options
+ * @param {{apiKey: string, baseUrl?: string, proxyToken?: string, fetchImpl?: typeof fetch, signal?: AbortSignal}} options
  * @returns {Promise<{id: string, label: string, language: string | null}[]>}
  */
-export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, fetchImpl = fetch, signal }) {
+export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = fetch, signal }) {
   const deadline = AbortSignal.any([AbortSignal.timeout(20000), ...(signal ? [signal] : [])]);
-  const response = await request(fetchImpl, `${baseUrl}/voices`, { headers: { "xi-api-key": apiKey }, signal: deadline });
+  const response = await request(fetchImpl, `${baseUrl}/voices`, { headers: { "xi-api-key": apiKey, ...proxyHeaders(proxyToken) }, signal: deadline });
   if (!response.ok) throw await rejection(response);
   let payload;
   try { payload = JSON.parse((await boundedBody(response, 2000000, deadline)).toString("utf8")); }
@@ -89,9 +92,9 @@ export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, f
 /**
  * Speech through ElevenLabs v3. The narration first gets audio tags ([warmly], [short pause]…) from `tagNarration`.
  * @param {{apiKey: string, voice: string, tagNarration: ((script: string, options: {signal?: AbortSignal}) => Promise<string>) & {version?: string},
- *   voices?: {id: string, label: string}[], model?: string, baseUrl?: string, fetchImpl?: typeof fetch}} options
+ *   voices?: {id: string, label: string}[], model?: string, baseUrl?: string, proxyToken?: string, fetchImpl?: typeof fetch}} options
  */
-export function createElevenLabsTts({ apiKey, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, baseUrl = ELEVENLABS_API, fetchImpl = fetch }) {
+export function createElevenLabsTts({ apiKey, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = fetch }) {
   if (typeof apiKey !== "string" || !apiKey.trim() || !validVoiceId(voice) || typeof tagNarration !== "function") throw failure("PROVIDER_CONFIG");
   /** @param {string} script @param {{signal?: AbortSignal, voice?: string}} [options] */
   async function speech(script, { signal, voice: selectedVoice = voice } = {}) {
@@ -103,7 +106,7 @@ export function createElevenLabsTts({ apiKey, voice, tagNarration, voices = [], 
     for (const text of speechChunks(tagged)) {
       const response = await request(fetchImpl, `${baseUrl}/text-to-speech/${selectedVoice}?output_format=mp3_44100_128`, {
         method: "POST", signal: deadline,
-        headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
+        headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg", ...proxyHeaders(proxyToken) },
         body: JSON.stringify({ text, model_id: model, language_code: "ru" }),
       });
       if (!response.ok) throw await rejection(response);

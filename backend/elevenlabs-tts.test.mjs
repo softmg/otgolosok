@@ -84,10 +84,13 @@ test("a proxy base URL must be plain HTTPS and is used for every request", async
   for (const value of ["http://proxy.example/v1", "https://user:secret@proxy.example/v1", "https://proxy.example/v1?x=1", "not a url"])
     assert.throws(() => elevenLabsApi(value), value);
   const urls = [];
-  const tts = createElevenLabsTts({ apiKey: "key", voice: "voice1", tagNarration, baseUrl: "https://proxy.example/v1",
-    fetchImpl: async (url, init) => { urls.push({ url, redirect: init.redirect }); return audio(); } });
+  const tts = createElevenLabsTts({ apiKey: "key", voice: "voice1", tagNarration, baseUrl: "https://proxy.example/v1", proxyToken: "proxy-secret",
+    fetchImpl: async (url, init) => { urls.push({ url, redirect: init.redirect, token: init.headers["X-Proxy-Token"] }); return audio(); } });
   await tts.speech("Текст.");
-  assert.deepEqual(urls, [{ url: "https://proxy.example/v1/text-to-speech/voice1?output_format=mp3_44100_128", redirect: "manual" }]);
+  assert.deepEqual(urls, [{ url: "https://proxy.example/v1/text-to-speech/voice1?output_format=mp3_44100_128", redirect: "manual", token: "proxy-secret" }]);
+  const direct = [];
+  await createElevenLabsTts({ apiKey: "key", voice: "voice1", tagNarration, fetchImpl: async (url, init) => { direct.push(init.headers["X-Proxy-Token"]); return audio(); } }).speech("Текст.");
+  assert.deepEqual(direct, [undefined]);
 });
 
 test("startup turns ElevenLabs off when the server's country is blocked", async () => {
@@ -95,7 +98,7 @@ test("startup turns ElevenLabs off when the server's country is blocked", async 
   const blocked = async () => new Response("moved", { status: 302, headers: { Location: "https://help.elevenlabs.io/" } });
   assert.equal(await loadElevenLabsTts({ ELEVENLABS_API_KEY: "key", ELEVENLABS_VOICE_ID: "Voice1" }, provider, null, blocked), null);
   const seen = [];
-  const proxied = await loadElevenLabsTts({ ELEVENLABS_API_KEY: "key", ELEVENLABS_VOICE_ID: "Voice1", ELEVENLABS_BASE_URL: "https://proxy.example/v1" }, provider, null,
-    async url => { seen.push(url); return json({ voices: [] }); });
-  assert.equal(proxied.voice, "Voice1"); assert.deepEqual(seen, ["https://proxy.example/v1/voices"]);
+  const proxied = await loadElevenLabsTts({ ELEVENLABS_API_KEY: "key", ELEVENLABS_VOICE_ID: "Voice1", ELEVENLABS_BASE_URL: "https://proxy.example/v1", ELEVENLABS_PROXY_TOKEN: "proxy-secret" }, provider, null,
+    async (url, init) => { seen.push([url, init.headers["X-Proxy-Token"]]); return json({ voices: [] }); });
+  assert.equal(proxied.voice, "Voice1"); assert.deepEqual(seen, [["https://proxy.example/v1/voices", "proxy-secret"]]);
 });

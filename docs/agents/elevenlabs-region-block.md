@@ -9,3 +9,11 @@
   выключает ElevenLabs целиком, чтобы в `/admin` не было варианта, который всегда падает.
 - Исправление — `ELEVENLABS_BASE_URL`: HTTPS reverse proxy к `https://api.elevenlabs.io/v1` на сервере вне России.
   Прокси должен передавать заголовок `xi-api-key` и не кэшировать ответы. Сервер `airouter.softmg.tech` находится в NL.
+
+## Прокси
+
+- Нидерландские серверы airouter (AS216024) и codotok (HOSTKEY) ElevenLabs тоже блокирует, прокси на них не поможет.
+  Выход через Cloudflare работает.
+- Прокси — Cloudflare Worker `otgolosok-elevenlabs-proxy` из `ops/elevenlabs-proxy`, адрес
+  `https://elevenlabs-proxy.otgolosok.online/v1`, секрет в заголовке `X-Proxy-Token` (`ELEVENLABS_PROXY_TOKEN`).
+  С production-VPS через него: без токена 403, с токеном и ключом — 200 и голоса аккаунта.

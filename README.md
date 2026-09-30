@@ -159,7 +159,8 @@ Node.js и исходники приложения на хосте не треб
   и озвучка завершается ошибкой, а не читает изменённый текст. Без настроенного OpenAI вариант ElevenLabs выключен.
   ElevenLabs не обслуживает запросы с российских IP-адресов: API отвечает редиректом на страницу
   об ограничениях. С такого сервера задайте `ELEVENLABS_BASE_URL` — HTTPS-прокси к
-  `https://api.elevenlabs.io/v1` за пределами России. Если при запуске backend получает этот редирект,
+  `https://api.elevenlabs.io/v1` за пределами России. Production использует Cloudflare Worker из
+  `ops/elevenlabs-proxy` (`https://elevenlabs-proxy.otgolosok.online/v1`) с секретом `ELEVENLABS_PROXY_TOKEN`. Если при запуске backend получает этот редирект,
   ElevenLabs выключается и в `/admin` не предлагается.
   Места каталога озвучиваются через очередь профилем `elevenlabs-v3`: в карточке места выберите
   «ElevenLabs v3» рядом с кнопкой «Озвучить заново».
