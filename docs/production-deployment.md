@@ -565,3 +565,21 @@ increasing graph coverage or concurrency.
   без ElevenLabs выбор не показывается.
 - Проверка: `elevenlabs-tts.mjs` в контейнере совпал с локальным по SHA-256; `/`, `/admin`,
   `/api/story-service` — 200, генератор healthy.
+
+## Прокси ElevenLabs — 2026-09-30, 09:15 UTC
+
+- Cloudflare Worker `otgolosok-elevenlabs-proxy` (`ops/elevenlabs-proxy`) выложен на
+  `https://elevenlabs-proxy.otgolosok.online`; принимает запросы только с `ALLOWED_IPS`
+  (production-VPS и VPN-выход разработчика) и с секретом `X-Proxy-Token`. В `.generator.env` добавлены
+  `ELEVENLABS_BASE_URL` и `ELEVENLABS_PROXY_TOKEN` без вывода значения; копия прежнего файла —
+  `backups/env-20260930T084044Z-elevenlabs-proxy/`.
+- Генератор `43a7ec6` выложен из чистого worktree (в основном checkout были незакоммиченные правки
+  параллельного агента), резервная копия `backups/generator-20260930T085915Z/`. В 09:13 параллельный агент
+  выложил поверх `3b32280`, в который вошли эти изменения; файлы ElevenLabs в контейнере совпадают с `main`.
+- Фронтенд `43a7ec6` выложен из того же worktree: `/admin` совпал со сборкой байт в байт. Проверка TLS в конце
+  выкладки упала, пока генератор был остановлен чужой выкладкой; повторный запуск прошёл.
+- Сквозная проверка в production-контейнере: `codex/gpt-5.6-sol-low` расставил теги, ElevenLabs через прокси
+  озвучил голосом «Отголосок2» (`9ivxhQ6xIsHd6R3Xc635`), MP3 11,5 с после ffmpeg. Данные базы не менялись.
+- Шлюз airouter для части запросов стабильно возвращает 400 «The 'gpt-5.6-sol' model is not supported when
+  using Codex with a ChatGPT account» (`PROVIDER_REJECTED`): один и тот же текст падал 9 раз подряд, другой
+  проходил. Это задевает и тегирование, и генерацию текстов; исправлять нужно на стороне OmniRoute.
