@@ -47,6 +47,21 @@ function codedError(code, message = code) {
   return error;
 }
 
+// Published catalog narration keeps the editor's wording and paragraph layout.
+// Generation word-count targets do not apply, but the public story bounds still do.
+function catalogNarration(story) {
+  const text = (value, limit) => typeof value === "string" && value.trim().length > 0 && value.length <= limit && !/[\p{Cc}\p{Cf}<>]/u.test(value);
+  if (!story || !text(story.title, 180) || !Array.isArray(story.paragraphs) || !story.paragraphs.length || story.paragraphs.length > 100
+    || story.paragraphs.some(paragraph => !text(paragraph?.text, 6000))) return null;
+  const script = story.paragraphs.map(paragraph => paragraph.text).join("\n\n");
+  return story.title.length + script.length <= 100000 ? script : null;
+}
+
+function approvedCatalogNarration(json) {
+  try { return catalogNarration(JSON.parse(json)); }
+  catch { return null; }
+}
+
 function isoNow(now) {
   return new Date(now()).toISOString();
 }
@@ -209,6 +224,13 @@ export function createStore(
 
   function externalRow(id) {
     return /** @type {ExternalAudioJobRow | null} */ (db.prepare("SELECT * FROM external_audio_jobs WHERE id = ?").get(id) ?? null);
+  }
+
+  function approvedPlaceNarration(sourceJobId) {
+    const row = db.prepare(`SELECT approved_story_json FROM place_texts WHERE id=? AND id=(
+      SELECT latest.id FROM place_texts latest WHERE latest.place_id=place_texts.place_id AND latest.approved_story_json IS NOT NULL
+      ORDER BY latest.created_at DESC,latest.rowid DESC LIMIT 1)`).get(sourceJobId.slice(11));
+    return row?.approved_story_json ? approvedCatalogNarration(row.approved_story_json) : null;
   }
 
   function publicExternal(row) {
@@ -562,9 +584,11 @@ export function createStore(
     /** @param {{sourceJobId: string, sourceRevision: number, story: any, profileId?: string, signal?: AbortSignal}} options */
     async enqueueExternalAudio({ sourceJobId, sourceRevision, story, profileId = "silero-ru-v1", signal }) {
       if (typeof sourceJobId !== "string" || !Number.isSafeInteger(sourceRevision) || sourceRevision < 0
-        || typeof profileId !== "string" || !/^[a-z0-9][a-z0-9._-]{0,63}$/.test(profileId)
-        || !hasValidStoryText(story)) throw codedError("BAD_REQUEST");
+        || typeof profileId !== "string" || !/^[a-z0-9][a-z0-9._-]{0,63}$/.test(profileId)) throw codedError("BAD_REQUEST");
+      const catalog = sourceJobId.startsWith("place-text:");
+      if (catalog ? catalogNarration(story) === null : !hasValidStoryText(story)) throw codedError("BAD_REQUEST");
       const script = story.paragraphs.map(paragraph => paragraph.text).join("\n\n");
+      if (catalog && approvedPlaceNarration(sourceJobId) !== script) throw codedError("BAD_REQUEST");
       const configured=externalTtsProfiles[profileId]??{};
       const rawContract=configured.textPreparation?.input==="raw";
       const spokenText = rawContract?script:await normalizeExternalText(script,{signal});
@@ -577,7 +601,9 @@ export function createStore(
         maximumPublicationDurationSec:configured.maximumPublicationDurationSec??150};
       const inputKey = sha256(JSON.stringify({version:rawContract?"external-audio-v2":"external-audio-v1",sourceJobId,sourceRevision,spokenTextHash,profileId,normalizer:normalizerVersion,profile}));
       return transaction(() => {
-        if(sourceJobId.startsWith("place-text:"))db.prepare("UPDATE place_texts SET audio_target_profile=? WHERE id=?").run(profileId,sourceJobId.slice(11));
+        // Normalization is asynchronous: an editor may have changed the approval meanwhile.
+        if (catalog && approvedPlaceNarration(sourceJobId) !== script) throw codedError("CONFLICT");
+        if(catalog)db.prepare("UPDATE place_texts SET audio_target_profile=? WHERE id=?").run(profileId,sourceJobId.slice(11));
         const existing = db.prepare("SELECT * FROM external_audio_jobs WHERE input_key = ?").get(inputKey);
         if (existing) return publicExternal(existing);
         const timestamp = isoNow(now), id = randomUUID();
@@ -722,8 +748,8 @@ export function createStore(
         const textSource=row.source_job_id.startsWith("place-text:")?/** @type {PlaceTextStoryRow | undefined} */ (db.prepare("SELECT * FROM place_texts WHERE id=?").get(row.source_job_id.slice(11))):null;
         const source=textSource?null:decode(findById.get(row.source_job_id));
         const payload=JSON.parse(row.payload_json);
-        if(textSource?(!textSource.approved_story_json||!hasValidStoryText({...JSON.parse(textSource.approved_story_json),address:"OSM place"})
-          ||sha256(JSON.parse(textSource.approved_story_json).paragraphs.map(paragraph=>paragraph.text).join("\n\n"))!==payload.sourceTextHash)
+        const approvedScript = textSource ? approvedPlaceNarration(row.source_job_id) : null;
+        if(textSource?(approvedScript === null || sha256(approvedScript)!==payload.sourceTextHash)
           :(!source||source.revision!==Number(row.source_revision)||!hasValidStoryText(source.data?.story)))throw codedError("CONFLICT");
         const duration=artifact.durationSec,maximum=Number(payload.profile?.maximumPublicationDurationSec??600);
         if(typeof duration!=="number"||!Number.isFinite(duration)||duration<=0||duration>maximum)throw codedError("AUDIO_DURATION");
