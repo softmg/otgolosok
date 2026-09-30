@@ -1,0 +1,168 @@
+.address {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--text-secondary);
+  line-height: 1.5;
+  color: var(--map-muted);
+}
+
+.audio {
+  display: block;
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.story {
+  margin: var(--space-sm) 0;
+}
+
+.story p {
+  margin: 0 0 0.625rem;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--map-green);
+}
+
+.source {
+  margin: 0;
+  font-size: var(--text-secondary);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.source a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.radius {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0 0 var(--space-sm);
+}
+
+.radius button {
+  min-height: var(--control-min);
+  padding: 0.375rem 0.75rem;
+  color: var(--map-green);
+  background: var(--surface-island);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-secondary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.radius button[aria-pressed="true"] {
+  color: var(--surface-island);
+  background: var(--map-green);
+  border-color: var(--map-green);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: grid;
+  gap: var(--space-xs);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border-island);
+}
+
+.list strong,
+.list span,
+.list small {
+  display: block;
+}
+
+.list strong {
+  font-size: var(--text-body);
+  color: var(--map-green);
+}
+
+.list span,
+.list small {
+  margin-top: 0.1875rem;
+  font-size: var(--text-secondary);
+  line-height: 1.45;
+  color: var(--map-muted);
+}
+
+.list small {
+  color: var(--map-orange);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.inlineButton {
+  display: inline;
+  padding: 0;
+  color: inherit;
+  background: none;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.top {
+  align-self: flex-start;
+}
+
+.help summary {
+  padding: 0.75rem 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.help p {
+  margin: var(--space-xs) 0;
+}
+
+.help ol {
+  margin: var(--space-xs) 0;
+  padding-left: 1.25rem;
+}
+
+.help li + li {
+  margin-top: 0.625rem;
+}
+
+.help a {
+  display: inline-block;
+  padding: 0.75rem 0;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.help .inlineButton {
+  display: block;
+  min-height: var(--control-min);
+}
+
+:is(
+  .radius button,
+  .inlineButton,
+  .help summary,
+  .help a,
+  .source a
+):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.story p:last-child {
+  margin-bottom: 0;
+}

@@ -1,5 +1,7 @@
 export { createBrowserPositionSource } from "./browser";
 export type { BrowserPositionSourceOptions } from "./browser";
+export { describeLocateError, locateOnce } from "./locate";
+export type { LocateErrorCode, LocateOptions, LocateUpdate } from "./locate";
 export { createReplayPositionSource } from "./replay";
 export type { ReplayPositionSourceOptions } from "./replay";
 export {

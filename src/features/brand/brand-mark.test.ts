@@ -8,7 +8,7 @@ describe("единый логотип", () => {
     const brand = read("./brand-mark.tsx");
     expect(brand).toContain("Отголосок<span");
     for (const path of [
-      "../explore/around-screen.tsx", "../navigation/app-header.tsx",
+      "../explore/around-header.tsx", "../navigation/app-header.tsx",
       "../generator/story-generator.tsx", "../tour/tour-experience.tsx",
       "../admin/admin-desk.tsx",
     ]) {
@@ -18,14 +18,14 @@ describe("единый логотип", () => {
     }
   });
 
-  it("не допускает локальных вариантов шрифта и цвета точки", () => {
-    const styles = read("../../app/globals.css");
-    expect(styles).toMatch(/\.brand-mark\s*\{[^}]*font-family:\s*var\(--font-display\)/);
-    expect(styles).toContain("color: var(--brand-accent);");
-    expect(styles).toMatch(/\.brand-mark\s*\{[^}]*line-height:\s*1;/);
-    expect(styles).not.toContain('.shell[data-mode="walk"] .brand-mark > span');
-    for (const path of ["../explore/explore.css", "../admin/admin.css"]) {
-      expect(read(path), path).not.toMatch(/\.(?:around-brand|admin-wordmark) span\s*\{|\.walk-builder header span\s*\{/);
+  it("страница обновления повторяет цвета из токенов", () => {
+    // public/update.css lives outside the bundle and mirrors the tokens by hand.
+    const declarations = (css: string) => new Map([...css.matchAll(/(--[\w-]+)\s*:\s*([^;}]+)/g)].map(([, name, value]) => [name, value.trim()]));
+    const tokens = declarations(read("../../styles/tokens.css"));
+    const resolve = (value: string): string => value.replace(/var\((--[\w-]+)\)/g, (_, name: string) => resolve(tokens.get(name) ?? name));
+    const mirrored = declarations(read("../../../public/update.css"));
+    for (const name of ["--paper", "--raised", "--ink", "--muted", "--accent", "--brand-accent"]) {
+      expect(mirrored.get(name), name).toBe(resolve(tokens.get(name)!));
     }
   });
 

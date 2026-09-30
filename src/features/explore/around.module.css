@@ -1,0 +1,148 @@
+/* Shared look of the map screen islands: sheet headings, texts and actions. */
+.headerRow {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.headerRow > :first-child {
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--text-meta);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--map-orange);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-sheet-title);
+  font-weight: 750;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.03em;
+  color: var(--map-green);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.text {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--map-muted);
+}
+
+.meta {
+  display: block;
+  margin: var(--space-xs) 0;
+  font-size: var(--text-secondary);
+  line-height: 1.5;
+  color: var(--map-muted);
+}
+
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--control-min);
+  height: var(--control-min);
+  padding: 0;
+  color: var(--map-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.primary,
+.secondary {
+  display: flex;
+  flex: 1 1 10rem;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--sheet-action-h, var(--control-primary-min));
+  padding: var(--sheet-action-pad, 0.625rem) 1.125rem;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-control);
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primary {
+  color: var(--surface-island);
+  background: var(--map-orange);
+  border: 0;
+}
+
+.secondary {
+  min-height: var(--control-min);
+  color: var(--map-green);
+  background: var(--surface-island);
+  border: 1px solid color-mix(in srgb, var(--map-green) 45%, transparent);
+}
+
+.primary svg,
+.secondary svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+
+.primary:disabled,
+.secondary:disabled,
+.iconButton:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+:is(.primary, .secondary, .iconButton):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
+/* A follow-up action at the end of a body: it scrolls with the text instead of taking footer room. */
+.bodyAction {
+  margin-top: var(--space-sm);
+}
+
+/* An island in the notices slot: a message with a close button. */
+.notice {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  padding: 0.625rem 0.75rem;
+  font-size: var(--text-secondary);
+  line-height: var(--leading-control);
+  color: var(--map-green);
+  background: var(--surface-island);
+  border: 1px solid var(--border-island);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-control);
+}
+
+.notice > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: var(--text-body);
+}
+
+.notice p {
+  margin: 0;
+}

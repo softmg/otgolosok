@@ -1,93 +1,4 @@
-:root {
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-body: Arial, Helvetica, sans-serif;
-  --paper: #f5f1e8;
-  --raised: #fbf8f2;
-  --sunken: #eae3d6;
-  --ink: #1a1714;
-  --muted: #57504a;
-  --accent: #a8301b;
-  --accent-raw: #e34234;
-  --brand-accent: var(--accent-raw);
-  --teal: #1f6f6b;
-  --river: #a8cfca;
-  --line: rgb(26 23 20 / 18%);
-  --map-green: #203e38;
-  --map-orange: #b64b28;
-  --focus: #246b90;
-  --text-meta: 0.75rem;
-  --text-secondary: 0.875rem;
-  --text-control: 1rem;
-  --text-body: 1.125rem;
-  --text-section: 1.375rem;
-  --text-subtitle: 1.5rem;
-  --text-page: 2rem;
-  --leading-tight: 1.2;
-  --leading-control: 1.4;
-  --leading-body: 1.65;
-  --weight-regular: 400;
-  --weight-medium: 600;
-  --weight-bold: 700;
-  --radius-sm: 0.625rem;
-  --radius-md: 0.875rem;
-  --radius-lg: 1.375rem;
-  --radius-pill: 999px;
-  --control-min: 2.75rem;
-  --control-primary-min: 3.5rem;
-  --content-reading: 43rem;
-  --focus-ring: 3px solid var(--focus);
-  --space-xs: 0.5rem;
-  --space-sm: 0.75rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-2xl: 3rem;
-  --space-3xl: 4rem;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  min-height: 100%;
-  scroll-behavior: smooth;
-}
-
-body {
-  min-height: 100%;
-  overflow-x: hidden;
-  color: var(--ink);
-  background: var(--paper);
-  font-family: var(--font-body), sans-serif;
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-  -webkit-font-smoothing: antialiased;
-}
-
-button,
-a {
-  color: inherit;
-}
-
-button {
-  font: inherit;
-  font-size: var(--text-control);
-}
-
-a {
-  text-decoration: none;
-}
-
-button:focus-visible,
-a:focus-visible,
-summary:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: 4px;
-}
-
+/* Styles not yet moved into CSS Modules. Unlayered, excluded from Stylelint and Prettier until migrated. */
 .shell {
   width: min(90rem, 100%);
   min-height: 100vh;
@@ -833,25 +744,6 @@ summary:focus-visible {
   overflow: hidden;
 }
 
-/* The explore map positions its controls for a full-screen sheet; this is an inset. */
-.walk-map-canvas .explore-map .leaflet-bottom.leaflet-right {
-  top: auto;
-  bottom: 4px;
-  right: 4px;
-}
-
-.walk-map-canvas .map-attribution {
-  bottom: 12px;
-  right: 64px;
-}
-
-.walk-map-canvas .map-loading,
-.walk-map-canvas .map-network-note {
-  top: var(--space-md);
-  left: var(--space-md);
-  right: var(--space-md);
-}
-
 .walk-map-next {
   margin-top: var(--space-sm);
   color: var(--walk-muted);
@@ -1113,19 +1005,5 @@ summary:focus-visible {
   .debug-panel dl div:nth-child(n) {
     padding-inline: 0;
     border-left: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }

@@ -1,0 +1,29 @@
+/* An inset map: its own controls sit on its bottom edge, notices on top. */
+.canvas {
+  isolation: isolate;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-map-ui);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  padding: var(--space-xs);
+  pointer-events: none;
+}
+
+.overlay > * {
+  pointer-events: auto;
+}
+
+.row {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: auto;
+  pointer-events: none;
+}

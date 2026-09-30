@@ -1,8 +1,0 @@
-.explore-dot{display:grid;place-items:center;background:transparent;border:0}
-.explore-dot>span{display:block;width:24px;height:24px;border:2px solid var(--raised);border-radius:50%;background:#b64b28;box-shadow:0 1px 4px #203e3840}
-.explore-dot:hover>span,.explore-dot:focus-visible>span{width:28px;height:28px}
-.explore-dot:focus-visible{outline:var(--focus-ring);outline-offset:0;border-radius:50%}
-
-.explore-cluster{display:grid;place-items:center;border:3px solid var(--raised);border-radius:50%;background:#203e38;color:#fff;box-shadow:0 2px 8px #203e3840;font:700 16px/1 var(--font-body),sans-serif;cursor:pointer}
-.explore-cluster:hover{background:#31584f}
-.explore-cluster:focus-visible{outline:var(--focus-ring);outline-offset:3px}

@@ -1,0 +1,10 @@
+.notice {
+  padding: var(--space-sm);
+  font-size: var(--text-secondary);
+  line-height: var(--leading-control);
+  color: var(--map-green);
+  background: var(--surface-island-glass);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-control);
+  pointer-events: auto;
+}

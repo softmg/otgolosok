@@ -1,0 +1,11 @@
+# Prettier formats CSS only (pnpm format:css). Files below are not yet moved into CSS Modules;
+# keep this list equal to legacyUnmigrated in stylelint.config.mjs.
+src/styles/legacy.css
+src/features/account/account.css
+src/features/admin/admin.css
+src/features/admin/content-admin.css
+src/features/admin/walk-admin.css
+src/features/auth/auth.css
+src/features/tour/walk-session.css
+src/features/walks/history.css
+src/features/walks/walks.css

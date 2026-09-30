@@ -35,7 +35,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 
     await expect(page.getByRole("heading", { name: stops[0].address, exact: true })).toBeVisible();
     const boxes = await page.locator(".walk-session-panel").evaluate(el => {
       const panel = el.getBoundingClientRect();
-      const nav = document.querySelector(".app-navigation")!.getBoundingClientRect();
+      const nav = document.querySelector('[data-region="nav"]')!.getBoundingClientRect();
       return { top: panel.top, bottom: panel.bottom, navTop: nav.top, right: panel.right, width: innerWidth };
     });
     expect(boxes.top).toBeGreaterThanOrEqual(0);
@@ -84,6 +84,16 @@ test("аудио, текст и список остановок открываю
   await expect(page.locator(".walk-session")).toHaveCount(0);
 });
 
+test("поиск в шапке прогулки открывает поиск адреса на карте", async ({ page }) => {
+  await page.route("**/api/story-walks/paveletskaya/view", route => route.fulfill({ json: routeToWalkView(routeData as Route) }));
+  await page.goto("/walk?catalog=paveletskaya");
+  await expect(page.getByRole("link", { name: "Отголосок, на главную" })).toBeVisible();
+  await page.getByRole("link", { name: "Найти адрес", exact: true }).click();
+  await expect(page.getByLabel("Какой дом вас интересует?")).toBeFocused();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator(".walk-session")).toHaveCount(0);
+});
+
 test("отказ аудио не блокирует переход к следующей остановке", async ({ page }) => {
   await page.route("**/api/story-walks/paveletskaya/view", route => route.fulfill({ json: routeToWalkView(routeData as Route) }));
   await page.route("**/audio/**", route => route.abort());
@@ -99,7 +109,7 @@ test("геопозиция отличается от остановок и не 
   await context.setGeolocation({ latitude: 55.7505, longitude: 37.6005, accuracy: 12 });
   await setup(page);
   await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
-  const position = page.locator(".explore-user-position");
+  const position = page.locator('[data-marker="user"]');
   await expect(position).toBeVisible();
   await expect(position.locator("span")).toHaveCSS("background-color", "rgb(36, 107, 144)");
   await expect(page.locator(".leaflet-control-scale")).toHaveCount(0);
@@ -133,13 +143,13 @@ test("гостевая прогулка показывает опубликов�
 // Одна остановка с длинной историей и аудио: панель прогулки становится самой высокой.
 const catalog = routeData as Route;
 const longStop = routeToWalkView({ ...catalog, walk: { ...catalog.walk!, steps: catalog.walk!.steps.slice(-1) } });
-const mapControls = { "крестик": ".walk-session-back", "плюс": ".leaflet-control-zoom-in", "минус": ".leaflet-control-zoom-out",
+const mapControls = { "крестик": ".walk-session-back", "поиск": ".walk-session-search", "плюс": ".leaflet-control-zoom-in", "минус": ".leaflet-control-zoom-out",
   "геопозиция": ".walk-session-locate", "подпись OSM": ".map-attribution" };
 
 // Кнопка свободна, если она целиком в окне, на неё не заходят панель и навигация, а в её центре — она сама.
 function controlsState(page: Page) {
   return page.evaluate(controls => {
-    const covers = { "панель": ".walk-session-panel", "навигация": ".app-navigation" };
+    const covers = { "панель": ".walk-session-panel", "навигация": '[data-region="nav"]' };
     return Object.fromEntries(Object.entries(controls).flatMap(([name, selector]) => {
       const control = document.querySelector(selector);
       if (!control) return [];
@@ -170,7 +180,7 @@ function routeIsVisible(page: Page) {
     if (!path) return false;
     const route = path.getBoundingClientRect();
     const inside = route.left >= 0 && route.top >= 0 && route.right <= innerWidth && route.bottom <= innerHeight;
-    return inside && [".walk-session-panel", ".app-navigation"].every(selector => {
+    return inside && [".walk-session-panel", '[data-region="nav"]'].every(selector => {
       const other = document.querySelector(selector)!.getBoundingClientRect();
       return route.right <= other.left || route.left >= other.right || route.bottom <= other.top || route.top >= other.bottom;
     });
@@ -197,21 +207,24 @@ async function checkPanelStates(page: Page, check: (state: string) => Promise<vo
 // Кнопки карты свободны, а линия маршрута видна.
 async function expectMapUsable(page: Page, state: string) {
   const controls = await controlsState(page);
-  expect(Object.keys(controls), state).toEqual(expect.arrayContaining(["крестик", "плюс", "минус", "подпись OSM"]));
+  expect(Object.keys(controls), state).toEqual(expect.arrayContaining(["крестик", "поиск", "плюс", "минус", "подпись OSM"]));
   expect(controls, state).toEqual(Object.fromEntries(Object.keys(controls).map(name => [name, "свободна"])));
   await expect.poll(() => routeIsVisible(page), { message: `маршрут виден: ${state}` }).toBe(true);
 }
 
-// Прежняя раскладка: панель над навигацией, крестик слева вверху, кнопки масштаба и геопозиции и подпись OSM справа вверху.
-async function expectBottomPanel(page: Page, panel: { left: number; right: number; bottom: number }) {
+// Панель над навигацией, шапка вверху, под ней на 12 px ниже — кнопки масштаба и геопозиции справа и подпись OSM слева.
+async function expectBottomPanel(page: Page, panel: { left: number; right: number; bottom: number }, header: { top: number; left: number; right: number }) {
+  const controlsTop = header.top + 62 + 12;
   await checkPanelStates(page, async state => {
     await expectMapUsable(page, state);
     expect(await edges(page, ".walk-session-panel"), state).toMatchObject(panel);
-    expect(await edges(page, ".walk-session-back"), state).toMatchObject({ top: 16, left: 16 });
-    expect(await edges(page, ".leaflet-control-zoom"), state).toMatchObject({ top: 72, right: 22 });
-    expect(await edges(page, ".map-attribution"), state).toMatchObject({ top: 12, right: 12 });
+    expect(await edges(page, ".walk-session-header"), state).toMatchObject(header);
+    expect(await edges(page, ".leaflet-control-zoom"), state).toMatchObject({ top: controlsTop, right: 22 });
+    expect(await edges(page, ".map-attribution"), state).toMatchObject({ top: controlsTop, left: 12 });
+    const panelTop = await page.locator(".walk-session-panel").evaluate(element => element.getBoundingClientRect().top);
+    expect(panelTop, `панель ниже шапки: ${state}`).toBeGreaterThanOrEqual(controlsTop);
   });
-  expect(await edges(page, ".walk-session-locate")).toMatchObject({ top: 156, right: 18 });
+  expect(await edges(page, ".walk-session-locate")).toMatchObject({ top: controlsTop + 84, right: 18 });
 }
 
 test.describe("панель прогулки на телефоне", () => {
@@ -227,8 +240,11 @@ test.describe("панель прогулки на телефоне", () => {
       await checkPanelStates(page, async state => {
         await expectMapUsable(page, state);
         const panel = await edges(page, ".walk-session-panel");
-        const navigation = await edges(page, ".app-navigation");
+        const navigation = await edges(page, '[data-region="nav"]');
         expect(panel.right, state).toBe(12);
+        const header = await edges(page, ".walk-session-header");
+        expect(header, state).toMatchObject({ top: 12, left: 12 });
+        expect(width - header.right + 12, `шапка левее панели: ${state}`).toBeLessThanOrEqual(panel.left);
         expect(panel.top, state).toBeGreaterThanOrEqual(12);
         expect(panel.bottom, state).toBeGreaterThanOrEqual(height - navigation.top);
       });
@@ -238,11 +254,11 @@ test.describe("панель прогулки на телефоне", () => {
 
   test("сохраняет раскладку на вертикальном телефоне 390×844", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await expectBottomPanel(page, { left: 12, right: 12, bottom: 104 });
+    await expectBottomPanel(page, { left: 12, right: 12, bottom: 104 }, { top: 12, left: 12, right: 12 });
   });
 });
 
 test("панель прогулки сохраняет раскладку на компьютере 1440×900", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expectBottomPanel(page, { left: 510, right: 510, bottom: 108 });
+  await expectBottomPanel(page, { left: 510, right: 510, bottom: 108 }, { top: 18, left: 340, right: 340 });
 });

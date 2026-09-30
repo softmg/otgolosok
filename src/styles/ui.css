@@ -1,0 +1,171 @@
+/* Shared primitives of content pages and panels. */
+@layer ui {
+  /* A content page: reserves room for the navigation island and the safe areas, adapts to its own width. */
+  .ui-page {
+    --page-gutter: clamp(1.25rem, 4%, 1.75rem);
+
+    container: page / inline-size;
+    max-width: 1040px;
+    margin: auto;
+    padding: var(--safe-top) max(var(--page-gutter), var(--safe-right))
+      calc(var(--nav-clearance) + var(--space-xl))
+      max(var(--page-gutter), var(--safe-left));
+  }
+
+  .ui-page h1 {
+    font-family: var(--font-body), sans-serif;
+    font-size: var(--text-page);
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+    margin: 0 0 12px;
+  }
+
+  .ui-page h2 {
+    font-family: var(--font-body), sans-serif;
+    font-size: var(--text-section);
+    margin: 0 0 16px;
+    letter-spacing: -0.025em;
+  }
+
+  .ui-page p {
+    line-height: 1.55;
+  }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 24px 0 32px;
+    color: var(--ink);
+  }
+
+  .app-header a {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+  }
+
+  .app-header > span {
+    font-size: var(--text-secondary);
+    color: var(--muted);
+  }
+
+  @container page (width < 37.5rem) {
+    .app-header {
+      padding: 16px 0 24px;
+    }
+
+    .app-header > span {
+      display: none;
+    }
+  }
+
+  .ui-eyebrow {
+    font-size: var(--text-meta);
+    font-weight: 750;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+
+  .ui-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 12px 20px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: var(--map-green);
+    color: var(--on-dark);
+    font:
+      600 var(--text-control) / 1.4 var(--font-body),
+      sans-serif;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .ui-button.secondary {
+    background: var(--control-soft);
+    color: var(--map-green);
+  }
+
+  .ui-button.quiet {
+    background: transparent;
+    color: var(--map-green);
+    border-color: var(--control-border);
+  }
+
+  .ui-button.danger {
+    background: var(--alert-surface);
+    color: var(--danger-ink);
+  }
+
+  .ui-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .ui-button:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  .ui-field {
+    display: grid;
+    gap: 8px;
+    font-size: var(--text-secondary);
+    font-weight: 650;
+  }
+
+  .ui-field input {
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    border: 1px solid var(--field-border);
+    border-radius: 12px;
+    background: var(--field-surface);
+    color: var(--ink);
+    font:
+      400 var(--text-control) / 1.5 var(--font-body),
+      sans-serif;
+  }
+
+  .ui-field input:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  .ui-notice {
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--notice-surface);
+    color: var(--map-green);
+    font-size: var(--text-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  .ui-notice[role="alert"] {
+    background: var(--alert-surface);
+    color: var(--alert-ink);
+  }
+
+  .ui-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .ui-muted {
+    color: var(--muted);
+    font-size: var(--text-secondary);
+  }
+}

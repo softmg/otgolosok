@@ -10,7 +10,7 @@ const places = Array.from({ length: 1438 }, (_, index) => ({
 async function representedPlaces(page: Page) {
   return page.locator(".leaflet-marker-pane").evaluate(pane =>
     [...pane.querySelectorAll<HTMLElement>("[data-cluster-count]")].reduce((total, node) => total + Number(node.dataset.clusterCount), 0)
-    + pane.querySelectorAll('.explore-pin[title^="Каталог:"]').length);
+    + pane.querySelectorAll('[data-marker="pin"][title^="Каталог:"]').length);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -28,7 +28,7 @@ test("карта показывает все 1438 мест и открывает
   await page.goto("/");
   await expect.poll(() => representedPlaces(page)).toBe(1438);
   expect(await page.locator(".leaflet-marker-icon").count()).toBeLessThan(30);
-  await expect(page.locator(".around-catalog-status")).toHaveCount(0);
+  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
   await page.getByTitle("Каталог: 1438", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Каталог: 1438", exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Текст истории", exact: true })).toContainText("Рассказ о месте 1438.");
@@ -38,13 +38,13 @@ test("карта показывает все 1438 мест и открывает
 test("пустой каталог не добавляет пять встроенных точек", async ({ page }) => {
   await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: [], total: 0, hasMore: false } }));
   await page.goto("/");
-  await expect(page.locator(".around-catalog-status")).toHaveCount(0);
+  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
   await expect(page.getByRole("region", { name: /^Карта историй/ })).toBeVisible();
   await expect(page.locator(".leaflet-marker-icon")).toHaveCount(0);
 });
 
-for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
-  test(`статус виден до первого ответа и до конца загрузки ${viewport.width}×${viewport.height}`, async ({ page }, info) => {
+for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) for (const path of ["/", "/?walk=create"]) {
+  test(`статус виден до первого ответа и до конца загрузки ${viewport.width}×${viewport.height} ${path}`, async ({ page }, info) => {
     await page.setViewportSize(viewport);
     let firstPage!: () => void;
     let lastPage!: () => void;
@@ -56,8 +56,8 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
       await route.fulfill({ json: { places: places.slice(offset, Math.min(offset + 100, 101)), total: 101, hasMore: offset === 0 } });
     });
     try {
-      await page.goto("/");
-      const status = page.locator('.around-catalog-status [role="status"]');
+      await page.goto(path);
+      const status = page.locator('[data-region="catalog-status"] [role="status"]');
       await expect(status).toHaveText("Загружаем места…");
       await expect(status).toBeInViewport();
       await expect(page.getByRole("progressbar", { name: "Загрузка мест на карте" })).not.toHaveAttribute("value");
@@ -66,7 +66,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
       await expect(page.getByRole("progressbar")).toHaveAttribute("value", "100");
       await page.screenshot({ path: info.outputPath("catalog-loading.png") });
       lastPage();
-      await expect(page.locator(".around-catalog-status")).toHaveCount(0);
+      await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
       await expect.poll(() => representedPlaces(page)).toBe(101);
     } finally { firstPage(); lastPage(); }
   });
@@ -86,7 +86,7 @@ test("после сбоя второй страницы точки остают�
   unavailable = false;
   await page.getByRole("button", { name: "Повторить загрузку мест" }).click();
   await expect.poll(() => representedPlaces(page)).toBe(101);
-  await expect(page.locator(".around-catalog-status")).toHaveCount(0);
+  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
 });
 
 for (const coincident of [false, true]) {
@@ -100,19 +100,19 @@ for (const coincident of [false, true]) {
     await page.goto("/");
     const group = page.getByRole("button", { name: "Мест: 2. Нажмите, чтобы раскрыть группу" });
     await expect(group).toBeVisible();
-    await expect(page.locator(".explore-pin")).toHaveCount(0);
+    await expect(page.locator('[data-marker="pin"]')).toHaveCount(0);
     await page.screenshot({ path: info.outputPath("cluster.png") });
     await group.focus();
     await page.keyboard.press("Enter");
-    await expect(page.locator('.explore-pin[title^="Каталог:"]')).toHaveCount(2);
-    await expect(page.locator(".around-place-card")).toHaveCount(0);
+    await expect(page.locator('[data-marker="pin"][title^="Каталог:"]')).toHaveCount(2);
+    await expect(page.locator('[data-sheet="story"], [data-sheet="place"]')).toHaveCount(0);
     await page.screenshot({ path: info.outputPath("expanded.png") });
     if (!coincident) {
       for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Отдалить", exact: true }).click();
       await expect(group).toBeVisible();
       await expect.poll(() => representedPlaces(page)).toBe(2);
       await group.click();
-      await expect(page.locator('.explore-pin[title^="Каталог:"]')).toHaveCount(2);
+      await expect(page.locator('[data-marker="pin"][title^="Каталог:"]')).toHaveCount(2);
     }
     await page.getByTitle("Каталог: 2", { exact: true }).click();
     await expect(page.getByRole("heading", { name: "Каталог: 2", exact: true })).toBeVisible();

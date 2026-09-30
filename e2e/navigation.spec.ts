@@ -34,9 +34,7 @@ function navigationLook(page: Page) {
   });
 }
 
-// На горизонтальном телефоне навигация остаётся островком во всю ширину окна, как в вертикальном положении.
-// Шире 700 px действует и правило min-width:700px: оно ставит узкий островок по центру сдвигом
-// на половину ширины. На 667×375 этого правила нет.
+// Навигация — один островок в любом положении телефона: по центру, не шире 430 px, с теми же рамкой, скруглением и тенью.
 for (const [name, path, ready] of screens) for (const [width, height] of [[667, 375], [844, 390], [932, 430]]) {
   test(`навигация на странице ${name} остаётся в окне при повороте телефона ${width}×${height}`, async ({ page }, info) => {
     await page.setViewportSize({ width: height, height: width });
@@ -47,8 +45,9 @@ for (const [name, path, ready] of screens) for (const [width, height] of [[667, 
     const landscape = await navigationLook(page);
     expect(landscape.left).toBeGreaterThanOrEqual(0);
     expect(landscape.right).toBeGreaterThanOrEqual(0);
-    // Тот же островок, что в вертикальном положении: те же поля, рамка, скругление и тень.
-    expect(landscape).toEqual(portrait);
+    expect(Math.abs(landscape.left - landscape.right)).toBeLessThanOrEqual(1);
+    expect(width - landscape.left - landscape.right).toBeLessThanOrEqual(430);
+    expect({ ...landscape, left: 0, right: 0 }).toEqual({ ...portrait, left: 0, right: 0 });
     await page.screenshot({ path: info.outputPath("navigation-landscape.png") });
   });
 }

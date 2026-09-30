@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nearbyStoryCatalog, recommendNearbyStories, type NearbyStory } from "./nearby-stories";
+import { nearbyRadiusForAccuracy, nearbyStoryCatalog, recommendNearbyStories, type NearbyStory } from "./nearby-stories";
 import type { Route } from "../tour/types";
 
 const catalog: NearbyStory[] = [
@@ -29,5 +29,18 @@ describe("nearby story recommendations", () => {
       ],
     } as unknown as Route;
     expect(nearbyStoryCatalog(route)).toEqual([expect.objectContaining({ id: "ready", title: "Готовый объект", address: "Москва, адрес" })]);
+  });
+
+  it.each([
+    [5, 100],
+    [100, 100],
+    [100.5, 200],
+    [200, 200],
+    [300, 300],
+    [301, null],
+    [Number.POSITIVE_INFINITY, null],
+    [Number.NaN, null],
+  ])("covers a position accuracy of %s m with a %s m radius", (accuracyM, radius) => {
+    expect(nearbyRadiusForAccuracy(accuracyM)).toBe(radius);
   });
 });

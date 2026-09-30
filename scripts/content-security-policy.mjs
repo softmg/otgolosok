@@ -5,11 +5,14 @@ import { createHash } from "node:crypto";
 const directives = [
   ["default-src", "'self'"],
   ["style-src", "'self' 'unsafe-inline'"],
+  // VersaTiles serves the vector basemap tiles and glyphs (fetched, so connect-src);
+  // OSM raster tiles are the fallback when WebGL is unavailable.
   ["img-src", "'self' data: blob: https://tile.openstreetmap.org"],
   ["font-src", "'self'"],
-  ["connect-src", "'self'"],
+  ["connect-src", "'self' https://tiles.versatiles.org"],
   ["media-src", "'self'"],
-  ["worker-src", "'self'"],
+  // MapLibre bundles its tile worker and starts it from a blob: URL.
+  ["worker-src", "'self' blob:"],
   ["manifest-src", "'self'"],
   ["object-src", "'none'"],
   ["base-uri", "'self'"],

@@ -1,11 +1,25 @@
-.walk-session{position:fixed;inset:0;isolation:isolate;overflow:hidden;color:var(--map-green,#203e38);background:var(--paper);font-family:var(--font-body),sans-serif}
+/* Transitional: the legacy Leaflet chrome of ExploreMap (legacyChrome) until this screen moves to MapShell. */
+.explore-map-layer{position:absolute;inset:0;z-index:0;isolation:isolate;background:#e9e9dd}
+.explore-map{width:100%;height:100%;background:#e9e9dd;font-family:var(--font-body),sans-serif}
+.explore-map .leaflet-control-zoom{border:0;box-shadow:0 2px 10px #203e3820;border-radius:22px;overflow:hidden}
+.explore-map .leaflet-control-zoom a{width:42px;height:44px;line-height:44px;background:#fffdf5;color:#203e38;border-color:#203e381a}
+.map-attribution{position:absolute;z-index:800;display:inline-flex;align-items:center;min-height:14px;padding:0 4px;border-radius:6px;font-size:11px;font-weight:600;line-height:1.2;color:#203e38;text-shadow:0 0 2px #fffaf0,0 0 4px #fffaf0,0 1px 8px #fffaf0;text-decoration:none}
+.map-attribution:hover{color:#b64b28}
+.map-attribution:focus-visible{outline:3px solid #246b90;outline-offset:3px;background:#fffaf0}
+.map-loading,.map-network-note{position:absolute;left:20px;right:75px;top:43%;z-index:800;padding:12px;border-radius:12px;background:#fffaf0ed;font-size:var(--text-secondary);line-height:1.5}
+.map-network-note{top:220px}
+.walk-session{--walk-header-top:calc(12px + env(safe-area-inset-top));--walk-controls-top:calc(var(--walk-header-top) + 74px);position:fixed;inset:0;isolation:isolate;overflow:hidden;color:var(--map-green,#203e38);background:var(--paper);font-family:var(--font-body),sans-serif}
 .walk-session-map{position:absolute;inset:0}
 .walk-session-map .leaflet-overlay-pane svg{max-width:none;max-height:none}
-.walk-session-map .leaflet-bottom.leaflet-right{top:72px;bottom:auto;right:12px}
-.walk-session-map .map-attribution{top:12px;bottom:auto;right:12px}
-.walk-session-back,.walk-session-locate{position:absolute;z-index:2;top:16px;left:16px;display:grid;place-items:center;width:44px;height:44px;border:1px solid #203e3818;border-radius:50%;background:#fffaf0;color:inherit;box-shadow:0 4px 16px #203e3814;cursor:pointer}
-.walk-session-locate{left:auto;right:18px;top:156px}
-.walk-session-panel{position:absolute;z-index:2;bottom:calc(104px + 2 * env(safe-area-inset-bottom));left:12px;right:12px;max-height:calc(100dvh - 180px - 2 * env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding:20px;border:1px solid #203e3818;border-radius:24px;background:#fffaf0;box-shadow:0 8px 30px #203e3824}
+.walk-session-map .leaflet-bottom.leaflet-right{top:var(--walk-controls-top);bottom:auto;right:12px}
+.walk-session-map .map-attribution{top:var(--walk-controls-top);bottom:auto;left:12px;right:auto}
+/* Шапка как на стартовой карте: логотип слева, поиск и закрытие прогулки справа. Высота 62 px:
+   от её низа на 12 px ниже начинаются кнопки карты (--walk-controls-top). */
+.walk-session-header{position:absolute;z-index:3;top:var(--walk-header-top);left:12px;right:12px;display:flex;align-items:center;gap:4px;box-sizing:border-box;height:62px;padding:8px 8px 8px 16px;border:1px solid #203e3818;border-radius:24px;background:#fffaf0f2;box-shadow:0 8px 30px #203e3824}
+.walk-session-brand{min-width:0;margin-right:auto;color:inherit;text-decoration:none;font-size:var(--text-control)}
+.walk-session-search,.walk-session-back{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:50%;color:inherit}
+.walk-session-locate{position:absolute;z-index:2;right:18px;top:calc(var(--walk-controls-top) + 84px);display:grid;place-items:center;width:44px;height:44px;border:1px solid #203e3818;border-radius:50%;background:#fffaf0;color:inherit;box-shadow:0 4px 16px #203e3814;cursor:pointer}
+.walk-session-panel{position:absolute;z-index:2;bottom:calc(104px + 2 * env(safe-area-inset-bottom));left:12px;right:12px;max-height:calc(100dvh - 104px - var(--walk-controls-top) - 2 * env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding:20px;border:1px solid #203e3818;border-radius:24px;background:#fffaf0;box-shadow:0 8px 30px #203e3824}
 .walk-session-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .walk-session-heading>div{min-width:0}
 .walk-session-heading h1{font-family:inherit;font-size:22px;font-weight:700;line-height:1.25;letter-spacing:-.03em;margin:4px 0 0;overflow-wrap:anywhere}
@@ -41,22 +55,26 @@
 .session-audio input{display:block;width:100%;height:28px;accent-color:#203e38;cursor:pointer}
 .session-audio-time{display:flex;justify-content:space-between;font-size:11px;line-height:1;color:#687770;font-variant-numeric:tabular-nums}
 .walk-session .story-text p{font-size:15px;line-height:1.65;margin-bottom:12px}
-@media(min-width:700px){.walk-session-panel{left:50%;right:auto;width:420px;transform:translateX(-50%);bottom:108px;max-height:calc(100dvh - 190px)}}
-@media(max-height:560px){.walk-session-panel{padding:12px 16px;max-height:calc(100dvh - 124px - 2 * env(safe-area-inset-bottom))}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button){margin-top:4px}}
+@media(min-width:700px){.walk-session{--walk-header-top:calc(18px + env(safe-area-inset-top))}.walk-session-header{left:50%;right:auto;width:min(760px,calc(100% - 56px));transform:translateX(-50%)}.walk-session-panel{left:50%;right:auto;width:420px;transform:translateX(-50%);bottom:108px;max-height:calc(100dvh - 108px - var(--walk-controls-top))}}
+@media(max-height:560px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button){margin-top:4px}}
 
 /* Низкий горизонтальный экран: панель во всю ширину или по центру поднималась почти
    до верха и закрывала крестик, кнопки масштаба и линию маршрута. Как карточка на
    стартовой карте, она стоит колонкой справа над навигацией, кнопки карты — в ряд
    слева над навигацией, подпись OSM — между панелью и навигацией. По --walk-panel-dock
-   walk-session.tsx вписывает маршрут слева от панели, а не над ней. Панель шириной
-   420 px, как на компьютере, но оставляет слева место ряду кнопок (144 px) с полями:
-   чем шире колонка, тем реже переносится текст и тем меньше прокрутка панели. */
+   walk-session.tsx вписывает маршрут слева от панели, а не над ней. Шапка стоит в левой
+   колонке шириной по содержимому (280 px): логотип и две кнопки. Панель шириной 420 px,
+   как на компьютере, но оставляет слева место шапке с полями: чем шире колонка, тем
+   реже переносится текст и тем меньше прокрутка панели. Шире 700 px блок min-width:700px
+   ставит шапку по центру сдвигом и отступом 18 px, поэтому здесь они отменяются. */
 @media(orientation:landscape) and (max-height:560px){
-  .walk-session-panel{--walk-panel-dock:right;left:auto;right:max(12px,env(safe-area-inset-right));width:min(420px,calc(100% - 156px - max(18px,env(safe-area-inset-left)) - max(12px,env(safe-area-inset-right))));transform:none;bottom:calc(110px + 2 * env(safe-area-inset-bottom));max-height:calc(100dvh - 122px - env(safe-area-inset-top) - 2 * env(safe-area-inset-bottom))}
+  .walk-session{--walk-header-top:calc(12px + env(safe-area-inset-top))}
+  .walk-session-header{left:max(12px,env(safe-area-inset-left));right:auto;width:280px;transform:none}
+  .walk-session-panel{--walk-panel-dock:right;left:auto;right:max(12px,env(safe-area-inset-right));width:min(420px,calc(100% - 280px - 12px - max(12px,env(safe-area-inset-left)) - max(12px,env(safe-area-inset-right))));transform:none;bottom:calc(110px + 2 * env(safe-area-inset-bottom));max-height:calc(100dvh - 122px - env(safe-area-inset-top) - 2 * env(safe-area-inset-bottom))}
   .walk-session-map .leaflet-bottom.leaflet-right{top:auto;right:auto;left:max(18px,env(safe-area-inset-left));bottom:calc(98px + 2 * env(safe-area-inset-bottom))}
   .walk-session-map .leaflet-control-zoom{display:flex;margin:0}
   .walk-session-map .leaflet-control-zoom a{width:44px;border-bottom:0}
   .walk-session-map .leaflet-control-zoom a:first-child{border-right:1px solid #203e381a}
   .walk-session-locate{top:auto;right:auto;left:calc(max(18px,env(safe-area-inset-left)) + 100px);bottom:calc(98px + 2 * env(safe-area-inset-bottom))}
-  .walk-session-map .map-attribution{top:auto;right:max(12px,env(safe-area-inset-right));bottom:calc(94px + 2 * env(safe-area-inset-bottom))}
+  .walk-session-map .map-attribution{top:auto;left:auto;right:max(12px,env(safe-area-inset-right));bottom:calc(94px + 2 * env(safe-area-inset-bottom))}
 }

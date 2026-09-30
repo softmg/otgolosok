@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ExploreMap } from "../explore/explore-map";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { ExploreMap, type MapHandle, type ZoomLimits } from "../explore/explore-map";
+import { MapAttribution } from "../shell/map-attribution";
+import { MapControls } from "../shell/map-controls";
+import { MapStatusNotice, type MapStatus } from "../shell/map-status-notice";
 import type { Coordinates, WalkPlan } from "./types";
 import type { WalkChapter } from "./walk-plan";
-import "../explore/explore.css";
+import styles from "./walk-map.module.css";
 
 const noop = () => {};
 
@@ -22,6 +25,11 @@ export function WalkMap({ chapters, index, path, user, distanceToNextM, onSelect
   onSelect: (index: number) => void;
 }) {
   const [open, setOpen] = useState(true);
+  const handle = useRef<MapHandle>(null);
+  const [status, setStatus] = useState<MapStatus>({ phase: "loading", tilesOffline: false });
+  const [limits, setLimits] = useState<ZoomLimits>({ canZoomIn: true, canZoomOut: true });
+  const zoomIn = useCallback(() => handle.current?.zoomIn(), []);
+  const zoomOut = useCallback(() => handle.current?.zoomOut(), []);
   // Route geometry is stored in GeoJSON order, longitude first.
   const geometry = useMemo(
     () => (path?.coordinates ?? []).flatMap(([lon, lat]) => Number.isFinite(lat) && Number.isFinite(lon) ? [{ lat, lon }] : []),
@@ -47,13 +55,20 @@ export function WalkMap({ chapters, index, path, user, distanceToNextM, onSelect
         {open ? "Скрыть карту" : "Показать карту"}
       </button>
     </div>
-    {open ? <div className="walk-map-canvas">
-      <ExploreMap items={items} selectedId={chapters[index]?.id} focus={null} user={user}
+    {open ? <div className={`walk-map-canvas ${styles.canvas}`}>
+      <ExploreMap ref={handle} onStatus={setStatus} onZoomLimits={setLimits} items={items} selectedId={chapters[index]?.id} focus={null} user={user}
         geometry={geometry.length > 1 ? geometry : undefined} onSelect={(id) => {
           const position = chapters.findIndex((chapter) => chapter.id === id);
           if (position >= 0) onSelect(position);
         }} onPoint={noop}
         mapLabel="Карта прогулки: линия пути, отметки частей по порядку и ваше положение. Нажмите отметку, чтобы слушать эту часть." />
+      <div className={styles.overlay}>
+        <MapStatusNotice status={status} />
+        <div className={styles.row}>
+          <MapAttribution />
+          <MapControls zoom={{ zoomIn, zoomOut, ...limits }} />
+        </div>
+      </div>
     </div> : null}
     <p className="walk-map-next" role="status">
       {next

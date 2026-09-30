@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ExploreIcon } from "../explore/icons";
 import { navigationSection, type NavigationSection } from "./app-navigation-state";
-import "./app-navigation.css";
+import styles from "./app-navigation.module.css";
 
 type Props = {
   active?: NavigationSection;
+  /** Rendered by a screen that handles «Рядом» and «Прогулка» itself; otherwise the root layout renders it. */
   embedded?: boolean;
   onNearby?: () => void;
   onWalk?: () => void;
@@ -24,7 +25,8 @@ export function AppNavigation({ active, embedded = false, onNearby, onWalk }: Pr
     : <Link href="/" aria-current={current === "nearby" ? "page" : undefined}><ExploreIcon name="map"/><span>Рядом</span></Link>;
   const walk = <Link href="/?walk=create" onClick={onWalk} aria-current={current === "walk" ? "page" : undefined}><ExploreIcon name="plus"/><span>Прогулка</span></Link>;
 
-  return <nav className={`app-navigation${embedded ? " around-nav" : " app-navigation--standalone"}`} aria-label="Основная навигация">
+  // Both render sites look the same: one island fixed above the bottom edge.
+  return <nav className={styles.navigation} data-region="nav" aria-label="Основная навигация">
     {nearby}
     {walk}
     <Link href="/history" aria-current={current === "history" ? "page" : undefined}><ExploreIcon name="walk"/><span>История</span></Link>

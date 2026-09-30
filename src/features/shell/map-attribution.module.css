@@ -1,0 +1,53 @@
+/* One 12 px line: the map shell keeps a strip of this height (plus a gap) above the header. */
+.attribution {
+  display: flex;
+  margin: 0;
+  font-size: var(--text-map-label);
+  font-weight: var(--weight-medium);
+  line-height: 0.75rem;
+  pointer-events: none;
+}
+
+.attribution a,
+.attribution button {
+  display: block;
+  padding: 0 0.25rem;
+  color: var(--map-green);
+  text-decoration: none;
+  text-shadow:
+    0 0 2px var(--surface-island),
+    0 0 4px var(--surface-island),
+    0 1px 8px var(--surface-island);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+
+  /* Quiet on the map, but fully legible once pointed at or focused. */
+  opacity: 0.5;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.attribution button svg {
+  display: block;
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.attribution :is(a, button):is(:hover, :focus-visible) {
+  opacity: 1;
+}
+
+.attribution :is(a, button):hover {
+  color: var(--map-orange);
+}
+
+.attribution :is(a, button):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  background: var(--surface-island);
+}

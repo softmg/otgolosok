@@ -20,20 +20,20 @@ for (const endpoint of ["Откуда", "Куда"]) {
     await page.goto("/?walk=create");
     await page.getByRole("button", { name: new RegExp(`^${endpoint}`) }).click();
     await page.getByRole("button", { name: "Выбрать на карте", exact: true }).click();
-    await expect(page.locator(".map-loading")).toHaveCount(0);
-    await page.locator(".explore-map").click({ position: { x: 150, y: 200 } });
-    await expect(page.locator(".creation-panel [role=alert]")).toBeVisible();
-    await expect(page.locator(".creation-panel.is-picking")).toBeVisible();
+    await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
+    await page.locator(`[data-region="map"]`).click({ position: { x: 150, y: 200 } });
+    await expect(page.locator('[data-sheet="creation"] [role=alert]')).toBeVisible();
+    await expect(page.locator('[data-sheet="creation"][data-state="picking"]')).toBeVisible();
     fail = false;
-    await page.locator(".explore-map").click({ position: { x: 160, y: 210 } });
-    await expect(page.locator(".creation-panel.is-picking")).toHaveCount(0);
+    await page.locator(`[data-region="map"]`).click({ position: { x: 160, y: 210 } });
+    await expect(page.locator('[data-sheet="creation"][data-state="picking"]')).toHaveCount(0);
     await expect(page.getByRole("button", { name: new RegExp(`^${endpoint}`) })).toContainText(place.address);
     await expect(page.getByRole("button", { name: "Выбрать эту точку" })).toHaveCount(0);
   });
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.route("**/api/**", route => route.fulfill({ json: { user: null, walks: [], nextCursor: null, items: [] } }));
+  await page.route("**/api/**", route => route.fulfill({ json: { user: null, walks: [], nextCursor: null, items: [], places: [], total: 0, hasMore: false } }));
 });
 
 test("знак одинакового размера на карте и странице входа", async ({ page }) => {
@@ -87,19 +87,19 @@ test("создаёт A→Б на карте и восстанавливает е
   await page.getByRole("textbox").press("Enter");
   await page.getByRole("button", { name: "Построить прогулку" }).click();
   await expect(page.getByRole("heading", { name: "Ваш маршрут" })).toBeVisible();
-  await expect(page.locator(".creation-stops:empty")).toHaveCount(0);
+  await expect(page.locator('[data-creation="stops"]:empty')).toHaveCount(0);
   await expect(page.getByText("Пешеходный маршрут построен. Исторических остановок по пути пока нет.")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Сохранить в аккаунте" })).toHaveCount(0);
-  await expect(page.locator(".creation-panel [role=status]")).toHaveCount(0);
+  await expect(page.locator('[data-sheet="creation"] [role=status]')).toHaveCount(0);
   await page.screenshot({ path: info.outputPath("preview.png") });
   await expect(page.getByRole("link", { name: "Начать прогулку", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Закрыть создание прогулки" }).click();
   await page.getByRole("link", { name: "История", exact: true }).click();
   await page.getByRole("link", { name: "Редактировать" }).click();
   await expect(page.getByRole("heading", { name: "Ваш маршрут" })).toBeVisible();
-  await expect(page.locator(".creation-panel")).toContainText(destination.address);
+  await expect(page.locator('[data-sheet="creation"]')).toContainText(destination.address);
   await page.getByRole("link", { name: "Начать прогулку", exact: true }).click();
-  await expect(page.locator(".creation-panel")).toHaveCount(0);
+  await expect(page.locator('[data-sheet="creation"]')).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Основная навигация" })).toHaveCount(1);
   await expect(page.getByRole("link", { name: "Открыть мою прогулку" })).toHaveCount(0);
   const frame = page.locator(".walk-session-map");
@@ -123,13 +123,13 @@ test("дом передаёт старт, возврат включён по у�
   await page.goto("/");
   await page.locator('[title="Дом для прогулки"]').click();
   await page.getByRole("link", { name: "Создать прогулку отсюда" }).click();
-  await expect(page.locator(".creation-endpoints")).toContainText("Москва, Дербеневская, 1");
+  await expect(page.locator('[data-creation="endpoints"]')).toContainText("Москва, Дербеневская, 1");
   await page.getByRole("button", { name: "Куда", exact: true }).click();
   await page.getByRole("button", { name: "По времени" }).click();
   await expect(page.getByRole("checkbox", { name: "Вернуться к началу" })).toBeChecked();
   await page.getByRole("checkbox", { name: "Вернуться к началу" }).uncheck();
   await page.goBack();
-  await expect(page.locator(".creation-panel")).toHaveCount(0);
+  await expect(page.locator('[data-sheet="creation"]')).toHaveCount(0);
   await page.goForward();
   await expect(page.getByRole("button", { name: "Продолжить", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Куда", exact: true }).click();
@@ -222,7 +222,7 @@ test("Escape закрывает панель и возвращает фокус 
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Прогулка", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
-  await expect(page.locator(".creation-panel")).toHaveCount(0);
+  await expect(page.locator('[data-sheet="creation"]')).toHaveCount(0);
   await expect(opener).toBeFocused();
 });
 
@@ -234,21 +234,15 @@ for (const [width, height] of [[360, 800], [390, 844], [568, 400], [844, 390], [
     await expect(page.getByRole("textbox")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "По времени" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Прогулка", exact: true })).toBeVisible();
-    await expect(page.locator(".creation-letter")).toHaveCount(0);
-    const panel = await page.locator(".creation-panel").boundingBox();
+    const panel = await page.locator('[data-sheet="creation"]').boundingBox();
     expect(panel!.height).toBeLessThanOrEqual(240);
     const nav = await page.getByRole("navigation", { name: "Основная навигация" }).boundingBox();
-    expect(Math.abs(panel!.x + panel!.width / 2 - width / 2)).toBeLessThanOrEqual(1);
-    const surface = await page.locator("body").evaluate(el => getComputedStyle(el).backgroundColor);
-    for (const selector of [".creation-panel"]) {
-      expect(await page.locator(selector).evaluate(el => getComputedStyle(el).backgroundColor)).toBe(surface);
-    }
     expect(panel!.y + panel!.height).toBeLessThanOrEqual(nav!.y);
     for (const item of await page.getByRole("navigation").locator("a,button").all()) {
       const box = await item.boundingBox();
       expect(box!.y + box!.height).toBeLessThanOrEqual(height);
     }
-    await expect(page.locator(".around-bottom")).toBeHidden();
+    await expect(page.locator('[data-sheet]:not([data-sheet="creation"])')).toHaveCount(0);
     await page.screenshot({ path: info.outputPath("creation.png") });
   });
 }
@@ -266,7 +260,7 @@ for (const width of [390, 1440]) {
     const finishBox = await page.getByRole("button", { name: "Куда", exact: true }).boundingBox();
     expect(menuBox!.y).toBeGreaterThanOrEqual(startBox!.y + startBox!.height - 1);
     expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(finishBox!.y);
-    expect((await page.locator(".creation-panel").boundingBox())!.height).toBeLessThan(430);
+    expect((await page.locator('[data-sheet="creation"]').boundingBox())!.height).toBeLessThan(430);
     expect(await start.evaluate(el => getComputedStyle(el).outlineOffset)).toBe("-3px");
     await page.screenshot({ path: info.outputPath("start-options.png") });
     await page.keyboard.press("Escape");
@@ -288,7 +282,7 @@ test("ручной адрес подтверждается кнопкой без
   const input = page.getByRole("textbox", { name: "Куда", exact: true });
   await input.fill("Дербеневская 3");
   await page.getByRole("button", { name: "Подтвердить адрес" }).click();
-  await expect(page.locator(".creation-panel").getByRole("alert")).toContainText("Уточните номер дома");
+  await expect(page.locator('[data-sheet="creation"]').getByRole("alert")).toContainText("Уточните номер дома");
   await expect(input).toHaveValue("Дербеневская 3");
   await input.press("Enter");
   await expect(page.getByRole("button", { name: "Куда", exact: true })).toContainText("Москва, Дербеневская улица, 3");
@@ -314,8 +308,8 @@ test("время имеет мягкий акцент, а Готово подт�
 test("карточка выбранного дома не оставляет пустую строку над адресом", async ({ page }, info) => {
   await page.route("**/api/story-place?*", route => route.fulfill({ json: { address: "Москва, 1-й Дербеневский переулок, 5", location: { lat: 55.725, lon: 37.65 } } }));
   await page.goto("/");
-  await expect(page.locator(".map-loading")).toHaveCount(0);
-  await page.locator(".explore-map").click({ position: { x: 180, y: 200 } });
+  await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
+  await page.locator(`[data-region="map"]`).click({ position: { x: 180, y: 200 } });
   const title = page.getByRole("heading", { name: "Москва, 1-й Дербеневский переулок, 5", exact: true });
   await expect(title).toBeVisible();
   const card = await page.locator('[aria-labelledby="new-place-title"]').boundingBox();
@@ -330,12 +324,12 @@ test("карточка выбранного дома не оставляет п�
 
 test("длинная история прокручивается внутри карточки, закрытие и плеер остаются на месте", async ({ page }, info) => {
   const story = await openLongStory(page);
-  const card = page.locator(".around-story-card");
+  const card = page.locator('[data-sheet="story"]');
   const close = page.getByRole("button", { name: "Закрыть карточку", exact: true });
   const audio = card.locator("audio");
   const state = () => story.evaluate(el => {
     const style = getComputedStyle(el);
-    return { fadeTop: style.getPropertyValue("--around-fade-top"), fadeBottom: style.getPropertyValue("--around-fade-bottom"), rest: el.scrollHeight - el.clientHeight - el.scrollTop };
+    return { fadeTop: style.getPropertyValue("--fade-top"), fadeBottom: style.getPropertyValue("--fade-bottom"), rest: el.scrollHeight - el.clientHeight - el.scrollTop };
   });
   const before = { close: await close.boundingBox(), audio: await audio.boundingBox(), card: await card.boundingBox() };
   expect(await card.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
@@ -363,9 +357,9 @@ for (const [width, height, insets] of shortPortraits) {
     const story = await openLongStory(page);
     // Текст прокручивается внутри, значит, карточка упёрлась в свою наибольшую высоту.
     expect(await story.evaluate(el => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
-    expect(await page.locator(".around-story-card").evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
-    const sheet = (await page.locator(".around-bottom").boundingBox())!;
-    for (const control of [page.getByRole("button", { name: "Моё местоположение", exact: true }), page.locator(".explore-map .leaflet-control-zoom")]) {
+    expect(await page.locator('[data-sheet="story"]').evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
+    const sheet = (await page.locator('[data-sheet="story"]').boundingBox())!;
+    for (const control of [page.getByRole("button", { name: "Моё местоположение", exact: true }), page.getByRole("group", { name: "Масштаб карты" })]) {
       const box = (await control.boundingBox())!;
       expect(sheet.y - (box.y + box.height)).toBeGreaterThanOrEqual(8);
     }
@@ -373,51 +367,23 @@ for (const [width, height, insets] of shortPortraits) {
   });
 }
 
-test("подпись карты размером 11 пикселей без подчёркивания", async ({ page }) => {
+test("подпись карты размером 11 пикселей без подчёркивания прижата к верхнему краю", async ({ page }) => {
   await page.goto("/");
-  const attribution = page.getByRole("link", { name: "© OpenStreetMap", exact: true });
+  const attribution = page.getByRole("link", { name: "OpenStreetMap", exact: true });
+  expect((await attribution.boundingBox())!.y).toBeLessThanOrEqual(1);
   await expect(attribution).toBeVisible();
   expect(await attribution.evaluate(el => ({ size: getComputedStyle(el).fontSize, decoration: getComputedStyle(el).textDecorationLine }))).toEqual({ size: "11px", decoration: "none" });
   await expect(attribution).toHaveAttribute("href", "https://www.openstreetmap.org/copyright");
 });
 
-for (const [width, height, expectedGap] of [[390, 844, 20], [1440, 900, 12], [568, 400, 20]]) {
-  test(`карточка близко к навигации ${width}`, async ({ page }) => {
-    await page.setViewportSize({ width, height });
-    await page.route("**/api/story-place?*", route => route.fulfill({ json: { address: "Москва, Дербеневская улица, 3", location: { lat: 55.725, lon: 37.65 } } }));
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Смотрите истории рядом с вами", exact: true })).toBeVisible();
-    const card = await page.locator(".around-bottom").boundingBox();
-    const nav = await page.getByRole("navigation", { name: "Основная навигация" }).boundingBox();
-    expect(Math.abs(nav!.y - card!.y - card!.height - expectedGap)).toBeLessThanOrEqual(1);
-  });
-}
-
-// Горизонтальный телефон: шапка и карточка — две колонки по краям навигации, в том числе шире 700 px.
-for (const [width, height] of [[667, 375], [740, 360], [844, 390], [932, 430]]) {
-  test(`шапка и карточка стоят по краям навигации ${width}×${height}`, async ({ page }, info) => {
-    await page.setViewportSize({ width, height });
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Смотрите истории рядом с вами", exact: true })).toBeVisible();
-    const nav = (await page.getByRole("navigation", { name: "Основная навигация" }).boundingBox())!;
-    const header = (await page.locator(".around-header").boundingBox())!;
-    const card = (await page.locator(".around-bottom").boundingBox())!;
-    expect(nav.x).toBeGreaterThanOrEqual(0);
-    expect(nav.x + nav.width).toBeLessThanOrEqual(width);
-    expect(header.x).toBeCloseTo(nav.x, 0);
-    // Колонки разнесены по горизонтали, поэтому не пересекаются при любой высоте карточки.
-    expect(header.x + header.width).toBeLessThanOrEqual(card.x);
-    expect(card.x + card.width).toBeCloseTo(nav.x + nav.width, 0);
-    await page.screenshot({ path: info.outputPath("landscape-map.png") });
-
-    // Поиск расширяет шапку вправо: она не сдвигается и не выходит за край навигации.
-    await page.getByRole("button", { name: "Найти адрес", exact: true }).click();
-    await expect(page.getByRole("textbox", { name: "Какой дом вас интересует?", exact: true })).toBeVisible();
-    const search = (await page.locator(".around-header").boundingBox())!;
-    expect(search.x).toBeCloseTo(header.x, 0);
-    expect(search.x + search.width).toBeLessThanOrEqual(nav.x + nav.width);
-  });
-}
+test("подпись карты сворачивается при касании карты и открывается кнопкой", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
+  await page.locator('[data-region="map"]').dispatchEvent("pointerdown");
+  await expect(page.getByRole("link", { name: "OpenStreetMap", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Источник данных карты" }).click();
+  await expect(page.getByRole("link", { name: "OpenStreetMap", exact: true })).toBeFocused();
+});
 
 test("выбор на карте показывает понятный заголовок и контурную отмену", async ({ page }, info) => {
   await page.goto("/?walk=create");
@@ -431,7 +397,7 @@ test("выбор на карте показывает понятный заго�
   await cancel.click();
   await expect(page.getByRole("heading", { name: "Прогулка", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Откуда", exact: true })).toBeVisible();
-  await expect(page.locator(".creation-panel.is-picking")).toHaveCount(0);
+  await expect(page.locator('[data-sheet="creation"][data-state="picking"]')).toHaveCount(0);
 });
 
 for (const endpoint of ["Откуда", "Куда"]) {
@@ -463,12 +429,12 @@ test("клик карты после создания от дома задаёт
   await page.locator('[title="Стартовый дом"]').click();
   await page.getByRole("link", { name: "Создать прогулку отсюда" }).click();
   await expect(page.getByRole("button", { name: "Откуда", exact: true })).toContainText(start);
-  await page.locator(".explore-map").click({ position: { x: 150, y: 200 } });
+  await page.locator(`[data-region="map"]`).click({ position: { x: 150, y: 200 } });
   await expect(page.getByRole("button", { name: "Куда", exact: true })).toContainText(finish);
   await expect(page.getByRole("button", { name: "Откуда", exact: true })).toContainText(start);
   await page.getByRole("button", { name: "Откуда", exact: true }).click();
   await page.getByRole("button", { name: "Выбрать на карте", exact: true }).click();
-  await page.locator(".explore-map").click({ position: { x: 160, y: 210 } });
+  await page.locator(`[data-region="map"]`).click({ position: { x: 160, y: 210 } });
   await expect(page.getByRole("button", { name: "Откуда", exact: true })).toContainText(finish);
 });
 
@@ -479,7 +445,7 @@ test("достопримечательности остаются компакт
   await expect(pin).toBeVisible();
   await page.getByRole("link", { name: "Прогулка", exact: true }).click();
   await expect(pin).toBeVisible();
-  await expect(pin).toHaveClass(/explore-dot/);
+  await expect(pin).toHaveAttribute("data-marker", "dot");
   await expect.poll(async () => {
     const dot = await pin.locator("span").boundingBox();
     return dot !== null && dot.width >= 24 && dot.width <= 28;
@@ -540,8 +506,8 @@ for (const [width, height] of [[390, 844], [1280, 800], [1440, 900]]) {
     const place = { address: "Москва, Павелецкая площадь, 1А", location: { lat: 55.729754, lon: 37.639359 } };
     await page.route("**/api/story-place?*", route => route.fulfill({ json: place }));
     await page.goto("/?walk=create");
-    await expect(page.locator(".map-loading")).toHaveCount(0);
-    const panel = page.locator(".creation-panel");
+    await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
+    const panel = page.locator('[data-sheet="creation"]');
     const before = (await panel.boundingBox())!;
     // Точка вне панели и навигации: слева сверху от центра карты.
     await page.mouse.click(Math.max(24, before.x - 40), before.y > 200 ? 160 : before.y + before.height + 40);
@@ -549,7 +515,7 @@ for (const [width, height] of [[390, 844], [1280, 800], [1440, 900]]) {
     // Leaflet пересоздаёт отметки при обновлении слоя: меряем всё в одном кадре.
     const layout = () => page.evaluate(address => {
       const box = (element: Element | null) => element ? element.getBoundingClientRect().toJSON() as { x: number; y: number; width: number; height: number } : null;
-      return { marker: box(document.querySelector(`.leaflet-marker-icon[title="${address}"]`)), panel: box(document.querySelector(".creation-panel")), nav: box(document.querySelector('nav[aria-label="Основная навигация"]')) };
+      return { marker: box(document.querySelector(`.leaflet-marker-icon[title="${address}"]`)), panel: box(document.querySelector('[data-sheet="creation"]')), nav: box(document.querySelector('nav[aria-label="Основная навигация"]')) };
     }, place.address);
     const overlaps = (a: { x: number; y: number; width: number; height: number }, b: typeof a) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
     await expect.poll(async () => {
@@ -561,3 +527,23 @@ for (const [width, height] of [[390, 844], [1280, 800], [1440, 900]]) {
     }).toBe("видна");
   });
 }
+
+// Chromium отдаёт эмулированную позицию сразу; точность задаёт, будет ли поиск рядом.
+// Неточная точка не улучшается, поэтому итог приходит после окна уточнения (6 с).
+for (const [accuracy, expected] of [[20, "В радиусе 200 м"], [150, "В радиусе 200 м"], [280, "В радиусе 300 м"], [800, "Положение приблизительное: точность около 800 м"]] as const) {
+  test(`кнопка «Моё местоположение» при точности ${accuracy} м`, async ({ page, context }) => {
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 55.7249, longitude: 37.6507, accuracy });
+    await page.goto("/");
+    await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
+    await page.getByRole("button", { name: "Моё местоположение", exact: true }).click();
+    await expect(page.getByText(expected)).toBeVisible({ timeout: 10_000 });
+  });
+}
+
+test("кнопка «Моё местоположение» объясняет запрет геолокации", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
+  await page.getByRole("button", { name: "Моё местоположение", exact: true }).click();
+  await expect(page.getByText("Нет доступа к геолокации. Можно разрешить его в настройках или выбрать место на карте.")).toBeVisible();
+});

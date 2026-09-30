@@ -9,22 +9,49 @@ let root: Root;
 let container: HTMLDivElement;
 
 const items = (): MapItem[] => [
-  { id: "a", title: "Остановка 1: Дом", location: { lat: 55.75, lon: 37.6 }, number: 1 },
-  { id: "b", title: "Остановка 2: Сад", location: { lat: 55.751, lon: 37.601 }, number: 2 },
+  {
+    id: "a",
+    title: "Остановка 1: Дом",
+    location: { lat: 55.75, lon: 37.6 },
+    number: 1,
+  },
+  {
+    id: "b",
+    title: "Остановка 2: Сад",
+    location: { lat: 55.751, lon: 37.601 },
+    number: 2,
+  },
 ];
 
 async function render(value: MapItem[], selectedId?: string) {
   await act(async () => {
-    root.render(createElement(ExploreMap, { items: value, selectedId, focus: null, user: null, onSelect: () => {}, onPoint: () => {} }));
+    root.render(
+      createElement(ExploreMap, {
+        items: value,
+        selectedId,
+        focus: null,
+        user: null,
+        onSelect: () => {},
+        onPoint: () => {},
+      }),
+    );
   });
 }
 
-const pins = () => [...container.querySelectorAll<HTMLElement>(".explore-pin")];
+const pins = () => [
+  ...container.querySelectorAll<HTMLElement>('[data-marker="pin"]'),
+];
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("matchMedia", () => ({ matches: true }));
-  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
   vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(800);
   vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(600);
   container = document.createElement("div");
@@ -33,7 +60,9 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  await act(async () => { root.unmount(); });
+  await act(async () => {
+    root.unmount();
+  });
   container.remove();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -51,7 +80,7 @@ it("keeps marker elements and keyboard focus across re-renders and selection", a
 
   await render(items(), "a");
   expect(pins()[0]).toBe(first);
-  expect(first.classList.contains("selected")).toBe(true);
+  expect(first.getAttribute("data-selected")).toBe("true");
   expect(first.getAttribute("aria-pressed")).toBe("true");
   expect(document.activeElement).toBe(first);
 
@@ -63,7 +92,7 @@ it("keeps marker elements and keyboard focus across re-renders and selection", a
 
 it("exposes the map as a labelled region", async () => {
   await render(items());
-  const map = container.querySelector(".explore-map");
+  const map = container.querySelector('[data-region="map"]');
   expect(map?.getAttribute("role")).toBe("region");
   expect(map?.getAttribute("aria-label")).toMatch(/^Карта историй/);
 });
@@ -71,9 +100,17 @@ it("exposes the map as a labelled region", async () => {
 const catalog = (): MapItem[] => [
   { id: "c", title: "Каталог: дом", location: { lat: 55.7249, lon: 37.6507 } },
   { id: "d", title: "Каталог: сад", location: { lat: 55.7249, lon: 37.6507 } },
-  { id: "e", title: "Каталог: башня", location: { lat: 55.7249, lon: 37.6507 }, compact: true },
+  {
+    id: "e",
+    title: "Каталог: башня",
+    location: { lat: 55.7249, lon: 37.6507 },
+    compact: true,
+  },
 ];
-const counts = () => [...container.querySelectorAll<HTMLElement>("[data-cluster-count]")].map(node => Number(node.dataset.clusterCount));
+const counts = () =>
+  [...container.querySelectorAll<HTMLElement>("[data-cluster-count]")].map(
+    (node) => Number(node.dataset.clusterCount),
+  );
 
 it("clusters catalog pages, updates counts after removal, and keeps route stops separate", async () => {
   await render([...catalog().slice(0, 2), ...items()]);
@@ -81,32 +118,53 @@ it("clusters catalog pages, updates counts after removal, and keeps route stops 
   expect(pins()).toHaveLength(2);
   await render([...catalog(), ...items()]);
   expect(counts()).toEqual([3]);
-  expect(container.querySelector(".explore-cluster")?.getAttribute("aria-label")).toBe("Мест: 3. Нажмите, чтобы раскрыть группу");
+  expect(
+    container
+      .querySelector('[data-marker="cluster"]')
+      ?.getAttribute("aria-label"),
+  ).toBe("Мест: 3. Нажмите, чтобы раскрыть группу");
   await render([...catalog().slice(1), ...items()]);
   expect(counts()).toEqual([2]);
   await render(items());
   expect(counts()).toEqual([]);
-  expect(pins().map(pin => pin.title)).toEqual(items().map(item => item.title));
+  expect(pins().map((pin) => pin.title)).toEqual(
+    items().map((item) => item.title),
+  );
 });
 
 it("keeps selected and pending places outside clusters and restores groups on deselection", async () => {
-  const pending = { id: "pending", title: "Готовим историю", location: catalog()[0].location, pending: true };
+  const pending = {
+    id: "pending",
+    title: "Готовим историю",
+    location: catalog()[0].location,
+    pending: true,
+  };
   await render([...catalog(), pending], "c");
   await vi.waitFor(() => expect(counts()).toEqual([2]));
-  expect(pins().map(pin => pin.title)).toEqual(["Каталог: дом", "Готовим историю"]);
+  expect(pins().map((pin) => pin.title)).toEqual([
+    "Каталог: дом",
+    "Готовим историю",
+  ]);
   expect(pins()[0].getAttribute("aria-pressed")).toBe("true");
   await render([...catalog(), pending]);
   expect(counts()).toEqual([3]);
-  expect(pins().map(pin => pin.title)).toEqual(["Готовим историю"]);
+  expect(pins().map((pin) => pin.title)).toEqual(["Готовим историю"]);
 });
 
 it("reindexes a catalog marker after its source coordinates change", async () => {
   const places = catalog().slice(0, 2);
   await render(places);
   await vi.waitFor(() => expect(counts()).toEqual([2]));
-  await render([places[0], { ...places[1], location: { lat: 55.7249, lon: 37.6537 } }]);
+  await render([
+    places[0],
+    { ...places[1], location: { lat: 55.7249, lon: 37.6537 } },
+  ]);
   expect(counts()).toEqual([]);
-  expect(pins().map(pin => pin.title).sort()).toEqual(places.map(place => place.title).sort());
+  expect(
+    pins()
+      .map((pin) => pin.title)
+      .sort(),
+  ).toEqual(places.map((place) => place.title).sort());
   await render(places);
   expect(counts()).toEqual([2]);
 });

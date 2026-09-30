@@ -1,0 +1,67 @@
+.controls {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  pointer-events: none;
+}
+
+.controls > * {
+  pointer-events: auto;
+}
+
+.button,
+.zoomButton {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--control-min);
+  height: var(--control-min);
+  padding: 0;
+  color: var(--map-green);
+  background: var(--surface-island);
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button {
+  border-radius: 50%;
+  box-shadow: var(--shadow-control);
+}
+
+.button:disabled,
+.zoomButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.button:focus-visible,
+.zoomButton:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.button svg,
+.zoomButton svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.zoom {
+  display: flex;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-control);
+}
+
+.zoomButton + .zoomButton {
+  border-left: 1px solid var(--border-island);
+}
+
+.zoomButton:focus-visible {
+  outline-offset: -3px;
+}

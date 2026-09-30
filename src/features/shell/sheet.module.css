@@ -1,0 +1,135 @@
+/* Density comes from the map shell (--sheet-pad, --sheet-gap); the fallbacks are the roomy look. */
+.sheet {
+  container: sheet / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sheet-gap, 0.75rem);
+  min-height: 0;
+  max-height: 100%;
+  padding: var(--sheet-pad, 1.25rem);
+  overflow: hidden;
+  pointer-events: auto;
+  color: var(--map-green);
+  background: var(--surface-island);
+  border: 1px solid var(--border-island);
+  border-radius: var(--radius-island);
+  box-shadow: var(--shadow-island);
+}
+
+.header,
+.footer {
+  flex: none;
+  min-width: 0;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: stretch;
+}
+
+/* The only scroll area. The scrollbar sits in the sheet's right padding and never touches the rounded corners. */
+.body {
+  flex: 0 1 auto;
+  min-height: 0;
+  margin-right: calc(-1 * var(--sheet-pad, 1.25rem) + 0.25rem);
+  padding-right: calc(var(--sheet-pad, 1.25rem) - 0.25rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.body:focus-visible {
+  outline: none;
+}
+
+.sheet:has(> .body:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: -3px;
+}
+
+.content > :last-child {
+  margin-bottom: 0;
+}
+
+/* With a mouse Chrome draws the standard thin bar with arrows and ignores ::-webkit-scrollbar
+   once scrollbar-width/color are set, so Chrome and Safari reset them and draw one thumb. */
+@media (hover: hover) and (pointer: fine) {
+  @supports selector(::-webkit-scrollbar) {
+    .body {
+      scrollbar-width: auto;
+      scrollbar-color: auto;
+    }
+
+    .body::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    .body::-webkit-scrollbar-thumb {
+      border: 3px solid transparent;
+      border-radius: 6px;
+      background: var(--scrollbar-thumb) padding-box;
+    }
+
+    .body::-webkit-scrollbar-thumb:hover {
+      background-color: var(--scrollbar-thumb-hover);
+    }
+
+    .body::-webkit-scrollbar-thumb:active {
+      background-color: var(--scrollbar-thumb-active);
+    }
+  }
+}
+
+/* The edge of the text fades only while more text hides behind it, and by at most a fifth of the
+   height so a low screen keeps its visible lines. The right strip of the mask, as wide as the
+   scrollbar gutter, keeps the thumb opaque. The build expands the `animation` shorthand with
+   animation-duration: 0s, which freezes a scroll-driven animation on its last frame, so only
+   longhand properties are used. */
+@property --fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes fadeTop {
+  to {
+    --fade-top: 28px;
+  }
+}
+
+@keyframes fadeBottom {
+  from {
+    --fade-bottom: 28px;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .body {
+    mask:
+      linear-gradient(
+        transparent,
+        var(--mask-opaque) min(var(--fade-top), 20%)
+          calc(100% - min(var(--fade-bottom), 20%)),
+        transparent
+      ),
+      linear-gradient(var(--mask-opaque) 0 0) 100% 0 / 12px 100% no-repeat;
+    animation-name: fadeTop, fadeBottom;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(self);
+    animation-range:
+      0 28px,
+      calc(100% - 28px) 100%;
+  }
+}

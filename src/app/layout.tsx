@@ -1,6 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { AppNavigation } from "@/features/navigation/app-navigation";
-import "./globals.css";
+import "@/styles/tokens.css";
+import "@/styles/base.css";
+import "@/styles/ui.css";
+import "@/styles/legacy.css";
 
 export const metadata: Metadata = {
   icons: { icon: "/icon.svg" },
@@ -15,6 +18,9 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
 };
+
+// The page draws under notches and the home indicator; safe-area tokens keep content clear of them.
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

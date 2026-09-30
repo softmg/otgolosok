@@ -255,7 +255,7 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
   const toggleSources = () => setShowSources((value) => !value);
 
   return (
-    <main className={universal ? "walk-session" : isWalking ? "shell" : "around-shell"} data-mode={isWalking ? "walk" : "reading"}>
+    <main className={universal ? "walk-session" : isWalking ? "shell" : undefined} data-mode={isWalking ? "walk" : "reading"}>
       {!universal && isWalking ? <header className="masthead">
         <Link className="wordmark" href="/" aria-label="Отголосок, на главную">
           <BrandMark />

@@ -24,7 +24,7 @@ test("превью открывает фото с автором, удержив
   const trigger = page.getByRole("button", { name: `Открыть фото: ${title}` });
   await expect(trigger.locator("img")).toHaveJSProperty("naturalWidth", 250);
   expect(fullRequests).toHaveLength(0);
-  const audio = await page.locator(".around-story-card audio").elementHandle();
+  const audio = await page.locator('[data-sheet="story"] audio').elementHandle();
   await trigger.click();
   const viewer = page.getByRole("dialog", { name: title, exact: true });
   await expect(viewer).toBeVisible();
@@ -55,7 +55,7 @@ test("ошибка превью возвращает полную ширину �
   await page.route(`**${photo.thumbnail}`, route => route.fulfill({ status: 404, body: "" }));
   await openPlace(page);
   await expect(page.getByRole("button", { name: /^Открыть фото:/ })).toHaveCount(0);
-  await expect(page.locator(".place-photo-heading")).toHaveCount(0);
+  await expect(page.locator('[data-photo-heading]')).toHaveCount(0);
   await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
 });
 
@@ -82,7 +82,7 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 844, height: 390 }
     await expect(trigger).toBeVisible();
     expect(await trigger.evaluate(button => {
       const photoBounds = button.getBoundingClientRect();
-      const scrollBounds = button.closest(".around-story-scroll")!.getBoundingClientRect();
+      const scrollBounds = button.closest('[data-sheet-part="body"]')!.getBoundingClientRect();
       return photoBounds.top >= scrollBounds.top && photoBounds.bottom <= scrollBounds.bottom && photoBounds.height >= 44;
     })).toBe(true);
     expect(await page.locator("#selected-place-title").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);

@@ -5,6 +5,7 @@ import { terminalStages } from "../generator/types";
 import { applyResearch, readResearchJob, researchKey, researchLookup, researchMatches, type Draft, type ResearchJob, type ResearchRef } from "./model";
 import { request, RequestError } from "./request";
 import { toUserMessage } from "@/lib/errors/user-message";
+import styles from "./walk-creation-panel.module.css";
 
 const phases = { discovery: "Ищем адреса поблизости", research: "Проверяем источники об адресах", routing: "Соединяем подтверждённые остановки", narration: "Готовим тексты и аудио", complete: "Прогулка готова" };
 
@@ -100,25 +101,25 @@ export function ResearchPanel({ draft, current, persist, offered, disabled, choo
   const visibleJob = job && job.id === ref?.id ? job : null;
   const matches = !!ref && researchMatches(draft, ref);
   const canStart = (offered && (!ref || !matches || missing)) || (missing && matches);
-  return <section aria-labelledby="walk-research">
+  return <section className={styles.research} aria-labelledby="walk-research">
     <h2 id="walk-research">Исследование района</h2>
     {offered ? <p>Для автоматического маршрута пока недостаточно готовых остановок. Можно поискать подтверждённые истории рядом или выбрать другое начало.</p> : null}
     {ref ? <p>Начало исследования: <strong>{ref.request.start.address}</strong>. {ref.request.minutes} мин пешком, {ref.request.mode === "loop" ? "с возвращением" : "без возвращения"}.</p> : null}
-    {visibleJob ? <div role="status" aria-live="polite"><p><strong>{terminalStages.has(visibleJob.stage) && visibleJob.stage !== "ready" ? "Исследование остановлено" : visibleJob.stage === "queued" ? "Ждём своей очереди" : phases[visibleJob.phase]}</strong></p>{visibleJob.progress.total > 0 ? <p>Проверено адресов: {visibleJob.progress.checked} из {visibleJob.progress.total}. С подтверждениями: {visibleJob.progress.accepted}.</p> : null}{visibleJob.error ? <p className="walk-warning">{visibleJob.error.message}</p> : null}</div> : ref && !missing ? <p role="status">{ref.id ? "Проверяем сохранённое исследование…" : "Отправка сохранена. Можно проверить статус сейчас или при возвращении, без новой отправки."}</p> : null}
+    {visibleJob ? <div role="status" aria-live="polite"><p><strong>{terminalStages.has(visibleJob.stage) && visibleJob.stage !== "ready" ? "Исследование остановлено" : visibleJob.stage === "queued" ? "Ждём своей очереди" : phases[visibleJob.phase]}</strong></p>{visibleJob.progress.total > 0 ? <p>Проверено адресов: {visibleJob.progress.checked} из {visibleJob.progress.total}. С подтверждениями: {visibleJob.progress.accepted}.</p> : null}{visibleJob.error ? <p className={styles.warning}>{visibleJob.error.message}</p> : null}</div> : ref && !missing ? <p role="status">{ref.id ? "Проверяем сохранённое исследование…" : "Отправка сохранена. Можно проверить статус сейчас или при возвращении, без новой отправки."}</p> : null}
     {ref && !ref.id ? <button onClick={() => {
       if (actionRef.current || posting.current) return;
       initial.current = current.current.research;
       setRestore(n => n + 1);
     }}>Проверить статус</button> : null}
-    {error ? <p className="walk-warning" role="alert">{error}</p> : null}
-    {ref ? <details className="creation-details"><summary>Как продолжить позже</summary><p>Исследование продолжается после закрытия страницы. Вернитесь к прогулке из истории в этом браузере. Если сохранить черновик не удалось, скачайте его перед уходом.</p>{ref.id && <p className="walk-muted">ID исследования: {ref.id}</p>}</details> : null}
+    {error ? <p className={styles.warning} role="alert">{error}</p> : null}
+    {ref ? <details className={styles.details}><summary>Как продолжить позже</summary><p>Исследование продолжается после закрытия страницы. Вернитесь к прогулке из истории в этом браузере. Если сохранить черновик не удалось, скачайте его перед уходом.</p>{ref.id && <p className={styles.muted}>ID исследования: {ref.id}</p>}</details> : null}
     {ref && !matches && !draft.researchApplied ? <p>Параметры или остановки изменены. Сохранённое исследование остаётся доступно, но его маршрут нельзя применить к этой версии прогулки.</p> : null}
     {canStart || visibleJob?.canRetry ? <>
       <p>Проверим не более 3 адресов поблизости. Подтверждений может не хватить, и прогулка не гарантирована. Время подготовки заранее неизвестно. Исследование и повтор расходуют общий лимит сервиса.</p>
-      <label className="walk-check"><input type="checkbox" checked={consent} disabled={disabled} onChange={e => setConsent(e.target.checked)} /> Разрешаю передать координаты картографическому сервису, адреса провайдерам исследования, а также автоматически подготовить тексты и аудио для найденного маршрута.</label>
-      <div className="walk-actions">{canStart ? <button className="walk-primary" disabled={disabled || !consent} onClick={() => void submit()}>Исследовать район</button> : null}{visibleJob?.canRetry ? <button disabled={disabled || !consent} onClick={() => void submit(true)}>Продолжить исследование</button> : null}</div>
+      <label className={styles.check}><input type="checkbox" checked={consent} disabled={disabled} onChange={e => setConsent(e.target.checked)} /> Разрешаю передать координаты картографическому сервису, адреса провайдерам исследования, а также автоматически подготовить тексты и аудио для найденного маршрута.</label>
+      <div className={styles.actions}>{canStart ? <button className={styles.primaryAction} disabled={disabled || !consent} onClick={() => void submit()}>Исследовать район</button> : null}{visibleJob?.canRetry ? <button disabled={disabled || !consent} onClick={() => void submit(true)}>Продолжить исследование</button> : null}</div>
     </> : null}
-    {visibleJob?.stage === "ready" && !draft.researchApplied ? <><p>Применение сохранит готовый маршрут и ссылки на истории. Новые исследования, тексты или аудио при этом не заказываются.</p><button className="walk-primary" disabled={disabled || !matches} onClick={() => {
+    {visibleJob?.stage === "ready" && !draft.researchApplied ? <><p>Применение сохранит готовый маршрут и ссылки на истории. Новые исследования, тексты или аудио при этом не заказываются.</p><button className={styles.primaryAction} disabled={disabled || !matches} onClick={() => {
       try { if (persist(applyResearch(current.current, visibleJob))) onApply(); }
       catch (caught) { setError(toUserMessage(caught, "Не удалось применить прогулку.")); }
     }}>Использовать прогулку</button></> : null}

@@ -11,7 +11,8 @@
     "dev:https": "next dev --experimental-https",
     "build": "node scripts/build-walk-catalog.mjs && next build && node scripts/build-content-security-policy.mjs && node scripts/build-service-worker.mjs",
     "start": "serve out",
-    "lint": "eslint",
+    "lint": "eslint && stylelint \"src/**/*.css\" && prettier --check \"src/**/*.css\"",
+    "format:css": "prettier --write \"src/**/*.css\" && stylelint --fix \"src/**/*.css\"",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.backend.json",
     "test": "vitest run && node --test backend/*.test.mjs",
     "test:py": "uv run ruff check . && uv run pyright && uv run pytest -q",
@@ -21,10 +22,12 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@maplibre/maplibre-gl-leaflet": "0.1.4",
     "@softmg/airouter-logs": "file:vendor/softmg-airouter-logs-0.1.0.tgz",
     "better-auth": "1.7.5",
     "leaflet": "1.9.4",
     "leaflet.markercluster": "1.5.3",
+    "maplibre-gl": "5.24.0",
     "next": "16.3.4",
     "pdfjs-dist": "5.4.624",
     "react": "19.2.8",
@@ -32,6 +35,7 @@
     "undici": "8.11.0"
   },
   "devDependencies": {
+    "@maplibre/maplibre-gl-style-spec": "24.10.0",
     "@playwright/test": "^1.63.0",
     "@types/leaflet": "^1.9.22",
     "@types/leaflet.markercluster": "^1.5.6",
@@ -41,7 +45,11 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "jsdom": "^30.1.1",
+    "prettier": "^3.9.9",
     "serve": "14.2.6",
+    "stylelint": "^17.15.0",
+    "stylelint-config-css-modules": "^4.6.0",
+    "stylelint-config-standard": "^40.0.0",
     "typescript": "^5",
     "vitest": "^5.0.0"
   },

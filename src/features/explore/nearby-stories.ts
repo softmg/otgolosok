@@ -4,6 +4,11 @@ import type { Coordinates, Route } from "../tour/types";
 export const nearbyRadii = [100, 200, 300] as const;
 export type NearbyRadius = typeof nearbyRadii[number];
 
+// Наименьший радиус, который перекрывает погрешность позиции; null — точка слишком грубая для поиска рядом.
+export function nearbyRadiusForAccuracy(accuracyM: number): NearbyRadius | null {
+  return nearbyRadii.find((radius) => accuracyM <= radius) ?? null;
+}
+
 export type NearbyStory = {
   id: string;
   title: string;

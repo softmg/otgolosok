@@ -1,0 +1,181 @@
+/*
+ * The only place that knows the screen size of map screens. Two modes:
+ * stack (header, controls, free map, dock — one column) and side (dock as a right column).
+ * Feature styles never position against the viewport; they live inside these regions.
+ */
+.shell {
+  --sheet-pad: 1.25rem;
+  --sheet-gap: 0.75rem;
+  --sheet-action-h: var(--control-primary-min);
+
+  /* The attribution line at the top edge and the gap under it. */
+  --attribution-strip: 1.25rem;
+
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--map-green);
+  background: var(--surface-map);
+  font-family: var(--font-body), sans-serif;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-map);
+}
+
+.frame {
+  container: shell / size;
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-map-ui);
+  display: grid;
+  grid-template:
+    "header" minmax(0, auto)
+    "controls" auto
+    "free" minmax(var(--map-min-free), 1fr)
+    "dock" minmax(0, auto)
+    / minmax(0, 1fr);
+  gap: var(--shell-gap);
+  padding: calc(var(--safe-top) + var(--attribution-strip))
+    max(var(--shell-gutter), var(--safe-right)) var(--nav-clearance)
+    max(var(--shell-gutter), var(--safe-left));
+  pointer-events: none;
+}
+
+.header,
+.controls,
+.dock {
+  justify-self: center;
+  width: min(var(--island-max), 100%);
+  min-width: 0;
+}
+
+.header {
+  grid-area: header;
+  max-height: 100%;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+  background: var(--surface-island-glass);
+  border: 1px solid var(--border-island);
+  border-radius: var(--radius-island);
+  box-shadow: var(--shadow-island);
+}
+
+.controls {
+  grid-area: controls;
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Pinned to the top edge, outside the grid: the frame's top padding keeps its strip free. */
+.attribution {
+  position: absolute;
+  top: var(--safe-top);
+  right: max(0.25rem, var(--safe-right));
+}
+
+.free {
+  grid-area: free;
+  min-height: 0;
+}
+
+/* Bottom-anchored: an oversized sheet shrinks and scrolls its body instead of pushing anything. */
+.dock {
+  grid-area: dock;
+  display: flex;
+  flex-direction: column;
+  gap: var(--shell-gap);
+  justify-content: flex-end;
+  min-height: 0;
+}
+
+.dock > * {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+.notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--shell-gap);
+  max-height: 40%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dock > .notices {
+  flex: none;
+}
+
+.notices > * {
+  flex: none;
+  pointer-events: auto;
+}
+
+/* Short screens: denser islands, controls stay at least 44 px. */
+@media (height <= 560px) {
+  .shell {
+    --sheet-pad: 0.75rem;
+    --sheet-gap: 0.5rem;
+    --sheet-action-h: var(--control-min);
+    --text-sheet-title: var(--text-body);
+    --sheet-action-pad: 0.375rem;
+  }
+}
+
+@media (width >= 700px), (width >= 568px) and (height <= 560px) {
+  .frame {
+    grid-template:
+      "header dock" auto
+      "controls dock" auto
+      "free dock" minmax(0, 1fr)
+      / minmax(17.5rem, 1fr) minmax(0, var(--sheet-w));
+  }
+
+  .frame[data-dock="none"] {
+    grid-template-areas:
+      "header header"
+      "controls controls"
+      "free free";
+  }
+
+  .header,
+  .controls {
+    justify-self: start;
+  }
+
+  .dock {
+    width: 100%;
+  }
+}
+
+/*
+ * Tall wide screens keep one centred column, like the navigation below: header, controls,
+ * free map and the sheet above the navigation. Landscape phones keep the side column:
+ * their height is too precious for stacking.
+ */
+@media (width >= 700px) and (height > 560px) {
+  .frame,
+  .frame[data-dock="none"] {
+    grid-template:
+      "header" minmax(0, auto)
+      "controls" auto
+      "free" minmax(var(--map-min-free), 1fr)
+      "dock" minmax(0, auto)
+      / minmax(0, 1fr);
+  }
+
+  .header,
+  .controls,
+  .dock {
+    justify-self: center;
+    width: min(var(--island-max), 100%);
+  }
+}

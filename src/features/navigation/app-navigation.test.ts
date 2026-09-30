@@ -1,7 +1,39 @@
-import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+// @vitest-environment jsdom
+
+import { act, createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { navigationSection } from "./app-navigation-state";
+
+const location = vi.hoisted(() => ({ pathname: "/" }));
+vi.mock("next/navigation", () => ({ usePathname: () => location.pathname }));
+
+import { AppNavigation } from "./app-navigation";
+
+let root: Root;
+let container: HTMLDivElement;
+
+async function render(pathname: string, props: Parameters<typeof AppNavigation>[0] = {}) {
+  location.pathname = pathname;
+  await act(async () => { root.render(createElement(AppNavigation, props)); });
+  return container.querySelector("nav");
+}
+
+const current = () => container.querySelector('[aria-current="page"]')?.textContent;
+const item = (name: string) => [...container.querySelectorAll<HTMLElement>("nav a, nav button")].find(element => element.textContent === name);
+
+beforeEach(() => {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  container = document.createElement("div");
+  document.body.append(container);
+  root = createRoot(container);
+});
+
+afterEach(async () => {
+  await act(async () => { root.unmount(); });
+  container.remove();
+  vi.unstubAllGlobals();
+});
 
 describe("нижняя навигация приложения", () => {
   it.each([
@@ -15,33 +47,33 @@ describe("нижняя навигация приложения", () => {
     expect(navigationSection(pathname)).toBe(expected);
   });
 
-  it.each(["/login", "/admin", "/update.html"])(
-    "не выделяет служебный маршрут %s",
-    (pathname) => {
-      expect(navigationSection(pathname)).toBeNull();
-    },
-  );
-
-  it("подключена в общем layout, а не отдельно на страницах", () => {
-    const layout = readFileSync(
-      fileURLToPath(new URL("../../app/layout.tsx", import.meta.url)),
-      "utf8",
-    );
-    expect(layout).toContain("<AppNavigation />");
+  it.each(["/login", "/admin", "/update.html"])("не выделяет служебный маршрут %s", pathname => {
+    expect(navigationSection(pathname)).toBeNull();
   });
 
-  it("открывает создание на карте и отдельную историю", () => {
-    const navigation = readFileSync(
-      fileURLToPath(new URL("./app-navigation.tsx", import.meta.url)),
-      "utf8",
-    );
-    const home = readFileSync(
-      fileURLToPath(new URL("../explore/around-screen.tsx", import.meta.url)),
-      "utf8",
-    );
+  it.each([["/history", "История"], ["/account", "Профиль"], ["/walk", "Прогулка"]])("на странице %s отмечает «%s»", async (pathname, label) => {
+    expect(await render(pathname)).not.toBeNull();
+    expect(current()).toBe(label);
+  });
 
-    expect(navigation).toContain('<Link href="/?walk=create"');
-    expect(navigation).toContain('<Link href="/history"');
-    expect(home).toContain("<WalkCreationPanel");
+  it.each(["/", "/login", "/admin"])("общая навигация не рисуется на %s: там её нет или её рисует карта", async pathname => {
+    expect(await render(pathname)).toBeNull();
+  });
+
+  it("ведёт к созданию прогулки на карте и к истории", async () => {
+    await render("/history");
+    expect(item("Прогулка")?.getAttribute("href")).toBe("/?walk=create");
+    expect(item("История")?.getAttribute("href")).toBe("/history");
+    expect(item("Рядом")?.getAttribute("href")).toBe("/");
+  });
+
+  it("на карте «Рядом» — кнопка экрана, а активный раздел задаёт экран", async () => {
+    const onNearby = vi.fn();
+    await render("/", { embedded: true, active: "walk", onNearby });
+    expect(current()).toBe("Прогулка");
+    const nearby = item("Рядом")!;
+    expect(nearby.tagName).toBe("BUTTON");
+    await act(async () => { nearby.click(); });
+    expect(onNearby).toHaveBeenCalledOnce();
   });
 });

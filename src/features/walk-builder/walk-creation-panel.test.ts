@@ -31,7 +31,8 @@ const button = (name: string) => [...container.querySelectorAll("button")].find(
 
 it("ignores a geolocation fix that arrives after the panel was closed", async () => {
   let deliver: PositionCallback | undefined;
-  vi.stubGlobal("navigator", { ...navigator, geolocation: { getCurrentPosition: (success: PositionCallback) => { deliver = success; } } });
+  const geolocation = { getCurrentPosition: (success: PositionCallback) => { deliver = success; }, watchPosition: () => 1, clearWatch: () => {} };
+  vi.stubGlobal("navigator", { ...navigator, geolocation, permissions: undefined });
   await act(async () => {
     root.render(createElement(WalkCreationPanel, { onClose: () => {}, onMap: () => {}, picked: null }));
   });
@@ -40,7 +41,51 @@ it("ignores a geolocation fix that arrives after the panel was closed", async ()
   expect(deliver).toBeTypeOf("function");
 
   await act(async () => { root.unmount(); });
-  await act(async () => { deliver?.({ coords: { latitude: 55.75, longitude: 37.6 } } as GeolocationPosition); });
+  await act(async () => { deliver?.({ coords: { latitude: 55.75, longitude: 37.6, accuracy: 10 }, timestamp: 0 } as GeolocationPosition); });
 
   expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/api/story-place"))).toEqual([]);
+});
+
+function stubGeolocation() {
+  const channels: { coarse?: PositionCallback; precise?: PositionCallback; coarseError?: PositionErrorCallback; preciseError?: PositionErrorCallback } = {};
+  const geolocation = {
+    getCurrentPosition: (success: PositionCallback, error: PositionErrorCallback) => { channels.coarse = success; channels.coarseError = error; },
+    watchPosition: (success: PositionCallback, error: PositionErrorCallback) => { channels.precise = success; channels.preciseError = error; return 1; },
+    clearWatch: () => {},
+  };
+  vi.stubGlobal("navigator", { ...navigator, geolocation, permissions: undefined });
+  return channels;
+}
+
+const fix = (latitude: number, accuracy: number) => ({ coords: { latitude, longitude: 37.6, accuracy }, timestamp: 0 }) as GeolocationPosition;
+
+async function openLocation() {
+  await act(async () => {
+    root.render(createElement(WalkCreationPanel, { onClose: () => {}, onMap: () => {}, picked: null }));
+  });
+  await act(async () => { button("Откуда")?.click(); });
+  await act(async () => { button("Моё местоположение")?.click(); });
+}
+
+it("looks up the address of the refined fix, not the first coarse one", async () => {
+  const channels = stubGeolocation();
+  await openLocation();
+
+  await act(async () => { channels.coarse?.(fix(55.7, 400)); });
+  expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/api/story-place"))).toEqual([]);
+  await act(async () => { channels.precise?.(fix(55.75, 12)); });
+
+  const lookups = fetchMock.mock.calls.map(([url]) => String(url)).filter(url => url.includes("/api/story-place"));
+  expect(lookups).toHaveLength(1);
+  expect(new URL(lookups[0], "http://localhost").searchParams.get("lat")).toBe("55.75");
+});
+
+it("explains that device location services may be off when no fix arrives", async () => {
+  const channels = stubGeolocation();
+  await openLocation();
+
+  await act(async () => { channels.coarseError?.({ code: 2 } as GeolocationPositionError); });
+  expect(container.textContent).not.toContain("геолокация включена");
+  await act(async () => { channels.preciseError?.({ code: 3 } as GeolocationPositionError); });
+  expect(container.textContent).toContain("Проверьте, что геолокация включена в настройках устройства. Выберите точку на карте или введите адрес.");
 });

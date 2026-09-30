@@ -7,5 +7,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // CSS Modules resolve to their plain class names (styles.sheet === "sheet"); tests select by role and data-*.
+    css: { include: [/\.module\.css$/], modules: { classNameStrategy: "non-scoped" } },
   },
 });

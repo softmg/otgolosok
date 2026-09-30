@@ -1,0 +1,131 @@
+.heading {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  margin-bottom: var(--space-sm);
+}
+
+.headingText {
+  flex: 1;
+  min-width: 0;
+}
+
+.preview {
+  flex: none;
+  width: clamp(var(--control-min), 22cqi, 5.5rem);
+  height: clamp(var(--control-min), 22cqi, 5.5rem);
+  padding: 0;
+  overflow: hidden;
+  background: var(--control-soft);
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: zoom-in;
+}
+
+.preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+:is(.preview, .close, .error button):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.viewer {
+  width: calc(100% - 2rem);
+  max-width: 45rem;
+  max-height: calc(100% - 2rem);
+  margin: auto;
+  padding: var(--space-md);
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--map-green);
+  background: var(--surface-island);
+  border: 0;
+  border-radius: var(--radius-lg);
+}
+
+.viewer::backdrop {
+  background: color-mix(in srgb, var(--map-green) 75%, transparent);
+}
+
+.viewerHeader {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  margin-bottom: var(--space-sm);
+}
+
+.viewerHeader h3 {
+  flex: 1;
+  min-width: 0;
+  margin: var(--space-xs) 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--control-min);
+  height: var(--control-min);
+  padding: 0;
+  color: var(--map-green);
+  background: var(--control-soft);
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.full {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 38rem;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.credit {
+  margin: var(--space-sm) 0 0;
+  font-size: var(--text-secondary);
+  line-height: 1.6;
+  color: var(--map-green);
+  overflow-wrap: anywhere;
+}
+
+.credit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.error {
+  padding: var(--space-lg) 0;
+}
+
+.error button {
+  min-height: var(--control-min);
+  padding: 0.625rem 1.125rem;
+  color: var(--surface-island);
+  background: var(--map-green);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-control);
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+:is(.credit a):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}

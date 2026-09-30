@@ -26,6 +26,10 @@ const response = (offset: number) => Response.json({ places: places.slice(offset
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  vi.stubGlobal("ResizeObserver", class {
+    observe() {}
+    disconnect() {}
+  });
   localStorage.clear();
   localStorage.setItem("otgolosok:explore:geo-prompt-dismissed", "1");
   container = document.createElement("div");
@@ -69,7 +73,7 @@ it("does not recommend built-in places after geolocation", async () => {
   vi.stubGlobal("navigator", { geolocation: { getCurrentPosition: (success: PositionCallback) => success({ coords: { latitude: 55.7249, longitude: 37.6507, accuracy: 10 } } as GeolocationPosition) } });
   await act(async () => root.render(createElement(AroundScreen, { route: exampleRoute as Route, onStart: () => {}, updateAvailable: false })));
   await act(async () => (container.querySelector('[aria-label="Моё местоположение"]') as HTMLButtonElement).click());
-  expect(container.querySelectorAll(".nearby-story-list li")).toHaveLength(0);
+  expect(container.querySelectorAll('[data-sheet="nearby"] li')).toHaveLength(0);
   expect(container.textContent).toContain("В этом радиусе пока нет готовой проверенной истории.");
 });
 
@@ -78,14 +82,14 @@ it("shows loading before the first response and progress until the final page", 
   const fetcher = vi.fn(() => new Promise<Response>(resolve => { finish = resolve; }));
   vi.stubGlobal("fetch", fetcher);
   await act(async () => root.render(createElement(AroundScreen, { route, onStart: () => {}, updateAvailable: false })));
-  expect(container.querySelector('.around-catalog-status [role="status"]')?.textContent).toContain("Загружаем места");
+  expect(container.querySelector('[data-region="catalog-status"] [role="status"]')?.textContent).toContain("Загружаем места");
   await act(async () => finish(response(0)));
-  expect(container.querySelector('.around-catalog-status [role="status"]')?.textContent).toContain("100 из 205");
+  expect(container.querySelector('[data-region="catalog-status"] [role="status"]')?.textContent).toContain("100 из 205");
   expect(container.querySelector("progress")?.value).toBe(100);
   await act(async () => finish(response(100)));
-  expect(container.querySelector('.around-catalog-status [role="status"]')?.textContent).toContain("200 из 205");
+  expect(container.querySelector('[data-region="catalog-status"] [role="status"]')?.textContent).toContain("200 из 205");
   await act(async () => finish(response(200)));
-  expect(container.querySelector(".around-catalog-status")).toBeNull();
+  expect(container.querySelector('[data-region="catalog-status"]')).toBeNull();
   expect(markers()).toHaveLength(205);
 });
 

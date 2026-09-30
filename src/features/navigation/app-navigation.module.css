@@ -1,0 +1,60 @@
+/* One island fixed above the bottom edge on every screen; --nav-clearance in tokens.css keeps content clear of it. */
+.navigation {
+  position: fixed;
+  inset-inline: 0;
+  bottom: var(--nav-offset);
+  z-index: var(--z-nav);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.25rem;
+  width: min(
+    var(--island-max),
+    100% - max(var(--shell-gutter), var(--safe-left)) -
+      max(var(--shell-gutter), var(--safe-right))
+  );
+  height: var(--nav-h);
+  margin-inline: auto;
+  padding: 0.4375rem 0.625rem;
+  color: var(--map-green);
+  background: var(--surface-island);
+  border: 1px solid var(--border-island);
+  border-radius: var(--radius-island);
+  box-shadow: var(--shadow-island);
+}
+
+.navigation > :is(a, button) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: var(--control-min);
+  padding: 0;
+  color: var(--map-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  line-height: 1.1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.navigation svg {
+  width: 1.375rem;
+  height: 1.375rem;
+  flex: none;
+}
+
+.navigation [aria-current="page"] {
+  color: var(--map-green);
+  background: var(--notice-surface);
+}
+
+.navigation > :is(a, button):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -3px;
+}
