@@ -8,7 +8,7 @@ import { createStore } from "./store.mjs";
 import { createProvider } from "./provider.mjs";
 import { createYandexTts } from "./yandex-tts.mjs";
 import { isTtsProvider, ttsVoiceOptions } from "./tts-voices.mjs";
-import { createElevenLabsTts, listElevenLabsVoices } from "./elevenlabs-tts.mjs";
+import { createElevenLabsTts, elevenLabsApi, listElevenLabsVoices } from "./elevenlabs-tts.mjs";
 import { createAudioTagger } from "./audio-tags.mjs";
 import { ELEVENLABS_PROFILE_ID, elevenLabsProfile, startSpeechAudioWorker } from "./speech-audio-worker.mjs";
 import { normalizeAddress, addressKey, publicJob, failure } from "./domain.mjs";
@@ -646,12 +646,17 @@ export async function loadElevenLabsTts(env,provider,logs,fetchImpl=fetch) {
   const apiKey=env.ELEVENLABS_API_KEY?.trim();
   if(!apiKey)return null;
   if(!provider){console.warn("ElevenLabs is disabled: audio tags require OPENAI_API_KEY and OPENAI_BASE_URL");return null;}
+  const baseUrl=elevenLabsApi(env.ELEVENLABS_BASE_URL?.trim());
   let voices=[];
-  try {voices=await listElevenLabsVoices({apiKey,fetchImpl});}
-  catch(error) {console.warn(`ElevenLabs voices are unavailable (${error?.code??"error"})`);logs?.captureException(error,{operation:"listElevenLabsVoices"});}
+  try {voices=await listElevenLabsVoices({apiKey,baseUrl,fetchImpl});}
+  catch(error) {
+    // A blocked region fails every synthesis too: offering the service would only produce failed jobs.
+    if(error?.code==="TTS_REGION_BLOCKED"){console.warn("ElevenLabs is disabled: the API is not available from this server's country; set ELEVENLABS_BASE_URL to a proxy");return null;}
+    console.warn(`ElevenLabs voices are unavailable (${error?.code??"error"})`);logs?.captureException(error,{operation:"listElevenLabsVoices"});
+  }
   const voice=env.ELEVENLABS_VOICE_ID?.trim()||voices.find(item=>item.language==="ru")?.id||voices[0]?.id;
   if(!voice){console.warn("ElevenLabs is disabled: set ELEVENLABS_VOICE_ID");return null;}
-  return createElevenLabsTts({apiKey,voice,voices,tagNarration:createAudioTagger(provider),model:env.ELEVENLABS_MODEL?.trim()||undefined,fetchImpl});
+  return createElevenLabsTts({apiKey,voice,voices,tagNarration:createAudioTagger(provider),model:env.ELEVENLABS_MODEL?.trim()||undefined,baseUrl,fetchImpl});
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {

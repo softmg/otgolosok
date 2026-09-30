@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createElevenLabsTts, listElevenLabsVoices, speechChunks } from "./elevenlabs-tts.mjs";
+import { createElevenLabsTts, elevenLabsApi, listElevenLabsVoices, speechChunks } from "./elevenlabs-tts.mjs";
 import { loadElevenLabsTts } from "./server.mjs";
 
 const audio = (bytes = "mp3") => new Response(bytes, { headers: { "Content-Type": "audio/mpeg" } });
@@ -35,6 +35,7 @@ test("rejections are reported by cause and transient failures are retried", asyn
     [[json({ detail: { status: "voice_not_found" } }, 400)], "TTS_FAILED"],
     [[json({}, 429), json({}, 429), json({}, 429)], "TTS_BUSY"],
     [[json({}, 200)], "TTS_FAILED"],
+    [[new Response("moved", { status: 302, headers: { Location: "https://help.elevenlabs.io/hc/en-us/articles/restricted-countries" } })], "TTS_REGION_BLOCKED"],
   ];
   for (const [replies, code] of cases) {
     const tts = createElevenLabsTts({ apiKey: "key", voice: "voice1", tagNarration, fetchImpl: async () => replies.shift() });
@@ -75,4 +76,26 @@ test("startup enables ElevenLabs only with a text model and falls back to the co
   const offline = await loadElevenLabsTts({ ELEVENLABS_API_KEY: "key", ELEVENLABS_VOICE_ID: "Custom1" }, provider, null, async () => json({}, 401));
   assert.equal(offline.voice, "Custom1"); assert.deepEqual(offline.voices, []);
   assert.equal(await loadElevenLabsTts({ ELEVENLABS_API_KEY: "key" }, provider, null, async () => json({}, 401)), null);
+});
+
+test("a proxy base URL must be plain HTTPS and is used for every request", async () => {
+  assert.equal(elevenLabsApi(undefined), "https://api.elevenlabs.io/v1");
+  assert.equal(elevenLabsApi("https://elevenlabs-proxy.example/v1/"), "https://elevenlabs-proxy.example/v1");
+  for (const value of ["http://proxy.example/v1", "https://user:secret@proxy.example/v1", "https://proxy.example/v1?x=1", "not a url"])
+    assert.throws(() => elevenLabsApi(value), value);
+  const urls = [];
+  const tts = createElevenLabsTts({ apiKey: "key", voice: "voice1", tagNarration, baseUrl: "https://proxy.example/v1",
+    fetchImpl: async (url, init) => { urls.push({ url, redirect: init.redirect }); return audio(); } });
+  await tts.speech("Текст.");
+  assert.deepEqual(urls, [{ url: "https://proxy.example/v1/text-to-speech/voice1?output_format=mp3_44100_128", redirect: "manual" }]);
+});
+
+test("startup turns ElevenLabs off when the server's country is blocked", async () => {
+  const provider = /** @type {any} */ ({ response: async () => ({ text: "" }) });
+  const blocked = async () => new Response("moved", { status: 302, headers: { Location: "https://help.elevenlabs.io/" } });
+  assert.equal(await loadElevenLabsTts({ ELEVENLABS_API_KEY: "key", ELEVENLABS_VOICE_ID: "Voice1" }, provider, null, blocked), null);
+  const seen = [];
+  const proxied = await loadElevenLabsTts({ ELEVENLABS_API_KEY: "key", ELEVENLABS_VOICE_ID: "Voice1", ELEVENLABS_BASE_URL: "https://proxy.example/v1" }, provider, null,
+    async url => { seen.push(url); return json({ voices: [] }); });
+  assert.equal(proxied.voice, "Voice1"); assert.deepEqual(seen, ["https://proxy.example/v1/voices"]);
 });

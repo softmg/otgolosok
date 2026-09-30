@@ -4,7 +4,7 @@ import { fetchWithRetry, isTransientError } from "./retry.mjs";
 import { validVoiceId } from "./tts-voices.mjs";
 
 // https://elevenlabs.io/docs/api-reference/text-to-speech/convert
-const API = "https://api.elevenlabs.io/v1";
+export const ELEVENLABS_API = "https://api.elevenlabs.io/v1";
 export const ELEVENLABS_MODEL = "eleven_v3";
 // Eleven v3 accepts up to 5,000 characters per request; a margin keeps tags and long paragraphs inside it.
 const MAX_REQUEST_CHARS = 3000;
@@ -45,22 +45,34 @@ async function rejection(response) {
   return failure("TTS_FAILED");
 }
 
+/** The API base, or a reverse proxy in front of it: ElevenLabs is not available from some countries (Russia among them). */
+export function elevenLabsApi(value) {
+  if (!value) return ELEVENLABS_API;
+  const url = new URL(value);
+  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) throw failure("PROVIDER_CONFIG");
+  return url.href.replace(/\/$/, "");
+}
+
 async function request(fetchImpl, url, init) {
-  try { return await fetchWithRetry(fetchImpl, url, init, RETRY); }
+  let response;
+  try { response = await fetchWithRetry(fetchImpl, url, { ...init, redirect: "manual" }, RETRY); }
   catch (error) {
     if (init.signal?.aborted || !isTransientError(error)) throw error;
     throw Object.assign(failure("TTS_UNREACHABLE"), { cause: error });
   }
+  // From a blocked country the API answers every request with a redirect to its help page.
+  if (response.status >= 300 && response.status < 400) { await response.body?.cancel(); throw failure("TTS_REGION_BLOCKED"); }
+  return response;
 }
 
 /**
  * Voices of the account (requires the "Voices: Read" key permission), Russian ones first.
- * @param {{apiKey: string, fetchImpl?: typeof fetch, signal?: AbortSignal}} options
+ * @param {{apiKey: string, baseUrl?: string, fetchImpl?: typeof fetch, signal?: AbortSignal}} options
  * @returns {Promise<{id: string, label: string, language: string | null}[]>}
  */
-export async function listElevenLabsVoices({ apiKey, fetchImpl = fetch, signal }) {
+export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, fetchImpl = fetch, signal }) {
   const deadline = AbortSignal.any([AbortSignal.timeout(20000), ...(signal ? [signal] : [])]);
-  const response = await request(fetchImpl, `${API}/voices`, { headers: { "xi-api-key": apiKey }, signal: deadline, redirect: "error" });
+  const response = await request(fetchImpl, `${baseUrl}/voices`, { headers: { "xi-api-key": apiKey }, signal: deadline });
   if (!response.ok) throw await rejection(response);
   let payload;
   try { payload = JSON.parse((await boundedBody(response, 2000000, deadline)).toString("utf8")); }
@@ -77,9 +89,9 @@ export async function listElevenLabsVoices({ apiKey, fetchImpl = fetch, signal }
 /**
  * Speech through ElevenLabs v3. The narration first gets audio tags ([warmly], [short pause]…) from `tagNarration`.
  * @param {{apiKey: string, voice: string, tagNarration: ((script: string, options: {signal?: AbortSignal}) => Promise<string>) & {version?: string},
- *   voices?: {id: string, label: string}[], model?: string, fetchImpl?: typeof fetch}} options
+ *   voices?: {id: string, label: string}[], model?: string, baseUrl?: string, fetchImpl?: typeof fetch}} options
  */
-export function createElevenLabsTts({ apiKey, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, fetchImpl = fetch }) {
+export function createElevenLabsTts({ apiKey, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, baseUrl = ELEVENLABS_API, fetchImpl = fetch }) {
   if (typeof apiKey !== "string" || !apiKey.trim() || !validVoiceId(voice) || typeof tagNarration !== "function") throw failure("PROVIDER_CONFIG");
   /** @param {string} script @param {{signal?: AbortSignal, voice?: string}} [options] */
   async function speech(script, { signal, voice: selectedVoice = voice } = {}) {
@@ -89,8 +101,8 @@ export function createElevenLabsTts({ apiKey, voice, tagNarration, voices = [], 
     const audio = [];
     let size = 0;
     for (const text of speechChunks(tagged)) {
-      const response = await request(fetchImpl, `${API}/text-to-speech/${selectedVoice}?output_format=mp3_44100_128`, {
-        method: "POST", redirect: "error", signal: deadline,
+      const response = await request(fetchImpl, `${baseUrl}/text-to-speech/${selectedVoice}?output_format=mp3_44100_128`, {
+        method: "POST", signal: deadline,
         headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
         body: JSON.stringify({ text, model_id: model, language_code: "ru" }),
       });
