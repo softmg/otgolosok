@@ -611,3 +611,14 @@ increasing graph coverage or concurrency.
 - Шлюз airouter для части запросов стабильно возвращает 400 «The 'gpt-5.6-sol' model is not supported when
   using Codex with a ChatGPT account» (`PROVIDER_REJECTED`): один и тот же текст падал 9 раз подряд, другой
   проходил. Это задевает и тегирование, и генерацию текстов; исправлять нужно на стороне OmniRoute.
+
+## Статус переисследования черновиков и фильтр — 2026-09-30, 09:34 UTC
+
+- Развёрнута ревизия `3b32280`: колонка «Исследование» и фильтр «Статус исследования» во вкладке «Черновики»
+  (`GET /api/story-admin/content/drafts?research=all|plain|perplexity|queued|failed`, в ответе `counts`).
+  Перед выкладкой `npm run check` прошёл целиком (lint, типы, 489 тестов backend, vitest, pytest, сборка).
+- Генератор выложен штатной целью (`backups/generator-20260930T091340Z/`); `content-store.mjs` и `server.mjs`
+  в контейнере совпали с локальными по SHA-256. Фронтенд выложен следом: `/` и `/admin` — 200, метки фильтра
+  есть в бандле, `sw.js` версии `52955d3018968c4d`.
+- Счётчики статусов на production-базе тем же SQL, что в `listDrafts`: perplexity 271, plain 227,
+  queued 60, failed 2 (всего черновиков 560).
