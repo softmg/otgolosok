@@ -120,3 +120,50 @@ test("deep research uses a separate model and preserves citation order", async (
   assert.deepEqual(await provider.deepResearchSources("Объект"),{model:"perplexity-web/pplx-deep-research",sources:[{url:"https://source.example/history",title:""}]});
   assert.equal(searchProvider(async()=>json({})).deepResearchSources,null);
 });
+
+
+test("deep research leaves time for a full retry after a fifteen-minute 502", async t => {
+  let elapsed = 0, calls = 0;
+  const deadlines = [];
+  t.mock.method(AbortSignal, "timeout", milliseconds => {
+    const controller = new AbortController();
+    deadlines.push({ controller, expires: elapsed + milliseconds });
+    return controller.signal;
+  });
+  const provider = createProvider({ baseUrl: "https://provider.example/v1", apiKey: "key",
+    deepResearchModel: "perplexity-web/pplx-deep-research", fetchImpl: async (_url, options) => {
+      calls++;
+      elapsed += 15 * 60 * 1000;
+      for (const { controller, expires } of deadlines) if (elapsed >= expires) controller.abort(new DOMException("deadline", "TimeoutError"));
+      options.signal.throwIfAborted();
+      return calls === 1 ? new Response("busy", { status: 502, headers: { "Retry-After": "0" } })
+        : json({ citations: ["https://source.example/recovered"] });
+    } });
+  const result = await provider.deepResearchSources("Объект");
+  assert.deepEqual(result.sources, [{ url: "https://source.example/recovered", title: "" }]);
+  assert.equal(calls, 2);
+});
+
+test("deep research still stops on its deadline and on caller cancellation", async t => {
+  for (const callerCancelled of [false, true]) {
+    let calls = 0;
+    const controllers = [];
+    const caller = new AbortController();
+    const timeout = t.mock.method(AbortSignal, "timeout", milliseconds => {
+      const controller = new AbortController();
+      controllers.push({ controller, milliseconds });
+      return controller.signal;
+    });
+    const provider = createProvider({ baseUrl: "https://provider.example/v1", apiKey: "key",
+      deepResearchModel: "perplexity-web/pplx-deep-research", fetchImpl: async (_url, options) => {
+        calls++;
+        if (callerCancelled) caller.abort();
+        else for (const { controller, milliseconds } of controllers) if (milliseconds <= 33 * 60 * 1000) controller.abort(new DOMException("deadline", "TimeoutError"));
+        options.signal.throwIfAborted();
+        return json({ citations: ["https://unexpected.example/"] });
+      } });
+    await assert.rejects(provider.deepResearchSources("Объект", { signal: caller.signal }), { name: callerCancelled ? "AbortError" : "TimeoutError" });
+    assert.equal(calls, 1);
+    timeout.mock.restore();
+  }
+});

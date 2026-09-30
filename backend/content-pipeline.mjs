@@ -54,6 +54,8 @@ const MAX_RESEARCH_SOURCES=8;
 /** Draft re-research asks for Perplexity explicitly: without it the regular search would only repeat the current draft. */
 export const PERPLEXITY_REQUIRED="perplexity_required";
 export const DEEP_RESEARCH_REQUIRED="perplexity_deep_required";
+// Leave time to fetch sources, extract facts and review the story after both search attempts.
+const DEEP_CONTENT_TIMEOUT_MS=45*60*1000;
 
 function invalidateEditorialCheckpoint(checkpoint) {
   const retained={...checkpoint};
@@ -86,7 +88,7 @@ function reviewRound(round,review) {
  *   fetchPage?: (url: string, options?: {signal?: AbortSignal}) => Promise<any>, resolveLocation?: ((place: any) => any) | null,
  *   signal?: AbortSignal, timeoutMs?: number, autoApprove?: boolean, onSearchFailure?: (code: string) => void}} options
  */
-export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=job.checkpoint?.researchMode===DEEP_RESEARCH_REQUIRED?1200000:600000,autoApprove=false,onSearchFailure=()=>{}}) {
+export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=job.checkpoint?.researchMode===DEEP_RESEARCH_REQUIRED?DEEP_CONTENT_TIMEOUT_MS:600000,autoApprove=false,onSearchFailure=()=>{}}) {
   const deadline=AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])]);let checkpoint=job.checkpoint??{};
   const save=patch=>{checkpoint={...checkpoint,...patch};store.updateContentCheckpoint(job.id,checkpoint);};
   const call=async(prompt,options={})=>{const result=await provider.response(prompt,{...options,signal:deadline});const tokens=usageTokens(result.usage);if(tokens)save({usageTokens:Number(checkpoint.usageTokens??0)+tokens});return result;};

@@ -61,6 +61,9 @@ export function unpackResponse(bytes, contentType) {
 }
 
 // Search quota is scarce (a Perplexity Pro account) and the caller has a fallback: one retry is enough.
+// Two fifteen-minute gateway attempts plus transport and retry overhead.
+export const DEEP_RESEARCH_TIMEOUT_MS = 32 * 60 * 1000;
+
 const SEARCH_RETRY = { attempts: 2, baseMs: 1000, maxMs: 5000 };
 
 /** URLs of a chat-completions search answer in rank order: search results, then annotations, then bare citations. */
@@ -119,7 +122,7 @@ export function createProvider({ baseUrl, apiKey, model = "codex/gpt-5.6-sol-med
     return searchWithModel(searchModel,prompt,{signal,timeoutMs});
   }
   /** @param {string} prompt @param {{signal?: AbortSignal, timeoutMs?: number}} [options] */
-  async function deepResearchSources(prompt, { signal, timeoutMs = 600000 } = {}) {
+  async function deepResearchSources(prompt, { signal, timeoutMs = DEEP_RESEARCH_TIMEOUT_MS } = {}) {
     return searchWithModel(deepResearchModel,prompt,{signal,timeoutMs,deep:true});
   }
   async function searchWithModel(selectedModel,prompt,{signal,timeoutMs,deep=false}) {

@@ -467,3 +467,24 @@ test("retry after source failure reuses saved deep research", async t => {
   assert.ok(result.story,JSON.stringify(result.error));
   assert.equal(f.last().research.sources[0].url,"https://saved.example/1");
 });
+
+
+test("deep research can finish both long attempts and still prepare its story", async t => {
+  const f = searchFixture(t), job = f.store.claimContentJob();
+  job.checkpoint = { researchMode: "perplexity_deep_required" };
+  f.queue.shift();
+  const deadlines = [];
+  t.mock.method(AbortSignal, "timeout", milliseconds => {
+    const controller = new AbortController();
+    deadlines.push({ controller, milliseconds });
+    return controller.signal;
+  });
+  const provider = { ...f.provider, deepResearchSources: async (_prompt, { signal }) => {
+    for (const { controller, milliseconds } of deadlines) if (milliseconds <= 31 * 60 * 1000) controller.abort(new DOMException("deadline", "TimeoutError"));
+    signal.throwIfAborted();
+    return { sources: urls("deep", 1) };
+  } };
+  const result = await runContentJob(job, { store: f.store, provider, fetchPage: readPage(plaquePage) });
+  assert.ok(result.story, JSON.stringify(result.error));
+  assert.equal(f.last().research.sources[0].url, "https://deep.example/1");
+});
