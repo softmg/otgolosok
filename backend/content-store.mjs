@@ -79,7 +79,7 @@ const DRAFT_TEXT_JOIN=`JOIN place_texts t ON t.id=(SELECT x.id FROM place_texts 
 const DRAFT_RESEARCH_STATUS=`CASE WHEN j.id IS NULL THEN 'plain'
   WHEN j.state IN ('queued','retry_wait','working') THEN 'queued'
   WHEN ${PERPLEXITY_DONE} THEN 'perplexity'
-  WHEN j.state='failed' AND json_extract(j.checkpoint_json,'$.researchMode')='perplexity_required' THEN 'failed'
+  WHEN j.state='failed' AND json_extract(j.checkpoint_json,'$.researchMode') IN ('perplexity_required','perplexity_deep_required') THEN 'failed'
   ELSE 'plain' END`;
 const DRAFT_RESEARCH_FILTERS=["all","plain","perplexity","queued","failed"];
 
@@ -123,6 +123,8 @@ export function createContentStore({db,now,transaction}) {
   // weak_identity jobs come only from triage pilots: stricter evidence and never auto-approved.
   if(!contentJobColumns.has("identity_policy"))db.exec("ALTER TABLE content_jobs ADD COLUMN identity_policy TEXT NOT NULL DEFAULT 'standard'");
   if(!db.prepare("PRAGMA table_info(content_batches)").all().some(column=>column.name==="identity_policy"))db.exec("ALTER TABLE content_batches ADD COLUMN identity_policy TEXT NOT NULL DEFAULT 'standard'");
+
+  if(!db.prepare("PRAGMA table_info(content_batches)").all().some(column=>column.name==="research_mode"))db.exec("ALTER TABLE content_batches ADD COLUMN research_mode TEXT NOT NULL DEFAULT 'search'");
 
   const batchCounts=id=>db.prepare(`SELECT count(*) total,sum(state IN ('queued','retry_wait')) queued,
     sum(state='working') working,sum(state='ready') ready,sum(state IN ('failed','review_required','insufficient_evidence','cancelled')) failed
@@ -422,24 +424,30 @@ export function createContentStore({db,now,transaction}) {
      * Queues drafts for a new research round through the search model (Perplexity); on success the new text replaces the
      * unapproved draft (see completeContentJob). Without placeIds it takes the oldest drafts not yet researched this way;
      * explicit placeIds may repeat one. A repeated requestKey returns the first batch untouched.
-     * @param {{requestKey: string, placeIds?: string[] | null, limit?: number}} options
+     * @param {{requestKey: string, placeIds?: string[] | null, limit?: number, mode?: string}} options
      */
-    researchDrafts({requestKey,placeIds=null,limit=20}) {
+    researchDrafts({requestKey,placeIds=null,limit=20,mode="search"}) {
+      if(!["search","deep"].includes(mode)||(mode==="deep"&&(!Array.isArray(placeIds)||placeIds.length!==1)))throw fail("BAD_REQUEST");
       if(typeof requestKey!=="string"||requestKey.length<8||requestKey.length>100||!Number.isSafeInteger(limit)||limit<1||limit>DRAFT_RESEARCH_LIMIT)throw fail("BAD_REQUEST");
       if(placeIds!==null&&(!Array.isArray(placeIds)||!placeIds.length||placeIds.length>DRAFT_RESEARCH_LIMIT||placeIds.some(id=>typeof id!=="string"||!/^osm:(?:node|way|relation):\d+$/.test(id))))throw fail("BAD_REQUEST");
       return transaction(()=>{
         const existing=db.prepare("SELECT * FROM content_batches WHERE request_key=?").get(requestKey);
-        if(existing)return {batch:viewBatch(existing,batchCounts(existing.id)),count:Number(batchCounts(existing.id).total??0)};
+        if(existing){
+          if(existing.research_mode!==mode)throw fail("BAD_REQUEST");
+          if(mode==="deep"&&db.prepare("SELECT place_id FROM batch_items WHERE batch_id=? LIMIT 1").get(existing.id)?.place_id!==placeIds[0])throw fail("BAD_REQUEST");
+          return {batch:viewBatch(existing,batchCounts(existing.id)),count:Number(batchCounts(existing.id).total??0)};
+        }
         const rows=placeIds===null
           ?db.prepare(`SELECT p.*,j.id job_id,j.checkpoint_json job_checkpoint ${DRAFT_JOB} AND ${DRAFT_PLACE} AND NOT ${PERPLEXITY_DONE} ORDER BY t.created_at,p.id LIMIT ?`).all(limit)
           :[...new Set(placeIds)].map(id=>db.prepare(`SELECT p.*,j.id job_id,j.checkpoint_json job_checkpoint ${DRAFT_JOB} AND ${DRAFT_PLACE} AND p.id=?`).get(id)).filter(Boolean);
         if(!rows.length)throw fail("NO_DRAFTS_TO_RESEARCH");
         const timestamp=iso(now),id=randomUUID();
         db.prepare(`INSERT INTO content_batches (id,request_key,name,state,mode,text_profile,tts_profile,created_at,updated_at,identity_policy)
-          VALUES (?,?,?,?,?,?,?,?,?,?)`).run(id,requestKey,`Perplexity · черновики · ${new Date(now()).toLocaleString("ru-RU")}`,"running","text-only","story-v1",null,timestamp,timestamp,"weak_identity");
+          VALUES (?,?,?,?,?,?,?,?,?,?)`).run(id,requestKey,`${mode==="deep"?"Perplexity Deep Research":"Perplexity"} · черновики · ${new Date(now()).toLocaleString("ru-RU")}`,"running","text-only","story-v1",null,timestamp,timestamp,"weak_identity");
+        db.prepare("UPDATE content_batches SET research_mode=? WHERE id=?").run(mode,id);
         for(const row of rows){const locationContext=decode(row.job_checkpoint)?.locationContext;
           db.prepare(`UPDATE content_jobs SET state='queued',attempts=0,max_attempts=3,priority=?,next_attempt_at=?,error_json=NULL,checkpoint_json=?,updated_at=? WHERE id=?`)
-            .run(DRAFT_RESEARCH_PRIORITY,timestamp,encode({...(locationContext?{locationContext}:{}),researchMode:"perplexity_required"}),timestamp,row.job_id);
+            .run(DRAFT_RESEARCH_PRIORITY,timestamp,encode({...(locationContext?{locationContext}:{}),researchMode:mode==="deep"?"perplexity_deep_required":"perplexity_required"}),timestamp,row.job_id);
           syncItems(row.job_id,"queued");
           db.prepare("INSERT INTO batch_items VALUES (?,?,?,?,?,?)").run(id,row.id,row.job_id,"queued",null,timestamp);}
         return {batch:viewBatch(db.prepare("SELECT * FROM content_batches WHERE id=?").get(id),batchCounts(id)),count:rows.length};
@@ -479,7 +487,7 @@ export function createContentStore({db,now,transaction}) {
      */
     retryBatchItem(batchId,placeId,{restartFrom="auto"}={}) {return transaction(()=>{if(!["auto","facts","research"].includes(restartFrom))throw fail("BAD_REQUEST");const item=db.prepare("SELECT * FROM batch_items WHERE batch_id=? AND place_id=?").get(batchId,placeId);
       const retryable=["failed","review_required","insufficient_evidence","retry_wait",...(restartFrom==="auto"?[]:["queued"])];if(!item||!retryable.includes(item.state))return null;
-      const job=db.prepare("SELECT checkpoint_json FROM content_jobs WHERE id=?").get(item.text_job_id),checkpoint=restartFrom==="research"?null:restartFrom==="facts"?factsCheckpoint(job?.checkpoint_json):job?.checkpoint_json??null;
+      const job=db.prepare("SELECT checkpoint_json FROM content_jobs WHERE id=?").get(item.text_job_id),saved=decode(job?.checkpoint_json),checkpoint=restartFrom==="research"?(saved?.researchMode==="perplexity_deep_required"?encode({researchMode:saved.researchMode,...(saved.locationContext?{locationContext:saved.locationContext}:{})}):null):restartFrom==="facts"?factsCheckpoint(job?.checkpoint_json):job?.checkpoint_json??null;
       const timestamp=iso(now);db.prepare("UPDATE content_jobs SET state='queued',attempts=0,next_attempt_at=?,error_json=NULL,checkpoint_json=?,updated_at=? WHERE id=?").run(timestamp,checkpoint,timestamp,item.text_job_id);
       db.prepare("UPDATE batch_items SET state='queued',error_json=NULL,updated_at=? WHERE batch_id=? AND place_id=?").run(timestamp,batchId,placeId);return this.getBatch(batchId);});},
     claimContentJob() {return transaction(()=>{const timestamp=iso(now);const row=db.prepare(`SELECT j.* FROM content_jobs j WHERE j.state IN ('queued','retry_wait') AND j.next_attempt_at<=? AND j.attempts<j.max_attempts

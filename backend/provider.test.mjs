@@ -110,3 +110,13 @@ test("search is disabled without a search model", () => {
     assert.equal(provider.searchModel, null);
   }
 });
+
+test("deep research uses a separate model and preserves citation order", async () => {
+  const provider=createProvider({baseUrl:"https://provider.example/v1",apiKey:"key",deepResearchModel:"perplexity-web/pplx-deep-research",fetchImpl:async(_url,init)=>{
+    assert.equal(JSON.parse(String(init.body)).model,"perplexity-web/pplx-deep-research");
+    return json({choices:[{message:{content:"Непроверенный отчёт"}}],citations:["https://source.example/history"]});
+  }});
+  assert.equal(provider.searchSources,null);
+  assert.deepEqual(await provider.deepResearchSources("Объект"),{model:"perplexity-web/pplx-deep-research",sources:[{url:"https://source.example/history",title:""}]});
+  assert.equal(searchProvider(async()=>json({})).deepResearchSources,null);
+});

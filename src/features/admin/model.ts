@@ -252,7 +252,7 @@ export type ContentDraft = {
   text: { id: string; title: string; paragraphs: string[]; verification: string; createdAt: string };
 };
 /** `unresearched` counts drafts the bulk re-research would still pick; `researchAvailable` says the server has a search model. */
-export type ContentDraftPage = { total: number; hasMore: boolean; items: ContentDraft[]; unresearched?: number; counts?: Partial<Record<DraftResearchStatus, number>>; researchAvailable?: boolean };
+export type ContentDraftPage = { total: number; hasMore: boolean; items: ContentDraft[]; unresearched?: number; counts?: Partial<Record<DraftResearchStatus, number>>; researchAvailable?: boolean; deepResearchAvailable?: boolean };
 export type DraftResearchResult = { batch: { id: string; name: string }; count: number };
 export const DRAFT_RESEARCH_LIMIT = 50;
 

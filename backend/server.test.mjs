@@ -460,3 +460,24 @@ test("place revoicing accepts only configured audio profiles and offers ElevenLa
     }
   }
 });
+
+test("deep research API exposes availability and queues only one explicit draft",async t=>{
+  const provider=/** @type {any} */ ({deepResearchSources:async()=>({sources:[]})});
+  const f=await fixture(t,{provider});
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[
+    {placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}}]});
+  f.store.createBatch({requestKey:"deep-api-fixture",placeIds:["osm:node:7"],limit:1,identityPolicy:"weak_identity"});
+  const job=f.store.claimContentJob();f.store.completeContentJob(job.id,{story:{title:"Старый черновик",paragraphs:[{text:"Абзац",factIds:["f1"]}]},evidence:{facts:[]}});
+  const drafts=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts`)).json());
+  assert.equal(drafts.deepResearchAvailable,true);
+  assert.equal(drafts.researchAvailable,false);
+  const input={requestKey:"deep-api-request",mode:"deep",placeIds:["osm:node:7"]};
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",{requestKey:input.requestKey,mode:"deep",limit:1})).status,400);
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",input,"https://evil.example")).status,403);
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",input)).status,200);
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",input)).status,200);
+  assert.equal(f.store.claimContentJob().checkpoint.researchMode,"perplexity_deep_required");
+  assert.equal(f.store.getPlace("osm:node:7").text.draft.title,"Старый черновик");
+  const disabled=await fixture(t);
+  assert.equal((await disabled.post("/api/story-admin/content/drafts/research",input)).status,409);
+});

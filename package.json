@@ -27,7 +27,8 @@
     "next": "16.3.4",
     "pdfjs-dist": "5.4.624",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "undici": "8.11.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

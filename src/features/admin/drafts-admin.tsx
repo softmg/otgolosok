@@ -97,15 +97,15 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
   }
 
   /** Queues drafts for a Perplexity search round; a successful run replaces the draft, a failed one leaves it as is. */
-  function research(target: { placeIds: string[]; name: string } | { limit: number }) {
+  function research(target: { placeIds: string[]; name: string } | { limit: number }, mode: "search" | "deep" = "search") {
     if (!consentToLoseDraft()) return;
     void run("Постановка черновиков в очередь…", async signal => {
-      const result = await api<DraftResearchResult>("/content/drafts/research", signal, { requestKey: crypto.randomUUID(), ...("limit" in target ? { limit: target.limit } : { placeIds: target.placeIds }) });
+      const result = await api<DraftResearchResult>("/content/drafts/research", signal, { requestKey: crypto.randomUUID(), ...(mode === "deep" ? { mode } : {}), ...("limit" in target ? { limit: target.limit } : { placeIds: target.placeIds }) });
       setPlace(null); setDraft(null); setBaseline("");
       await load(offset, signal);
       setNotice("limit" in target
         ? `Поставлено в очередь на переисследование: ${numbers.format(result.count)}. Партия «${result.batch.name}».`
-        : `Черновик «${target.name}» поставлен в очередь на переисследование.`);
+        : `Черновик «${target.name}» поставлен в очередь на ${mode === "deep" ? "глубокое исследование" : "переисследование"}.`);
     });
   }
 
@@ -136,6 +136,7 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
         <span className="admin-meta">Ещё не проверено через Perplexity: {numbers.format(page.unresearched ?? 0)}. Сначала берутся самые старые черновики; удачный прогон заменяет текст черновика.</span>
       </form>
       : !loading && <p className="admin-meta">Переисследование через Perplexity недоступно: на сервере не задана модель поиска.</p>}
+    {page.deepResearchAvailable && <p className="admin-meta">Глубокое исследование запускается для одного черновика и расходует квоту Perplexity Deep Research. Поиск может занять до 10 минут; удачный прогон заменит черновик.</p>}
     <div className="content-toolbar">
       <label htmlFor="draft-research-filter">Статус исследования</label>
       <select id="draft-research-filter" value={researchFilter} disabled={disabled} onChange={event => {
@@ -157,6 +158,7 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
           <button disabled={disabled} aria-label={`Копировать черновик: ${item.name}`} onClick={() => void copy(item)}>Копировать</button>
           <button disabled={disabled} aria-label={`Открыть черновик: ${item.name}`} onClick={event => openPlace(item.placeId, event.currentTarget)}>Открыть</button>
           {page.researchAvailable && <button disabled={disabled} aria-label={`Переисследовать черновик: ${item.name}`} onClick={() => research({ placeIds: [item.placeId], name: item.name })}>Переисследовать</button>}
+          {page.deepResearchAvailable && <button disabled={disabled || item.research === "queued"} aria-label={`Глубокое исследование: ${item.name}`} onClick={() => research({ placeIds: [item.placeId], name: item.name }, "deep")}>Глубокое исследование</button>}
         </div></td>
       </tr>
       {place?.id === item.placeId && <tr className="drafts-editor-row"><td colSpan={6}>

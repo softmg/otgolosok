@@ -324,14 +324,17 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/batches") {if(url.search)throw failure("BAD_REQUEST");json(res,200,{batches:store.listBatches()});return;}
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/drafts") {
           const entries=[...url.searchParams];if(entries.some(([key,value])=>!["limit","offset","research"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value))))throw failure("BAD_REQUEST");
-          json(res,200,{...store.listDrafts({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0),research:url.searchParams.get("research")??"all"}),researchAvailable:Boolean(provider?.searchSources)});return;}
+          json(res,200,{...store.listDrafts({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0),research:url.searchParams.get("research")??"all"}),researchAvailable:Boolean(provider?.searchSources),deepResearchAvailable:Boolean(provider?.deepResearchSources)});return;}
         if(req.method==="POST"&&url.pathname==="/api/story-admin/content/drafts/research") {
           if(!origin||req.headers.origin!==origin) {json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
           const input=await body(req,16384);
-          if(!provider?.searchSources){json(res,409,{error:{code:"SEARCH_DISABLED",message:"Поиск через Perplexity не настроен на сервере."}});return;}
-          if(Object.keys(input??{}).some(key=>!["requestKey","limit","placeIds"].includes(key)))throw failure("BAD_REQUEST");
+          if(!input||typeof input!=="object"||Array.isArray(input))throw failure("BAD_REQUEST");
+          const mode=input.mode??"search";
+          if(!["search","deep"].includes(mode))throw failure("BAD_REQUEST");
+          if(mode==="deep"?!provider?.deepResearchSources:!provider?.searchSources){json(res,409,{error:{code:"SEARCH_DISABLED",message:"Поиск через Perplexity не настроен на сервере."}});return;}
+          if(Object.keys(input??{}).some(key=>!["requestKey","limit","placeIds","mode"].includes(key)))throw failure("BAD_REQUEST");
           let result;
-          try{result=store.researchDrafts({requestKey:input.requestKey,placeIds:input.placeIds??null,limit:input.limit??20});}
+          try{result=store.researchDrafts({requestKey:input.requestKey,placeIds:input.placeIds??null,limit:input.limit??20,mode});}
           catch(error){if(error.code!=="NO_DRAFTS_TO_RESEARCH")throw error;
             json(res,409,{error:{code:error.code,message:"Нет черновиков, которые можно переисследовать: все уже проверены через Perplexity или стоят в очереди."}});return;}
           json(res,200,result);contentWorker?.wake();return;
@@ -664,7 +667,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   const localTts=loadLocalTtsConfig(process.env);
   const userDailyLimit=parseUserDailyLimit(process.env.USER_DAILY_GENERATION_LIMIT);
   const ttsApiClient=localTts.transport==="http"?createTtsApiClient({baseUrl:process.env.TTS_API_URL,token:process.env.TTS_API_TOKEN}):null;
-  const provider=process.env.OPENAI_API_KEY&&process.env.OPENAI_BASE_URL?createProvider({apiKey:process.env.OPENAI_API_KEY,baseUrl:process.env.OPENAI_BASE_URL,model:process.env.STORY_MODEL,writerModel:process.env.WRITER_MODEL,searchModel:process.env.RESEARCH_SEARCH_MODEL||null}):null;
+  const provider=process.env.OPENAI_API_KEY&&process.env.OPENAI_BASE_URL?createProvider({apiKey:process.env.OPENAI_API_KEY,baseUrl:process.env.OPENAI_BASE_URL,model:process.env.STORY_MODEL,writerModel:process.env.WRITER_MODEL,searchModel:process.env.RESEARCH_SEARCH_MODEL||null,deepResearchModel:process.env.RESEARCH_DEEP_MODEL||null}):null;
   const yandexTts=process.env.YANDEX_TTS_API_KEY?createYandexTts({apiKey:process.env.YANDEX_TTS_API_KEY,voice:process.env.YANDEX_TTS_VOICE||"marina"}):null;
   const logs=createBackendLogger();
   const elevenLabsTts=await loadElevenLabsTts(process.env,provider,logs);

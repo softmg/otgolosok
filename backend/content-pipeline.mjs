@@ -24,6 +24,8 @@ const CONTENT_FAILURES = {
   PLACE_UNCLEAR: "Источники не позволяют уверенно определить объект. Проверьте, о том ли месте найдены материалы.",
   IDENTITY_UNCONFIRMED: "Источники не называют объект так, как он подписан в OSM. Проверьте вручную, о том ли месте найдены материалы.",
   OSM_ADDRESS_LOOKUP_FAILED: "Не удалось прочитать адресные ориентиры OSM. Проверьте локальный адресный индекс перед повтором.",
+  DEEP_RESEARCH_UNAVAILABLE: "Глубокое исследование не завершилось. Черновик сохранён. Новый запуск расходует квоту Deep Research.",
+  DEEP_RESEARCH_INTERRUPTED: "Глубокое исследование было прервано. Автоматический повтор не запущен, чтобы повторно не расходовать квоту. Запустите его из черновика при необходимости.",
   PERPLEXITY_UNAVAILABLE: "Perplexity недоступен: вероятно, истекла сессия или закончилась квота. Черновик не изменён, повторите позже.",
 };
 
@@ -51,6 +53,7 @@ const MAX_RESEARCH_SOURCES=8;
 
 /** Draft re-research asks for Perplexity explicitly: without it the regular search would only repeat the current draft. */
 export const PERPLEXITY_REQUIRED="perplexity_required";
+export const DEEP_RESEARCH_REQUIRED="perplexity_deep_required";
 
 function invalidateEditorialCheckpoint(checkpoint) {
   const retained={...checkpoint};
@@ -78,11 +81,12 @@ function reviewRound(round,review) {
  * @param {any} job
  * @param {{store: ReturnType<typeof import("./store.mjs").createStore>,
  *   provider: {writerModel?: string, response: (prompt: string, options?: object) => Promise<any>,
+ *     deepResearchModel?: string | null, deepResearchSources?: ((prompt: string, options?: {signal?: AbortSignal}) => Promise<{sources: {url: string, title?: string}[]}>) | null,
  *     searchModel?: string | null, searchSources?: ((prompt: string, options?: {signal?: AbortSignal}) => Promise<{sources: {url: string, title?: string}[]}>) | null},
  *   fetchPage?: (url: string, options?: {signal?: AbortSignal}) => Promise<any>, resolveLocation?: ((place: any) => any) | null,
  *   signal?: AbortSignal, timeoutMs?: number, autoApprove?: boolean, onSearchFailure?: (code: string) => void}} options
  */
-export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=600000,autoApprove=false,onSearchFailure=()=>{}}) {
+export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=job.checkpoint?.researchMode===DEEP_RESEARCH_REQUIRED?1200000:600000,autoApprove=false,onSearchFailure=()=>{}}) {
   const deadline=AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])]);let checkpoint=job.checkpoint??{};
   const save=patch=>{checkpoint={...checkpoint,...patch};store.updateContentCheckpoint(job.id,checkpoint);};
   const call=async(prompt,options={})=>{const result=await provider.response(prompt,{...options,signal:deadline});const tokens=usageTokens(result.usage);if(tokens)save({usageTokens:Number(checkpoint.usageTokens??0)+tokens});return result;};
@@ -101,9 +105,20 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
     if(!checkpoint.research&&!checkpoint.sources){
       // Weakly identified places also get a search model's citations (Perplexity), ranked first. Only its URLs are used:
       // pages are fetched and quotes checked like any other source. Its failure never stops a regular job.
-      const seen=new Set(),required=checkpoint.researchMode===PERPLEXITY_REQUIRED;let found=[],perplexity=null;
+      const seen=new Set(),deep=checkpoint.researchMode===DEEP_RESEARCH_REQUIRED,required=deep||checkpoint.researchMode===PERPLEXITY_REQUIRED;let found=[],perplexity=null;
       // Saved before the regular search: a retry after its failure must not spend the scarce search quota again.
       if(checkpoint.perplexityResearch){({sources:found,perplexity}=checkpoint.perplexityResearch);for(const source of found)seen.add(source.url);}
+      else if(deep){
+        if(checkpoint.deepResearchStarted)throw failure("DEEP_RESEARCH_INTERRUPTED");
+        if(!provider.deepResearchSources)throw failure("DEEP_RESEARCH_UNAVAILABLE");
+        save({deepResearchStarted:true});
+        try {
+          found=sourcesFrom(await provider.deepResearchSources(`${searchSourcesPrompt(context)}\nПроведи глубокое исследование: сопоставь исторические названия, даты и авторов. Поставь в начало списка первоисточники с фактами именно об этом объекте.`,{signal:deadline}),{seen,origin:"perplexity",limit:MAX_RESEARCH_SOURCES});
+          if(!found.length)throw failure("NO_SEARCH_EVIDENCE");
+          perplexity={status:"ok",count:found.length,model:provider.deepResearchModel,mode:"deep"};
+          save({perplexityResearch:{sources:found,perplexity}});
+        } catch(error) {save({deepResearchFailure:error?.code??error?.name??"SEARCH_FAILED"});throw failure("DEEP_RESEARCH_UNAVAILABLE");}
+      }
       else if(job.identityPolicy==="weak_identity"&&provider.searchSources){
         try{found=sourcesFrom(await provider.searchSources(searchSourcesPrompt(context),{signal:deadline}),{seen,origin:"perplexity"});perplexity={status:"ok",count:found.length,model:provider.searchModel};}
         catch(error){if(deadline.aborted)throw error;const code=error?.code??"SEARCH_FAILED";perplexity={status:"failed",code,count:0,model:provider.searchModel};onSearchFailure(code);}
@@ -111,7 +126,7 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
         if(perplexity.status==="ok")save({perplexityResearch:{sources:found,perplexity}});
       }
       if(required&&perplexity?.status!=="ok")throw failure("PERPLEXITY_UNAVAILABLE");
-      const research=await call(researchPrompt(job.place.address,context),{search:true,timeoutMs:180000,maxTokens:3000});
+      const research=deep?{sources:[]}:await call(researchPrompt(job.place.address,context),{search:true,timeoutMs:180000,maxTokens:3000});
       const sources=[...found,...sourcesFrom(research,{seen,origin:perplexity?"search":null})].slice(0,MAX_RESEARCH_SOURCES);
       if(!sources.length&&!openSources.length)throw failure("INSUFFICIENT_EVIDENCE");save({research:{sources,...(perplexity?{perplexity}:{})}});}
     if(checkpoint.perplexityResearch&&checkpoint.research){checkpoint={...checkpoint};delete checkpoint.perplexityResearch;store.updateContentCheckpoint(job.id,checkpoint);}
@@ -130,7 +145,7 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
     const placeIdentified=checkpoint.evidence.addressConfirmed===false;
     if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:placeIdentified?placeLabel(job.place):job.place.address??job.place.name,placeIdentified,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),
       onReview:(review,round=1)=>save({review,reviewRounds:[...(round>1?checkpoint.reviewRounds??[]:[]),reviewRound(round,review)]})});save({draft});}
-    const completed=store.completeContentJob(job.id,{story:checkpoint.draft,evidence:checkpoint.evidence,verification:"automatic",autoApprove,replaceDraft:checkpoint.researchMode===PERPLEXITY_REQUIRED});
+    const completed=store.completeContentJob(job.id,{story:checkpoint.draft,evidence:checkpoint.evidence,verification:"automatic",autoApprove,replaceDraft:[PERPLEXITY_REQUIRED,DEEP_RESEARCH_REQUIRED].includes(checkpoint.researchMode)});
     if(autoApprove&&completed.story.audioDisposition!=="not_applicable_short_text")for(const profileId of completed.audioProfiles)await store.enqueueExternalAudio({sourceJobId:`place-text:${completed.id}`,sourceRevision:0,
       story:{...completed.story,address:job.place.address??job.place.name},profileId,signal:deadline});
     return completed;

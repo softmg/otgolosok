@@ -500,3 +500,24 @@ test("draft research status follows the latest text's job and filters the list b
   assert.deepEqual(store.listDrafts().counts, { plain: 1, perplexity: 1, failed: 1 });
   assert.deepEqual(store.listDrafts({ research: "failed", limit: 100 }).items.map(item => item.placeId), [order[1]]);
 });
+
+test("deep draft research is explicit, single-place and idempotent", t => {
+  const {store,order}=draftStore(t,2);
+  for(const input of [{mode:"deep"},{mode:"deep",placeIds:order},{mode:"unknown",placeIds:[order[0]]}])
+    assert.throws(()=>store.researchDrafts({requestKey:"deep-invalid-key",...input}),{code:"BAD_REQUEST"});
+  const input={requestKey:"deep-draft-single",placeIds:[order[0]],mode:"deep"};
+  const result=store.researchDrafts(input);
+  assert.equal(result.count,1);
+  assert.equal(store.researchDrafts(input).batch.id,result.batch.id);
+  assert.throws(()=>store.researchDrafts({...input,placeIds:[order[1]]}),{code:"BAD_REQUEST"});
+  assert.throws(()=>store.researchDrafts({...input,mode:"search"}),{code:"BAD_REQUEST"});
+  const job=store.claimContentJob();
+  assert.equal(job.place.id,order[0]);
+  assert.equal(job.checkpoint.researchMode,"perplexity_deep_required");
+  store.failContentJob(job.id,{code:"DEEP_RESEARCH_UNAVAILABLE"},"failed");
+  assert.equal(store.listDrafts({research:"failed"}).items[0].placeId,order[0]);
+  assert.equal(store.getPlace(order[0]).text.draft.title.includes("новый"),false);
+  store.updateContentCheckpoint(job.id,{researchMode:"perplexity_deep_required",deepResearchStarted:true});
+  store.retryBatchItem(result.batch.id,order[0],{restartFrom:"research"});
+  assert.deepEqual(store.claimContentJob().checkpoint,{researchMode:"perplexity_deep_required"});
+});

@@ -430,3 +430,40 @@ test("an approval made while a draft is re-researched is kept", async t => {
   assert.ok(result.story, JSON.stringify(result.error));
   assert.deepEqual(f.store.getPlace("osm:node:1").text.story, approved.text.story);
 });
+
+test("explicit deep research uses its sources without an ordinary search", async t => {
+  const f=searchFixture(t), job=f.store.claimContentJob();
+  job.checkpoint={researchMode:"perplexity_deep_required"};
+  f.queue.shift();
+  const provider={...f.provider,deepResearchModel:"perplexity-web/pplx-deep-research",deepResearchSources:async()=>({sources:urls("deep",12)})};
+  const result=await runContentJob(job,{store:f.store,provider,fetchPage:readPage(plaquePage)});
+  assert.ok(result.story,JSON.stringify(result.error));
+  assert.deepEqual(f.last().research.sources.map(s=>s.url),urls("deep",8).map(s=>s.url));
+  assert.equal(f.last().research.perplexity.mode,"deep");
+  assert.equal(f.calls.length,0);
+  assert.equal(f.queue.length,0);
+});
+
+test("interrupted or failed deep research preserves the draft and stops automatic quota spending", async t => {
+  for(const started of [false,true]) {
+    const f=searchFixture(t),job=f.store.claimContentJob();
+    job.checkpoint={researchMode:"perplexity_deep_required",...(started?{deepResearchStarted:true}:{})};
+    let calls=0;
+    const provider={...f.provider,deepResearchSources:async()=>{calls++;throw Object.assign(new Error(),{name:"TimeoutError"});}};
+    const result=await runContentJob(job,{store:f.store,provider});
+    assert.equal(result.state,"failed");
+    assert.equal(result.error.code,started?"DEEP_RESEARCH_INTERRUPTED":"DEEP_RESEARCH_UNAVAILABLE");
+    assert.equal(calls,started?0:1);
+    assert.equal(f.queue.length,4);
+  }
+});
+
+test("retry after source failure reuses saved deep research", async t => {
+  const f=searchFixture(t),job=f.store.claimContentJob();
+  job.checkpoint={researchMode:"perplexity_deep_required",deepResearchStarted:true,perplexityResearch:{sources:urls("saved",1),perplexity:{status:"ok",mode:"deep",count:1}}};
+  f.queue.shift();
+  const provider={...f.provider,deepResearchSources:async()=>{throw new Error("must not spend quota again");}};
+  const result=await runContentJob(job,{store:f.store,provider,fetchPage:readPage(plaquePage)});
+  assert.ok(result.story,JSON.stringify(result.error));
+  assert.equal(f.last().research.sources[0].url,"https://saved.example/1");
+});

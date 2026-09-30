@@ -22,7 +22,7 @@ const place = (index: number): ContentPlace => ({
 });
 
 let container: HTMLDivElement, root: Root, requests: string[], total: number, approved: { path: string; body: unknown }[], dirty: boolean[];
-let researchAvailable: boolean, researched: unknown[], mockResearch: Record<number, ContentDraft["research"]>, mockCounts: ContentDraftPage["counts"];
+let deepResearchAvailable: boolean, researchAvailable: boolean, researched: unknown[], mockResearch: Record<number, ContentDraft["research"]>, mockCounts: ContentDraftPage["counts"];
 const api: AdminApi = async <T,>(path: string, _signal: AbortSignal, body?: unknown) => {
   requests.push(path);
   if (path === "/content/drafts/research") { researched.push(body); return { batch: { id: "b1", name: "Perplexity · черновики" }, count: 2 } as T; }
@@ -36,7 +36,7 @@ const api: AdminApi = async <T,>(path: string, _signal: AbortSignal, body?: unkn
     return { ...draft(index_), research: mockResearch[index_] ?? "plain" };
   });
   const items = research === "all" ? all : all.filter(item => item.research === research);
-  return { total: research === "all" ? total : items.length, hasMore: research === "all" && offset + all.length < total, items, researchAvailable, unresearched: total, counts: mockCounts } satisfies ContentDraftPage as T;
+  return { total: research === "all" ? total : items.length, hasMore: research === "all" && offset + all.length < total, items, researchAvailable, deepResearchAvailable, unresearched: total, counts: mockCounts } satisfies ContentDraftPage as T;
 };
 const run: AdminRun = async (_label, action) => { await action(new AbortController().signal); };
 
@@ -54,7 +54,7 @@ const button = (label: string) => [...container.querySelectorAll("button")].find
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  requests = []; total = 2; approved = []; dirty = []; researchAvailable = false; researched = []; mockResearch = {}; mockCounts = { plain: 2 };
+  requests = []; total = 2; approved = []; dirty = []; researchAvailable = false; deepResearchAvailable = false; researched = []; mockResearch = {}; mockCounts = { plain: 2 };
   Element.prototype.scrollIntoView = vi.fn();
   container = document.createElement("div");
   document.body.append(container);
@@ -203,4 +203,23 @@ describe("переисследование черновиков через Perpl
     expect(requests.at(-1)).toBe("/content/drafts?limit=50&offset=0&research=failed");
     expect(container.textContent).toContain("Черновиков с этим статусом нет.");
   });
+});
+
+it("запускает глубокое исследование только выбранного черновика и сообщает о квоте", async () => {
+  deepResearchAvailable = true;
+  mockResearch[2] = "queued";
+  await mount();
+  expect(container.textContent).toContain("расходует квоту Perplexity Deep Research");
+  const queued = container.querySelector<HTMLButtonElement>('button[aria-label="Глубокое исследование: Место 2"]')!;
+  expect(queued.disabled).toBe(true);
+  const target = container.querySelector<HTMLButtonElement>('button[aria-label="Глубокое исследование: Место 1"]')!;
+  await act(async () => { target.click(); });
+  expect(researched).toHaveLength(1);
+  expect(researched[0]).toMatchObject({ placeIds: ["osm:node:1"], mode: "deep" });
+  expect(container.textContent).toContain("поставлен в очередь на глубокое исследование");
+});
+
+it("скрывает глубокое исследование, когда отдельная модель не настроена", async () => {
+  await mount();
+  expect(container.querySelector('button[aria-label^="Глубокое исследование:"]')).toBeNull();
 });
