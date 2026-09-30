@@ -123,7 +123,7 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
       const anchor=job.place.address;const facts=await requestStructured(provider,factsPrompt(anchor,checkpoint.sources,context),{signal:deadline,timeoutMs:150000,maxTokens:5500});
       const raw={...facts.value,addressConfirmed:facts.value.addressConfirmed===true,resolvedAddress:facts.value.resolvedAddress||job.place.address||job.place.name,placeName:facts.value.placeName||job.place.name};
       let evidence;
-      try{evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true,identityMode:"place"});if(job.identityPolicy==="weak_identity")evidence=restrictWeakIdentityEvidence(evidence,job.place);}
+      try{evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true,identityMode:"place"});if(job.identityPolicy==="weak_identity")evidence=restrictWeakIdentityEvidence(evidence);}
       catch(error){if(error?.code)save({factsRejection:factsRejection(error.code,facts.value)});throw error;}
       save({evidence,editorialVersion:EDITORIAL_EVIDENCE_VERSION});}
     // Evidence saved before identityMode "place" has no addressConfirmed flag: it was validated against the address.

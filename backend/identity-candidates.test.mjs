@@ -165,16 +165,17 @@ test("pilot job keeps object facts, stays a draft and is not voiced even with au
   assert.equal(store.claimExternalAudio({ workerId: "gpu", requestId: "audio-request-weak", profileIds: ["silero-ru-v1"] }), null);
 });
 
-test("pilot job without a source naming the object goes to review before writing", async t => {
+test("pilot job with unconfirmed semantic identity goes to review before writing", async t => {
   const store = fixture(t);
   assessed(store);
   store.createBatch({ requestKey: "weak-pipeline-2", placeIds: ["osm:node:1"], limit: 1, identityPolicy: "weak_identity" });
   const { provider, queue } = pipelineProvider([fact("content", "object")]);
+  queue[1].value.identityConfirmed = false;
   const result = await runContentJob(store.claimContentJob(), { store, provider, autoApprove: true,
     fetchPage: async url => ({ url, contentType: "text/html", html: page }) });
   assert.equal(result.state, "review_required");
-  assert.equal(result.error.code, "IDENTITY_UNCONFIRMED");
-  assert.match(result.error.message, /вручную/);
+  assert.equal(result.error.code, "PLACE_UNCLEAR");
+  assert.match(result.error.message, /определить объект/);
   assert.equal(queue.length, 2, "the writer and the reviewer are not paid for");
   assert.equal(store.getPlace("osm:node:1").text, null);
 });

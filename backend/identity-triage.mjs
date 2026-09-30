@@ -11,7 +11,6 @@ const text = value => typeof value === "string" ? value.trim() : "";
 const initials = /^[А-ЯЁA-Z](?:\.\s*[А-ЯЁA-Z])?\.?(?:\s+[А-ЯЁа-яё-]+)?$/u;
 const typedName = /^(?:памятник|бюст|мемориал\S*|скульптура|статуя|стела|обелиск|памятн\S+ (?:камень|крест|знак)|парк|сквер|сад|музей\S*|дом-музей|галерея|смотровая площадка|усадьба|городская усадьба|кладбище|церковь|храм|часовня|собор|монастырь|роща|выставочный зал|театр|грот|беседка|ротонда|фонтан|ворота|башня|палаты)(?=$|[\s«"'.,:—-])/iu;
 const toponym = /(?:^|\s)(?:улица|переулок|площадь|проезд|набережная|бульвар|шоссе|проспект|тупик|аллея)(?=$|\s)/iu;
-const stopWords = new Set(["и", "в", "на", "у", "по", "для", "имени", "им", "им.", "the", "of"]);
 
 export function identityNameKey(name) {
   return comparable(text(name)).replace(/["'`]/g, "").replace(/\s+/g, " ");
@@ -85,67 +84,9 @@ export function assessIdentityCandidate(place, { locationContext = null, nameCou
   return { tier, score, reasons, signals, category: identityCategory(tags), location };
 }
 
-function nameVariants(place) {
-  const tags = place?.tags ?? {};
-  const values = [place?.name, tags.name, tags["name:ru"], ...[tags.official_name, tags.alt_name, tags.old_name]
-    .flatMap(value => text(value).split(";"))];
-  return [...new Set(values.map(text).filter(value => value.length >= 4))];
-}
-
-const PATRONYMIC = /(?:ович|евич|ич|овна|евна|ична|инична)$/u;
-const tokens = value => identityNameKey(value).split(/[\s,.:;!?()«»—–-]+/u).filter(token => token.length >= 3 && !stopWords.has(token));
-// A stem tolerates Russian case endings: "сквере Бунина" names "Сквер Бунина".
-const stem = token => token.slice(0, Math.max(4, token.length - 2));
-// A short word ending in a vowel or a soft sign ("Мень", "Леся") is too short for a stem: without its last
-// letter it accepts only a case ending, so "Меню" and "Леси" match and "меньше" does not.
-const SHORT_ENDINGS = new Set(["", "а", "я", "у", "ю", "е", "и", "ы", "о", "ь", "й", "ой", "ей", "ем", "ём", "ом", "ам", "ям", "ами", "ями", "ах", "ях", "ою", "ею"]);
-const wordMatches = (candidate, token) => {
-  if (token.length > 4 || !/[аеиоуыэюяьй]$/u.test(token)) return candidate.startsWith(stem(token));
-  const base = token.slice(0, -1);
-  return candidate.startsWith(base) && SHORT_ENDINGS.has(candidate.slice(base.length));
-};
-// The dedication formula of war memorials; sources write "1941-1945" or "павшим в боях" instead.
-const WAR_FORMULA = /\s*(?:в\s+)?Велик\S*\s+Отечествен\S*\s+войн\S*/giu;
-const ACRONYM = /^[«"]?[А-ЯЁA-Z]{2,5}[»"]?$/u;
-const properWords = words => words.slice(1).filter(word => /^[«"]?[А-ЯЁA-Z]/u.test(word));
-
-/**
- * A name variant is found in a quote when every proper-name token is there and at least
- * 60 % of all significant tokens are. Capitalised words after the first carry the identity.
- */
-export function quoteNamesPlace(quote, place) {
-  const quoteTokens = tokens(quote);
-  const present = token => quoteTokens.some(candidate => wordMatches(candidate, token));
-  // A war memorial is also checked without the formula, if a proper name remains: otherwise the formula is the name.
-  const variants = nameVariants(place).flatMap(name => {
-    const stripped = name.replace(WAR_FORMULA, "").trim();
-    return stripped !== name && properWords(stripped.split(/\s+/u)).length ? [name, stripped] : [name];
-  });
-  return variants.some(variant => {
-    const formula = new Set((variant.match(WAR_FORMULA) ?? []).join(" ").split(/\s+/u));
-    const words = variant.split(/\s+/u);
-    // "Василий Семёнович Лановой": sources about a mural or plaque usually drop the patronymic, so first name and surname suffice.
-    const fullName = words.length === 3 && words.every(word => /^[А-ЯЁ][а-яё-]+$/u.test(word)) && PATRONYMIC.test(words[1]);
-    const all = tokens(fullName ? `${words[0]} ${words[2]}` : variant);
-    if (!all.length) return false;
-    // An acronym ("МОЖД") and the war formula still count towards the 60 %, but are not required
-    // next to another proper name.
-    const capitalised = properWords(words).filter(word => !formula.has(word));
-    const named = capitalised.filter(word => !ACRONYM.test(word));
-    const proper = fullName ? all : (named.length ? named : capitalised).flatMap(tokens);
-    const required = proper.length ? proper : all.length <= 2 ? all : [];
-    return required.every(present) && all.filter(present).length / all.length >= 0.6;
-  });
-}
-
-/**
- * Evidence for a weak_identity job: only facts about the object itself, and at least one
- * identity fact whose quote names the object as OSM does. Otherwise an editor decides.
- */
-export function restrictWeakIdentityEvidence(evidence, place) {
+/** Keeps object facts after validateFacts has established identity from the model and source excerpts. */
+export function restrictWeakIdentityEvidence(evidence) {
   const facts = evidence.facts.filter(fact => fact.subjectRelation === "object");
-  const named = facts.some(fact => fact.kind === "identity" && fact.evidence.some(proof => quoteNamesPlace(proof.quote, place)));
-  if (!named) throw failure("IDENTITY_UNCONFIRMED");
   if (!facts.some(fact => fact.kind === "content")) throw failure("INSUFFICIENT_EVIDENCE");
   const used = new Set(facts.flatMap(fact => fact.evidence.map(proof => proof.sourceId)));
   return { ...evidence, identityPolicy: "weak_identity", facts, sources: evidence.sources.filter(source => used.has(source.id)) };

@@ -131,13 +131,13 @@ test("a facts rejection keeps the model's explanation and quotes for the editor"
   assert.equal(last().evidence, undefined);
 });
 
-test("a weak_identity rejection shows which quotes the model offered", async t => {
+test("model-confirmed weak identity proceeds without a lexical naming gate", async t => {
   const f = fixture(t), last = recordCheckpoints(f.store);
   const job = { ...f.store.claimContentJob(), identityPolicy: "weak_identity" };
   const result = await runContentJob(job, { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
-  assert.equal(result.error.code, "IDENTITY_UNCONFIRMED");
-  assert.equal(last().factsRejection.code, "IDENTITY_UNCONFIRMED");
-  assert.deepEqual(last().factsRejection.facts.map(fact => fact.kind), ["content", "content", "content"]);
+  assert.equal(result.story.facts.length, 3);
+  assert.equal(last().factsRejection, undefined);
+  assert.equal(last().evidence.identityPolicy, "weak_identity");
 });
 
 test("model output in a rejection is clipped to the evidence limits", async t => {
