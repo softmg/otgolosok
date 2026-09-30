@@ -44,6 +44,7 @@ export type Invariant =
   | "hscroll" // the page or the sheet scrolls horizontally
   | "footer" // the sheet footer is not fully visible
   | "body" // an overflowing sheet body keeps less than 48 px visible
+  | "notices" // the notices region clips its first notice
   | "free" // the uncovered map has no 160×72 rectangle
   | "focus" // the selected marker or the route is under a region or outside the viewport
   | "content"; // a content page puts its last control under the navigation or under the top inset
@@ -161,6 +162,14 @@ export async function collectViolations(page: Page, options: LayoutOptions, safe
         if (!visible(body) || body.scrollHeight <= body.clientHeight + 1) continue;
         if (body.clientHeight < 48) add("body", `прокручиваемая часть «${describe(body)}» высотой ${body.clientHeight}`);
       }
+    }
+
+    // notices: the region may scroll through a stack, but its first notice is always whole.
+    for (const region of regions.filter(item => item.name === "notices")) {
+      const first = region.element.firstElementChild;
+      if (!first || region.element.scrollHeight <= region.element.clientHeight + 1) continue;
+      const { height } = first.getBoundingClientRect();
+      if (region.element.clientHeight + 0.5 < height) add("notices", `«${describe(first)}» высотой ${Math.round(height)} обрезано до ${region.element.clientHeight}`);
     }
 
     // free: the uncovered map keeps a 160×72 rectangle (checked on a 4 px grid).
