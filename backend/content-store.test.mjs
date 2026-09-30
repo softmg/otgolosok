@@ -467,3 +467,36 @@ test("completion without replaceDraft keeps an existing text as before", t => {
   store.completeContentJob(store.claimContentJob().id, { story: story("новый"), evidence: { facts: [] } });
   assert.equal(draft("osm:node:1").text.title, "старый osm:node:1");
 });
+
+test("draft research status follows the latest text's job and filters the list by it", t => {
+  const { store, story, draft, order } = draftStore(t, 3);
+  assert.deepEqual(store.listDrafts({ limit: 100 }).items.map(item => item.research), ["plain", "plain", "plain"]);
+  assert.deepEqual(store.listDrafts().counts, { plain: 3 });
+  assert.equal(store.listDrafts({ research: "plain", limit: 100 }).total, 3);
+  assert.equal(store.listDrafts({ research: "perplexity", limit: 100 }).total, 0);
+  for (const research of /** @type {any[]} */ (["bogus", "", null, 3])) assert.throws(() => store.listDrafts({ research }), { code: "BAD_REQUEST" }, JSON.stringify(research));
+
+  // A queued or working re-research stands in place of the still-current old text.
+  store.researchDrafts({ requestKey: "draft-status-1", placeIds: [order[0]] });
+  assert.equal(draft(order[0]).research, "queued");
+  const job = store.claimContentJob();
+  assert.equal(job.place.id, order[0]);
+  assert.equal(draft(order[0]).research, "queued");
+  assert.deepEqual(store.listDrafts().counts, { plain: 2, queued: 1 });
+  assert.deepEqual(store.listDrafts({ research: "queued", limit: 100 }).items.map(item => item.placeId), [order[0]]);
+
+  // A completed re-research through Perplexity marks the replaced draft.
+  store.updateContentCheckpoint(job.id, { ...job.checkpoint, research: { sources: [], perplexity: { status: "ok", count: 3 } } });
+  store.completeContentJob(job.id, { story: story("новый"), evidence: { facts: [] }, replaceDraft: true });
+  assert.equal(draft(order[0]).research, "perplexity");
+  assert.deepEqual(store.listDrafts().counts, { plain: 2, perplexity: 1 });
+
+  // A failed re-research keeps the old draft text and reports the failure.
+  store.researchDrafts({ requestKey: "draft-status-2", placeIds: [order[1]] });
+  const failing = store.claimContentJob();
+  store.failContentJob(failing.id, { code: "PERPLEXITY_UNAVAILABLE", message: "Perplexity недоступен" }, "failed", { countAttempt: false });
+  assert.equal(draft(order[1]).research, "failed");
+  assert.equal(draft(order[1]).text.title, `старый ${order[1]}`);
+  assert.deepEqual(store.listDrafts().counts, { plain: 1, perplexity: 1, failed: 1 });
+  assert.deepEqual(store.listDrafts({ research: "failed", limit: 100 }).items.map(item => item.placeId), [order[1]]);
+});

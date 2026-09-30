@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { audioBackfillNotice, batchItemStates, contentErrorOptions, contentStatusOptions, contentStatusStates, draftCheck, draftClipboardText, initialDraft, pageCount, pageRange, safeSourceLink, type Draft, type Fact, type Job } from "./model";
+import { audioBackfillNotice, batchItemStates, contentErrorOptions, contentStatusOptions, contentStatusStates, draftCheck, draftClipboardText, draftResearchOptions, draftResearchStatuses, initialDraft, pageCount, pageRange, safeSourceLink, type Draft, type Fact, type Job } from "./model";
 
 const facts: Fact[] = Array.from({ length: 5 }, (_, index) => ({
   id: `f${index + 1}`, claim: "Verified claim", interesting: true, evidence: [],
@@ -78,6 +78,30 @@ describe("фильтр заданий по ошибке", () => {
   });
 });
 
+describe("фильтр черновиков по статусу переисследования", () => {
+  it("перечисляет каждый статус с количеством, нули показывает тоже", () => {
+    expect(draftResearchOptions({ plain: 561, perplexity: 24, queued: 20 })).toEqual([
+      { value: "all", label: "Все черновики" },
+      { value: "plain", label: "Ещё не переисследованы (561)" },
+      { value: "perplexity", label: "Переисследованы через Perplexity (24)" },
+      { value: "queued", label: "В очереди на переисследование (20)" },
+      { value: "failed", label: "Переисследование не удалось (0)" },
+    ]);
+  });
+
+  it("обнуляет счётчики, когда сервер их не прислал", () => {
+    expect(draftResearchOptions().map(option => option.label)).toEqual([
+      "Все черновики", "Ещё не переисследованы (0)", "Переисследованы через Perplexity (0)", "В очереди на переисследование (0)", "Переисследование не удалось (0)",
+    ]);
+  });
+
+  it("у каждого статуса есть подпись для строки черновика", () => {
+    for (const status of ["plain", "perplexity", "queued", "failed"] as const) {
+      expect(draftResearchStatuses[status].length).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("подписи постраничной навигации", () => {
   it.each([
     [0, 50, 6107, "1–50 из 6107"],
@@ -107,9 +131,9 @@ describe("bulk voicing notice", () => {
 
 describe("draft clipboard text", () => {
   const draft = {
-    placeId: "osm:node:4142950214", name: "Мишка с мячом", address: null, location: { lat: 55.7370823, lon: 37.6084488 },
+    placeId: "osm:node:4142950214", name: "Мишка с мячом", address: null, location: { lat: 55.7370823, lon: 37.6084488 }, research: "plain",
     text: { id: "t1", title: "Скульптура «Мишка с мячом»", paragraphs: ["Её создала скульптор Воробьева.", "Медведь стоит на передних лапах."], verification: "automatic", createdAt: "2026-09-28T17:00:00Z" },
-  };
+  } satisfies Parameters<typeof draftClipboardText>[0];
   it("lists the point with coordinates and then every paragraph by number", () => {
     expect(draftClipboardText(draft)).toBe([
       "Место: Мишка с мячом", "Координаты: 55.7370823, 37.6084488", "OSM: osm:node:4142950214", "Заголовок: Скульптура «Мишка с мячом»", "",

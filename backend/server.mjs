@@ -323,8 +323,8 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/batches") {if(url.search)throw failure("BAD_REQUEST");json(res,200,{batches:store.listBatches()});return;}
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/drafts") {
-          const entries=[...url.searchParams];if(entries.some(([key,value])=>!["limit","offset"].includes(key)||!/^\d+$/.test(value)))throw failure("BAD_REQUEST");
-          json(res,200,{...store.listDrafts({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0)}),researchAvailable:Boolean(provider?.searchSources)});return;}
+          const entries=[...url.searchParams];if(entries.some(([key,value])=>!["limit","offset","research"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value))))throw failure("BAD_REQUEST");
+          json(res,200,{...store.listDrafts({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0),research:url.searchParams.get("research")??"all"}),researchAvailable:Boolean(provider?.searchSources)});return;}
         if(req.method==="POST"&&url.pathname==="/api/story-admin/content/drafts/research") {
           if(!origin||req.headers.origin!==origin) {json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
           const input=await body(req,16384);

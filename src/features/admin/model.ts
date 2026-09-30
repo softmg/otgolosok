@@ -248,12 +248,37 @@ export const identitySignals: Record<string, string> = {
 
 export type ContentDraft = {
   placeId: string; name: string; address: string | null; location: { lat: number; lon: number };
+  research: DraftResearchStatus;
   text: { id: string; title: string; paragraphs: string[]; verification: string; createdAt: string };
 };
 /** `unresearched` counts drafts the bulk re-research would still pick; `researchAvailable` says the server has a search model. */
-export type ContentDraftPage = { total: number; hasMore: boolean; items: ContentDraft[]; unresearched?: number; researchAvailable?: boolean };
+export type ContentDraftPage = { total: number; hasMore: boolean; items: ContentDraft[]; unresearched?: number; counts?: Partial<Record<DraftResearchStatus, number>>; researchAvailable?: boolean };
 export type DraftResearchResult = { batch: { id: string; name: string }; count: number };
 export const DRAFT_RESEARCH_LIMIT = 50;
+
+/** How the draft stands relative to the Perplexity search: the row badge spells each one out. */
+export type DraftResearchStatus = "plain" | "perplexity" | "queued" | "failed";
+export const draftResearchStatuses: Record<DraftResearchStatus, string> = {
+  plain: "Не переисследован",
+  perplexity: "Переисследован через Perplexity",
+  queued: "В очереди на переисследование",
+  failed: "Переисследование не удалось",
+};
+export type ContentDraftResearchFilter = "all" | DraftResearchStatus;
+
+/** Filter options with live counts; zeros stay visible so the editor sees what each bucket holds. */
+export function draftResearchOptions(counts: ContentDraftPage["counts"] = {}): { value: ContentDraftResearchFilter; label: string }[] {
+  const labels: Record<DraftResearchStatus, string> = {
+    plain: "Ещё не переисследованы",
+    perplexity: "Переисследованы через Perplexity",
+    queued: "В очереди на переисследование",
+    failed: "Переисследование не удалось",
+  };
+  return [
+    { value: "all", label: "Все черновики" },
+    ...(Object.keys(labels) as DraftResearchStatus[]).map(status => ({ value: status, label: `${labels[status]} (${counts[status] ?? 0})` })),
+  ];
+}
 
 /** Plain text for the editor's clipboard: the point with its coordinates, then every paragraph numbered. */
 export function draftClipboardText(draft: ContentDraft) {

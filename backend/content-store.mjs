@@ -72,6 +72,16 @@ const DRAFT_JOB=`FROM places p JOIN place_texts t ON t.id=(SELECT x.id FROM plac
 const PERPLEXITY_DONE="coalesce(json_extract(j.checkpoint_json,'$.research.perplexity.status'),'')='ok'";
 export const DRAFT_RESEARCH_LIMIT=50;
 const DRAFT_PLACE="EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id) AND NOT EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)";
+// The latest text's job drives the draft's research status: in flight (any re-run), done through the search
+// model, failed after a required Perplexity run, or plain (never checked through the search model).
+const DRAFT_TEXT_JOIN=`JOIN place_texts t ON t.id=(SELECT x.id FROM place_texts x WHERE x.place_id=p.id ORDER BY x.created_at DESC,x.rowid DESC LIMIT 1)
+  LEFT JOIN content_jobs j ON j.input_key=t.input_key`;
+const DRAFT_RESEARCH_STATUS=`CASE WHEN j.id IS NULL THEN 'plain'
+  WHEN j.state IN ('queued','retry_wait','working') THEN 'queued'
+  WHEN ${PERPLEXITY_DONE} THEN 'perplexity'
+  WHEN j.state='failed' AND json_extract(j.checkpoint_json,'$.researchMode')='perplexity_required' THEN 'failed'
+  ELSE 'plain' END`;
+const DRAFT_RESEARCH_FILTERS=["all","plain","perplexity","queued","failed"];
 
 export function createContentStore({db,now,transaction}) {
   db.exec(`
@@ -394,16 +404,17 @@ export function createContentStore({db,now,transaction}) {
       const items=db.prepare(`SELECT i.*,p.name,p.address FROM batch_items i JOIN places p ON p.id=i.place_id WHERE i.batch_id=? ORDER BY p.name,p.id`).all(id)
       .map(item=>({placeId:item.place_id,name:item.name,address:item.address,state:item.state,error:decode(item.error_json)}));return {...viewBatch(row,batchCounts(id)),items};},
     /** Drafts newest first with the latest generated text of each place: what an editor still has to approve. */
-    listDrafts({limit=50,offset=0}={}) {
-      if(!Number.isSafeInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(offset)||offset<0)throw fail("BAD_REQUEST");
-      const where=`p.archived=0 AND ${DRAFT_PLACE}`;
-      const rows=db.prepare(`SELECT p.id,p.name,p.address,p.lat,p.lon,t.id text_id,t.story_json,t.verification,t.created_at FROM places p
-        JOIN place_texts t ON t.id=(SELECT x.id FROM place_texts x WHERE x.place_id=p.id ORDER BY x.created_at DESC,x.rowid DESC LIMIT 1)
-        WHERE ${where} ORDER BY t.created_at DESC,p.id LIMIT ? OFFSET ?`).all(limit+1,offset);
-      const total=Number(db.prepare(`SELECT count(*) n FROM places p WHERE ${where}`).get().n);
+    listDrafts({limit=50,offset=0,research="all"}={}) {
+      if(!Number.isSafeInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(offset)||offset<0||!DRAFT_RESEARCH_FILTERS.includes(research))throw fail("BAD_REQUEST");
+      const where=`p.archived=0 AND ${DRAFT_PLACE}${research==="all"?"":` AND ${DRAFT_RESEARCH_STATUS}='${research}'`}`;
+      const rows=db.prepare(`SELECT p.id,p.name,p.address,p.lat,p.lon,t.id text_id,t.story_json,t.verification,t.created_at,${DRAFT_RESEARCH_STATUS} research_status
+        FROM places p ${DRAFT_TEXT_JOIN} WHERE ${where} ORDER BY t.created_at DESC,p.id LIMIT ? OFFSET ?`).all(limit+1,offset);
+      const total=Number(db.prepare(`SELECT count(*) n FROM places p ${DRAFT_TEXT_JOIN} WHERE ${where}`).get().n);
+      const counts=Object.fromEntries(db.prepare(`SELECT ${DRAFT_RESEARCH_STATUS} s,count(*) n FROM places p ${DRAFT_TEXT_JOIN}
+        WHERE p.archived=0 AND ${DRAFT_PLACE} GROUP BY s`).all().map(row=>[row.s,Number(row.n)]));
       const unresearched=Number(db.prepare(`SELECT count(*) n ${DRAFT_JOB} AND ${DRAFT_PLACE} AND NOT ${PERPLEXITY_DONE}`).get().n);
-      return {total,unresearched,hasMore:rows.length>limit,items:rows.slice(0,limit).map(row=>{const story=decode(row.story_json)??{};
-        return {placeId:row.id,name:row.name,address:row.address,location:{lat:row.lat,lon:row.lon},
+      return {total,unresearched,counts,hasMore:rows.length>limit,items:rows.slice(0,limit).map(row=>{const story=decode(row.story_json)??{};
+        return {placeId:row.id,name:row.name,address:row.address,location:{lat:row.lat,lon:row.lon},research:row.research_status,
           text:{id:row.text_id,title:typeof story.title==="string"?story.title:"",paragraphs:(Array.isArray(story.paragraphs)?story.paragraphs:[]).map(paragraph=>typeof paragraph?.text==="string"?paragraph.text:"").filter(Boolean),
             verification:row.verification,createdAt:row.created_at}};})};
     },

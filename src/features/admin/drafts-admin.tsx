@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
-import { DRAFT_RESEARCH_LIMIT, draftClipboardText, pageCount, pageRange, type AdminApi, type AdminRun, type ContentDraft, type ContentDraftPage, type ContentPlace, type Draft, type DraftResearchResult } from "./model";
+import { DRAFT_RESEARCH_LIMIT, draftClipboardText, draftResearchOptions, draftResearchStatuses, pageCount, pageRange, type AdminApi, type AdminRun, type ContentDraft, type ContentDraftPage, type ContentDraftResearchFilter, type ContentPlace, type Draft, type DraftResearchResult } from "./model";
 import { PlaceTextFields, placeTextValid } from "./place-text-fields";
 import { skeletonRows } from "./table-skeleton";
 import "./content-admin.css";
@@ -26,6 +26,7 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
   const [draft, setDraft] = useState<Draft | null>(null);
   const [baseline, setBaseline] = useState("");
   const [researchCount, setResearchCount] = useState(20);
+  const [researchFilter, setResearchFilter] = useState<ContentDraftResearchFilter>("all");
   const loaded = useRef(false);
   const editorHeading = useRef<HTMLHeadingElement>(null);
   const placeOpener = useRef<HTMLButtonElement | null>(null);
@@ -47,12 +48,12 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
     target.scrollIntoView({ block, behavior: "instant" });
   }, [busy, place]);
 
-  async function load(next: number, signal: AbortSignal) {
+  async function load(next: number, signal: AbortSignal, research: ContentDraftResearchFilter = researchFilter) {
     setLoading(true);
     try {
-      const result = await api<ContentDraftPage>(`/content/drafts?limit=${DRAFT_PAGE}&offset=${next}`, signal);
+      const result = await api<ContentDraftPage>(`/content/drafts?limit=${DRAFT_PAGE}&offset=${next}&research=${research}`, signal);
       // A page can fall off the end when drafts are approved between requests.
-      if (!result.items.length && next > 0) { await load(Math.max(0, next - DRAFT_PAGE), signal); return; }
+      if (!result.items.length && next > 0) { await load(Math.max(0, next - DRAFT_PAGE), signal, research); return; }
       setPage(result); setOffset(next);
     } finally { setLoading(false); }
   }
@@ -135,13 +136,21 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
         <span className="admin-meta">Ещё не проверено через Perplexity: {numbers.format(page.unresearched ?? 0)}. Сначала берутся самые старые черновики; удачный прогон заменяет текст черновика.</span>
       </form>
       : !loading && <p className="admin-meta">Переисследование через Perplexity недоступно: на сервере не задана модель поиска.</p>}
-    <p className="admin-meta" role="status">{notice || (loading ? "Загружаем черновики…" : `Показано ${pageRange(offset, page.items.length, page.total)} черновиков.`)}</p>
+    <div className="content-toolbar">
+      <label htmlFor="draft-research-filter">Статус исследования</label>
+      <select id="draft-research-filter" value={researchFilter} disabled={disabled} onChange={event => {
+        const next = event.target.value as ContentDraftResearchFilter; setResearchFilter(next);
+        void run("Фильтрация черновиков…", signal => load(0, signal, next));
+      }}>{draftResearchOptions(page.counts).map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+      <p className="admin-meta" role="status">{notice || (loading ? "Загружаем черновики…" : `Показано ${pageRange(offset, page.items.length, page.total)} черновиков.`)}</p>
+    </div>
     <div className="admin-table-wrap" aria-busy={loading}><table className="admin-table">
       <caption className="admin-sr-only">Черновики текстов</caption>
-      <thead><tr><th scope="col">Место</th><th scope="col">Заголовок</th><th scope="col">Абзацев</th><th scope="col">Создан</th><th scope="col">Действие</th></tr></thead>
-      <tbody>{loading ? skeletonRows(5, page.items.length) : page.items.map(item => <Fragment key={item.placeId}><tr data-current={place?.id === item.placeId || undefined}>
+      <thead><tr><th scope="col">Место</th><th scope="col">Заголовок</th><th scope="col">Исследование</th><th scope="col">Абзацев</th><th scope="col">Создан</th><th scope="col">Действие</th></tr></thead>
+      <tbody>{loading ? skeletonRows(6, page.items.length) : page.items.map(item => <Fragment key={item.placeId}><tr data-current={place?.id === item.placeId || undefined}>
         <th scope="row">{item.name}<span className="admin-row-id">{item.address ? `${item.address} · ` : ""}{item.location.lat}, {item.location.lon}</span></th>
         <td>{item.text.title || "—"}</td>
+        <td><span className="admin-meta">{draftResearchStatuses[item.research]}</span></td>
         <td>{numbers.format(item.text.paragraphs.length)}</td>
         <td>{moment(item.text.createdAt)}</td>
         <td><div className="admin-row-actions">
@@ -150,7 +159,7 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
           {page.researchAvailable && <button disabled={disabled} aria-label={`Переисследовать черновик: ${item.name}`} onClick={() => research({ placeIds: [item.placeId], name: item.name })}>Переисследовать</button>}
         </div></td>
       </tr>
-      {place?.id === item.placeId && <tr className="drafts-editor-row"><td colSpan={5}>
+      {place?.id === item.placeId && <tr className="drafts-editor-row"><td colSpan={6}>
         <article className="admin-document" aria-labelledby="draft-place-title">
           <div className="admin-document-head">
             <div><p className="admin-context">{place.id}</p><h3 id="draft-place-title" ref={editorHeading} tabIndex={-1}>{place.name}</h3>
@@ -167,7 +176,7 @@ export function DraftsAdmin({ api, busy, run, onDirtyChange }: DraftsAdminProps)
       </td></tr>}
       </Fragment>)}</tbody>
     </table></div>
-    {!loading && !page.items.length && <p className="admin-empty-row" role="status">Черновиков нет.</p>}
+    {!loading && !page.items.length && <p className="admin-empty-row" role="status">{researchFilter === "all" ? "Черновиков нет." : "Черновиков с этим статусом нет."}</p>}
     <nav className="admin-pagination" aria-label="Страницы черновиков">
       <button disabled={disabled || offset === 0} onClick={() => void run("Загрузка черновиков…", signal => load(Math.max(0, offset - DRAFT_PAGE), signal))}>Назад</button>
       <span className="admin-meta">Страница {Math.floor(offset / DRAFT_PAGE) + 1} из {pageCount(page.total, DRAFT_PAGE)}</span>

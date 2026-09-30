@@ -4,10 +4,11 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DraftsAdmin } from "./drafts-admin";
-import type { AdminApi, AdminRun, ContentDraft, ContentDraftPage, ContentPlace, Draft } from "./model";
+import type { AdminApi, AdminRun, ContentDraft, ContentDraftPage, ContentDraftResearchFilter, ContentPlace, Draft } from "./model";
 
 const draft = (index: number): ContentDraft => ({
   placeId: `osm:node:${index}`, name: `Место ${index}`, address: index === 1 ? "Москва, Арбат, 1" : null, location: { lat: 55.75 + index / 1000, lon: 37.61 },
+  research: "plain",
   text: { id: `t${index}`, title: `Заголовок ${index}`, paragraphs: [`Первый абзац ${index}.`, `Второй абзац ${index}.`], verification: "automatic", createdAt: "2026-09-28T17:00:00Z" },
 });
 
@@ -21,15 +22,21 @@ const place = (index: number): ContentPlace => ({
 });
 
 let container: HTMLDivElement, root: Root, requests: string[], total: number, approved: { path: string; body: unknown }[], dirty: boolean[];
-let researchAvailable: boolean, researched: unknown[];
+let researchAvailable: boolean, researched: unknown[], mockResearch: Record<number, ContentDraft["research"]>, mockCounts: ContentDraftPage["counts"];
 const api: AdminApi = async <T,>(path: string, _signal: AbortSignal, body?: unknown) => {
   requests.push(path);
   if (path === "/content/drafts/research") { researched.push(body); return { batch: { id: "b1", name: "Perplexity · черновики" }, count: 2 } as T; }
   if (path.endsWith("/approve")) { approved.push({ path, body }); total -= 1; return { place: place(1) } as T; }
   if (path.startsWith("/content/places/")) return { place: place(Number(path.split(":").at(-1))) } as T;
-  const offset = Number(new URLSearchParams(path.split("?")[1]).get("offset"));
-  const items = Array.from({ length: Math.max(0, Math.min(50, total - offset)) }, (_, index) => draft(offset + index + 1 + approved.length));
-  return { total, hasMore: offset + items.length < total, items, researchAvailable, unresearched: total } satisfies ContentDraftPage as T;
+  const params = new URLSearchParams(path.split("?")[1]);
+  const offset = Number(params.get("offset"));
+  const research = (params.get("research") ?? "all") as ContentDraftResearchFilter;
+  const all = Array.from({ length: Math.max(0, Math.min(50, total - offset)) }, (_, index) => {
+    const index_ = offset + index + 1 + approved.length;
+    return { ...draft(index_), research: mockResearch[index_] ?? "plain" };
+  });
+  const items = research === "all" ? all : all.filter(item => item.research === research);
+  return { total: research === "all" ? total : items.length, hasMore: research === "all" && offset + all.length < total, items, researchAvailable, unresearched: total, counts: mockCounts } satisfies ContentDraftPage as T;
 };
 const run: AdminRun = async (_label, action) => { await action(new AbortController().signal); };
 
@@ -47,7 +54,7 @@ const button = (label: string) => [...container.querySelectorAll("button")].find
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  requests = []; total = 2; approved = []; dirty = []; researchAvailable = false; researched = [];
+  requests = []; total = 2; approved = []; dirty = []; researchAvailable = false; researched = []; mockResearch = {}; mockCounts = { plain: 2 };
   Element.prototype.scrollIntoView = vi.fn();
   container = document.createElement("div");
   document.body.append(container);
@@ -64,7 +71,7 @@ describe("вкладка черновиков", () => {
     const writeText = vi.fn(async () => {});
     vi.stubGlobal("navigator", { clipboard: { writeText } });
     await mount();
-    expect(requests).toEqual(["/content/drafts?limit=50&offset=0"]);
+    expect(requests).toEqual(["/content/drafts?limit=50&offset=0&research=all"]);
     expect(container.textContent).toContain("Москва, Арбат, 1 · 55.751, 37.61");
     expect(container.textContent).toContain("Показано 1–2 из 2 черновиков.");
     await act(async () => { button("Копировать черновик: Место 1").click(); });
@@ -83,7 +90,7 @@ describe("вкладка черновиков", () => {
     total = 60;
     await mount();
     await act(async () => { button("Далее").click(); });
-    expect(requests.at(-1)).toBe("/content/drafts?limit=50&offset=50");
+    expect(requests.at(-1)).toBe("/content/drafts?limit=50&offset=50&research=all");
     expect(container.querySelectorAll("tbody tr")).toHaveLength(10);
     await act(async () => { root.unmount(); });
     total = 0;
@@ -109,7 +116,7 @@ describe("вкладка черновиков", () => {
       title: "Заголовок 1", paragraphs: [{ text: "Первый абзац 1.", factIds: ["f1"] }, { text: "Исправленный абзац.", factIds: ["f2"] }],
     } } }]);
     expect(container.querySelector("#draft-place-title")).toBeNull();
-    expect(requests.at(-1)).toBe("/content/drafts?limit=50&offset=0");
+    expect(requests.at(-1)).toBe("/content/drafts?limit=50&offset=0&research=all");
     expect(container.textContent).toContain("Текст утверждён: Место 1.");
     expect(container.textContent).not.toContain("Копировать черновик: Место 1");
     expect(button("Копировать черновик: Место 2")).toBeDefined();
@@ -174,5 +181,26 @@ describe("переисследование черновиков через Perpl
     expect(container.textContent).toContain("Переисследование через Perplexity недоступно");
     expect(button("Переисследовать через Perplexity")).toBeUndefined();
     expect(button("Переисследовать черновик: Место 1")).toBeUndefined();
+  });
+
+  it("показывает статус переисследования в строках и фильтрует по нему", async () => {
+    mockResearch = { 1: "perplexity", 2: "queued" };
+    mockCounts = { plain: 0, perplexity: 1, queued: 1 };
+    await mount();
+    const rows = [...container.querySelectorAll("tbody tr")];
+    expect(rows[0].textContent).toContain("Переисследован через Perplexity");
+    expect(rows[1].textContent).toContain("В очереди на переисследование");
+    const select = container.querySelector<HTMLSelectElement>("#draft-research-filter")!;
+    expect([...select.options].map(option => option.textContent)).toEqual([
+      "Все черновики", "Ещё не переисследованы (0)", "Переисследованы через Perplexity (1)", "В очереди на переисследование (1)", "Переисследование не удалось (0)",
+    ]);
+    const set = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value")!.set!;
+    await act(async () => { set.call(select, "perplexity"); select.dispatchEvent(new Event("change", { bubbles: true })); });
+    expect(requests.at(-1)).toBe("/content/drafts?limit=50&offset=0&research=perplexity");
+    expect(container.querySelectorAll("tbody tr")).toHaveLength(1);
+    expect(container.textContent).toContain("Показано 1–1 из 1 черновиков.");
+    await act(async () => { set.call(select, "failed"); select.dispatchEvent(new Event("change", { bubbles: true })); });
+    expect(requests.at(-1)).toBe("/content/drafts?limit=50&offset=0&research=failed");
+    expect(container.textContent).toContain("Черновиков с этим статусом нет.");
   });
 });

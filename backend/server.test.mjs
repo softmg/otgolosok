@@ -396,14 +396,17 @@ test("drafts list unapproved texts with their paragraphs and leave once approved
   const list=async()=>/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?limit=10&offset=0`)).json());
   const drafts=await list();
   assert.equal(drafts.total,2);
-  assert.deepEqual(drafts.items.find(item=>item.placeId==="osm:node:7"),{placeId:"osm:node:7",name:"Парк",address:null,location:{lat:55.75,lon:37.61},
+  assert.deepEqual(drafts.counts,{plain:2});
+  assert.deepEqual(drafts.items.find(item=>item.placeId==="osm:node:7"),{placeId:"osm:node:7",name:"Парк",address:null,location:{lat:55.75,lon:37.61},research:"plain",
     text:{id:drafts.items.find(item=>item.placeId==="osm:node:7").text.id,title:"Парк",paragraphs:["Парк: первый абзац","Парк: второй абзац"],verification:"automatic",
       createdAt:drafts.items.find(item=>item.placeId==="osm:node:7").text.createdAt}});
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?limit=10&offset=0&research=plain`)).json()).total,2);
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?limit=10&offset=0&research=perplexity`)).json()).total,0);
   assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/stats`)).json()).drafts,2);
   assert.equal((await f.post("/api/story-admin/content/places/osm:node:7/approve",{story:story("Парк")})).status,200);
   assert.deepEqual((await list()).items.map(item=>item.placeId),["osm:node:8"]);
   assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/stats`)).json()).drafts,1);
-  for(const query of ["limit=0","limit=101","offset=-1","limit=abc","status=draft"])
+  for(const query of ["limit=0","limit=101","offset=-1","limit=abc","status=draft","research=bogus","research="])
     assert.equal((await fetch(`${f.base}/api/story-admin/content/drafts?${query}`)).status,400,query);
 });
 
@@ -428,6 +431,9 @@ test("drafts can be queued for Perplexity re-research only when the search model
   assert.equal(csrf.status,403);
   const queued=await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-1",placeIds:["osm:node:7"]});
   assert.equal(queued.status,200);assert.equal(/** @type {any} */ (await queued.json()).count,1);
+  const inFlight=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?research=queued`)).json());
+  assert.deepEqual(inFlight.counts,{queued:1});
+  assert.deepEqual(inFlight.items.map(item=>[item.placeId,item.research]),[["osm:node:7","queued"]]);
   const none=await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-2",limit:20});
   assert.equal(none.status,409);assert.equal(/** @type {any} */ (await none.json()).error.code,"NO_DRAFTS_TO_RESEARCH");
 });
