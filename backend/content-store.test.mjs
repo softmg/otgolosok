@@ -521,3 +521,20 @@ test("deep draft research is explicit, single-place and idempotent", t => {
   store.retryBatchItem(result.batch.id,order[0],{restartFrom:"research"});
   assert.deepEqual(store.claimContentJob().checkpoint,{researchMode:"perplexity_deep_required"});
 });
+
+
+test("catalog bounds filter before pagination and include rectangle edges", t => {
+  const store = createStore(":memory:"); t.after(() => store.close());
+  store.importPlaces(catalog);
+  const bounds = { west: 37.6, south: 55.74, east: 37.61, north: 55.75 };
+  const result = store.listPlaces({ bounds, limit: 1 });
+  assert.deepEqual(result.places.map(place => place.id), ["osm:node:1"]);
+  assert.equal(result.total, 1); assert.equal(result.hasMore, false);
+  assert.equal(store.listPlaces({ bounds, offset: 1 }).places.length, 0);
+  assert.equal(store.listPlaces({ bounds: { ...bounds, north: 55.749 } }).total, 0);
+  for (const invalid of [
+    { ...bounds, west: NaN }, { ...bounds, north: 91 }, { ...bounds, east: 181 },
+    { ...bounds, west: 38 }, { ...bounds, south: 56 }, { ...bounds, east: bounds.west },
+  ]) assert.throws(() => store.listPlaces({ bounds: invalid }), { code: "BAD_REQUEST" });
+  assert.throws(() => store.listPlaces({ bounds, lat: 55.75, lon: 37.61, radius: 200 }), { code: "BAD_REQUEST" });
+});

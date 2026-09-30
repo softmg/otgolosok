@@ -1,3 +1,4 @@
+import type { CatalogBounds } from "./catalog-bounds";
 import type { Coordinates } from "../tour/types";
 import { request } from "../walk-builder/request";
 import type { StorySourceRef } from "./source-attribution";
@@ -11,13 +12,14 @@ export type CatalogPlace = {
 export type CatalogProgress = { places: CatalogPlace[]; total: number };
 type CatalogPage = CatalogProgress & { hasMore: boolean };
 
-/** One city-wide catalog feeds both map markers and local nearby recommendations. */
-export async function loadPublishedCatalog(signal: AbortSignal, onPage: (progress: CatalogProgress) => void) {
+/** Fetch every page inside one rectangle; total and progress belong to this area. */
+export async function loadPublishedCatalog(signal: AbortSignal, onPage: (progress: CatalogProgress) => void, bounds: CatalogBounds) {
   const places = new Map<string, CatalogPlace>();
   let offset = 0;
   for (;;) {
     signal.throwIfAborted();
     const params = new URLSearchParams({ limit: "100", status: "ready", offset: String(offset) });
+    for (const [key, value] of Object.entries(bounds)) params.set(key, String(value));
     const page = await request(`/api/content/places?${params}`, signal) as CatalogPage;
     signal.throwIfAborted();
     if (!page || !Array.isArray(page.places) || !Number.isSafeInteger(page.total) || page.total < 0 || typeof page.hasMore !== "boolean") {

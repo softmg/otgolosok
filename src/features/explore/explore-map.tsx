@@ -12,6 +12,7 @@ import type { Coordinates } from "../tour/types";
 import { NO_INSETS, type MapInsets } from "../shell/map-insets";
 import type { MapStatus } from "../shell/map-status-notice";
 import { cx } from "../ui/cx";
+import { catalogArea, type CatalogArea } from "./catalog-bounds";
 import { createMapClusters, loadMapLibrary } from "./map-clusters";
 import { createMapView, type MapFocus, type MapView } from "./map-view";
 import "leaflet/dist/leaflet.css";
@@ -101,6 +102,7 @@ export type ExploreMapProps = {
   viewState?: MapViewState;
   /** The part of the map no panel covers: focus and route are kept inside it. */
   insets?: MapInsets;
+  onViewport?: (area: CatalogArea) => void;
   onZoomLimits?: (limits: ZoomLimits) => void;
   onStatus?: (status: MapStatus) => void;
   /**
@@ -123,6 +125,7 @@ export function ExploreMap({
   mapLabel,
   viewState,
   insets = NO_INSETS,
+  onViewport,
   onZoomLimits,
   onStatus,
   legacyChrome = false,
@@ -148,14 +151,14 @@ export function ExploreMap({
     position: Leaflet.LayerGroup;
     route: Leaflet.LayerGroup;
   } | null>(null);
-  const handlers = useRef({ onSelect, onPoint, onZoomLimits, selectedId });
+  const handlers = useRef({ onSelect, onPoint, onZoomLimits, onViewport, selectedId });
   const appliedFocus = useRef<Coordinates | null>(null);
   const [ready, setReady] = useState(false);
   const [tileError, setTileError] = useState(false);
   const [mapError, setMapError] = useState(false);
   useEffect(() => {
-    handlers.current = { onSelect, onPoint, onZoomLimits, selectedId };
-  }, [onSelect, onPoint, onZoomLimits, selectedId]);
+    handlers.current = { onSelect, onPoint, onZoomLimits, onViewport, selectedId };
+  }, [onSelect, onPoint, onZoomLimits, onViewport, selectedId]);
   useImperativeHandle(
     ref,
     () => ({
@@ -174,6 +177,7 @@ export function ExploreMap({
   useEffect(() => {
     let disposed = false;
     let observer: ResizeObserver | undefined;
+    let viewportTimer: ReturnType<typeof setTimeout> | undefined;
     let saveView: (() => void) | undefined;
     void loadMapLibrary()
       .then(async (L) => {
@@ -289,6 +293,15 @@ export function ExploreMap({
           position: L.layerGroup().addTo(map),
           route: L.layerGroup().addTo(map),
         };
+        const reportViewport = () => {
+          clearTimeout(viewportTimer);
+          viewportTimer = setTimeout(() => {
+            if (!disposed && handlers.current.onViewport && map.getSize().x > 0 && map.getSize().y > 0)
+              handlers.current.onViewport(catalogArea(map));
+          }, 160);
+        };
+        map.on("moveend resize", reportViewport);
+        reportViewport();
         observer = new ResizeObserver(() => {
           if (disposed) return;
           map.invalidateSize();
@@ -302,6 +315,7 @@ export function ExploreMap({
       });
     return () => {
       disposed = true;
+      clearTimeout(viewportTimer);
       observer?.disconnect();
       runtime.current?.view.dispose();
       const map = runtime.current?.map;

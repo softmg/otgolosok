@@ -481,3 +481,26 @@ test("deep research API exposes availability and queues only one explicit draft"
   const disabled=await fixture(t);
   assert.equal((await disabled.post("/api/story-admin/content/drafts/research",input)).status,409);
 });
+
+
+test("public catalog accepts only complete finite non-wrapping bounds", async t => {
+  const f = await fixture(t);
+  f.store.importPlaces({ source: "fixture", sourceSha256: "a".repeat(64), places: [1, 2].map(id => ({ placeId: `osm:node:${id}`, osmType: "node", osmId: id, name: `Место ${id}`, location: { lat: 55.75, lon: 37.61 }, tags: {} })) });
+  f.store.createBatch({ requestKey: "bounds-http", placeIds: ["osm:node:1"], limit: 1 });
+  const job = f.store.claimContentJob();
+  f.store.completeContentJob(job.id, { story: { title: "История", paragraphs: [{ text: "Проверенный текст", factIds: ["f1"] }] }, evidence: {} });
+  f.store.approvePlaceText("osm:node:1");
+  const response = await fetch(`${f.base}/api/content/places?west=37&south=55&east=38&north=56`);
+  assert.equal(response.status, 200);
+  const result = /** @type {any} */ (await response.json());
+  assert.equal(result.total, 1); assert.equal(result.hasMore, false);
+  assert.deepEqual(result.places.map(place => place.id), ["osm:node:1"]);
+  const outside = await fetch(`${f.base}/api/content/places?west=37.7&south=55&east=38&north=56`);
+  assert.deepEqual(await outside.json(), { total: 0, places: [], hasMore: false });
+  for (const query of [
+    "west=37&south=55&east=38", "west=&south=55&east=38&north=56",
+    "west=NaN&south=55&east=38&north=56", "west=38&south=55&east=37&north=56",
+    "west=37&south=55&east=38&north=56&west=36",
+    "west=37&south=55&east=38&north=56&lat=55.75&lon=37.61&radius=200",
+  ]) assert.equal((await fetch(`${f.base}/api/content/places?${query}`)).status, 400, query);
+});

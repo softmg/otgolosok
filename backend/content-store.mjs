@@ -97,6 +97,7 @@ export function createContentStore({db,now,transaction}) {
     CREATE TABLE IF NOT EXISTS content_jobs (id TEXT PRIMARY KEY,input_key TEXT NOT NULL UNIQUE,place_id TEXT NOT NULL,state TEXT NOT NULL,
       profile TEXT NOT NULL,attempts INTEGER NOT NULL DEFAULT 0,max_attempts INTEGER NOT NULL DEFAULT 3,next_attempt_at TEXT NOT NULL,
       checkpoint_json TEXT,error_json TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS places_coordinates_idx ON places(lat,lon) WHERE archived=0;
     CREATE INDEX IF NOT EXISTS content_jobs_available_idx ON content_jobs(state,next_attempt_at,created_at);
     CREATE TABLE IF NOT EXISTS content_job_attempts (job_id TEXT NOT NULL,generation INTEGER NOT NULL,state TEXT NOT NULL,
       started_at TEXT NOT NULL,finished_at TEXT,error_json TEXT,PRIMARY KEY(job_id,generation));
@@ -205,10 +206,14 @@ export function createContentStore({db,now,transaction}) {
         return {id,count:catalog.places.length,complete,createdAt:timestamp};
       });
     },
-    listPlaces({limit=50,offset=0,q="",status="all",lat=null,lon=null,radius=null}={}) {
+    listPlaces({limit=50,offset=0,q="",status="all",lat=null,lon=null,radius=null,bounds=null}={}) {
       if(!Number.isSafeInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(offset)||offset<0||typeof q!=="string"||q.length>200||!["all","ready","draft","missing"].includes(status)
         ||([lat,lon,radius].some(value=>value!==null)&&(!Number.isFinite(lat)||!Number.isFinite(lon)||!Number.isFinite(radius)||lat<55.05||lat>56.05||lon<36.75||lon>38.25||radius<50||radius>5000)))throw fail("BAD_REQUEST");
+      if(bounds!==null && (typeof bounds!=="object" || ![bounds.west,bounds.south,bounds.east,bounds.north].every(Number.isFinite)
+        || bounds.west < -180 || bounds.east > 180 || bounds.south < -90 || bounds.north > 90
+        || bounds.west >= bounds.east || bounds.south >= bounds.north || [lat,lon,radius].some(value=>value!==null)))throw fail("BAD_REQUEST");
       const filters=["p.archived=0"],params=[];
+      if(bounds!==null){filters.push("p.lat BETWEEN ? AND ? AND p.lon BETWEEN ? AND ?");params.push(bounds.south,bounds.north,bounds.west,bounds.east);}
       if(q.trim()){filters.push("(instr(casefold(p.name),casefold(?))>0 OR instr(casefold(COALESCE(p.address,'')),casefold(?))>0)");params.push(q.trim(),q.trim());}
       if(status==="ready")filters.push("EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)");
       if(status==="draft")filters.push(DRAFT_PLACE);

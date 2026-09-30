@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/**", route => route.fulfill({ json: { user: null } }));
 });
 
-test("карта показывает все 1438 мест и открывает карточку с последней страницы", async ({ page }) => {
+test("карта показывает все 1438 мест выбранной области и открывает последнюю карточку", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.route("**/api/content/places?*", route => {
@@ -72,7 +72,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
   });
 }
 
-test("после сбоя второй страницы точки остаются, повтор загружает весь каталог", async ({ page }) => {
+test("после сбоя второй страницы точки остаются, повтор догружает область", async ({ page }) => {
   let unavailable = true;
   const sample = places.slice(0, 101);
   await page.route("**/api/content/places?*", route => {
@@ -120,3 +120,71 @@ for (const coincident of [false, true]) {
     expect(errors).toEqual([]);
   });
 }
+
+for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
+  test(`первая загрузка ограничена двумя шагами масштаба, новые области догружаются ${viewport.width}`, async ({ page }, info) => {
+    await page.setViewportSize(viewport);
+    const requests: URL[] = [];
+    let distant = places[1];
+    const sample = [places[1437]];
+    await page.route("**/api/content/places?*", route => {
+      const url = new URL(route.request().url());
+      requests.push(url);
+      const west = Number(url.searchParams.get("west")), east = Number(url.searchParams.get("east"));
+      const south = Number(url.searchParams.get("south")), north = Number(url.searchParams.get("north"));
+      if (requests.length === 1) {
+        distant = { ...places[1], location: { lat: 55.7249, lon: east + (east - west) * 0.15 } };
+        sample.push(distant);
+      }
+      const local = sample.filter(place => place.location.lon >= west && place.location.lon <= east && place.location.lat >= south && place.location.lat <= north);
+      return route.fulfill({ json: { places: local, total: local.length, hasMore: false } });
+    });
+    await page.goto("/");
+    await expect(page.getByTitle("Каталог: 1438", { exact: true })).toBeVisible();
+    await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
+    expect(requests).toHaveLength(1);
+    const bounds = requests[0].searchParams;
+    const map = page.locator(".leaflet-container");
+    const box = await map.boundingBox();
+    const pixels = (Number(bounds.get("east")) - Number(bounds.get("west"))) / 360 * 256 * 2 ** 16;
+    expect(pixels).toBeCloseTo(box!.width * 4, 2);
+    expect(await page.getByTitle("Каталог: 2", { exact: true }).count()).toBe(0);
+    await page.getByRole("button", { name: "Отдалить", exact: true }).click();
+    await page.getByRole("button", { name: "Отдалить", exact: true }).click();
+    await expect.poll(() => requests.length).toBe(2);
+    await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
+    const second = requests[1].searchParams;
+    expect(Number(second.get("east"))).toBeGreaterThan(distant.location.lon);
+    await page.getByRole("button", { name: "Отдалить", exact: true }).click();
+    await expect(page.getByTitle("Каталог: 2", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Приблизить", exact: true }).click();
+    await page.getByRole("button", { name: "Приблизить", exact: true }).click();
+    await page.getByRole("button", { name: "Приблизить", exact: true }).click();
+    await expect(page.getByTitle("Каталог: 1438", { exact: true })).toBeVisible();
+    await page.screenshot({ path: info.outputPath("viewport-catalog.png") });
+    expect(requests).toHaveLength(2);
+  });
+}
+
+test("перемещение догружает точки за исходной областью и сохраняет выбранную карточку", async ({ page }) => {
+  const requests: URL[] = [];
+  await page.route("**/api/content/places?*", route => {
+    requests.push(new URL(route.request().url()));
+    return route.fulfill({ json: { places: [places[1437]], total: 1, hasMore: false } });
+  });
+  await page.goto("/");
+  await page.getByTitle("Каталог: 1438", { exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Каталог: 1438", exact: true })).toBeVisible();
+  const map = page.locator(".leaflet-container");
+  const box = (await map.boundingBox())!;
+  for (let i = 0; i < 5; i++) {
+    await page.mouse.move(box.x + box.width * 0.85, box.y + 180);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.15, box.y + 180, { steps: 15 });
+    await page.mouse.up();
+  }
+  await expect.poll(() => requests.length).toBeGreaterThan(1);
+  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
+  expect(Number(requests.at(-1)!.searchParams.get("east"))).toBeGreaterThan(Number(requests[0].searchParams.get("east")));
+  await expect(page.getByRole("heading", { name: "Каталог: 1438", exact: true })).toBeVisible();
+});

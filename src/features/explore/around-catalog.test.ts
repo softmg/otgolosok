@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, createElement } from "react";
+import { act, createElement, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AroundScreen } from "./around-screen";
@@ -11,7 +11,10 @@ import exampleRoute from "../../../public/data/routes/paveletskaya.json";
 vi.mock("next/navigation", () => ({ useRouter: () => ({}), usePathname: () => "/", useSearchParams: () => new URLSearchParams() }));
 vi.mock("../walk-builder/walk-creation-panel", () => ({ WalkCreationPanel: () => null }));
 vi.mock("../navigation/app-navigation", () => ({ AppNavigation: () => null }));
-vi.mock("./explore-map", () => ({ ExploreMap: ({ items }: { items: MapItem[] }) => createElement("div", { "data-testid": "map" }, items.map(item => createElement("span", { key: item.id, "data-place": item.id }, item.title))) }));
+vi.mock("./explore-map", () => ({ ExploreMap: ({ items, onViewport }: { items: MapItem[]; onViewport: (area: import("./catalog-bounds").CatalogArea) => void }) => {
+  useEffect(() => { onViewport({ required: { west: 37.59, south: 55.74, east: 37.61, north: 55.76 }, buffered: { west: 37.56, south: 55.71, east: 37.64, north: 55.79 } }); }, [onViewport]);
+  return createElement("div", { "data-testid": "map" }, items.map(item => createElement("span", { key: item.id, "data-place": item.id }, item.title)));
+} }));
 
 let root: Root;
 let container: HTMLDivElement;
@@ -110,7 +113,7 @@ it("keeps loaded markers after a failed page and completes the catalog on retry"
   expect(container.textContent).not.toContain("Не все места загрузились.");
 });
 
-it("keeps the complete city catalog when geolocation changes the nearby center", async () => {
+it("keeps loaded map places and separately fetches the complete nearby radius", async () => {
   const fetcher = vi.fn(async (path: string) => response(Number(new URL(path, "http://localhost").searchParams.get("offset") ?? 0)));
   vi.stubGlobal("fetch", fetcher);
   vi.stubGlobal("navigator", { geolocation: { getCurrentPosition: (success: PositionCallback) => success({ coords: { latitude: 55.75, longitude: 37.6, accuracy: 10 } } as GeolocationPosition) } });
@@ -118,5 +121,32 @@ it("keeps the complete city catalog when geolocation changes the nearby center",
   await act(async () => (container.querySelector('[aria-label="Моё местоположение"]') as HTMLButtonElement).click());
   expect(markers()).toHaveLength(205);
   expect(container.textContent).toContain("Готовые истории рядом");
-  expect(fetcher).toHaveBeenCalledTimes(3);
+  expect(fetcher).toHaveBeenCalledTimes(6);
+  const nearbyQuery = new URL(fetcher.mock.calls[3][0], "http://localhost").searchParams;
+  expect(Number(nearbyQuery.get("west"))).toBeGreaterThan(37.59);
+  expect(Number(nearbyQuery.get("east"))).toBeLessThan(37.61);
+});
+
+it("waits for a remote nearby radius before declaring it empty and shows its stories", async () => {
+  let finish!: (response: Response) => void;
+  vi.stubGlobal("fetch", vi.fn((path: string) => {
+    const west = Number(new URL(path, "http://localhost").searchParams.get("west"));
+    if (west > 37.65) return new Promise<Response>(resolve => { finish = resolve; });
+    return Promise.resolve(Response.json({ places: [], total: 0, hasMore: false }));
+  }));
+  vi.stubGlobal("navigator", { geolocation: { getCurrentPosition: (success: PositionCallback) => success({ coords: { latitude: 55.8, longitude: 37.7, accuracy: 10 } } as GeolocationPosition) } });
+  await act(async () => root.render(createElement(AroundScreen, { route, onStart: () => {}, updateAvailable: false })));
+  await act(async () => (container.querySelector('[aria-label="Моё местоположение"]') as HTMLButtonElement).click());
+  expect(container.textContent).toContain("Ищем истории рядом…");
+  expect(container.textContent).not.toContain("В этом радиусе пока нет");
+  await act(async () => finish(Response.json({ places: [{ ...places[0], location: { lat: 55.8, lon: 37.7 }, audio: { url: "/story.mp3", durationSec: 60 } }], total: 1, hasMore: false })));
+  expect(container.querySelector('[data-sheet="nearby"] li')?.textContent).toContain("История 1");
+  expect(markers()).toHaveLength(1);
+  expect(container.textContent).not.toContain("Ищем истории рядом…");
+  await act(async () => ([...container.querySelectorAll("button")].find(button => button.textContent === "300 м")!).click());
+  expect(container.textContent).toContain("Ищем истории рядом…");
+  await act(async () => finish(Response.json({}, { status: 400 })));
+  expect(container.textContent).toContain("Не удалось загрузить все истории рядом");
+  expect(container.querySelector('[data-sheet="nearby"] li')?.textContent).toContain("История 1");
+  expect(container.textContent).not.toContain("В этом радиусе пока нет");
 });

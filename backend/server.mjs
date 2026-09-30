@@ -525,11 +525,15 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
       }
       if(req.method==="GET"&&url.pathname==="/api/story-service") {json(res,200,{enabled:Boolean(provider),version:1});return;}
       if(req.method==="GET"&&url.pathname==="/api/content/places") {
-        const entries=[...url.searchParams],allowed=["limit","offset","q","status","lat","lon","radius"];
+        const entries=[...url.searchParams],allowed=["limit","offset","q","status","lat","lon","radius","west","south","east","north"];
         if(entries.some(([key,value])=>!allowed.includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
+        const boundKeys=["west","south","east","north"];
+        const hasBounds=boundKeys.some(key=>url.searchParams.has(key));
+        if(hasBounds&&boundKeys.some(key=>!url.searchParams.get(key)?.trim()))throw failure("BAD_REQUEST");
+        const bounds=hasBounds?{west:Number(url.searchParams.get("west")),south:Number(url.searchParams.get("south")),east:Number(url.searchParams.get("east")),north:Number(url.searchParams.get("north"))}:null;
         const nearby=url.searchParams.has("lat")||url.searchParams.has("lon")||url.searchParams.has("radius");
         json(res,200,store.listPlaces({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0),q:url.searchParams.get("q")??"",status:url.searchParams.get("status")??"ready",
-          lat:nearby?Number(url.searchParams.get("lat")):null,lon:nearby?Number(url.searchParams.get("lon")):null,radius:nearby?Number(url.searchParams.get("radius")):null}));return;
+          lat:nearby?Number(url.searchParams.get("lat")):null,lon:nearby?Number(url.searchParams.get("lon")):null,radius:nearby?Number(url.searchParams.get("radius")):null,bounds}));return;
       }
       const publicPlace=/^\/api\/content\/places\/(osm:(?:node|way|relation):\d+)$/.exec(url.pathname);
       if(req.method==="GET"&&publicPlace){const place=store.getPublishedPlace(publicPlace[1]);json(res,place?200:404,place?{place}:{error:{code:"NOT_FOUND",message:"Place text not found."}});return;}

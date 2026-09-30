@@ -58,7 +58,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   const [prompt,setPrompt]=useState(false);
   const [mapHintVisible,setMapHintVisible]=useState(true);
   const [tracked]=useState<MapJob[]>(()=>typeof window==="undefined"?[]:readMapJobs()),[jobs,setJobs]=useState<Record<string,GenerationJob>>({});
-  const {places:catalog,total:catalogTotal,status:catalogStatus,retry:retryCatalog}=usePublishedCatalog();
+  const {places:catalog,total:catalogTotal,loaded:catalogLoaded,status:catalogStatus,nearbyStatus,retry:retryCatalog,onViewport}=usePublishedCatalog(nearbyCenter,nearbyRadius);
   const lookup=useRef<AbortController|null>(null),locating=useRef<(()=>void)|null>(null);
   const input=useRef<HTMLInputElement>(null);
 
@@ -194,11 +194,11 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     : prompt&&!active&&!place&&!placeBusy&&!placeError ? <LocationPromptSheet geo={geo} onLocate={locate} onDismiss={dismissGeoPrompt} />
     : active ? <StorySheet story={active} metadata={metadata(active)} walkHref={active.address&&!placeBusy?walkHref:null} startRef={startRef} onStart={onStart} onClose={()=>setSelected(undefined)} onWalk={rememberOpener} />
     : explorePanel==="place" ? <PlaceSheet address={place?.address??null} busy={placeBusy} error={placeError} createHref={createHref} walkHref={place?.address?walkHref:null} onClose={closePlace} onWalk={rememberOpener} />
-    : explorePanel==="nearby" ? <NearbySheet radius={nearbyRadius} recommendations={recommendations} onRadius={setNearbyRadius} onSelect={selectRecommendation} onReset={()=>{setNearbyCenter(null);setPlace(null);setPrompt(false);}} />
+    : explorePanel==="nearby" ? <NearbySheet status={nearbyStatus} radius={nearbyRadius} recommendations={recommendations} onRadius={setNearbyRadius} onSelect={selectRecommendation} onReset={()=>{setNearbyCenter(null);setPlace(null);setPrompt(false);}} />
     : null;
   // An empty slot must stay null: the shell gives the dock room only when there is something to show.
   const noticeList = [
-    catalogStatus!=="ready"?<div key="catalog" className={styles.catalogStatus} data-region="catalog-status"><span role="status" aria-atomic="true">{catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalog.length} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="loading"?<progress aria-label="Загрузка мест на карте" max={catalogTotal||1} value={catalogTotal?catalog.length:undefined}/>:null}{catalogStatus==="error"?<button type="button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null,
+    catalogStatus!=="ready"?<div key="catalog" className={styles.catalogStatus} data-region="catalog-status"><span role="status" aria-atomic="true">{catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalogLoaded} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="loading"?<progress aria-label="Загрузка мест на карте" max={catalogTotal||1} value={catalogTotal?catalogLoaded:undefined}/>:null}{catalogStatus==="error"?<button type="button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null,
     !creating&&geoMessage&&!search?<GeoNotice key="geo" message={geoMessage} outside={geoOutside} denied={geo==="denied"} onMoscow={showMoscow} onRetry={locate} onClose={()=>{setGeoMessage("");setGeoOutside(false);}} />:null,
     !creating&&!sheet&&!search&&mapHintVisible?<MapHintNotice key="hint" onClose={()=>setMapHintVisible(false)} />:null,
     !creating&&updateAvailable?<a key="update" className={a.notice} href="/update.html">Доступна новая версия · обновить</a>:null,
@@ -207,7 +207,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
 
   return <>
     <MapShell
-      map={{viewState:nearbyMapView,items:creating?creationItems:mapItems,geometry:creating?creationMap.geometry:undefined,selectedId:selected??(place?"picked-place":undefined),focus:creating?creationMap.focus:focus,user,
+      map={{onViewport,viewState:nearbyMapView,items:creating?creationItems:mapItems,geometry:creating?creationMap.geometry:undefined,selectedId:selected??(place?"picked-place":undefined),focus:creating?creationMap.focus:focus,user,
         onSelect:id=>{const pin=pins.find(value=>value.id===id);if(pin){if(creating)setPicked(pin.location);else select(pin);}},
         onPoint:point=>creating?setPicked(point):void findPlace(point)}}
       header={<AroundHeader search={search&&!creating} query={query} busy={placeBusy} inputRef={input} onToggle={()=>search?setSearch(false):openSearch()} onQuery={setQuery} onSubmit={submitSearch} />}
