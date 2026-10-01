@@ -12,7 +12,7 @@ import "./walk-session.css";
 const noop = () => {};
 
 export function WalkSession({ route, chapters, index, active, completed, user, positionFailed, resume,
-  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, reviews = null }: {
+  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null }: {
   route: Route; chapters: WalkChapter[]; index: number; active: boolean; completed: boolean;
   user: (Coordinates & { accuracyM: number }) | null; positionFailed: boolean; resume: boolean;
   titleRef: RefObject<HTMLHeadingElement | null>; startRef: RefObject<HTMLButtonElement | null>;
@@ -22,6 +22,8 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   ratingLabel?: string;
   /** The viewer already has a review of this walk, so the finish screen offers to edit it. */
   hasReview?: boolean;
+  /** Published ratings; 0 turns «Отзывы» into a direct «Оставить отзыв», null while unknown. */
+  ratingCount?: number | null;
   /** Renders the reviews block; null for walks that cannot be reviewed. */
   reviews?: ((intent: "read" | "rate") => ReactNode) | null;
 }) {
@@ -109,7 +111,9 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
       {!completed ? <div className="walk-session-tools">
         {chapters.length > 0 ? <button type="button" aria-expanded={drawer === "stops"} onClick={() => setDrawer(drawer === "stops" ? null : "stops")}><ExploreIcon name="list" />Остановки · {chapters.length}</button> : null}
         {active && hasText ? <button type="button" aria-expanded={drawer === "story"} onClick={() => setDrawer(drawer === "story" ? null : "story")}>Читать историю</button> : null}
-        {!active && reviews ? <button type="button" aria-expanded={drawer === "reviews" && reviewIntent === "read"} onClick={() => openReviews("read")}>Отзывы</button> : null}
+        {!active && reviews ? ratingCount === 0
+          ? <button type="button" aria-expanded={drawer === "reviews" && reviewIntent === "rate"} onClick={() => openReviews("rate")}>{hasReview ? "Изменить отзыв" : "Оставить отзыв"}</button>
+          : <button type="button" aria-expanded={drawer === "reviews" && reviewIntent === "read"} onClick={() => openReviews("read")}>Отзывы</button> : null}
       </div> : null}
       {drawer && !completed ? <div className="walk-session-drawer" data-sheet-part="body" key={`${drawer}-${reviewIntent}-${index}`}>
         {drawer === "stops" ? <ol className="walk-session-stops">{chapters.map((item, position) => <li key={item.id}>

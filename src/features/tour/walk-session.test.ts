@@ -58,14 +58,14 @@ it.each(["session", "map"])("%s ставит маркеры в точки про
   expect(selected.map(chapter => chapter.location)).toEqual(originalLocations);
 });
 
-function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; hasReview?: boolean; reviews?: ((intent: "read" | "rate") => string) | null }) {
+function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; hasReview?: boolean; ratingCount?: number | null; reviews?: ((intent: "read" | "rate") => string) | null }) {
   const markup = renderToStaticMarkup(createElement(WalkSession, {
     route, chapters, index: 0, active: props.active ?? false, completed: props.completed ?? false,
     user: null, positionFailed: false, resume: false,
     titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
     onStart: () => {}, onSelect: () => {}, onStop: () => {},
     player: null, story: null, settings: null, audioError: "",
-    ratingLabel: props.ratingLabel, hasReview: props.hasReview, reviews: props.reviews,
+    ratingLabel: props.ratingLabel, hasReview: props.hasReview, ratingCount: props.ratingCount, reviews: props.reviews,
   }));
   return new DOMParser().parseFromString(markup, "text/html");
 }
@@ -88,6 +88,16 @@ it.each([
   [{ reviews: (intent: "read" | "rate") => intent, active: true }, false],
 ])("кнопка «Отзывы» есть только у прогулки с отзывами до старта: %o", (props, shown) => {
   expect(buttonTexts(sessionDocument(props)).includes("Отзывы")).toBe(shown);
+});
+
+it.each([
+  [{ ratingCount: 0 }, "Оставить отзыв"],
+  [{ ratingCount: 0, hasReview: true }, "Изменить отзыв"],
+  [{ ratingCount: 3 }, "Отзывы"],
+  [{ ratingCount: null }, "Отзывы"],
+])("кнопка отзывов до старта без оценок зовёт оставить отзыв: %o", (props, label) => {
+  const tools = sessionDocument({ reviews: intent => `reviews:${intent}`, ...props }).querySelector(".walk-session-tools")!;
+  expect([...tools.querySelectorAll("button")].at(-1)?.textContent).toBe(label);
 });
 
 it.each([
