@@ -16,11 +16,14 @@ type Card = WalkCard & { distanceM?: number; walkingMinutes?: number; draft?: bo
 type Tab = "mine" | "top";
 const TABS: Array<{ id: Tab; title: string }> = [{ id: "mine", title: "Мои прогулки" }, { id: "top", title: "Топ прогулок" }];
 
-/** `?tab=` wins; otherwise «Мои» once own walks have loaded, or «Топ» for a viewer with none. */
-export function selectedTab(param: string | null, loading: boolean, ownCount: number): Tab | null {
+/**
+ * `?tab=` wins; otherwise «Мои» once own walks have loaded, or «Топ» for a viewer with none.
+ * A failed load is not «no walks»: «Мои» stays open so its error and retry remain visible.
+ */
+export function selectedTab(param: string | null, loading: boolean, ownCount: number, failed = false): Tab | null {
   if (param === "top" || param === "mine") return param;
   if (loading) return null;
-  return ownCount ? "mine" : "top";
+  return ownCount || failed ? "mine" : "top";
 }
 
 export function WalkLibrary() {
@@ -75,7 +78,7 @@ export function WalkLibrary() {
   }
   const cards = [...account, ...local].sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
   const visible = cards.filter(card => filter === "all" || card.draft);
-  const tab = selectedTab(params.get("tab"), loading, cards.length);
+  const tab = selectedTab(params.get("tab"), loading, cards.length, Object.keys(errors).length > 0);
   // The top loads lazily on its first open and stays mounted afterwards.
   if (tab === "top" && !topOpened) setTopOpened(true);
   function selectTab(next: Tab, focus = false) {

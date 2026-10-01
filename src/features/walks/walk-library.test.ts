@@ -7,12 +7,13 @@ import type { WalkCard } from "./walk-loader";
 
 const auth = vi.hoisted(() => ({
   user: null as null | { id: string; name: string },
+  sessionFails: false,
   walks: [] as WalkCard[],
   requests: [] as Array<{ path: string; init?: RequestInit }>,
   respond: null as null | ((path: string, init?: RequestInit) => unknown),
 }));
 vi.mock("../auth/client", () => ({
-  getSession: async () => auth.user,
+  getSession: async () => { if (auth.sessionFails) throw new Error("503"); return auth.user; },
   accountApi: async (path: string, init?: RequestInit) => {
     auth.requests.push({ path, init });
     if (auth.respond && init?.method) return auth.respond(path, init);
@@ -43,7 +44,7 @@ beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   localStorage.clear();
   history.replaceState(null, "", "/history");
-  auth.user = null; auth.walks = []; auth.requests = []; auth.respond = null;
+  auth.user = null; auth.sessionFails = false; auth.walks = []; auth.requests = []; auth.respond = null;
   // jsdom has no modal dialogs.
   HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) { this.removeAttribute("open"); };
@@ -75,6 +76,19 @@ describe("вкладки «Мои прогулки» и «Топ прогуло�
     ["top", true, 0, "top"], ["top", false, 5, "top"], ["mine", false, 0, "mine"], ["other", false, 1, "mine"],
   ] as const)("tab=%s, загрузка=%s, своих=%s → %s", (param, loading, count, expected) => {
     expect(selectedTab(param, loading, count)).toBe(expected);
+  });
+
+  it.each([[null, "mine"], ["top", "top"]] as const)("сбой загрузки при tab=%s → %s", (param, expected) => {
+    expect(selectedTab(param, false, 0, true)).toBe(expected);
+  });
+
+  it("сбой сессии оставляет «Мои» с ошибкой, а не уводит в топ", async () => {
+    auth.sessionFails = true;
+    await render();
+    await act(async () => {});
+    expect(tab("Мои прогулки").getAttribute("aria-selected")).toBe("true");
+    expect(container.querySelector("#history-panel-mine [role=alert]")).not.toBeNull();
+    expect(container.querySelector("[data-testid=top]")).toBeNull();
   });
 
   it("без своих прогулок открывает топ", async () => {
