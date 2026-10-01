@@ -38,7 +38,7 @@ async function fixture(t) {
     return { status: response.status, headers: response.headers, text: await response.text(), get data() { return JSON.parse(this.text); } };
   };
   const walk = accountStore.createWalk("anna", { title: "Аннина прогулка", idempotencyKey: "review-api-walk", snapshot });
-  const shared = accountStore.setWalkSharing("anna", walk.id, walk.revision, true);
+  const shared = accountStore.setWalkVisibility("anna", walk.id, walk.revision, "shared");
   db.exec("INSERT INTO user VALUES ('editor','Редактор','editor@example.test')");
   return { call, as, accountStore, walk: shared, advance: ms => { clock += ms; } };
 }
@@ -110,7 +110,7 @@ test("unknown, revoked and foreign walks all answer the same 404", async t => {
     await call(`/api/story-walks/shared/${crypto.randomUUID()}/reviews`),
     await call(`/api/me/walks/${walk.id}/reviews`),
   ];
-  accountStore.setWalkSharing("anna", walk.id, walk.revision, false);
+  accountStore.setWalkVisibility("anna", walk.id, walk.revision, "private");
   responses.push(await call(shared));
   for (const response of responses) {
     assert.equal(response.status, 404);

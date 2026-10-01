@@ -127,7 +127,7 @@ export function createWalkReviewStore(db, { now = Date.now, transaction }) {
   const mineView = row => row ? { rating: Number(row.rating), text: row.text, status: row.status, updatedAt: row.updated_at } : null;
 
   const adminSelect = `SELECT r.*, u.id AS author_id, u.name AS author_name, u.email AS author_email,
-      CASE WHEN w.visibility='shared' THEN w.share_token END AS share_token
+      CASE WHEN w.visibility IN ('shared','public') THEN w.share_token END AS share_token
     FROM walk_reviews r LEFT JOIN user u ON u.id=r.user_id
     LEFT JOIN user_walks w ON r.walk_kind='account' AND w.id=r.walk_id`;
   const adminView = row => ({

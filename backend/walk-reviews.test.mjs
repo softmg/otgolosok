@@ -123,12 +123,12 @@ test("authors are shown by account name with a fallback; hiding removes the rati
 test("reviews cascade with their author but outlive the walk and its sharing", () => {
   const { store } = setup();
   const walk = store.createWalk("anna", { title: "Моя", idempotencyKey: "review-walk-1", snapshot });
-  const shared = store.setWalkSharing("anna", walk.id, walk.revision, true);
+  const shared = store.setWalkVisibility("anna", walk.id, walk.revision, "shared");
   const account = { kind: "account", id: walk.id, title: walk.title, revision: shared.revision };
   store.saveWalkReview(account, { guestKeyHash: guestKeyHash(GUEST_KEY) }, { rating: 4 });
   store.saveWalkReview(target, { userId: "boris" }, { rating: 5 });
   assert.equal(store.listWalkReviewsAdmin({ status: "all" }).reviews.find(row => row.walk.kind === "account").walk.shareToken, shared.shareToken);
-  store.setWalkSharing("anna", walk.id, shared.revision, false);
+  store.setWalkVisibility("anna", walk.id, shared.revision, "private");
   assert.equal(store.listWalkReviewsAdmin({ status: "all" }).reviews.find(row => row.walk.kind === "account").walk.shareToken, null);
   store.deleteWalk("anna", walk.id);
   const kept = store.listWalkReviewsAdmin({ status: "all" }).reviews.find(row => row.walk.kind === "account");

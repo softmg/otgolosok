@@ -3,6 +3,13 @@ import { createWalkReviewStore } from "./walk-reviews.mjs";
 import { randomUUID } from "node:crypto";
 import { createHash } from "node:crypto";
 import { validateWalkDocument, migrateLegacyDraft } from "./walk-document.mjs";
+import { createWalkLaunchStore } from "./walk-launches.mjs";
+import { moderatedTextHash } from "./walk-listing.mjs";
+import { PROMO_WALKS_USER_ID } from "./promo-walks.mjs";
+
+export { moderatedTextHash };
+export const WALK_VISIBILITIES = ["private", "shared", "public"];
+const linked = visibility => visibility === "shared" || visibility === "public";
 
 const encode = JSON.stringify;
 const decode = value => JSON.parse(value);
@@ -86,28 +93,49 @@ export function createAccountStore(db, now = Date.now) {
   const cursor = value => { if(!value)return null;try{const parsed=decode(Buffer.from(value,"base64url").toString());if(typeof parsed.time!=="string"||typeof parsed.id!=="string")throw new Error();return parsed;}catch{throw Object.assign(new Error("Invalid cursor"),{code:"BAD_REQUEST"});} };
   const page = (rows,limit,map) => ({items:rows.slice(0,limit).map(map),nextCursor:rows.length>limit?Buffer.from(encode({time:rows[limit-1].updated_at??rows[limit-1].created_at,id:rows[limit-1].id??`${rows[limit-1].object_type}:${rows[limit-1].object_id}`})).toString("base64url"):null});
   const normalizeWalk = (snapshot,id) => snapshot?.version===2?validateWalkDocument(snapshot):migrateLegacyDraft(validateSnapshot(snapshot),id);
+  /** The decoded document of a row, or null when the stored snapshot is damaged. */
+  const documentOf = row => { try { return normalizeWalk(decode(row.snapshot_json), row.id); } catch { return null; } };
+  // Listing state of public walks: NULL | pending | approved | hidden. The ALTER and the one-time
+  // promo backfill share a transaction, so the backfill runs exactly once.
+  if(!columns.includes("listing_status"))transaction(()=>{
+    db.exec(`ALTER TABLE user_walks ADD COLUMN listing_status TEXT;
+      ALTER TABLE user_walks ADD COLUMN listing_text_hash TEXT;
+      ALTER TABLE user_walks ADD COLUMN listing_updated_at TEXT;`);
+    // Promo walks used to be link-only; the trusted promo service now publishes them to the top.
+    // revision/updated_at stay as they are: this is a system migration, not an owner edit.
+    const time=timestamp(),approve=db.prepare("UPDATE user_walks SET visibility='public',listing_status='approved',listing_text_hash=?,listing_updated_at=? WHERE id=?");
+    for(const row of db.prepare("SELECT id,title,snapshot_json FROM user_walks WHERE user_id=? AND visibility='shared'").all(PROMO_WALKS_USER_ID)){
+      const document=documentOf(row);
+      if(document)approve.run(moderatedTextHash(row.title,document),time,row.id);
+    }
+  });
+  db.exec("CREATE INDEX IF NOT EXISTS user_walks_public_listing ON user_walks(listing_status,listing_updated_at DESC,id DESC) WHERE visibility='public'");
   const viewWalk = row => {
     if (!row) return null;
+    const access = { visibility: row.visibility, shareToken: linked(row.visibility) ? row.share_token : null,
+      // A non-public walk never shows a stale listing state to its owner.
+      listingStatus: row.visibility === "public" ? row.listing_status ?? null : null };
     let raw;
     try { raw = decode(row.snapshot_json); }
     catch { return { id: row.id, title: row.title, snapshot: null, revision: Number(row.revision), createdAt: row.created_at, updatedAt: row.updated_at,
-      visibility: row.visibility, shareToken: row.visibility === "shared" ? row.share_token : null, snapshotError: "Снимок прогулки повреждён." }; }
+      ...access, snapshotError: "Снимок прогулки повреждён." }; }
     let snapshot = raw;
     let snapshotError = null;
     try { snapshot = normalizeWalk(raw, row.id); }
     catch (error) { snapshotError = error.code === "BAD_REQUEST" ? "Снимок прогулки повреждён." : "Не удалось проверить снимок прогулки."; }
     return { id: row.id, title: row.title, snapshot, revision: Number(row.revision), createdAt: row.created_at, updatedAt: row.updated_at,
-      visibility: row.visibility, shareToken: row.visibility === "shared" ? row.share_token : null, ...(snapshotError ? { snapshotError } : {}) };
+      ...access, ...(snapshotError ? { snapshotError } : {}) };
   };
   const listItem = row => {
     const view = viewWalk(row);
     const snapshot = view.snapshotError ? null : view.snapshot;
-    return {id:row.id,title:row.title,revision:Number(row.revision),updatedAt:row.updated_at,visibility:row.visibility,shareToken:row.visibility==='shared'?row.share_token:null,
+    return {id:row.id,title:row.title,revision:Number(row.revision),updatedAt:row.updated_at,visibility:view.visibility,shareToken:view.shareToken,listingStatus:view.listingStatus,
       ...(snapshot ? {draft:!snapshot.route,walkingMinutes:snapshot.route?.walkingMinutes??null,distanceM:snapshot.route?.distanceM??null} : {})};
   };
   return {
-    ...createSharedWalkAdminStore(db, viewWalk),
+    ...createSharedWalkAdminStore(db, { viewWalk, documentOf, now }),
     ...createWalkReviewStore(db, { now, transaction }),
+    ...createWalkLaunchStore(db, { now, transaction }),
     updateProfile(userId, name) { const value=cleanName(name),time=timestamp();db.prepare("UPDATE user SET name=?,updatedAt=? WHERE id=?").run(value,time,userId);return value; },
     listWalks(userId, limit=20,after=null) { limit=Math.min(50,Math.max(1,limit));const c=cursor(after),rows=c?db.prepare("SELECT * FROM user_walks WHERE user_id=? AND (updated_at<? OR (updated_at=? AND id<?)) ORDER BY updated_at DESC,id DESC LIMIT ?").all(userId,c.time,c.time,c.id,limit+1):db.prepare("SELECT * FROM user_walks WHERE user_id=? ORDER BY updated_at DESC,id DESC LIMIT ?").all(userId,limit+1);const result=page(rows,limit,listItem);return {walks:result.items,nextCursor:result.nextCursor,hasMore:Boolean(result.nextCursor)}; },
     getWalk(userId,id) { return viewWalk(db.prepare("SELECT * FROM user_walks WHERE id=? AND user_id=?").get(id,userId)) ?? null; },
@@ -151,18 +179,67 @@ export function createAccountStore(db, now = Date.now) {
       if(!uuid(id)||!Number.isSafeInteger(revision)||revision<0)throw Object.assign(new Error("Invalid walk revision"),{code:"BAD_REQUEST"});
       const normalized=normalizeWalk(snapshot,id);
       if(normalized.id!==id)throw Object.assign(new Error("Walk ID does not match the account record"),{code:"BAD_REQUEST"});
-      const result=db.prepare("UPDATE user_walks SET title=?,snapshot_json=?,revision=revision+1,updated_at=? WHERE id=? AND user_id=? AND revision=?").run(cleanTitle(title),encode(normalized),timestamp(),id,userId,revision);
-      if(!result.changes){if(!this.getWalk(userId,id))return null;throw conflict();}
-      return this.getWalk(userId,id);
+      const clean=cleanTitle(title);
+      return transaction(()=>{
+        const time=timestamp(),result=db.prepare("UPDATE user_walks SET title=?,snapshot_json=?,revision=revision+1,updated_at=? WHERE id=? AND user_id=? AND revision=?").run(clean,encode(normalized),time,id,userId,revision);
+        if(!result.changes){if(!this.getWalk(userId,id))return null;throw conflict();}
+        // Changed moderated texts send an approved public walk back to the editors; pending and
+        // hidden walks keep their state, and a route-only rebuild keeps the approval.
+        const row=db.prepare("SELECT visibility,listing_status,listing_text_hash FROM user_walks WHERE id=?").get(id);
+        if(row.visibility==="public"&&row.listing_status==="approved"&&moderatedTextHash(clean,normalized)!==row.listing_text_hash)
+          db.prepare("UPDATE user_walks SET listing_status='pending',listing_updated_at=? WHERE id=?").run(time,id);
+        return this.getWalk(userId,id);
+      });
     },
-    getSharedWalk(token) {if(typeof token!=="string"||!uuid(token))return null;return viewWalk(db.prepare("SELECT * FROM user_walks WHERE share_token=? AND visibility='shared'").get(token))??null;},
-    setWalkSharing(userId,id,revision,enabled) {
-      if(!uuid(id)||!Number.isSafeInteger(revision)||revision<0||typeof enabled!=="boolean")throw Object.assign(new Error("Invalid sharing request"),{code:"BAD_REQUEST"});
-      const row=db.prepare("SELECT * FROM user_walks WHERE id=? AND user_id=?").get(id,userId);if(!row)return null;
-      if(row.revision!==revision){if((row.visibility==='shared')===enabled)return viewWalk(row);throw conflict();}
-      const token=row.share_token??(enabled?randomUUID():null);
-      db.prepare("UPDATE user_walks SET visibility=?,share_token=?,revision=revision+1,updated_at=? WHERE id=? AND user_id=? AND revision=?").run(enabled?'shared':'private',token,timestamp(),id,userId,revision);
-      return this.getWalk(userId,id);
+    getSharedWalk(token) {if(typeof token!=="string"||!uuid(token))return null;return viewWalk(db.prepare("SELECT * FROM user_walks WHERE share_token=? AND visibility IN ('shared','public')").get(token))??null;},
+    /** Launch-counting target of a link: the owner id stays on the server and never reaches a public view. */
+    getLaunchTarget(token) {
+      if(typeof token!=="string"||!uuid(token))return null;
+      const row=db.prepare("SELECT id,user_id,snapshot_json FROM user_walks WHERE share_token=? AND visibility IN ('shared','public')").get(token);
+      return row&&documentOf(row)?{id:row.id,userId:row.user_id}:null;
+    },
+    /**
+     * @param {string} userId @param {string} id @param {number} revision
+     * @param {string} visibility private | shared | public
+     * @param {{autoApprove?: boolean}} [options] trusted services skip pre-moderation of the top
+     */
+    setWalkVisibility(userId,id,revision,visibility,{autoApprove=false}={}) {
+      if(!uuid(id)||!Number.isSafeInteger(revision)||revision<0||!WALK_VISIBILITIES.includes(visibility))throw Object.assign(new Error("Invalid visibility request"),{code:"BAD_REQUEST"});
+      return transaction(()=>{
+        const row=db.prepare("SELECT * FROM user_walks WHERE id=? AND user_id=?").get(id,userId);if(!row)return null;
+        if(row.revision!==revision){if(row.visibility===visibility)return viewWalk(row);throw conflict();}
+        let status=row.listing_status??null,hash=row.listing_text_hash??null;
+        if(visibility==="public") {
+          const document=documentOf(row);
+          if(!document?.route)throw Object.assign(new Error("A draft cannot be public"),{code:"WALK_NOT_READY"});
+          // An editor's "hidden" decision is final for the owner, whatever they toggle.
+          if(status!=="hidden") {
+            const current=moderatedTextHash(row.title,document);
+            if(autoApprove){status="approved";hash=current;}
+            else if(!(status==="approved"&&hash===current))status="pending";
+          }
+        }
+        const time=timestamp(),token=row.share_token??(linked(visibility)?randomUUID():null);
+        db.prepare("UPDATE user_walks SET visibility=?,share_token=?,listing_status=?,listing_text_hash=?,listing_updated_at=?,revision=revision+1,updated_at=? WHERE id=? AND user_id=? AND revision=?")
+          .run(visibility,token,status,hash,status!==(row.listing_status??null)?time:row.listing_updated_at,time,id,userId,revision);
+        return this.getWalk(userId,id);
+      });
+    },
+    /** Approved public walks and catalog walks with their published rating sums, plus the global rating prior. */
+    listTopCandidates() {
+      const walks=db.prepare(`SELECT w.id,w.title,w.share_token,w.listing_updated_at,COALESCE(r.sum,0) AS rating_sum,COALESCE(r.count,0) AS rating_count
+        FROM user_walks w LEFT JOIN (SELECT walk_id,SUM(rating) AS sum,count(*) AS count FROM walk_reviews WHERE walk_kind='account' AND status='published' GROUP BY walk_id) r ON r.walk_id=w.id
+        WHERE w.visibility='public' AND w.listing_status='approved' AND w.share_token IS NOT NULL`).all()
+        .map(row=>({id:row.id,title:row.title,shareToken:row.share_token,listedAt:row.listing_updated_at,ratingSum:Number(row.rating_sum),ratingCount:Number(row.rating_count)}));
+      const catalogRatings=new Map(db.prepare("SELECT walk_id,SUM(rating) AS sum,count(*) AS count FROM walk_reviews WHERE walk_kind='catalog' AND status='published' GROUP BY walk_id").all()
+        .map(row=>[row.walk_id,{ratingSum:Number(row.sum),ratingCount:Number(row.count)}]));
+      const prior=db.prepare("SELECT avg(rating) AS average FROM walk_reviews WHERE status='published'").get().average;
+      return {walks,catalogRatings,priorMean:prior===null?4:Number(prior)};
+    },
+    /** Decoded documents of the given account walks (public top details), skipping damaged ones. */
+    getTopDocuments(ids) {
+      const select=db.prepare("SELECT id,title,snapshot_json FROM user_walks WHERE id=? AND visibility='public' AND listing_status='approved'");
+      return new Map(ids.map(id=>{const row=select.get(id);return [id,row?documentOf(row):null];}));
     },
     deleteWalk(userId,id) { return db.prepare("DELETE FROM user_walks WHERE id=? AND user_id=?").run(id,userId).changes>0; },
     listFavorites(userId,limit=50,after=null) { limit=Math.min(50,Math.max(1,limit));const c=cursor(after);const rows=c?db.prepare("SELECT object_type,object_id,created_at FROM user_favorites WHERE user_id=? AND (created_at<? OR (created_at=? AND (object_type||':'||object_id)<?)) ORDER BY created_at DESC,object_type||':'||object_id DESC LIMIT ?").all(userId,c.time,c.time,c.id,limit+1):db.prepare("SELECT object_type,object_id,created_at FROM user_favorites WHERE user_id=? ORDER BY created_at DESC,object_type||':'||object_id DESC LIMIT ?").all(userId,limit+1);const result=page(rows,limit,row=>({type:row.object_type,id:row.object_id,createdAt:row.created_at}));return {favorites:result.items,nextCursor:result.nextCursor}; },

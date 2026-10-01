@@ -27,6 +27,8 @@ import { openOsmGeocoder } from "./osm-geocoder.mjs";
 import { createAuth, authRequestHandler, authSession, sessionCsrfToken, validSessionCsrf, verifySessionPassword } from "./auth.mjs";
 import { favoriteSummary } from "./favorite-summary.mjs";
 import { createAccountStore } from "./account-store.mjs";
+import { createWalkLaunchRoutes } from "./walk-launch-routes.mjs";
+import { createTopWalks } from "./walk-top.mjs";
 import { createReviewRateLimiter } from "./walk-reviews.mjs";
 import { createWalkReviewRoutes } from "./walk-review-routes.mjs";
 import { resolveWalkView } from "./walk-view.mjs";
@@ -127,10 +129,12 @@ export function parseUserDailyLimit(value) {
  * @property {number} [userDailyLimit]
  * @property {number} [shutdownGraceMs]
  * @property {ReturnType<typeof createReviewRateLimiter>} [reviewLimiter] review writes per account or client IP
+ * @property {ReturnType<typeof createReviewRateLimiter>} [launchLimiter] walk launch reports per account or client IP
+ * @property {ReturnType<typeof createReviewRateLimiter>} [launchWalkLimiter] counted launches of one walk per client IP
  */
 
 /** @param {CreateAppOptions} options */
-export function createApp({store,provider,osmGeocoder=null,yandexTts=null,elevenLabsTts=null,origin,audioDirectory,imageDirectory,placeImages=null,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,promoWalksToken=process.env.PROMO_WALKS_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{},userDailyLimit=6,shutdownGraceMs=20000,reviewLimiter=createReviewRateLimiter()}) {
+export function createApp({store,provider,osmGeocoder=null,yandexTts=null,elevenLabsTts=null,origin,audioDirectory,imageDirectory,placeImages=null,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,promoWalksToken=process.env.PROMO_WALKS_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{},userDailyLimit=6,shutdownGraceMs=20000,reviewLimiter=createReviewRateLimiter(),launchLimiter=createReviewRateLimiter({limit:60}),launchWalkLimiter=createReviewRateLimiter({limit:30,windowMs:86_400_000})}) {
   const walkPlanner=planWalk??createWalkPlanner({candidateProvider:query=>store.listWalkCandidates?.(query)??[]});
   const speechProviders={openai:provider,yandex:yandexTts,elevenlabs:elevenLabsTts};
   const ttsProviders=[{id:"openai",label:"OpenAI",available:Boolean(provider),...ttsVoiceOptions("openai",provider?.voice)},
@@ -150,6 +154,8 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
   const authorizePromo=adminAuth(promoEnabled?promoWalksToken:"");
   const promoWalks=promoEnabled&&accountStore?createPromoWalkService({accountStore,planWalk:walkPlanner,store,origin}):null;
   const reviews=createWalkReviewRoutes({store,accountStore,origin,authSecret,limiter:reviewLimiter,json,body});
+  const launches=createWalkLaunchRoutes({store,accountStore,authSecret,limiter:launchLimiter,walkLimiter:launchWalkLimiter,json,body});
+  const topWalks=accountStore?createTopWalks({accountStore,store,builtinRoutes}):null;
   const legacyAdminEnabled=allowLegacyAdminToken??(!auth||process.env.ALLOW_LEGACY_ADMIN_TOKEN==="true");
   const server=httpServer(async(req,res)=>{
     try {
@@ -177,7 +183,15 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
           json(res,200,resolveWalkView(walk.snapshot,walk.revision,store));return;
         }
         const ownWalkSharing=new RegExp(`^/api/me/walks/(${UUID})/sharing$`).exec(url.pathname);
-        if(ownWalkSharing&&req.method==="PUT"){const input=await body(req);if(Object.keys(input).some(key=>!["revision","enabled"].includes(key))){throw failure("BAD_REQUEST");}const walk=accountStore.setWalkSharing(session.user.id,ownWalkSharing[1],input.revision,input.enabled);json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;}
+        if(ownWalkSharing&&req.method==="PUT"){
+          const input=await body(req),keys=Object.keys(input);
+          // Legacy {revision, enabled} from service-worker-cached clients; remove once old clients are gone.
+          const legacy=keys.includes("enabled");
+          if(keys.some(key=>!["revision","visibility","enabled"].includes(key))||legacy===keys.includes("visibility")||(legacy&&typeof input.enabled!=="boolean"))throw failure("BAD_REQUEST");
+          const visibility=legacy?(input.enabled?"shared":"private"):input.visibility;
+          const walk=accountStore.setWalkVisibility(session.user.id,ownWalkSharing[1],input.revision,visibility);
+          json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;
+        }
         if(ownWalk&&req.method==="GET"){const walk=accountStore.getWalk(session.user.id,ownWalk[1]);json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Walk not found."}});return;}
         if(ownWalk&&req.method==="PATCH"){const walk=accountStore.updateWalk(session.user.id,ownWalk[1],await body(req,100000));json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Walk not found."}});return;}
         if(ownWalk&&req.method==="DELETE"){json(res,accountStore.deleteWalk(session.user.id,ownWalk[1])?200:404,{success:true});return;}
@@ -326,9 +340,20 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         if(await reviews.admin(req,res,url,roleAuthorized?session.user.id:null))return;
         if(req.method==="GET"&&url.pathname==="/api/story-admin/walks/shared") {
           const entries=[...url.searchParams];
-          if(entries.some(([key,value])=>!["limit","offset","q","author","mode"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
+          if(entries.some(([key,value])=>!["limit","offset","q","author","mode","access","listing"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
           if(!accountStore){json(res,503,{error:{code:"UNAVAILABLE",message:"Хранилище прогулок недоступно."}});return;}
-          json(res,200,accountStore.listSharedWalksAdmin({limit:Number(url.searchParams.get("limit")??25),offset:Number(url.searchParams.get("offset")??0),q:url.searchParams.get("q")??"",author:url.searchParams.get("author")??"",mode:url.searchParams.get("mode")??"all"}));return;
+          json(res,200,accountStore.listSharedWalksAdmin({limit:Number(url.searchParams.get("limit")??25),offset:Number(url.searchParams.get("offset")??0),q:url.searchParams.get("q")??"",author:url.searchParams.get("author")??"",mode:url.searchParams.get("mode")??"all",access:url.searchParams.get("access")??"all",listing:url.searchParams.get("listing")??"all"}));return;
+        }
+        const walkListing=new RegExp(`^/api/story-admin/walks/shared/(${UUID})/listing$`).exec(url.pathname);
+        if(walkListing) {
+          if(req.method!=="POST"){res.setHeader("Allow","POST");json(res,405,{error:{code:"METHOD_NOT_ALLOWED",message:"Method not allowed."}});return;}
+          if(!accountStore){json(res,503,{error:{code:"UNAVAILABLE",message:"Хранилище прогулок недоступно."}});return;}
+          const input=await body(req);
+          if(url.search||Object.keys(input).some(key=>!["action","revision"].includes(key)))throw failure("BAD_REQUEST");
+          let walk;
+          try{walk=accountStore.moderateWalkListing(walkListing[1],{action:input.action,revision:input.revision});}
+          catch(error){if(error.code!=="CONFLICT")throw error;json(res,409,{error:{code:"CONFLICT",message:error.message}});return;}
+          json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;
         }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/walks") {
           const entries=[...url.searchParams];
@@ -566,6 +591,12 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         sendCacheableJson(req,res,serializeCell(cell,points));return;
       }
       if(await reviews.public(req,res,url,session))return;
+      if(url.pathname==="/api/top-walks") {
+        if(!["GET","HEAD"].includes(req.method)){res.setHeader("Allow","GET, HEAD");json(res,405,{error:{code:"METHOD_NOT_ALLOWED",message:"Method not allowed."}});return;}
+        if(url.search)throw failure("BAD_REQUEST");
+        if(!topWalks){json(res,503,{error:{code:"UNAVAILABLE",message:"Топ прогулок временно недоступен."}});return;}
+        json(res,200,{walks:topWalks.list()});return;
+      }
       const publishedWalk=/^\/api\/story-walks\/([a-z0-9][a-z0-9-]{0,127})$/.exec(url.pathname);
       if(req.method==="GET"&&url.pathname==="/api/story-walks"){json(res,200,{walks:builtinRoutes.filter(route=>route.walk?.steps?.length).map(route=>({id:route.id,title:route.title,subtitle:route.subtitle,durationMin:route.duration_min}))});return;}
       const sharedWalk=new RegExp(`^/api/story-walks/shared/(${UUID})$`).exec(url.pathname);
@@ -613,6 +644,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
           if(Object.keys(input).some(key=>!["document","revision"].includes(key))||!Number.isSafeInteger(input.revision)||input.revision<0)throw failure("BAD_REQUEST");
           json(res,200,resolveWalkView(input.document,input.revision,store));return;
         }
+        if(await launches(req,res,url,session))return;
         if(!provider) {json(res,503,{error:{message:"Подготовка историй пока недоступна."}});return;}
         // Story generation spends paid model and speech calls, so it is charged to a signed-in user.
         if(!auth||!accountStore){json(res,503,{error:{code:"AUTH_REQUIRED",message:errorMessages.AUTH_REQUIRED}});return;}
@@ -661,6 +693,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
       if(res.headersSent||res.destroyed)return;
       const status=["QUEUE_FULL","QUOTA_EXCEEDED","UPLOAD_BUSY"].includes(error.code)?429:error.code==="AUDIO_STORAGE_FULL"?507:["CONFLICT","RETRY_LIMIT","LEASE_LOST","CLAIM_EXPIRED","WORKER_BUSY","STORAGE_LIMIT"].includes(error.code)?409:
         error.code==="AUDIO_TOO_LARGE"?413:["BAD_AUDIO_TYPE","BAD_AUDIO","AUDIO_CHECKSUM","AUDIO_DURATION"].includes(error.code)?422:["INVALID_ADDRESS","BAD_REQUEST","INVALID_DRAFT"].includes(error.code)?400:500;
+      if(error.code==="WALK_NOT_READY"){json(res,409,{error:{code:error.code,message:"Сначала постройте маршрут — черновик нельзя открыть всем."}});return;}
       if(status===500) logs?.captureException(error,{operation:"API request",context:{method:req.method,status}});
       // Account storage limits carry a user-facing message written by the account store.
       json(res,status,{error:["BAD_REQUEST","INVALID_DRAFT"].includes(error.code)?{code:error.code,message:"Invalid request or draft."}:error.code==="STORAGE_LIMIT"?{code:error.code,message:error.message}:safeError(error)});
