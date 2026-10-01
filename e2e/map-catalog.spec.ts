@@ -151,10 +151,16 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     expect(await page.getByTitle("Каталог: 2", { exact: true }).count()).toBe(0);
     await page.getByRole("button", { name: "Отдалить", exact: true }).click();
     await page.getByRole("button", { name: "Отдалить", exact: true }).click();
-    await expect.poll(() => requests.length).toBe(2);
+    await expect.poll(() => requests.length).toBe(5);
     await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
-    const second = requests[1].searchParams;
-    expect(Number(second.get("east"))).toBeGreaterThan(distant.location.lon);
+    const initial = requests[0].searchParams;
+    for (const request of requests.slice(1)) {
+      const b = request.searchParams;
+      const overlap = Math.max(0, Math.min(Number(b.get("east")), Number(initial.get("east"))) - Math.max(Number(b.get("west")), Number(initial.get("west"))))
+        * Math.max(0, Math.min(Number(b.get("north")), Number(initial.get("north"))) - Math.max(Number(b.get("south")), Number(initial.get("south"))));
+      expect(overlap).toBe(0);
+    }
+    expect(Math.max(...requests.map(url => Number(url.searchParams.get("east"))))).toBeGreaterThan(distant.location.lon);
     await page.getByRole("button", { name: "Отдалить", exact: true }).click();
     await expect(page.getByTitle("Каталог: 2", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Приблизить", exact: true }).click();
@@ -162,7 +168,16 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await page.getByRole("button", { name: "Приблизить", exact: true }).click();
     await expect(page.getByTitle("Каталог: 1438", { exact: true })).toBeVisible();
     await page.screenshot({ path: info.outputPath("viewport-catalog.png") });
-    expect(requests).toHaveLength(2);
+    expect(requests).toHaveLength(5);
+    for (let cycle = 0; cycle < 2; cycle++) {
+      for (const name of ["Отдалить", "Отдалить", "Приблизить", "Приблизить"]) {
+        await page.getByRole("button", { name, exact: true }).click();
+        // Let the 160 ms viewport debounce fire before asserting absence of requests.
+        await page.waitForTimeout(350);
+        await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
+        expect(requests).toHaveLength(5);
+      }
+    }
   });
 }
 

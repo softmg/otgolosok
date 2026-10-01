@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import * as L from "leaflet";
 import { expect, it } from "vitest";
-import { catalogArea, containsBounds, nearbyBounds } from "./catalog-bounds";
+import { catalogArea, containsBounds, nearbyBounds, uncoveredBounds } from "./catalog-bounds";
 import { distanceMeters } from "../../lib/geo/distance";
 
 function map(zoom: number, width: number, height: number) {
@@ -36,4 +36,21 @@ it.each([100, 200, 300])("includes the whole nearby radius of %i metres", radius
   expect(distanceMeters(center, { ...center, lat: bounds.north })).toBeCloseTo(radius, 5);
   expect(distanceMeters(center, { ...center, lat: bounds.south })).toBeCloseTo(radius, 5);
   expect(distanceMeters(center, { ...center, lon: bounds.east })).toBeGreaterThanOrEqual(radius - 0.00001);
+});
+
+
+it("recognizes union coverage while preserving holes and touching boundaries", () => {
+  const bounds = { west: 0, south: 0, east: 4, north: 4 };
+  const left = { ...bounds, east: 2 }, right = { ...bounds, west: 2 };
+  expect(uncoveredBounds(bounds, [left, right])).toEqual([]);
+  expect(uncoveredBounds(bounds, [left, { ...right, west: 3 }])).toEqual([{ ...bounds, west: 2, east: 3 }]);
+  expect(uncoveredBounds(bounds, [{ ...bounds, west: 4, east: 5 }])).toEqual([bounds]);
+  expect(uncoveredBounds(bounds, [{ west: -1, south: -1, east: 5, north: 5 }])).toEqual([]);
+});
+
+it("preserves the exact missing area around an interior cached rectangle", () => {
+  const missing = uncoveredBounds({ west: 0, south: 0, east: 4, north: 4 }, [{ west: 1, south: 1, east: 3, north: 3 }]);
+  expect(missing).toHaveLength(4);
+  expect(missing.reduce((sum, b) => sum + (b.east - b.west) * (b.north - b.south), 0)).toBe(12);
+  expect(uncoveredBounds({ west: 0, south: 0, east: 4, north: 4 }, [...missing, { west: 1, south: 1, east: 3, north: 3 }])).toEqual([]);
 });

@@ -8,7 +8,7 @@ const area = (west = 37): CatalogArea => ({
 });
 const place = (id: number) => ({ id: `osm:node:${id}`, name: `Место ${id}`, location: { lat: 55.65, lon: 37.15 }, story: null, audio: null });
 const response = (ids: number[], total = ids.length, hasMore = false) => Response.json({ places: ids.map(place), total, hasMore });
-const settle = async () => { for (let i = 0; i < 15; i++) await Promise.resolve(); };
+const settle = async () => { for (let i = 0; i < 100; i++) await Promise.resolve(); };
 const loaders: ReturnType<typeof createRegionCatalog>[] = [];
 function fixture() {
   const updates: RegionProgress[] = [];
@@ -117,4 +117,54 @@ it("aborts on disposal and publishes no late response", async () => {
   const count = updates.length;
   finish(response([1])); await settle();
   expect(updates).toHaveLength(count);
+});
+
+
+it("requests only missing strips and reuses their combined coverage when zooming", async () => {
+  const fetcher = vi.fn<(path: string) => Promise<Response>>(async () => response([1]));
+  vi.stubGlobal("fetch", fetcher);
+  const { loader, latest } = fixture();
+  loader.update(area()); await settle();
+  const expanded = {
+    required: { west: 36.9, south: 55.4, east: 37.5, north: 55.9 },
+    buffered: { west: 36.8, south: 55.3, east: 37.6, north: 56 },
+  };
+  loader.update(expanded); await settle();
+  const requested = fetcher.mock.calls.slice(1).map(([path]) => {
+    const params = new URL(path, "http://localhost").searchParams;
+    return Object.fromEntries(["west", "south", "east", "north"].map(key => [key, Number(params.get(key))]));
+  });
+  expect(requested).toHaveLength(4);
+  for (const bounds of requested) {
+    const cached = area().buffered;
+    const overlap = Math.max(0, Math.min(bounds.east, cached.east) - Math.max(bounds.west, cached.west))
+      * Math.max(0, Math.min(bounds.north, cached.north) - Math.max(bounds.south, cached.south));
+    expect(overlap).toBe(0);
+  }
+  expect(latest()).toMatchObject({ status: "ready", places: [place(1)] });
+  const count = fetcher.mock.calls.length;
+  for (let i = 0; i < 3; i++) { loader.update(area()); loader.update(expanded); }
+  await settle();
+  expect(fetcher).toHaveBeenCalledTimes(count);
+  expect(latest().status).toBe("ready");
+});
+
+
+it("keeps completed strips cached when another strip fails and retry loads the remaining ones", async () => {
+  const fetcher = vi.fn().mockResolvedValueOnce(response([1])).mockResolvedValueOnce(response([2]))
+    .mockResolvedValueOnce(Response.json({}, { status: 400 })).mockImplementation(async () => response([]));
+  vi.stubGlobal("fetch", fetcher);
+  const { loader, latest } = fixture();
+  loader.update(area()); await settle();
+  const expanded = { required: { west: 36.9, south: 55.4, east: 37.5, north: 55.9 },
+    buffered: { west: 36.8, south: 55.3, east: 37.6, north: 56 } };
+  loader.update(expanded); await settle();
+  expect(latest()).toMatchObject({ status: "error", places: [place(1), place(2)] });
+  const completedStrip = fetcher.mock.calls[1][0];
+  loader.retry(); await settle();
+  expect(latest()).toMatchObject({ status: "ready", places: [place(1), place(2)] });
+  expect(fetcher.mock.calls.slice(3).map(([path]) => path)).not.toContain(completedStrip);
+  expect(fetcher).toHaveBeenCalledTimes(6);
+  loader.update(expanded); await settle();
+  expect(fetcher).toHaveBeenCalledTimes(6);
 });

@@ -1,4 +1,4 @@
-import { containsBounds, type CatalogArea, type CatalogBounds } from "./catalog-bounds";
+import { containsBounds, uncoveredBounds, type CatalogArea, type CatalogBounds } from "./catalog-bounds";
 import { isServiceMaintenance, loadPublishedCatalog, type CatalogPlace } from "./published-catalog";
 
 export type RegionProgress = {
@@ -26,7 +26,7 @@ export function createRegionCatalog(onChange: (progress: RegionProgress) => void
   function update(area: CatalogArea | null) {
     if (disposed) return;
     desired = area;
-    if (!area || covered.some(bounds => containsBounds(bounds, area.required))) {
+    if (!area || uncoveredBounds(area.required, covered).length === 0) {
       cancel();
       publish({ status: "ready", total: 0, loaded: 0, maintenance: false });
       return;
@@ -36,17 +36,28 @@ export function createRegionCatalog(onChange: (progress: RegionProgress) => void
     const current = { bounds: area.buffered, controller: new AbortController() };
     active = current;
     publish({ status: "loading", total: 0, loaded: 0, maintenance: false });
-    void loadPublishedCatalog(current.controller.signal, page => {
-      if (active !== current || disposed) return;
-      for (const place of page.places) places.set(place.id, place);
-      publish({ places: [...places.values()], total: page.total, loaded: page.places.length, maintenance: false });
-    }, current.bounds).then(() => {
+    const missing = uncoveredBounds(current.bounds, covered);
+    void (async () => {
+      let loaded = 0, total = 0;
+      for (const bounds of missing) {
+        let completed = { loaded: 0, total: 0 };
+        await loadPublishedCatalog(current.controller.signal, page => {
+          if (active !== current || disposed) return;
+          for (const place of page.places) places.set(place.id, place);
+          completed = { loaded: page.places.length, total: page.total };
+          publish({ places: [...places.values()], total: total + page.total, loaded: loaded + page.places.length, maintenance: false });
+        }, bounds);
+        if (active !== current || disposed) return;
+        covered.push(bounds);
+        loaded += completed.loaded;
+        total += completed.total;
+      }
       if (active !== current || disposed) return;
       covered = covered.filter(bounds => !containsBounds(current.bounds, bounds));
       covered.push(current.bounds);
       active = null;
       publish({ status: "ready", maintenance: false });
-    }).catch(error => {
+    })().catch(error => {
       if (active !== current || disposed) return;
       active = null;
       publish({ status: "error", maintenance: isServiceMaintenance(error) });
