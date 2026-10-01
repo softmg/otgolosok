@@ -1,6 +1,6 @@
 # Plan: walk reviews (5-star rating and text)
 
-Status: implemented 2026-10-01 in branch `feat/promo-walks-stories-only`. Caveat: the manual end-to-end check published the guest review directly in SQLite instead of clicking through `/admin?section=reviews` as an editor (no editor account in the local DB); the admin tab is covered by component and HTTP tests.
+Status: implemented 2026-10-01 in branch `feat/promo-walks-stories-only`. Caveat: the manual end-to-end check published the guest review directly in SQLite instead of clicking through `/admin?section=reviews` as an editor (no editor account in the local DB); the admin tab is covered by component and HTTP tests. Full `pnpm test:e2e`: 497 passed, 2 failed — `layout-invariants` «прогулка / до старта» 320×568 (chromium, webkit, overlap of map controls and sheet); the same failure reproduces on `39d848b`, before this plan, so it is not caused by reviews.
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
