@@ -15,7 +15,7 @@ except ModuleNotFoundError:  # Pure helper tests do not need the PBF parser.
 
 FIELDS = ("name", "name:ru", "alt_name", "old_name", "tourism", "historic", "heritage", "leisure", "amenity",
           "building", "memorial", "artwork_type", "inscription", "subject", "subject:wikidata",
-          "addr:street", "addr:housenumber", "wikidata", "wikipedia", "architect")
+          "addr:city", "addr:street", "addr:housenumber", "wikidata", "wikipedia", "architect")
 TOURISM = {"attraction", "museum", "gallery", "artwork", "viewpoint", "zoo", "theme_park"}
 LEISURE = {"park", "garden"}
 TOKEN = re.compile(r"[\wа-яё]+", re.IGNORECASE)
