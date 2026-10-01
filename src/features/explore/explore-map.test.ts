@@ -25,6 +25,7 @@ vi.mock("./map-clusters", () => ({
   createMapClusters: () => ({
     addTo: vi.fn().mockReturnThis(),
     addLayers: vi.fn(),
+    dispose: vi.fn(),
   }),
 }));
 vi.mock("leaflet", () => {

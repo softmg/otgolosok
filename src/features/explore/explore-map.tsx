@@ -13,7 +13,7 @@ import { NO_INSETS, type MapInsets } from "../shell/map-insets";
 import type { MapStatus } from "../shell/map-status-notice";
 import { cx } from "../ui/cx";
 import { catalogArea, type CatalogArea } from "./catalog-bounds";
-import { createMapClusters, loadMapLibrary } from "./map-clusters";
+import { createMapClusters, loadMapLibrary, type MapClusters } from "./map-clusters";
 import { MOSCOW_CENTER, MOSCOW_ZOOM } from "./map-jobs";
 import { createMapView, type MapFocus, type MapView } from "./map-view";
 import "leaflet/dist/leaflet.css";
@@ -141,7 +141,7 @@ export function ExploreMap({
     view: MapView;
     colors: { route: string; user: string };
     markers: Leaflet.LayerGroup;
-    clusters: Leaflet.MarkerClusterGroup;
+    clusters: MapClusters;
     markerById: Map<
       string,
       {
@@ -323,6 +323,7 @@ export function ExploreMap({
       clearTimeout(viewportTimer);
       observer?.disconnect();
       runtime.current?.view.dispose();
+      runtime.current?.clusters.dispose();
       const map = runtime.current?.map;
       if (map) {
         saveView?.();
