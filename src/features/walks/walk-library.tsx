@@ -83,9 +83,10 @@ export function WalkLibrary() {
   if (tab === "top" && !topOpened) setTopOpened(true);
   function selectTab(next: Tab, focus = false) {
     // replaceState integrates with the Next.js router, so useSearchParams follows it without a navigation.
+    // The state must be null: Next.js ignores calls that carry its own internal state (`__NA`).
     const url = new URL(location.href);
     url.searchParams.set("tab", next);
-    history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     if (focus) tabRefs.current[next]?.focus();
   }
   function tabKeys(event: KeyboardEvent<HTMLButtonElement>) {
