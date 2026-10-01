@@ -252,6 +252,7 @@ Run before each commit: `pnpm lint`, `pnpm typecheck`, `pnpm test` (plus `pnpm t
 
 ### Implementation notes (divergences from the plan above)
 
+- The rating form lives in a modal `ReviewDialog` (native `<dialog>`) instead of the walk panel drawer; `WalkReviews` shows only the summary and list and takes `onRate`, `WalkSession` takes `reviews: ReactNode` and `onRate`.
 - Decision 12 was reverted after user feedback: «Оставить отзыв»/«Оценить прогулку» are always visible for reviewable walks. `markWalkStarted`/`wasWalkStarted`, the `started` state and the `canRate` prop were removed; the finish screen makes «Оставить отзыв» the primary action and «На карту» secondary; the rating in the meta line is a button that opens the reviews.
 - Server routes live in `backend/walk-review-routes.mjs` (`createWalkReviewRoutes` → `public`, `own`, `admin`); `server.mjs` only creates it and calls the three handlers at the planned spots. Those `server.mjs` lines landed in commit 7037022 of a parallel session that committed the whole file.
 - `backend/walk-reviews-api.test.mjs` uses a stub `auth.api.getSession` (as in `shared-walk-admin-api.test.mjs`) with real `sessionCsrfToken`, not a real `createAuth` fixture.

@@ -12,7 +12,7 @@ import "./walk-session.css";
 const noop = () => {};
 
 export function WalkSession({ route, chapters, index, active, completed, user, positionFailed, resume,
-  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null }: {
+  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null, onRate = noop }: {
   route: Route; chapters: WalkChapter[]; index: number; active: boolean; completed: boolean;
   user: (Coordinates & { accuracyM: number }) | null; positionFailed: boolean; resume: boolean;
   titleRef: RefObject<HTMLHeadingElement | null>; startRef: RefObject<HTMLButtonElement | null>;
@@ -24,8 +24,10 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   hasReview?: boolean;
   /** Published ratings; 0 turns «Отзывы» into a direct «Оставить отзыв», null while unknown. */
   ratingCount?: number | null;
-  /** Renders the reviews block; null for walks that cannot be reviewed. */
-  reviews?: ((intent: "read" | "rate") => ReactNode) | null;
+  /** The published reviews list; null for walks that cannot be reviewed. */
+  reviews?: ReactNode | null;
+  /** Opens the rating form in its own window. */
+  onRate?: () => void;
 }) {
   const panelRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -38,8 +40,6 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
     return first ? { ...(first.trigger_location ?? first.location) } : null;
   });
   const [drawer, setDrawer] = useState<"stops" | "story" | "settings" | "reviews" | null>(null);
-  const [reviewIntent, setReviewIntent] = useState<"read" | "rate">("read");
-  const [finishReviewOpen, setFinishReviewOpen] = useState(false);
   const chapter = chapters[index];
   const geometry = useMemo(() => (route.walk?.path.coordinates ?? []).map(([lon, lat]) => ({ lat, lon })), [route.walk?.path]);
   const items = useMemo(() => [
@@ -71,7 +71,8 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
     return () => { observer.disconnect(); removeEventListener("resize", measure); };
   }, []);
   function select(position: number) { setDrawer(null); onSelect(position); }
-  function openReviews(intent: "read" | "rate") { setReviewIntent(intent); setDrawer(drawer === "reviews" && reviewIntent === intent ? null : "reviews"); }
+  function toggleReviews() { setDrawer(drawer === "reviews" ? null : "reviews"); }
+  function rate() { setDrawer(null); onRate(); }
   const distance = (route.walk?.distance_m ?? 0) / 1000;
   const hasText = Boolean(chapter?.content.story.paragraphs.length);
   const canStart = geometry.length > 1;
@@ -94,7 +95,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
       <header className="walk-session-heading">
         <div>
           <p className="walk-session-meta">{active ? chapter ? `Остановка ${index + 1} из ${chapters.length}` : "До финиша" : `${route.duration_min} мин · ${distance.toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`}{!active && !completed && ratingLabel ? <> · {reviews
-            ? <button type="button" className="walk-session-rating" aria-expanded={drawer === "reviews" && reviewIntent === "read"} onClick={() => openReviews("read")}>{ratingLabel}</button>
+            ? <button type="button" className="walk-session-rating" aria-expanded={drawer === "reviews"} onClick={toggleReviews}>{ratingLabel}</button>
             : ratingLabel}</> : null}</p>
           <h1 id="walk-session-title" ref={titleRef} tabIndex={-1}>{completed ? "Прогулка завершена" : active ? chapter?.title ?? route.walk?.finish.address ?? "Прогулка" : route.title.trim() || "Ваш маршрут"}</h1>
         </div>
@@ -112,21 +113,20 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
         {chapters.length > 0 ? <button type="button" aria-expanded={drawer === "stops"} onClick={() => setDrawer(drawer === "stops" ? null : "stops")}><ExploreIcon name="list" />Остановки · {chapters.length}</button> : null}
         {active && hasText ? <button type="button" aria-expanded={drawer === "story"} onClick={() => setDrawer(drawer === "story" ? null : "story")}>Читать историю</button> : null}
         {!active && reviews ? ratingCount === 0
-          ? <button type="button" aria-expanded={drawer === "reviews" && reviewIntent === "rate"} onClick={() => openReviews("rate")}>{hasReview ? "Изменить отзыв" : "Оставить отзыв"}</button>
-          : <button type="button" aria-expanded={drawer === "reviews" && reviewIntent === "read"} onClick={() => openReviews("read")}>Отзывы</button> : null}
+          ? <button type="button" aria-haspopup="dialog" onClick={rate}>{hasReview ? "Изменить отзыв" : "Оставить отзыв"}</button>
+          : <button type="button" aria-expanded={drawer === "reviews"} onClick={toggleReviews}>Отзывы</button> : null}
       </div> : null}
-      {drawer && !completed ? <div className="walk-session-drawer" data-sheet-part="body" key={`${drawer}-${reviewIntent}-${index}`}>
+      {drawer && !completed ? <div className="walk-session-drawer" data-sheet-part="body" key={`${drawer}-${index}`}>
         {drawer === "stops" ? <ol className="walk-session-stops">{chapters.map((item, position) => <li key={item.id}>
           {active ? <button type="button" aria-current={position === index ? "step" : undefined} onClick={() => select(position)}><span>{position + 1}</span>{item.title}</button> : <p><span>{position + 1}</span>{item.title}</p>}
-        </li>)}</ol> : drawer === "story" ? story : drawer === "reviews" ? reviews?.(reviewIntent) : <>
+        </li>)}</ol> : drawer === "story" ? story : drawer === "reviews" ? reviews : <>
           {settings}
-          {reviews ? <button type="button" className="walk-session-rate" onClick={() => openReviews("rate")}>Оценить прогулку</button> : null}
+          {reviews ? <button type="button" className="walk-session-rate" aria-haspopup="dialog" onClick={rate}>Оценить прогулку</button> : null}
         </>}
       </div> : null}
-      {completed && reviews && finishReviewOpen ? <div className="walk-session-review" data-sheet-part="body">{reviews("rate")}</div> : null}
       <footer className={`walk-session-actions${completed && reviews ? " walk-session-actions--finish" : ""}`} data-sheet-part="footer">
         {completed ? reviews ? <>
-          {!finishReviewOpen ? <button type="button" className="walk-session-primary" onClick={() => setFinishReviewOpen(true)}>{hasReview ? "Изменить отзыв" : "Оставить отзыв"}</button> : null}
+          <button type="button" className="walk-session-primary" aria-haspopup="dialog" onClick={onRate}>{hasReview ? "Изменить отзыв" : "Оставить отзыв"}</button>
           <Link className="walk-session-secondary" href="/">На карту</Link>
         </> : <Link className="walk-session-primary" href="/">На карту</Link> : active ? <>
           {index > 0 ? <button type="button" className="walk-session-previous" aria-label="Предыдущая остановка" onClick={() => select(index - 1)}><ExploreIcon name="arrow" /></button> : null}

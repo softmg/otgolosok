@@ -314,29 +314,43 @@ test.describe("отзывы к каталожной прогулке", () => {
     await page.getByRole("button", { name: "Завершить", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Прогулка завершена" })).toBeVisible();
     await page.getByRole("button", { name: "Оставить отзыв" }).click();
-    await page.getByLabel("4 звезды из 5").check();
-    await page.getByLabel("Отзыв (необязательно)").fill("Отличный маршрут");
-    await page.getByRole("button", { name: "Отправить отзыв" }).click();
-    await expect(page.getByRole("status").filter({ hasText: "появится после проверки" })).toBeVisible();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog, "форма открывается отдельным окном").toHaveAccessibleName("Оцените прогулку");
+    await expect(page.locator(".walk-session-panel form"), "в панели прогулки формы нет").toHaveCount(0);
+    await dialog.getByLabel("4 звезды из 5").check();
+    await dialog.getByLabel("Отзыв (необязательно)").fill("Отличный маршрут");
+    await dialog.getByRole("button", { name: "Отправить отзыв" }).click();
+    await expect(dialog.getByRole("status").filter({ hasText: "появится после проверки" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Готово" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole("button", { name: "Изменить отзыв" }), "после отправки финальная кнопка предлагает изменить отзыв").toBeVisible();
     expect(writes).toHaveLength(1);
     expect(writes[0]).toMatchObject({ method: "PUT", body: { rating: 4, text: "Отличный маршрут" } });
     expect(writes[0].key).toMatch(/^[A-Za-z0-9_-]{43}$/);
   });
 
   for (const [width, height] of [[390, 844], [320, 568], [568, 400]] as const) {
-    test(`панель с формой отзыва помещается на экране ${width}×${height}`, async ({ page }) => {
+    test(`окно отзыва помещается на экране ${width}×${height} и закрывается по Escape`, async ({ page }) => {
       await page.setViewportSize({ width, height });
       await openWithReviews(page);
       await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
       await page.getByRole("button", { name: "Завершить", exact: true }).click();
-      await expect(page.getByRole("button", { name: "Оставить отзыв" })).toBeInViewport({ ratio: 1 });
-      await page.getByRole("button", { name: "Оставить отзыв" }).click();
-      await expect(page.getByRole("button", { name: "Отправить отзыв" })).toBeAttached();
-      const panel = await page.locator(".walk-session-panel").boundingBox();
-      expect(panel!.y).toBeGreaterThanOrEqual(0);
-      expect(panel!.y + panel!.height).toBeLessThanOrEqual(height);
-      const link = page.getByRole("link", { name: "На карту" });
-      await expect(link).toBeInViewport({ ratio: 1 });
+      const rate = page.getByRole("button", { name: "Оставить отзыв" });
+      await expect(rate).toBeInViewport({ ratio: 1 });
+      await expect(page.getByRole("link", { name: "На карту" })).toBeInViewport({ ratio: 1 });
+      await rate.click();
+      const dialog = page.getByRole("dialog", { name: "Оцените прогулку" });
+      const box = await dialog.boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.y).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(height);
+      await expect(dialog.getByRole("button", { name: "Закрыть" })).toBeInViewport({ ratio: 1 });
+      await dialog.getByRole("button", { name: "Отправить отзыв" }).scrollIntoViewIfNeeded();
+      await expect(dialog.getByRole("button", { name: "Отправить отзыв" })).toBeInViewport({ ratio: 1 });
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await expect(rate, "фокус возвращается к кнопке").toBeFocused();
     });
   }
 });

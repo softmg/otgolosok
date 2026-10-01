@@ -58,7 +58,7 @@ it.each(["session", "map"])("%s ставит маркеры в точки про
   expect(selected.map(chapter => chapter.location)).toEqual(originalLocations);
 });
 
-function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; hasReview?: boolean; ratingCount?: number | null; reviews?: ((intent: "read" | "rate") => string) | null }) {
+function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; hasReview?: boolean; ratingCount?: number | null; reviews?: string | null }) {
   const markup = renderToStaticMarkup(createElement(WalkSession, {
     route, chapters, index: 0, active: props.active ?? false, completed: props.completed ?? false,
     user: null, positionFailed: false, resume: false,
@@ -70,6 +70,28 @@ function sessionDocument(props: { active?: boolean; completed?: boolean; ratingL
   return new DOMParser().parseFromString(markup, "text/html");
 }
 const buttonTexts = (document: Document) => [...document.querySelectorAll("button")].map(button => button.textContent);
+
+async function mountSession(props: { active?: boolean; completed?: boolean; ratingLabel?: string; ratingCount?: number | null; reviewable?: boolean }) {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
+  const onRate = vi.fn();
+  await act(async () => root.render(createElement(WalkSession, {
+    route, chapters, index: 0, active: props.active ?? false, completed: props.completed ?? false,
+    user: null, positionFailed: false, resume: false,
+    titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
+    onStart: () => {}, onSelect: () => {}, onStop: () => {},
+    player: null, story: null, settings: createElement("p", null, "настройки"), audioError: "",
+    ratingLabel: props.ratingLabel, ratingCount: props.ratingCount,
+    reviews: props.reviewable === false ? null : createElement("p", { "data-testid": "reviews" }, "список"), onRate,
+  })));
+  const find = (text: string) => [...container.querySelectorAll("button")].find(button => button.textContent === text);
+  const click = (element: HTMLElement) => act(async () => element.click());
+  const unmount = async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals(); };
+  return { container, find, click, onRate, unmount };
+}
 
 it.each([
   [{ ratingLabel: "★ 4,6 · 12 оценок" }, true],
@@ -83,9 +105,9 @@ it.each([
 });
 
 it.each([
-  [{ reviews: (intent: "read" | "rate") => intent }, true],
+  [{ reviews: "список" }, true],
   [{ reviews: null }, false],
-  [{ reviews: (intent: "read" | "rate") => intent, active: true }, false],
+  [{ reviews: "список", active: true }, false],
 ])("кнопка «Отзывы» есть только у прогулки с отзывами до старта: %o", (props, shown) => {
   expect(buttonTexts(sessionDocument(props)).includes("Отзывы")).toBe(shown);
 });
@@ -96,19 +118,18 @@ it.each([
   [{ ratingCount: 3 }, "Отзывы"],
   [{ ratingCount: null }, "Отзывы"],
 ])("кнопка отзывов до старта без оценок зовёт оставить отзыв: %o", (props, label) => {
-  const tools = sessionDocument({ reviews: intent => `reviews:${intent}`, ...props }).querySelector(".walk-session-tools")!;
+  const tools = sessionDocument({ reviews: "список", ...props }).querySelector(".walk-session-tools")!;
   expect([...tools.querySelectorAll("button")].at(-1)?.textContent).toBe(label);
 });
 
 it.each([
-  [{ reviews: (intent: "read" | "rate") => intent }, "Оставить отзыв"],
-  [{ reviews: (intent: "read" | "rate") => intent, hasReview: true }, "Изменить отзыв"],
+  [{}, "Оставить отзыв"],
+  [{ hasReview: true }, "Изменить отзыв"],
 ])("после завершения главная кнопка — отзыв, «На карту» второстепенная: %o", (props, label) => {
-  const document = sessionDocument({ completed: true, ...props });
+  const document = sessionDocument({ completed: true, reviews: "список", ...props });
   const actions = document.querySelector(".walk-session-actions")!;
   expect(actions.querySelector(".walk-session-primary")?.textContent).toBe(label);
   expect(actions.querySelector(".walk-session-secondary")?.textContent).toBe("На карту");
-  expect(document.querySelector(".walk-session-review"), "форма раскрывается только по кнопке").toBeNull();
 });
 
 it("после завершения прогулки без отзывов главная кнопка — «На карту»", () => {
@@ -118,79 +139,41 @@ it("после завершения прогулки без отзывов гл�
   expect(buttonTexts(document)).not.toContain("Оставить отзыв");
 });
 
-it("«Оставить отзыв» после завершения раскрывает форму над «На карту»", async () => {
-  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
-  const container = document.createElement("div");
-  document.body.append(container);
-  const root = createRoot(container);
-  await act(async () => root.render(createElement(WalkSession, {
-    route, chapters, index: 0, active: false, completed: true,
-    user: null, positionFailed: false, resume: false,
-    titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
-    onStart: () => {}, onSelect: () => {}, onStop: () => {},
-    player: null, story: null, settings: null, audioError: "",
-    reviews: (intent: "read" | "rate") => createElement("p", { "data-testid": "reviews" }, intent),
-  })));
-  await act(async () => [...container.querySelectorAll("button")].find(button => button.textContent === "Оставить отзыв")!.click());
-  const block = container.querySelector(".walk-session-review");
-  expect(block?.textContent).toBe("rate");
-  expect(block?.compareDocumentPosition(container.querySelector(".walk-session-actions")!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-  expect([...container.querySelectorAll("button")].some(button => button.textContent === "Оставить отзыв")).toBe(false);
-  expect(container.querySelector(".walk-session-secondary")?.textContent).toBe("На карту");
-  await act(async () => root.unmount());
-  container.remove();
-  vi.unstubAllGlobals();
+it("форма отзыва не встраивается в панель: все кнопки оценки открывают отдельное окно", async () => {
+  const finished = await mountSession({ completed: true });
+  await finished.click(finished.find("Оставить отзыв")!);
+  expect(finished.onRate).toHaveBeenCalledTimes(1);
+  expect(finished.container.querySelector("form, textarea")).toBeNull();
+  await finished.unmount();
+
+  const empty = await mountSession({ ratingCount: 0 });
+  await empty.click(empty.find("Оставить отзыв")!);
+  expect(empty.onRate).toHaveBeenCalledTimes(1);
+  expect(empty.container.querySelector(".walk-session-drawer")).toBeNull();
+  await empty.unmount();
 });
 
-it.each([[true, true], [false, false]])("«Оценить прогулку» в настройках у прогулки с отзывами=%s открывает форму", async (reviewable, shown) => {
-  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
-  const container = document.createElement("div");
-  document.body.append(container);
-  const root = createRoot(container);
-  const reviews = reviewable ? (intent: "read" | "rate") => createElement("p", { "data-testid": "reviews" }, intent) : null;
-  await act(async () => root.render(createElement(WalkSession, {
-    route, chapters, index: 0, active: true, completed: false,
-    user: null, positionFailed: false, resume: false,
-    titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
-    onStart: () => {}, onSelect: () => {}, onStop: () => {},
-    player: null, story: null, settings: createElement("p", null, "настройки"), audioError: "", reviews,
-  })));
-  const find = (text: string) => [...container.querySelectorAll("button")].find(button => button.textContent === text);
-  await act(async () => container.querySelector<HTMLButtonElement>("[aria-label='Настройки прогулки']")!.click());
-  expect(Boolean(find("Оценить прогулку"))).toBe(shown);
+it.each([[true, true], [false, false]])("«Оценить прогулку» в настройках у прогулки с отзывами=%s открывает окно и закрывает настройки", async (reviewable, shown) => {
+  const session = await mountSession({ active: true, reviewable });
+  await session.click(session.container.querySelector<HTMLButtonElement>("[aria-label='Настройки прогулки']")!);
+  expect(Boolean(session.find("Оценить прогулку"))).toBe(shown);
   if (shown) {
-    await act(async () => find("Оценить прогулку")!.click());
-    expect(container.querySelector("[data-testid=reviews]")?.textContent).toBe("rate");
+    await session.click(session.find("Оценить прогулку")!);
+    expect(session.onRate).toHaveBeenCalledTimes(1);
+    expect(session.container.querySelector(".walk-session-drawer")).toBeNull();
   }
-  await act(async () => root.unmount());
-  container.remove();
-  vi.unstubAllGlobals();
+  await session.unmount();
 });
 
-it("итог оценок в описании — кнопка, открывающая отзывы", async () => {
-  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
-  const container = document.createElement("div");
-  document.body.append(container);
-  const root = createRoot(container);
-  await act(async () => root.render(createElement(WalkSession, {
-    route, chapters, index: 0, active: false, completed: false,
-    user: null, positionFailed: false, resume: false,
-    titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
-    onStart: () => {}, onSelect: () => {}, onStop: () => {},
-    player: null, story: null, settings: null, audioError: "", ratingLabel: "★ 4,3 · 4 оценки",
-    reviews: (intent: "read" | "rate") => createElement("p", { "data-testid": "reviews" }, intent),
-  })));
-  const rating = container.querySelector<HTMLButtonElement>(".walk-session-meta button")!;
+it("итог оценок в описании — кнопка, открывающая и закрывающая список отзывов", async () => {
+  const session = await mountSession({ ratingLabel: "★ 4,3 · 4 оценки", ratingCount: 4 });
+  const rating = session.container.querySelector<HTMLButtonElement>(".walk-session-meta button")!;
   expect(rating.textContent).toBe("★ 4,3 · 4 оценки");
-  await act(async () => rating.click());
-  expect(container.querySelector("[data-testid=reviews]")?.textContent).toBe("read");
+  await session.click(rating);
+  expect(session.container.querySelector("[data-testid=reviews]")?.textContent).toBe("список");
   expect(rating.getAttribute("aria-expanded")).toBe("true");
-  await act(async () => rating.click());
-  expect(container.querySelector("[data-testid=reviews]")).toBeNull();
-  await act(async () => root.unmount());
-  container.remove();
-  vi.unstubAllGlobals();
+  await session.click(rating);
+  expect(session.container.querySelector("[data-testid=reviews]")).toBeNull();
+  expect(session.onRate).not.toHaveBeenCalled();
+  await session.unmount();
 });

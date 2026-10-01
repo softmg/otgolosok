@@ -1,25 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { formatRatingSummary } from "./model";
-import { ReviewForm } from "./review-form";
 import type { WalkReviewsModel } from "./use-walk-reviews";
 import styles from "./walk-reviews.module.css";
-
-export type ReviewIntent = "read" | "rate";
 
 function Stars({ rating }: { rating: number }) {
   return <span className={styles.ratingStars} role="img" aria-label={`Оценка ${rating} из 5`}>{"★".repeat(rating)}{"☆".repeat(5 - rating)}</span>;
 }
 
-function currentWalkHref() {
-  return typeof location === "undefined" ? "/walk" : `${location.pathname}${location.search}`;
-}
-
-/** Summary, published texts and, on request, the author's own form. */
-export function WalkReviews({ reviews, intent }: { reviews: WalkReviewsModel; intent: ReviewIntent }) {
-  const [formOpen, setFormOpen] = useState(intent === "rate");
-  const { target, state, summary, mine, reviewer } = reviews;
+/** Summary and published texts; the author's own form opens in ReviewDialog. */
+export function WalkReviews({ reviews, onRate }: { reviews: WalkReviewsModel; onRate: () => void }) {
+  const { target, state, summary, mine } = reviews;
   if (!target) return null;
   if (state === "unavailable") {
     return <div className={styles.root}>
@@ -30,9 +21,7 @@ export function WalkReviews({ reviews, intent }: { reviews: WalkReviewsModel; in
   if (state !== "ready") return <div className={styles.root}><p className={styles.message} role="status">Загружаем отзывы…</p></div>;
   return <div className={styles.root}>
     <p className={styles.summary}>{formatRatingSummary(summary) || "Оценок пока нет"}</p>
-    {formOpen ? <ReviewForm target={target} reviewer={reviewer} mine={mine} save={reviews.save} remove={reviews.remove}
-      loginHref={`/login?returnTo=${encodeURIComponent(currentWalkHref())}`} />
-      : <button type="button" className={styles.secondary} onClick={() => setFormOpen(true)}>{mine ? "Изменить отзыв" : "Оставить отзыв"}</button>}
+    <button type="button" className={styles.secondary} aria-haspopup="dialog" onClick={onRate}>{mine ? "Изменить отзыв" : "Оставить отзыв"}</button>
     {reviews.reviews.length ? <ul className={styles.list} aria-label="Отзывы">
       {reviews.reviews.map(review => <li key={review.id} className={styles.item}>
         <p className={styles.itemHead}><strong>{review.author}</strong><Stars rating={review.rating} />

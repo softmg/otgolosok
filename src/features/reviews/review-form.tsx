@@ -23,9 +23,13 @@ export type ReviewFormProps = {
   save: (input: { rating: number; text: string }) => Promise<ReviewActionResult>;
   remove: () => Promise<ReviewActionResult>;
   loginHref: string;
+  /** The id of an outer heading (the dialog title); the form then renders no title of its own. */
+  labelledBy?: string;
+  /** Shown as «Готово» after a successful save or delete. */
+  onDone?: () => void;
 };
 
-export function ReviewForm({ target, reviewer, mine, save, remove, loginHref }: ReviewFormProps) {
+export function ReviewForm({ target, reviewer, mine, save, remove, loginHref, labelledBy, onDone }: ReviewFormProps) {
   const id = useId();
   // A draft left by a failed send wins over the stored review: it holds the user's latest intent.
   const [initial] = useState(() => loadReviewDraft(target) ?? (mine ? { rating: mine.rating, text: mine.text } : { rating: 0, text: "" }));
@@ -63,8 +67,8 @@ export function ReviewForm({ target, reviewer, mine, save, remove, loginHref }: 
     else setError(result.message);
   }
 
-  return <form className={styles.form} onSubmit={event => void submit(event)} aria-labelledby={`${id}-title`}>
-    <h2 id={`${id}-title`} className={styles.formTitle}>{mine ? "Ваш отзыв" : "Оцените прогулку"}</h2>
+  return <form className={styles.form} onSubmit={event => void submit(event)} aria-labelledby={labelledBy ?? `${id}-title`}>
+    {labelledBy ? null : <h2 id={`${id}-title`} className={styles.formTitle}>{mine ? "Ваш отзыв" : "Оцените прогулку"}</h2>}
     {mine?.status === "pending" ? <p className={styles.badge}>На модерации</p> : null}
     {mine?.status === "hidden" ? <p className={styles.badge}>Скрыт редакцией</p> : null}
     <fieldset className={styles.stars}>
@@ -88,7 +92,8 @@ export function ReviewForm({ target, reviewer, mine, save, remove, loginHref }: 
       : "Отзыв будет опубликован от имени «Гость». Изменить его можно только в этом браузере."}</p>
     {error ? <p className={styles.error} role="alert">{error}</p> : null}
     {status ? <p className={styles.message} role="status">{status}</p> : null}
-    <button type="submit" className={styles.primary} disabled={!rating || busy}>{busy ? "Отправляем…" : error ? "Повторить" : mine ? "Сохранить изменения" : "Отправить отзыв"}</button>
+    {status && onDone ? <button type="button" className={styles.primary} onClick={onDone}>Готово</button> : null}
+    <button type="submit" className={status && onDone ? styles.secondary : styles.primary} disabled={!rating || busy}>{busy ? "Отправляем…" : error ? "Повторить" : mine ? "Сохранить изменения" : "Отправить отзыв"}</button>
     {mine ? confirming ? <div className={styles.confirm} role="group" aria-label="Подтверждение удаления">
       <span>Удалить отзыв?</span>
       <button type="button" className={styles.danger} disabled={busy} onClick={() => void confirmDelete()}>Удалить</button>
