@@ -280,7 +280,7 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
         user={position.diagnostics.lastFix} positionFailed={positionFailed(position.diagnostics)} resume={Boolean(savedCheckpoint)} titleRef={walkTitleRef} startRef={startButtonRef}
         onStart={() => startTour()} onSelect={selectChapter} onStop={stopTour}
         ratingLabel={formatRatingSummary(reviews.summary)} canRate={canRate}
-        reviews={reviewTarget ? intent => <WalkReviews reviews={reviews} intent={intent} canRate={canRate} /> : null}
+        hasReview={Boolean(reviews.mine)} reviews={reviewTarget ? intent => <WalkReviews reviews={reviews} intent={intent} canRate={canRate} /> : null}
         audioError={audioStatus === "blocked" || audioStatus === "error" ? "Не удалось включить аудио. Нажмите «Повторить запуск звука»." : ""}
         player={walkAudioUrl ? <AudioPlayerControls compact position={playbackTime} duration={duration} canSeek={canSeek} playing={audioStatus === "playing"}
           label={audioButtonLabel} rate={settings.rate} onToggle={audio.toggle} onSeek={audio.seek} onRate={rate => updateSettings({ rate })} /> : null}

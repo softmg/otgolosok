@@ -58,14 +58,14 @@ it.each(["session", "map"])("%s ставит маркеры в точки про
   expect(selected.map(chapter => chapter.location)).toEqual(originalLocations);
 });
 
-function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; canRate?: boolean; reviews?: ((intent: "read" | "rate") => string) | null }) {
+function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; canRate?: boolean; hasReview?: boolean; reviews?: ((intent: "read" | "rate") => string) | null }) {
   const markup = renderToStaticMarkup(createElement(WalkSession, {
     route, chapters, index: 0, active: props.active ?? false, completed: props.completed ?? false,
     user: null, positionFailed: false, resume: false,
     titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
     onStart: () => {}, onSelect: () => {}, onStop: () => {},
     player: null, story: null, settings: null, audioError: "",
-    ratingLabel: props.ratingLabel, canRate: props.canRate, reviews: props.reviews,
+    ratingLabel: props.ratingLabel, canRate: props.canRate, hasReview: props.hasReview, reviews: props.reviews,
   }));
   return new DOMParser().parseFromString(markup, "text/html");
 }
@@ -90,12 +90,47 @@ it.each([
   expect(buttonTexts(sessionDocument(props)).includes("Отзывы")).toBe(shown);
 });
 
-it("после завершения показывает форму отзыва над кнопкой «На карту»", () => {
-  const document = sessionDocument({ completed: true, canRate: true, reviews: intent => `reviews:${intent}` });
-  const block = document.querySelector(".walk-session-review");
-  expect(block?.textContent).toBe("reviews:rate");
-  expect(block?.compareDocumentPosition(document.querySelector(".walk-session-actions")!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-  expect(sessionDocument({ completed: true, reviews: null }).querySelector(".walk-session-review")).toBeNull();
+it.each([
+  [{ reviews: (intent: "read" | "rate") => intent }, "Оставить отзыв"],
+  [{ reviews: (intent: "read" | "rate") => intent, hasReview: true }, "Изменить отзыв"],
+])("после завершения главная кнопка — отзыв, «На карту» второстепенная: %o", (props, label) => {
+  const document = sessionDocument({ completed: true, canRate: true, ...props });
+  const actions = document.querySelector(".walk-session-actions")!;
+  expect(actions.querySelector(".walk-session-primary")?.textContent).toBe(label);
+  expect(actions.querySelector(".walk-session-secondary")?.textContent).toBe("На карту");
+  expect(document.querySelector(".walk-session-review"), "форма раскрывается только по кнопке").toBeNull();
+});
+
+it("после завершения прогулки без отзывов главная кнопка — «На карту»", () => {
+  const document = sessionDocument({ completed: true, reviews: null });
+  expect(document.querySelector(".walk-session-primary")?.textContent).toBe("На карту");
+  expect(document.querySelector(".walk-session-secondary")).toBeNull();
+  expect(buttonTexts(document)).not.toContain("Оставить отзыв");
+});
+
+it("«Оставить отзыв» после завершения раскрывает форму над «На карту»", async () => {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
+  await act(async () => root.render(createElement(WalkSession, {
+    route, chapters, index: 0, active: false, completed: true,
+    user: null, positionFailed: false, resume: false,
+    titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
+    onStart: () => {}, onSelect: () => {}, onStop: () => {},
+    player: null, story: null, settings: null, audioError: "", canRate: true,
+    reviews: (intent: "read" | "rate") => createElement("p", { "data-testid": "reviews" }, intent),
+  })));
+  await act(async () => [...container.querySelectorAll("button")].find(button => button.textContent === "Оставить отзыв")!.click());
+  const block = container.querySelector(".walk-session-review");
+  expect(block?.textContent).toBe("rate");
+  expect(block?.compareDocumentPosition(container.querySelector(".walk-session-actions")!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  expect([...container.querySelectorAll("button")].some(button => button.textContent === "Оставить отзыв")).toBe(false);
+  expect(container.querySelector(".walk-session-secondary")?.textContent).toBe("На карту");
+  await act(async () => root.unmount());
+  container.remove();
+  vi.unstubAllGlobals();
 });
 
 it.each([[true, true], [false, false]])("«Оценить прогулку» в настройках при canRate=%s открывает форму", async (canRate, shown) => {

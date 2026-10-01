@@ -313,6 +313,7 @@ test.describe("отзывы к каталожной прогулке", () => {
     await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
     await page.getByRole("button", { name: "Завершить", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Прогулка завершена" })).toBeVisible();
+    await page.getByRole("button", { name: "Оставить отзыв" }).click();
     await page.getByLabel("4 звезды из 5").check();
     await page.getByLabel("Отзыв (необязательно)").fill("Отличный маршрут");
     await page.getByRole("button", { name: "Отправить отзыв" }).click();
@@ -322,12 +323,14 @@ test.describe("отзывы к каталожной прогулке", () => {
     expect(writes[0].key).toMatch(/^[A-Za-z0-9_-]{43}$/);
   });
 
-  for (const [width, height] of [[390, 844], [568, 400]] as const) {
+  for (const [width, height] of [[390, 844], [320, 568], [568, 400]] as const) {
     test(`панель с формой отзыва помещается на экране ${width}×${height}`, async ({ page }) => {
       await page.setViewportSize({ width, height });
       await openWithReviews(page);
       await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
       await page.getByRole("button", { name: "Завершить", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Оставить отзыв" })).toBeInViewport({ ratio: 1 });
+      await page.getByRole("button", { name: "Оставить отзыв" }).click();
       await expect(page.getByRole("button", { name: "Отправить отзыв" })).toBeAttached();
       const panel = await page.locator(".walk-session-panel").boundingBox();
       expect(panel!.y).toBeGreaterThanOrEqual(0);

@@ -12,7 +12,7 @@ import "./walk-session.css";
 const noop = () => {};
 
 export function WalkSession({ route, chapters, index, active, completed, user, positionFailed, resume,
-  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", canRate = false, reviews = null }: {
+  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", canRate = false, hasReview = false, reviews = null }: {
   route: Route; chapters: WalkChapter[]; index: number; active: boolean; completed: boolean;
   user: (Coordinates & { accuracyM: number }) | null; positionFailed: boolean; resume: boolean;
   titleRef: RefObject<HTMLHeadingElement | null>; startRef: RefObject<HTMLButtonElement | null>;
@@ -22,6 +22,8 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   ratingLabel?: string;
   /** The walk was started in this browser or the viewer already has a review. */
   canRate?: boolean;
+  /** The viewer already has a review of this walk, so the finish screen offers to edit it. */
+  hasReview?: boolean;
   /** Renders the reviews block; null for walks that cannot be reviewed. */
   reviews?: ((intent: "read" | "rate") => ReactNode) | null;
 }) {
@@ -37,6 +39,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   });
   const [drawer, setDrawer] = useState<"stops" | "story" | "settings" | "reviews" | null>(null);
   const [reviewIntent, setReviewIntent] = useState<"read" | "rate">("read");
+  const [finishReviewOpen, setFinishReviewOpen] = useState(false);
   const chapter = chapters[index];
   const geometry = useMemo(() => (route.walk?.path.coordinates ?? []).map(([lon, lat]) => ({ lat, lon })), [route.walk?.path]);
   const items = useMemo(() => [
@@ -116,9 +119,12 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
           {canRate && reviews ? <button type="button" className="walk-session-rate" onClick={() => openReviews("rate")}>Оценить прогулку</button> : null}
         </>}
       </div> : null}
-      {completed && reviews ? <div className="walk-session-review" data-sheet-part="body">{reviews("rate")}</div> : null}
-      <footer className="walk-session-actions" data-sheet-part="footer">
-        {completed ? <Link className="walk-session-primary" href="/">На карту</Link> : active ? <>
+      {completed && reviews && finishReviewOpen ? <div className="walk-session-review" data-sheet-part="body">{reviews("rate")}</div> : null}
+      <footer className={`walk-session-actions${completed && reviews ? " walk-session-actions--finish" : ""}`} data-sheet-part="footer">
+        {completed ? reviews ? <>
+          {!finishReviewOpen ? <button type="button" className="walk-session-primary" onClick={() => setFinishReviewOpen(true)}>{hasReview ? "Изменить отзыв" : "Оставить отзыв"}</button> : null}
+          <Link className="walk-session-secondary" href="/">На карту</Link>
+        </> : <Link className="walk-session-primary" href="/">На карту</Link> : active ? <>
           {index > 0 ? <button type="button" className="walk-session-previous" aria-label="Предыдущая остановка" onClick={() => select(index - 1)}><ExploreIcon name="arrow" /></button> : null}
           <button type="button" className="walk-session-primary" onClick={() => { setDrawer(null); if (index + 1 < chapters.length) select(index + 1); else onStop(true); }}>{index + 1 < chapters.length ? "Дальше" : "Завершить"}<ExploreIcon name="arrow" /></button>
         </> : <button type="button" ref={startRef} disabled={!canStart} className="walk-session-primary" onClick={() => { setDrawer(null); onStart(); }}>{resume ? "Продолжить прогулку" : "Начать прогулку"}<ExploreIcon name="arrow" /></button>}
