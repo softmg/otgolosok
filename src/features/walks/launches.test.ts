@@ -15,7 +15,7 @@ const { launchesPath, reportWalkLaunch, useLaunchReport } = await import("./laun
 
 const TOKEN = "22222222-2222-4222-8222-222222222222";
 const fetcher = vi.fn();
-const sent = () => fetcher.mock.calls.map(([url, init]: [string, RequestInit]) => ({ url, method: init.method, headers: init.headers as Record<string, string>, body: init.body }));
+const sent = () => (fetcher.mock.calls as Array<[string, RequestInit]>).map(([url, init]) => ({ url, method: init.method, headers: init.headers as Record<string, string>, body: init.body }));
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
