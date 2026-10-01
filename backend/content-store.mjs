@@ -514,8 +514,10 @@ export function createContentStore({db,now,transaction}) {
       const rows=db.prepare(`SELECT p.id,p.name,p.address,p.lat,p.lon,t.id text_id,t.story_json,t.verification,t.created_at,${DRAFT_RESEARCH_STATUS} research_status
         FROM places p ${DRAFT_TEXT_JOIN} WHERE ${where} ORDER BY t.created_at DESC,p.id LIMIT ? OFFSET ?`).all(limit+1,offset);
       const total=Number(db.prepare(`SELECT count(*) n FROM places p ${DRAFT_TEXT_JOIN} WHERE ${where}`).get().n);
-      const counts=Object.fromEntries(db.prepare(`SELECT ${DRAFT_RESEARCH_STATUS} s,count(*) n FROM places p ${DRAFT_TEXT_JOIN}
-        WHERE p.archived=0 AND ${DRAFT_PLACE} GROUP BY s`).all().map(row=>[row.s,Number(row.n)]));
+      // Materialize only the status: GROUP BY otherwise carries multi-megabyte checkpoints into its temp sorter.
+      const counts=Object.fromEntries(db.prepare(`WITH draft_research AS MATERIALIZED (
+        SELECT ${DRAFT_RESEARCH_STATUS} s FROM places p ${DRAFT_TEXT_JOIN} WHERE p.archived=0 AND ${DRAFT_PLACE}
+      ) SELECT s,count(*) n FROM draft_research GROUP BY s`).all().map(row=>[row.s,Number(row.n)]));
       const unresearched=Number(db.prepare(`SELECT count(*) n ${DRAFT_JOB} AND ${DRAFT_PLACE} AND NOT ${PERPLEXITY_DONE}`).get().n);
       return {total,unresearched,counts,hasMore:rows.length>limit,items:rows.slice(0,limit).map(row=>{const story=decode(row.story_json)??{};
         return {placeId:row.id,name:row.name,address:row.address,location:{lat:row.lat,lon:row.lon},research:row.research_status,
