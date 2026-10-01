@@ -1,6 +1,6 @@
 # Plan: Automatic place photos from Wikidata / Wikimedia Commons in the story card
 
-Status: plan, 2026-10-01.
+Status: implemented 2026-10-01 in branch `feat/promo-walks-stories-only`. Not done: step 0 (Wikimedia reachability from the VPS — the dev machine does not know the VPS SSH host key, so it was not checked), the production header check of step 6 (every request from the dev machine to otgolosok.online returned HTTP 505) and step 9 (rollout, on request only). See "Implementation divergences".
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
@@ -23,7 +23,7 @@ This does not scale beyond a handful of places. The bundle would grow with every
 **External APIs** (free, no keys; verified 2026-10-01):
 - **Wikidata entities:** `GET https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q1|Q2|…&props=claims&format=json&formatversion=2`, up to 50 ids.
   - `entities[Q].claims.P18[]` has `rank` (`preferred`/`normal`/`deprecated`) and `mainsnak.datavalue.value`, a Commons file name without the `File:` prefix.
-  - Redirected ids come back under the target id. Missing ids have a `missing` key.
+  - Redirected ids come back under the requested id with `redirects: {from, to}` and the target `id`. Deleted ids have a `missing` key. **Correction:** an id that never existed fails the whole request with `error.code = "no-such-entity"` and `error.id`.
 - **Wikipedia → Wikidata:** `GET https://{lang}.wikipedia.org/w/api.php?action=query&prop=pageprops&ppprop=wikibase_item&redirects=1&titles=A|B|…&format=json&formatversion=2`, up to 50 titles per language.
   - The `normalized` and `redirects` arrays map input titles to page titles. `pages[].pageprops.wikibase_item` is the QID.
 - **Commons file info:** `GET https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=url|size|mime|thumbmime|sha1|extmetadata&iiextmetadatafilter=Artist|Credit|LicenseShortName|LicenseUrl|AttributionRequired|NonFree&iiurlwidth=W&titles=File:A|File:B|…&format=json&formatversion=2`, up to 50 titles.
@@ -75,6 +75,22 @@ This does not scale beyond a handful of places. The bundle would grow with every
 - **Format:** JPEG thumbnails only (`thumbmime === "image/jpeg"`, verified by magic bytes). PNG/SVG/GIF originals, usually drawings, logos or maps, give no photo. TIFF originals have JPEG thumbnails and are accepted.
 - **Minimum original size:** width ≥ 500 px.
 - **Opt-in:** the env flag `PLACE_IMAGE_SYNC=true` enables all network activity in the server (worker, pipeline step, approve step). The default is off, because local test placeholders make ~6,100 places "published" and would trigger ~1,300 downloads on a dev machine. Production sets it to `true`.
+
+## Implementation divergences
+
+What was built differs from the steps below in these points (the steps are kept as the decision history):
+
+- **No `maxlag`.** Wikidata counts the query-service lag in `maxlag`; on 2026-10-01 it was 9.5 s and such lag lasts for hours, so `maxlag=5` stalled the read-only sync. Requests rely on the serialized queue, the interval and the User-Agent instead. JSON-level API errors (`ratelimited`, `maxlag`, `readonly`, DB errors, malformed JSON) are retried inside the same 3-attempt loop and honor the response's `Retry-After`.
+- **`no-such-entity`:** `entities()` drops the reported id and repeats the request for the rest of the chunk.
+- **Identifiers:** `wikipedia` URLs on `m.wikipedia.org` hosts are accepted too.
+- **Extra reasons:** `invalid_download` (the media host returned a non-JPEG, a foreign redirect or bad bytes) and `download_failed` (a deterministic HTTP error on the media host).
+- **Service:** `syncPlaces(places, {signal})` processes the given places as one batch (used by the CLI `--place`). Reusing the previous files also requires both files to exist on disk; a missing file is downloaded again.
+- **Worker loop:** one run calls `syncDue` repeatedly and stops when nothing was processed, any place failed, or Wikimedia paused the client.
+- **Server:** `setupPlaceImages({env, store, directory, origin, logs, fetchImpl, catalogPath})` in `server.mjs` mirrors the editorial catalog and builds the service when the flag is on; `main()` only wires it. The manual approve route also catches an exception from `ensure` (logged), so approval never fails because of photos.
+- **CLI:** the default mode stops when a whole batch failed (Wikimedia unreachable), so the backlog is not marked failed. It sets `process.exitCode` instead of calling `process.exit()`, which aborts with a libuv assertion on Windows while fetch sockets close.
+- **nginx:** the editorial location requires the 12-hex hash: `^/images/places/[a-z0-9-]+-[0-9a-f]{12}\.jpg$`.
+- **Frontend:** `MapPoint.photo` is optional (`photo?: true`), and `CatalogPoint.photo` is a boolean.
+- **compose.yaml:** passes `PLACE_IMAGE_SYNC` (default `false`); production reads it from `.generator.env` through `env_file`.
 
 ## Key codebase facts
 
