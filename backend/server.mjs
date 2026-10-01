@@ -33,6 +33,8 @@ import { normalizeForSpeech } from "./text-normalizer.mjs";
 import { loadLocalTtsConfig } from "./local-tts.mjs";
 import { createTtsApiClient } from "./tts-api-client.mjs";
 import { startTtsApiWorker } from "./tts-api-worker.mjs";
+import { serializeCell } from "./map-cells.mjs";
+import { sendCacheableJson } from "./http-cache.mjs";
 
 const UUID = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}";
 // Digests keep the comparison constant-time regardless of the candidate length.
@@ -523,6 +525,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         }
         json(res,404,{error:{code:"NOT_FOUND",message:"Admin endpoint not found."}});return;
       }
+      const readMethod=req.method==="GET"||req.method==="HEAD";
       if(req.method==="GET"&&url.pathname==="/api/story-service") {json(res,200,{enabled:Boolean(provider),version:1});return;}
       if(req.method==="GET"&&url.pathname==="/api/content/places") {
         const entries=[...url.searchParams],allowed=["limit","offset","q","status","lat","lon","radius","west","south","east","north"];
@@ -536,7 +539,18 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
           lat:nearby?Number(url.searchParams.get("lat")):null,lon:nearby?Number(url.searchParams.get("lon")):null,radius:nearby?Number(url.searchParams.get("radius")):null,bounds}));return;
       }
       const publicPlace=/^\/api\/content\/places\/(osm:(?:node|way|relation):\d+)$/.exec(url.pathname);
-      if(req.method==="GET"&&publicPlace){const place=store.getPublishedPlace(publicPlace[1]);json(res,place?200:404,place?{place}:{error:{code:"NOT_FOUND",message:"Place text not found."}});return;}
+      if(readMethod&&publicPlace){const place=store.getPublishedPlace(publicPlace[1]);if(place)sendCacheableJson(req,res,JSON.stringify({place}));else json(res,404,{error:{code:"NOT_FOUND",message:"Place text not found."}});return;}
+      // One URL per cell (no query, no "-0", no leading zeros), so every cell has exactly one cache key.
+      if(readMethod&&url.pathname==="/api/content/map-cells") {
+        if(req.url.includes("?"))throw failure("BAD_REQUEST");
+        sendCacheableJson(req,res,JSON.stringify({version:1,cellSize:1,cells:store.listMapCells()}));return;
+      }
+      const mapCell=/^\/api\/content\/map-cells\/(-?(?:0|[1-9]\d{0,2}))\/(-?(?:0|[1-9]\d{0,2}))$/.exec(url.pathname);
+      if(readMethod&&url.pathname.startsWith("/api/content/map-cells/")) {
+        if(!mapCell||req.url.includes("?")||mapCell[1]==="-0"||mapCell[2]==="-0")throw failure("BAD_REQUEST");
+        const {cell,points}=store.getMapCell(Number(mapCell[1]),Number(mapCell[2]));
+        sendCacheableJson(req,res,serializeCell(cell,points));return;
+      }
       const publishedWalk=/^\/api\/story-walks\/([a-z0-9][a-z0-9-]{0,127})$/.exec(url.pathname);
       if(req.method==="GET"&&url.pathname==="/api/story-walks"){json(res,200,{walks:builtinRoutes.filter(route=>route.walk?.steps?.length).map(route=>({id:route.id,title:route.title,subtitle:route.subtitle,durationMin:route.duration_min}))});return;}
       const sharedWalk=new RegExp(`^/api/story-walks/shared/(${UUID})$`).exec(url.pathname);

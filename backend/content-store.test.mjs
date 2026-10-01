@@ -5,6 +5,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createStore } from "./store.mjs";
+import { etagOf, serializeCell } from "./map-cells.mjs";
 
 const catalog={source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[
   {placeId:"osm:node:1",osmType:"node",osmId:1,name:"Памятник",location:{lat:55.75,lon:37.61},tags:{historic:"memorial",wikidata:"Q1"}},
@@ -537,4 +538,90 @@ test("catalog bounds filter before pagination and include rectangle edges", t =>
     { ...bounds, west: 38 }, { ...bounds, south: 56 }, { ...bounds, east: bounds.west },
   ]) assert.throws(() => store.listPlaces({ bounds: invalid }), { code: "BAD_REQUEST" });
   assert.throws(() => store.listPlaces({ bounds, lat: 55.75, lon: 37.61, radius: 200 }), { code: "BAD_REQUEST" });
+});
+
+test("map cells expose only ready places with the latest approved story and audio", async t => {
+  const store = createStore(":memory:", { maxActive: 100 });
+  t.after(() => store.close());
+  const places = [
+    { placeId: "osm:node:1", osmType: "node", osmId: 1, name: "Памятник", location: { lat: 55.75, lon: 37.61 }, tags: {} },
+    { placeId: "osm:node:2", osmType: "node", osmId: 2, name: "Нижняя граница", location: { lat: 55, lon: 37 }, tags: {} },
+    { placeId: "osm:node:3", osmType: "node", osmId: 3, name: "Верхняя граница", location: { lat: 56, lon: 37.5 }, tags: {} },
+    { placeId: "osm:node:4", osmType: "node", osmId: 4, name: "Архивное", location: { lat: 55.5, lon: 37.5 }, tags: {} },
+    { placeId: "osm:node:5", osmType: "node", osmId: 5, name: "Черновик", location: { lat: 55.6, lon: 37.6 }, tags: {} },
+  ];
+  store.importPlaces({ ...catalog, places }, { complete: true });
+  store.createBatch({ requestKey: "map-cells-1", placeIds: places.map(place => place.placeId), limit: 5 });
+  const story = title => ({ title, paragraphs: [{ text: "Текст", factIds: [] }], facts: [{ id: "f1" }, { id: "f2" }], sources: [{ id: "s1" }] });
+  for (let job = store.claimContentJob(); job; job = store.claimContentJob()) {
+    store.completeContentJob(job.id, { story: story(`История ${job.place.name}`), evidence: {}, autoApprove: job.place.id !== "osm:node:5" });
+  }
+  const etag = () => store.listMapCells().find(cell => cell.lat === 55 && cell.lon === 37)?.etag;
+  const ids = () => store.getMapCell(55, 37).points.map(point => point.id).sort();
+
+  // The unapproved draft (node 5) stays off the map; the lower cell edge is inclusive and the upper one exclusive.
+  assert.deepEqual(ids(), ["osm:node:1", "osm:node:2", "osm:node:4"]);
+  assert.deepEqual(store.getMapCell(56, 37).points.map(point => point.id), ["osm:node:3"]);
+  assert.deepEqual(store.listMapCells().map(cell => [cell.lat, cell.lon, cell.count]), [[55, 37, 3], [56, 37, 1]]);
+  assert.deepEqual(store.getMapCell(55, 37).points.find(point => point.id === "osm:node:1"),
+    { id: "osm:node:1", lat: 55.75, lon: 37.61, title: "История Памятник", address: "Памятник", durationSec: null, facts: 2, sources: 1 });
+  for (const cell of store.listMapCells()) {
+    const { points } = store.getMapCell(cell.lat, cell.lon);
+    assert.equal(cell.etag, etagOf(serializeCell(cell, points)));
+  }
+
+  // An editor's newer approved text wins; it changes the cell ETag.
+  let before = etag();
+  store.approvePlaceText("osm:node:1", story("Новая история"));
+  assert.equal(store.getMapCell(55, 37).points.find(point => point.id === "osm:node:1").title, "Новая история");
+  assert.notEqual(etag(), before);
+
+  // Approved audio adds the duration.
+  before = etag();
+  const text = store.getPublishedPlace("osm:node:2").text;
+  const queued = await store.enqueueExternalAudio({ sourceJobId: `place-text:${text.id}`, sourceRevision: 0, story: { ...text.story, address: "Москва, Нижняя граница" } });
+  const claim = store.claimExternalAudio({ workerId: "map-test", requestId: "map-audio-1", profileIds: [queued.profileId] });
+  const artifact = { url: `/api/story-audio/${"b".repeat(64)}.mp3`, sha256: "b".repeat(64), durationSec: 42 };
+  store.acceptExternalAudio(queued.id, { workerId: "map-test", generation: claim.leaseGeneration, leaseToken: claim.leaseToken, uploadId: "map-upload-1", uploadSha256: artifact.sha256, artifact });
+  assert.equal(store.getMapCell(55, 37).points.find(point => point.id === "osm:node:2").durationSec, 42);
+  assert.notEqual(etag(), before);
+
+  // A complete import without a place archives it and drops it from the map.
+  before = etag();
+  store.importPlaces({ ...catalog, sourceSha256: "c".repeat(64), places: places.filter(place => place.placeId !== "osm:node:4") }, { complete: true });
+  assert.deepEqual(ids(), ["osm:node:1", "osm:node:2"]);
+  assert.notEqual(etag(), before);
+
+  assert.deepEqual(store.getMapCell(-1, -1), { cell: { lat: -1, lon: -1 }, points: [] });
+  for (const [lat, lon] of [[90, 0], [0, 180], [-91, 0], [0, -181], [1.5, 0], [Number.NaN, 0]]) {
+    assert.throws(() => store.getMapCell(lat, lon), { code: "BAD_REQUEST" }, `${lat}:${lon}`);
+  }
+});
+
+test("a newer unapproved draft does not replace the published map title", t => {
+  const store = createStore(":memory:", { maxActive: 100 });
+  t.after(() => store.close());
+  store.importPlaces(catalog);
+  store.createBatch({ requestKey: "map-draft-1", placeIds: ["osm:node:1"], limit: 1 });
+  const first = store.claimContentJob();
+  store.completeContentJob(first.id, { story: { title: "Одобренная", paragraphs: [{ text: "Текст", factIds: [] }] }, evidence: {}, autoApprove: true });
+  store.createBatch({ requestKey: "map-draft-2", placeIds: ["osm:node:1"], limit: 1, textProfile: "description-v1" });
+  const second = store.claimContentJob();
+  store.completeContentJob(second.id, { story: { title: "Черновик", paragraphs: [{ text: "Текст", factIds: [] }] }, evidence: {} });
+  assert.equal(store.getPlace("osm:node:1").text.draft.title, "Черновик");
+  assert.equal(store.getMapCell(55, 37).points[0].title, "Одобренная");
+});
+
+test("place texts are indexed by place for the map queries", () => {
+  const directory = mkdtempSync(join(tmpdir(), "map-index-"));
+  try {
+    const file = join(directory, "store.db");
+    createStore(file).close();
+    const db = new DatabaseSync(file, { readOnly: true });
+    const indexes = db.prepare("PRAGMA index_list(place_texts)").all().map(index => index.name);
+    db.close();
+    assert.ok(indexes.includes("place_texts_place_idx"));
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

@@ -3,6 +3,7 @@ import { sha256 } from "./domain.mjs";
 import { assessPlaceEligibility, CONTENT_PROFILE_VERSION } from "./place-eligibility.mjs";
 import { osmPostalAddress } from "./osm-context.mjs";
 import { IDENTITY_RULES_VERSION, IDENTITY_TIERS } from "./identity-triage.mjs";
+import { cellKey, cellOf, etagOf, isCellLat, isCellLon, serializeCell, toMapPoint } from "./map-cells.mjs";
 
 const encode = JSON.stringify;
 const decode = value => value == null ? null : JSON.parse(value);
@@ -82,6 +83,16 @@ const DRAFT_RESEARCH_STATUS=`CASE WHEN j.id IS NULL THEN 'plain'
   WHEN j.state='failed' AND json_extract(j.checkpoint_json,'$.researchMode') IN ('perplexity_required','perplexity_deep_required') THEN 'failed'
   ELSE 'plain' END`;
 const DRAFT_RESEARCH_FILTERS=["all","plain","perplexity","queued","failed"];
+// Slim map points: the latest approved story and its latest approved audio, the same "ready" rule as listPlaces.
+const MAP_POINT_SELECT=`SELECT id,name,address,lat,lon,json_extract(story_json,'$.title') title,
+  json_array_length(story_json,'$.facts') facts,json_array_length(story_json,'$.sources') sources,duration_sec
+  FROM (SELECT p.id,p.name,p.address,p.lat,p.lon,
+    (SELECT approved_story_json FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) story_json,
+    (SELECT json_extract(audio_json,'$.durationSec') FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL AND t.audio_json IS NOT NULL AND t.audio_json<>'null' ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) duration_sec
+    FROM places p WHERE p.archived=0 /*BOUNDS*/)
+  WHERE story_json IS NOT NULL`;
+const mapPoint=row=>toMapPoint({id:row.id,name:row.name,address:row.address,lat:row.lat,lon:row.lon,title:row.title,
+  durationSec:row.duration_sec==null?null:Number(row.duration_sec),facts:row.facts==null?0:Number(row.facts),sources:row.sources==null?0:Number(row.sources)});
 
 export function createContentStore({db,now,transaction}) {
   db.exec(`
@@ -105,6 +116,7 @@ export function createContentStore({db,now,transaction}) {
       error_json TEXT,updated_at TEXT NOT NULL,PRIMARY KEY(batch_id,place_id));
     CREATE TABLE IF NOT EXISTS place_texts (id TEXT PRIMARY KEY,place_id TEXT NOT NULL,input_key TEXT NOT NULL UNIQUE,profile TEXT NOT NULL,
       content_hash TEXT NOT NULL,story_json TEXT NOT NULL,evidence_json TEXT NOT NULL,verification TEXT NOT NULL,audio_json TEXT,approved_story_json TEXT,created_at TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS place_texts_place_idx ON place_texts(place_id,created_at);
     CREATE TABLE IF NOT EXISTS place_identity_candidates (place_id TEXT PRIMARY KEY,content_hash TEXT NOT NULL,rules_version TEXT NOT NULL,
       tier TEXT NOT NULL,score INTEGER NOT NULL,category TEXT NOT NULL,reasons_json TEXT NOT NULL,signals_json TEXT NOT NULL,
       location_json TEXT NOT NULL,assessed_at TEXT NOT NULL);
@@ -254,6 +266,24 @@ export function createContentStore({db,now,transaction}) {
       const text=db.prepare("SELECT * FROM place_texts WHERE place_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1").get(id);
       const audio=latestApprovedAudio(id);
       return {...place,text:text?{id:text.id,profile:text.profile,story:decode(text.approved_story_json),draft:decode(text.story_json),verification:text.verification,audio:decode(audio),createdAt:text.created_at}:null};
+    },
+    /** Ready points of one 1°×1° cell; lower bounds are inclusive and upper ones exclusive, so cells never overlap. */
+    getMapCell(lat,lon) {
+      if(!isCellLat(lat)||!isCellLon(lon))throw fail("BAD_REQUEST");
+      // The top row and the antimeridian column also take points lying exactly on +90 / +180.
+      const rows=db.prepare(MAP_POINT_SELECT.replace("/*BOUNDS*/",`AND p.lat >= ? AND p.lat ${lat===89?"<=":"<"} ? AND p.lon >= ? AND p.lon ${lon===179?"<=":"<"} ?`)).all(lat,lat+1,lon,lon+1);
+      return {cell:{lat,lon},points:rows.map(mapPoint)};
+    },
+    /** Non-empty cells with their point counts and the ETag of each cell body; never the points themselves. */
+    listMapCells() {
+      const cells=new Map();
+      for(const row of db.prepare(MAP_POINT_SELECT).all()) {
+        const point=mapPoint(row),cell=cellOf(row.lat,row.lon),key=cellKey(cell);
+        if(!cells.has(key))cells.set(key,{cell,points:[]});
+        cells.get(key).points.push(point);
+      }
+      return [...cells.values()].map(({cell,points})=>({lat:cell.lat,lon:cell.lon,count:points.length,etag:etagOf(serializeCell(cell,points))}))
+        .sort((a,b)=>a.lat-b.lat||a.lon-b.lon);
     },
     getPublishedPlace(id) {
       const place=viewPlace(db.prepare("SELECT * FROM places WHERE id=? AND archived=0").get(id));if(!place)return null;
