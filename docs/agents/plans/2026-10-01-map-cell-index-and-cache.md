@@ -1,6 +1,6 @@
 # Plan: Slim map index in 1° cells, story text on demand, layered cache
 
-Status: in progress since 2026-10-01.
+Status: implemented 2026-10-01 in branch `feat/promo-walks-stories-only` (backend `742b886`, frontend `05190dc`). Caveats: not deployed yet, so the production curl/browser checks are pending; the local end-to-end check ran on a 1,743-point test database (numbers in `docs/agents/map-viewport-loading.md`); three `прогулка / до старта` layout e2e cases fail on the base revision too and are unrelated.
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
@@ -170,6 +170,7 @@ Cells are only a transport and cache unit, so a line must never be visible on th
   - Encoding negotiation from `Accept-Encoding`: `br` (BROTLI quality 5), else `gzip`, else identity. An encoding with `q=0` is refused.
   - Memoize compressed buffers in a small LRU (`Map`, 32 entries) keyed `${etag}:${encoding}`.
   - Use sync zlib (bodies ≤ ~1.2 MB; ≈ 40 ms worst case only on a cache miss). Note this in a comment; switch to async zlib only if profiling shows event-loop stalls.
+- As built: `HEAD` is served by the same helper (headers only), and the strong ETag is shared by all encodings of one body.
 - Routes, placed next to the public list route:
   - `GET /api/content/map-cells`:
     - Any query parameter → 400 `BAD_REQUEST`.
@@ -193,7 +194,7 @@ Cells are only a transport and cache unit, so a line must never be visible on th
 ### 5. Frontend: transport and cell store
 
 **`src/features/walk-builder/request.ts`**
-- Extract the retry loop into `fetchWithRetry(path, signal, init?: {headers?: HeadersInit; cache?: RequestCache}): Promise<Response>`.
+- Extract the retry loop into `fetchWithRetry(path, signal, init?: {headers?, cache?, method?, body?}): Promise<Response>` (as built: `cache` defaults to `"no-store"`; the body is read inside the timeout and returned as a buffered `Response`, null body for 304).
 - It resolves for `response.ok || response.status === 304`. Other statuses throw `RequestError`/`RejectedRequest` exactly as today.
 - Rebuild `request()` on top of it with unchanged behaviour (`cache: "no-store"`, JSON parse). Existing `request.test.ts` must stay green.
 
@@ -221,7 +222,7 @@ Cells are only a transport and cache unit, so a line must never be visible on th
     - Otherwise: read storage first and publish it immediately if present, then make a conditional network request with `If-None-Match` and `cache: "no-store"`. A manually set conditional header makes the browser bypass its HTTP cache, so the page sees a raw 304.
     - 200 → validate, replace and write to storage. 304 → refresh `checkedAt`.
     - Network failure → keep the stale copy. Report an error only when nothing is available.
-  - **Cells**, `ensureCells(keys)`, for each key present in the manifest:
+  - **Cells**, as built `ensureArea(...bounds)` (keys are computed inside the store via `cellsFor`, and the last 8 areas are remembered for refresh after a manifest change), for each manifest cell of the areas:
     - Memory copy with the manifest etag → done.
     - Otherwise a storage copy with the manifest etag → load into memory.
     - Otherwise fetch, conditionally if any older copy exists → validate → memory and storage.
@@ -229,17 +230,17 @@ Cells are only a transport and cache unit, so a line must never be visible on th
     - Keys not in the manifest are empty: no request.
   - Deduplicate in-flight fetches per key, and fetch at most 4 cells concurrently.
   - Shared fetches are not aborted when one screen unmounts; their results land in the cache. The hook only ignores late updates after dispose.
-  - Read API: `subscribe(listener)` and `snapshot() → {points: CatalogPoint[] (union of loaded cells), cellStatus: Map<key, "ready"|"loading"|"error">, manifestStatus, maintenance}`.
+  - Read API: `subscribe(listener)` and `snapshot() → {points: CatalogPoint[] (union of loaded cells), manifestKeys, loadedKeys, cellStatus: Map<key, "ready"|"loading"|"error">, manifestStatus, maintenance}`, plus `revalidate()`, `retry(...bounds)` and the helper `areaStatus(snapshot, bounds)`.
   - The union is deduplicated by `id`, and the most recently fetched cell wins. When an import moves a place across a cell line, both cells change. For a moment the client may hold the new cell and the stale old one, and the place must not appear twice. Points are never filtered by cell on the client: the map and the nearby ranking always see the whole union.
   - No eviction: at most a few cells exist. Document the bound in a comment.
 
 **`src/features/explore/use-map-catalog.ts`** (new), replacing `use-published-catalog.ts`. Same contract minus `total`/`loaded`: `{places, status, nearbyStatus, maintenance, retry, onViewport}`.
-- `onViewport(area)` → `ensureCells(cellsFor(manifest, area.buffered))`. The buffer (two zoom steps) prefetches the neighbouring cell before the user pans across a line, so points do not pop in at the edge.
+- `onViewport(area)` → `ensureArea(area.buffered)`. The buffer (two zoom steps) prefetches the neighbouring cell before the user pans across a line, so points do not pop in at the edge.
 - `status`:
   - `"loading"` only while a cell intersecting `area.required` has no data at all, neither memory nor storage. Background revalidation of cached data is silent.
   - `"error"` when such a cell failed and has no copy.
   - Otherwise `"ready"`.
-- Nearby: `ensureCells(cellsFor(manifest, nearbyBounds(center, radius)))`. A radius that crosses a line loads both cells, and `nearbyStatus` stays `"loading"` until all of them are ready, so recommendations are never computed from half the circle.
+- Nearby: `ensureArea(nearbyBounds(center, radius))`. A radius that crosses a line loads both cells, and `nearbyStatus` stays `"loading"` until all of them are ready, so recommendations are never computed from half the circle.
 - Move the `/service-status` polling and the 5 s maintenance auto-retry unchanged.
 - `retry()` re-runs manifest and cell loading for the current area and nearby keys.
 
@@ -250,13 +251,13 @@ Cells are only a transport and cache unit, so a line must never be visible on th
 ### 6. Frontend: story text on demand (`src/features/explore/place-story.ts`, new)
 
 - `usePlaceStory(placeId: string | undefined)` → `{status: "idle"|"loading"|"ready"|"missing"|"error", story?: {paragraphs: string[]; attribution?: SourceAttribution; audioUrl?: string; durationSec?: number}, retry}`.
-- Data: `GET /api/content/places/${id}` via `request()` with `cache: "no-cache"`. The browser HTTP cache then revalidates with the server ETag transparently, and a 304 reaches the page as the cached 200.
+- Data: `GET /api/content/places/${id}` via `fetchWithRetry()` (as built; the id is not URL-encoded because the server route matches the raw path) with `cache: "no-cache"`. The browser HTTP cache then revalidates with the server ETag transparently, and a 304 reaches the page as the cached 200.
 - Field mapping:
   - `paragraphs` ← `place.text.story.paragraphs[].text` (non-empty strings).
   - `attribution` ← `openDataAttribution(place.text.story.sources)`.
   - `audioUrl`/`durationSec` ← `place.text.audio`.
 - Module-level LRU (`Map`, 100 entries): reopening a story in the session makes no request.
-- Abort the request when `placeId` changes or on unmount.
+- Abort the request when `placeId` changes or on unmount. As built: one in-flight request per place is shared by all consumers and the abort is deferred by a microtask, so a StrictMode remount does not send a second request (found by the e2e request count in dev).
 - 404 → `"missing"`: the story was unpublished after the index loaded. Also ask `mapCellStore` to revalidate the manifest.
 - Other failures → `"error"` with `retry`. Transient failures are already retried inside `request()`.
 
@@ -373,7 +374,7 @@ All tests use local fixtures and mocks. No external or paid API calls.
 - In `e2e/map-catalog.spec.ts`, `e2e/interface.spec.ts` and `e2e/support/scenarios.ts`, replace the `**/api/content/places?*` mocks with manifest/cell routes and a detail route.
 - Scenarios:
   - The first open makes one manifest request and one cell request (no paging).
-  - With two mocked cells meeting at 56°N, a viewport over the line shows a cluster that combines points from both cells. The line is invisible: there are no separate per-cell groups.
+  - With two mocked cells meeting at 56°N, a viewport over the line shows a cluster that combines points from both cells. The line is invisible: there are no separate per-cell groups. As built: covered by the store and `around-catalog.test.ts` component tests (dedup across the line, nearby radius across 56°N) instead of e2e; the e2e guest catch-all mock answers with an empty manifest.
   - A city-wide zoom-out makes no further requests within the same cell.
   - The story card shows the text after the detail response.
   - After a reload with the cell and manifest routes failing, the points still render from Cache Storage.
