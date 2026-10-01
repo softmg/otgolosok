@@ -1,0 +1,59 @@
+/* The compact player: shared by the walk panel and the place card, so both sound and look the same. */
+.compact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: var(--space-sm);
+}
+
+.compact > button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--control-min);
+  height: var(--control-min);
+  border: 0;
+  border-radius: 50%;
+  background: var(--map-green);
+  color: var(--surface-island);
+  cursor: pointer;
+}
+
+.compact > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.compact input {
+  display: block;
+  width: 100%;
+  height: 28px;
+  accent-color: var(--map-green);
+  cursor: pointer;
+}
+
+.compact :is(button, input):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.time {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-meta);
+  line-height: 1;
+  color: var(--map-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Outside the walk panel the player sits flush in its container. */
+.flush {
+  margin-top: 0;
+}
+
+.error {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--text-secondary);
+  line-height: 1.4;
+  color: var(--alert-ink);
+}

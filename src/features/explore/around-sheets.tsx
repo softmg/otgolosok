@@ -6,6 +6,7 @@ import { Sheet } from "../shell/sheet";
 import { cx } from "../ui/cx";
 import { ExploreIcon } from "./icons";
 import { nearbyRadii, type NearbyRadius, type NearbyRecommendation } from "./nearby-stories";
+import { StoryAudioPlayer } from "../tour/story-audio-player";
 import { PlacePhotoBanner } from "./place-photo";
 import { usePlaceStory } from "./place-story";
 import type { StoryPin } from "./story-pin";
@@ -51,8 +52,8 @@ export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk
     // corner over the photo, and the title scrolls with the text so a short screen still shows the story.
     header={label ? <div className={a.headerRow}><span className={a.label}>{label}</span>{close()}</div> : null}
     corner={label ? null : close(styles.cornerClose)}
-    // The player stays with the action: scrolling the text never takes it away.
-    footer={content.audioUrl || action ? <>{content.audioUrl ? <audio className={styles.audio} controls preload="metadata" src={content.audioUrl}>Ваш браузер не поддерживает аудио.</audio> : null}{action}</> : null}>
+    // The player stays with the action: scrolling the text never takes it away. It is the walk's player too.
+    footer={content.audioUrl || action ? <>{content.audioUrl ? <StoryAudioPlayer key={content.audioUrl} className={styles.audio} src={content.audioUrl} /> : null}{action}</> : null}>
     <>
       {label ? heading : <div className={styles.titleRow}>{heading}</div>}
       {pendingText && loaded.status === "loading" ? <p className={a.text} role="status">Загружаем рассказ…</p> : null}

@@ -67,11 +67,6 @@
 .walk-session-settings select{width:100%;min-height:44px;padding:8px;border:1px solid #203e3828;border-radius:12px;background:#fffefa;color:inherit;font:inherit}
 .walk-session-settings button{min-height:40px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
 .walk-session :is(button,a,select,input):focus-visible{outline:3px solid #246b90;outline-offset:3px}
-.session-audio{display:flex;align-items:center;gap:14px;margin-top:12px}
-.session-audio>button{display:grid;place-items:center;flex:none;width:44px;height:44px;border:0;border-radius:50%;background:#203e38;color:#fffaf0;cursor:pointer}
-.session-audio>div{flex:1;min-width:0}
-.session-audio input{display:block;width:100%;height:28px;accent-color:#203e38;cursor:pointer}
-.session-audio-time{display:flex;justify-content:space-between;font-size:11px;line-height:1;color:#687770;font-variant-numeric:tabular-nums}
 .walk-session .story-text p{font-size:15px;line-height:1.65;margin-bottom:12px}
 @media(min-width:700px){.walk-session{--walk-header-top:calc(18px + env(safe-area-inset-top))}.walk-session-header{left:50%;right:auto;width:min(760px,calc(100% - 56px));transform:translateX(-50%)}.walk-session-panel{left:50%;right:auto;width:420px;transform:translateX(-50%);bottom:108px;max-height:calc(100dvh - 108px - var(--walk-controls-top))}}
 /* Низкий вертикальный телефон (320×568): столбик кнопок масштаба кончается на 88 px ниже

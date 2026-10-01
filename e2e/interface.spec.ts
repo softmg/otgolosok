@@ -351,7 +351,7 @@ test("длинная история прокручивается внутри к
   const story = await openLongStory(page);
   const card = page.locator('[data-sheet="story"]');
   const close = page.getByRole("button", { name: "Закрыть карточку", exact: true });
-  const audio = card.locator("audio");
+  const audio = card.getByRole("region", { name: "Плеер истории" });
   const state = () => story.evaluate(el => {
     const style = getComputedStyle(el);
     return { fadeTop: style.getPropertyValue("--fade-top"), fadeBottom: style.getPropertyValue("--fade-bottom"), rest: el.scrollHeight - el.clientHeight - el.scrollTop };
