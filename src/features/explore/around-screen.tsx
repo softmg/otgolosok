@@ -12,7 +12,7 @@ import { ExploreIcon } from "./icons";
 import { AppNavigation } from "../navigation/app-navigation";
 import { isMoscowPoint, MOSCOW_CENTER, MOSCOW_ZOOM, readMapJobs, type MapJob } from "./map-jobs";
 import { nearbyRadiusForAccuracy, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
-import { selectExplorePanel } from "./panel-state";
+import { isWalkCreation, selectExplorePanel } from "./panel-state";
 import { useMapCatalog } from "./use-map-catalog";
 import { rememberGeoPromptDismissal, shouldShowGeoPrompt } from "./geo-prompt";
 import { MapShell } from "../shell/map-shell";
@@ -40,7 +40,7 @@ const walkChapterAt=(route:Route,index?:number)=>index===undefined?undefined:get
 export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef}: {route:Route;onStart:(chapter?:number)=>void;updateAvailable:boolean;openChapter?:number;startRef?:Ref<HTMLButtonElement>}) {
   const router = useRouter();
   const params = useSearchParams();
-  const creating = params.get("walk") === "create" || params.get("tab") === "walk";
+  const creating = isWalkCreation(params);
   const [creationMap, setCreationMap] = useState<CreationMap>({items:[], focus:null, picking:false});
   const [picked, setPicked] = useState<Coordinates | null>(null);
   const opener = useRef<HTMLElement | null>(null);

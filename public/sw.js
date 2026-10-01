@@ -44,10 +44,11 @@ self.addEventListener("activate", (event) => {
   })());
 });
 
+// /update.html asks on the visitor's click; app pages ask at a moment when a
+// reload loses nothing (src/lib/offline/auto-update.ts).
 self.addEventListener("message", (event) => {
   if (event.data?.type !== "ACTIVATE_UPDATE" || !event.source?.url) return;
-  const sender = new URL(event.source.url);
-  if (sender.origin !== self.location.origin || sender.pathname !== "/update.html") return;
+  if (new URL(event.source.url).origin !== self.location.origin) return;
   event.waitUntil(self.skipWaiting());
 });
 

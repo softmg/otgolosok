@@ -26,6 +26,7 @@ import { positionFailed, useWalkPosition } from "./use-walk-position";
 import { useWalkAudio } from "./use-walk-audio";
 import { ClassicWalkView, type PlayerState } from "./classic-walk-view";
 import { AroundScreen } from "../explore/around-screen";
+import { isWalkCreation } from "../explore/panel-state";
 
 type SessionPhase = "reading" | "walking";
 
@@ -48,11 +49,14 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
   const [isReplay, setIsReplay] = useState(false);
   // Diagnostics are for field testing only: ?replay=… or ?debug=1.
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const { shellStatus, updateAvailable } = useOfflineShell();
   const offlineCopy = useOfflineCopy(view, offlineRef);
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const walkTitleRef = useRef<HTMLHeadingElement>(null);
   const sessionActiveRef = useRef(false);
+  // A new version reloads the page by itself, but never during a walk, in the
+  // walk builder or while a walk is being saved for offline use.
+  const { shellStatus, updateAvailable } = useOfflineShell(() =>
+    !sessionActiveRef.current && !offlineCopy.busy && !isWalkCreation(new URLSearchParams(window.location.search)));
   const restoreFocusRef = useRef(false);
   const wakeControllerRef = useRef<WakeLockController | null>(null);
   const sessionRef = useRef(0);

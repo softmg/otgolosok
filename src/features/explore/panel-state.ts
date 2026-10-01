@@ -1,3 +1,8 @@
+/** The map shows the walk builder instead of the story panels. */
+export function isWalkCreation(params: Pick<URLSearchParams, "get">): boolean {
+  return params.get("walk") === "create" || params.get("tab") === "walk";
+}
+
 export type ExplorePanel = "place" | "nearby" | "none";
 
 export function selectExplorePanel({

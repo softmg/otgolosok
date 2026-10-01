@@ -133,14 +133,14 @@ describe("offline service worker", () => {
     expect(caches.delete).toHaveBeenCalledExactlyOnceWith("otgolosok-v0");
   });
 
-  it("activates on the recovery page's request, but not on unrelated messages", async () => {
+  it("activates on a request from the recovery page or an app page, but not on unrelated messages", async () => {
     const { message, skipWaiting } = setup();
     expect(message("OTHER")).toBeUndefined();
     expect(message("ACTIVATE_UPDATE", "https://other.test/update.html")).toBeUndefined();
-    expect(message("ACTIVATE_UPDATE", `${origin}/`)).toBeUndefined();
     expect(skipWaiting).not.toHaveBeenCalled();
     await message("ACTIVATE_UPDATE");
-    expect(skipWaiting).toHaveBeenCalledOnce();
+    await message("ACTIVATE_UPDATE", `${origin}/walk?id=1`);
+    expect(skipWaiting).toHaveBeenCalledTimes(2);
   });
 
   it("serves an older tab's immutable chunk offline after explicit activation", async () => {
