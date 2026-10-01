@@ -320,9 +320,10 @@ test.describe("отзывы к каталожной прогулке", () => {
     await dialog.getByLabel("4 звезды из 5").check();
     await dialog.getByLabel("Отзыв (необязательно)").fill("Отличный маршрут");
     await dialog.getByRole("button", { name: "Отправить отзыв" }).click();
-    await expect(dialog.getByRole("status").filter({ hasText: "появится после проверки" })).toBeVisible();
-    await dialog.getByRole("button", { name: "Готово" }).click();
-    await expect(dialog).toBeHidden();
+    await expect(dialog.getByRole("status")).toHaveText("Спасибо! Отзыв появится после проверки редакцией.");
+    await expect(dialog.getByRole("button", { name: "Закрыть" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: /Сохранить изменения|Удалить отзыв/ })).toHaveCount(0);
+    await expect(dialog, "окно закрывается само через несколько секунд").toBeHidden({ timeout: 6_000 });
     await expect(page.getByRole("button", { name: "Изменить отзыв" }), "после отправки финальная кнопка предлагает изменить отзыв").toBeVisible();
     expect(writes).toHaveLength(1);
     expect(writes[0]).toMatchObject({ method: "PUT", body: { rating: 4, text: "Отличный маршрут" } });

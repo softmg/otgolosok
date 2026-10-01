@@ -8,7 +8,7 @@ import type { Reviewer } from "./api";
 import styles from "./walk-reviews.module.css";
 
 const starLabels = ["1 звезда из 5", "2 звезды из 5", "3 звезды из 5", "4 звезды из 5", "5 звёзд из 5"];
-const statusMessages: Record<ReviewStatus, string> = {
+export const reviewStatusMessages: Record<ReviewStatus, string> = {
   published: "Спасибо! Оценка учтена.",
   pending: "Спасибо! Отзыв появится после проверки редакцией.",
   hidden: "Отзыв скрыт редакцией.",
@@ -25,11 +25,11 @@ export type ReviewFormProps = {
   loginHref: string;
   /** The id of an outer heading (the dialog title); the form then renders no title of its own. */
   labelledBy?: string;
-  /** Shown as «Готово» after a successful save or delete. */
-  onDone?: () => void;
+  /** Send-only mode for the rating window: no edit or delete controls, the caller shows the result. */
+  onSent?: (message: string) => void;
 };
 
-export function ReviewForm({ target, reviewer, mine, save, remove, loginHref, labelledBy, onDone }: ReviewFormProps) {
+export function ReviewForm({ target, reviewer, mine, save, remove, loginHref, labelledBy, onSent }: ReviewFormProps) {
   const id = useId();
   // A draft left by a failed send wins over the stored review: it holds the user's latest intent.
   const [initial] = useState(() => loadReviewDraft(target) ?? (mine ? { rating: mine.rating, text: mine.text } : { rating: 0, text: "" }));
@@ -55,7 +55,10 @@ export function ReviewForm({ target, reviewer, mine, save, remove, loginHref, la
     setBusy(true); setError(""); setStatus("");
     const result = await save({ rating, text: text.trim() });
     setBusy(false);
-    if (result.ok) setStatus(result.status ? statusMessages[result.status] : "");
+    if (result.ok) {
+      const message = result.status ? reviewStatusMessages[result.status] : "";
+      if (onSent) onSent(message); else setStatus(message);
+    }
     else setError(result.message);
   }
 
@@ -92,9 +95,8 @@ export function ReviewForm({ target, reviewer, mine, save, remove, loginHref, la
       : "Отзыв будет опубликован от имени «Гость». Изменить его можно только в этом браузере."}</p>
     {error ? <p className={styles.error} role="alert">{error}</p> : null}
     {status ? <p className={styles.message} role="status">{status}</p> : null}
-    {status && onDone ? <button type="button" className={styles.primary} onClick={onDone}>Готово</button> : null}
-    <button type="submit" className={status && onDone ? styles.secondary : styles.primary} disabled={!rating || busy}>{busy ? "Отправляем…" : error ? "Повторить" : mine ? "Сохранить изменения" : "Отправить отзыв"}</button>
-    {mine ? confirming ? <div className={styles.confirm} role="group" aria-label="Подтверждение удаления">
+    <button type="submit" className={styles.primary} disabled={!rating || busy}>{busy ? "Отправляем…" : error ? "Повторить" : mine && !onSent ? "Сохранить изменения" : "Отправить отзыв"}</button>
+    {mine && !onSent ? confirming ? <div className={styles.confirm} role="group" aria-label="Подтверждение удаления">
       <span>Удалить отзыв?</span>
       <button type="button" className={styles.danger} disabled={busy} onClick={() => void confirmDelete()}>Удалить</button>
       <button type="button" className={styles.secondary} disabled={busy} onClick={() => setConfirming(false)}>Отмена</button>

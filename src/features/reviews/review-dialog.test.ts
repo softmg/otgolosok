@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { ReviewDialog } from "./review-dialog";
+import { REVIEW_SENT_CLOSE_MS, ReviewDialog } from "./review-dialog";
 import type { WalkReviewsModel } from "./use-walk-reviews";
 
 let root: Root, container: HTMLDivElement;
@@ -49,21 +49,58 @@ it("renders no form while closed, so every opening starts from a fresh draft", a
   expect(container.querySelector("form")).toBeNull();
 });
 
-it("closes by the cross and by «Готово» after a successful send", async () => {
+it("closes by the cross", async () => {
   const onClose = await mount(model());
   await act(async () => container.querySelector<HTMLButtonElement>("[aria-label='Закрыть']")!.click());
   expect(onClose).toHaveBeenCalledTimes(1);
-  await act(async () => container.querySelector<HTMLInputElement>("input[aria-label='4 звезды из 5']")!.click());
-  await act(async () => container.querySelector("form")!.requestSubmit());
-  expect(container.textContent).toContain("Отзыв появится после проверки редакцией.");
-  await act(async () => button("Готово")!.click());
-  expect(onClose).toHaveBeenCalledTimes(2);
 });
 
-it("shows the author's own review and the unavailable state with a retry", async () => {
+it.each([
+  ["pending", "Спасибо! Отзыв появится после проверки редакцией."],
+  ["published", "Спасибо! Оценка учтена."],
+] as const)("after a %s send thanks the author for a few seconds, then closes itself", async (status, message) => {
+  vi.useFakeTimers();
+  try {
+    const reviews = model({ save: vi.fn().mockResolvedValue({ ok: true, status }) });
+    const onClose = await mount(reviews);
+    await act(async () => container.querySelector<HTMLInputElement>("input[aria-label='4 звезды из 5']")!.click());
+    await act(async () => container.querySelector("form")!.requestSubmit());
+    expect(container.querySelector("[role=status]")?.textContent).toBe(message);
+    expect(container.querySelector("form"), "форма сменяется благодарностью").toBeNull();
+    expect(container.querySelector("[aria-label='Закрыть']"), "крестик остаётся").not.toBeNull();
+    expect(container.querySelector("h2")?.textContent).toBe("Оцените прогулку");
+    await act(async () => { vi.advanceTimersByTime(REVIEW_SENT_CLOSE_MS - 1); });
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => { vi.advanceTimersByTime(1); });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("keeps the form after a failed send and does not close", async () => {
+  vi.useFakeTimers();
+  try {
+    const onClose = await mount(model({ save: vi.fn().mockResolvedValue({ ok: false, message: "Нет связи." }) }));
+    await act(async () => container.querySelector<HTMLInputElement>("input[aria-label='4 звезды из 5']")!.click());
+    await act(async () => container.querySelector("form")!.requestSubmit());
+    expect(container.querySelector("[role=alert]")?.textContent).toBe("Нет связи.");
+    await act(async () => { vi.advanceTimersByTime(REVIEW_SENT_CLOSE_MS * 2); });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(container.querySelector("form")).not.toBeNull();
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("prefills the author's review but offers only sending: no edit or delete controls", async () => {
   await mount(model({ mine: { rating: 5, text: "Отлично", status: "pending", updatedAt: "2026-10-01T10:00:00Z" } }));
   expect(container.querySelector("h2")?.textContent).toBe("Ваш отзыв");
   expect(container.querySelector("textarea")?.value).toBe("Отлично");
+  expect([...container.querySelectorAll("button")].map(item => item.textContent)).toEqual(["", "Отправить отзыв"]);
+});
+
+it("shows the unavailable state with a retry", async () => {
   const reviews = model({ state: "unavailable" });
   await mount(reviews);
   expect(container.querySelector("form")).toBeNull();

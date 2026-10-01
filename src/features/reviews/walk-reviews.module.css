@@ -288,3 +288,10 @@
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
+
+.sent {
+  margin: var(--space-sm) 0 var(--space-xs);
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.5;
+}
