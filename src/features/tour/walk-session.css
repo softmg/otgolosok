@@ -47,6 +47,20 @@
 .walk-session-stops [aria-current=step]{background:#203e380c}
 /* The review form after the walk keeps the drawer's height budget, so «На карту» stays on screen. */
 .walk-session-review{margin-top:12px;border-top:1px solid #203e3818;padding-top:12px;max-height:26dvh;overflow-y:auto;overscroll-behavior:contain}
+/* Scroll areas use the same thin thumb as the app's sheets and sit in the panel's right padding, away from the text. */
+.walk-session-panel,.walk-session-drawer,.walk-session-review{scrollbar-width:thin;scrollbar-color:var(--scrollbar-thumb) transparent}
+.walk-session-drawer,.walk-session-review{margin-right:-12px;padding-right:12px;scrollbar-gutter:stable}
+@media(hover:hover) and (pointer:fine){@supports selector(::-webkit-scrollbar){
+  .walk-session-panel,.walk-session-drawer,.walk-session-review{scrollbar-width:auto;scrollbar-color:auto}
+  .walk-session-panel::-webkit-scrollbar,.walk-session-drawer::-webkit-scrollbar,.walk-session-review::-webkit-scrollbar{width:10px}
+  .walk-session-panel::-webkit-scrollbar-thumb,.walk-session-drawer::-webkit-scrollbar-thumb,.walk-session-review::-webkit-scrollbar-thumb{border:3px solid transparent;border-radius:5px;background:var(--scrollbar-thumb) padding-box}
+  .walk-session-panel::-webkit-scrollbar-thumb:hover,.walk-session-drawer::-webkit-scrollbar-thumb:hover,.walk-session-review::-webkit-scrollbar-thumb:hover{background-color:var(--scrollbar-thumb-hover)}
+  .walk-session-panel::-webkit-scrollbar-thumb:active,.walk-session-drawer::-webkit-scrollbar-thumb:active,.walk-session-review::-webkit-scrollbar-thumb:active{background-color:var(--scrollbar-thumb-active)}
+}}
+/* The rating in the meta line opens the reviews; the hit area grows without moving the text. */
+.walk-session-rating{position:relative;padding:0;border:0;background:none;color:inherit;font:inherit;text-decoration:underline;text-decoration-color:#203e3840;text-underline-offset:3px;cursor:pointer}
+.walk-session-rating::after{content:"";position:absolute;inset:-12px -6px}
+.walk-session-rating:hover{text-decoration-color:currentColor}
 .walk-session-rate{display:flex;align-items:center;min-height:44px;margin-top:8px;padding:0;border:0;background:none;color:inherit;font:inherit;font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
 .walk-session-stops span{flex:none;color:#b64b28;font-weight:700}
 .walk-session-notice{margin:10px 0 0;font-size:13px;line-height:1.4;color:#775130}

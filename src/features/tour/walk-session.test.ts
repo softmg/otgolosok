@@ -158,3 +158,29 @@ it.each([[true, true], [false, false]])("«Оценить прогулку» в 
   container.remove();
   vi.unstubAllGlobals();
 });
+
+it("итог оценок в описании — кнопка, открывающая отзывы", async () => {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
+  await act(async () => root.render(createElement(WalkSession, {
+    route, chapters, index: 0, active: false, completed: false,
+    user: null, positionFailed: false, resume: false,
+    titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
+    onStart: () => {}, onSelect: () => {}, onStop: () => {},
+    player: null, story: null, settings: null, audioError: "", ratingLabel: "★ 4,3 · 4 оценки",
+    reviews: (intent: "read" | "rate") => createElement("p", { "data-testid": "reviews" }, intent),
+  })));
+  const rating = container.querySelector<HTMLButtonElement>(".walk-session-meta button")!;
+  expect(rating.textContent).toBe("★ 4,3 · 4 оценки");
+  await act(async () => rating.click());
+  expect(container.querySelector("[data-testid=reviews]")?.textContent).toBe("read");
+  expect(rating.getAttribute("aria-expanded")).toBe("true");
+  await act(async () => rating.click());
+  expect(container.querySelector("[data-testid=reviews]")).toBeNull();
+  await act(async () => root.unmount());
+  container.remove();
+  vi.unstubAllGlobals();
+});

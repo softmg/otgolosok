@@ -93,7 +93,9 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
     <section ref={panelRef} className="walk-session-panel" data-region="sheet" aria-labelledby="walk-session-title">
       <header className="walk-session-heading">
         <div>
-          <p className="walk-session-meta">{active ? chapter ? `Остановка ${index + 1} из ${chapters.length}` : "До финиша" : `${route.duration_min} мин · ${distance.toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км${!completed && ratingLabel ? ` · ${ratingLabel}` : ""}`}</p>
+          <p className="walk-session-meta">{active ? chapter ? `Остановка ${index + 1} из ${chapters.length}` : "До финиша" : `${route.duration_min} мин · ${distance.toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`}{!active && !completed && ratingLabel ? <> · {reviews
+            ? <button type="button" className="walk-session-rating" aria-expanded={drawer === "reviews" && reviewIntent === "read"} onClick={() => openReviews("read")}>{ratingLabel}</button>
+            : ratingLabel}</> : null}</p>
           <h1 id="walk-session-title" ref={titleRef} tabIndex={-1}>{completed ? "Прогулка завершена" : active ? chapter?.title ?? route.walk?.finish.address ?? "Прогулка" : route.title.trim() || "Ваш маршрут"}</h1>
         </div>
         {!completed ? <button type="button" className="walk-session-icon" aria-label="Настройки прогулки" aria-expanded={drawer === "settings"} onClick={() => setDrawer(drawer === "settings" ? null : "settings")}>
