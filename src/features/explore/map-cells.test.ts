@@ -64,7 +64,7 @@ describe("map cell store", () => {
     const store = createMapCellStore({ storage: memoryStorage(), fetch: server.fetch });
     await store.ensureArea(...areas(["55:37", "56:37"]));
     expect(ids(store)).toEqual(["osm:node:1", "osm:node:2"]);
-    expect(store.snapshot().points[0]).toEqual({ id: "osm:node:1", location: { lat: 55.75, lon: 37.6 }, title: "История osm:node:1", address: "Москва", durationSec: null, facts: 1, sources: 2 });
+    expect(store.snapshot().points[0]).toEqual({ id: "osm:node:1", location: { lat: 55.75, lon: 37.6 }, title: "История osm:node:1", address: "Москва", durationSec: null, facts: 1, sources: 2, photo: false });
     expect(server.state.requests).toEqual([MANIFEST_URL, "/api/content/map-cells/55/37"]);
     await store.ensureArea(...areas(["55:37"]));
     expect(server.state.requests).toHaveLength(2);
@@ -221,6 +221,22 @@ describe("map cell store", () => {
     const store = createMapCellStore({ storage: memoryStorage(), fetch });
     await store.ensureArea(...areas(["55:37"]));
     expect(store.snapshot().points).toEqual([]);
+    expect(statusOf(store.snapshot(), ["55:37"])).toBe("error");
+  });
+
+  it("reads the photo flag: absent is false, true is true", async () => {
+    const server = fakeServer({ "55:37": [point("osm:node:1"), { ...point("osm:node:2"), photo: true }] });
+    const store = createMapCellStore({ storage: memoryStorage(), fetch: server.fetch });
+    await store.ensureArea(...areas(["55:37"]));
+    expect(store.snapshot().points.map(item => [item.id, item.photo])).toEqual([["osm:node:1", false], ["osm:node:2", true]]);
+  });
+
+  it.each([false, "true", 1, null])("rejects a cell whose photo flag is %s", async photo => {
+    const server = fakeServer({ "55:37": [point("osm:node:1")] });
+    const fetch: typeof server.fetch = vi.fn(async (...args) => args[0] === MANIFEST_URL ? server.fetch(...args)
+      : new Response(JSON.stringify({ lat: 55, lon: 37, points: [{ ...point("osm:node:1"), photo }] })));
+    const store = createMapCellStore({ storage: memoryStorage(), fetch });
+    await store.ensureArea(...areas(["55:37"]));
     expect(statusOf(store.snapshot(), ["55:37"])).toBe("error");
   });
 });

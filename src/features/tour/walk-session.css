@@ -25,6 +25,7 @@
 .walk-session-heading h1{font-family:inherit;font-size:22px;font-weight:700;line-height:1.25;letter-spacing:-.03em;margin:4px 0 0;overflow-wrap:anywhere}
 .walk-session-meta,.walk-session-muted{font-size:13px;line-height:1.4;color:#687770;margin:0}
 .walk-session-muted{margin-top:10px}
+.walk-session-heading-actions{display:flex;flex:none;gap:8px}
 .walk-session-icon{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;color:inherit;background:#203e380a;cursor:pointer}
 .walk-session-address{font-size:14px;line-height:1.5;margin:12px 0 0;color:#687770;overflow-wrap:anywhere}
 .walk-session-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px}
@@ -35,6 +36,9 @@
 .walk-session-actions{display:flex;gap:10px;margin-top:16px}
 .walk-session-primary{display:flex;align-items:center;justify-content:center;gap:12px;flex:1;min-height:50px;padding:12px 18px;border:0;border-radius:999px;background:#b64b28;color:#fffaf0;font:inherit;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer}
 .walk-session-primary:disabled{opacity:.5;cursor:default}
+/* After the walk the review is the main action and the way back to the map is secondary. */
+.walk-session-actions--finish{flex-direction:column}
+.walk-session-secondary{display:flex;align-items:center;justify-content:center;min-height:44px;padding:10px 18px;border:1px solid #203e3833;border-radius:999px;color:inherit;font:inherit;font-size:15px;font-weight:700;text-decoration:none}
 .walk-session-previous{display:grid;place-items:center;flex:none;width:50px;border:1px solid #203e3833;border-radius:50%;background:none;color:inherit;cursor:pointer}
 .walk-session-previous svg{transform:rotate(180deg)}
 .walk-session-drawer{margin-top:12px;border-top:1px solid #203e3818;padding-top:12px;max-height:26dvh;overflow-y:auto;overscroll-behavior:contain;font-size:15px;line-height:1.6}
@@ -42,6 +46,21 @@
 .walk-session-stops button,.walk-session-stops p{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:8px;border:0;border-radius:12px;background:none;text-align:left;color:inherit;font:inherit;margin:0}
 .walk-session-stops button{cursor:pointer}
 .walk-session-stops [aria-current=step]{background:#203e380c}
+/* Scroll areas use the same thin thumb as the app's sheets and sit in the panel's right padding, away from the text. */
+.walk-session-panel,.walk-session-drawer{scrollbar-width:thin;scrollbar-color:var(--scrollbar-thumb) transparent}
+.walk-session-drawer{margin-right:-12px;padding-right:12px;scrollbar-gutter:stable}
+@media(hover:hover) and (pointer:fine){@supports selector(::-webkit-scrollbar){
+  .walk-session-panel,.walk-session-drawer{scrollbar-width:auto;scrollbar-color:auto}
+  .walk-session-panel::-webkit-scrollbar,.walk-session-drawer::-webkit-scrollbar{width:10px}
+  .walk-session-panel::-webkit-scrollbar-thumb,.walk-session-drawer::-webkit-scrollbar-thumb{border:3px solid transparent;border-radius:5px;background:var(--scrollbar-thumb) padding-box}
+  .walk-session-panel::-webkit-scrollbar-thumb:hover,.walk-session-drawer::-webkit-scrollbar-thumb:hover{background-color:var(--scrollbar-thumb-hover)}
+  .walk-session-panel::-webkit-scrollbar-thumb:active,.walk-session-drawer::-webkit-scrollbar-thumb:active{background-color:var(--scrollbar-thumb-active)}
+}}
+/* The rating in the meta line opens the reviews; the hit area grows without moving the text. */
+.walk-session-rating{position:relative;padding:0;border:0;background:none;color:inherit;font:inherit;text-decoration:underline;text-decoration-color:#203e3840;text-underline-offset:3px;cursor:pointer}
+.walk-session-rating::after{content:"";position:absolute;inset:-12px -6px}
+.walk-session-rating:hover{text-decoration-color:currentColor}
+.walk-session-rate{display:flex;align-items:center;min-height:44px;margin-top:8px;padding:0;border:0;background:none;color:inherit;font:inherit;font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
 .walk-session-stops span{flex:none;color:#b64b28;font-weight:700}
 .walk-session-notice{margin:10px 0 0;font-size:13px;line-height:1.4;color:#775130}
 .walk-session-settings{display:grid;gap:12px}
@@ -49,13 +68,18 @@
 .walk-session-settings select{width:100%;min-height:44px;padding:8px;border:1px solid #203e3828;border-radius:12px;background:#fffefa;color:inherit;font:inherit}
 .walk-session-settings button{min-height:40px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
 .walk-session :is(button,a,select,input):focus-visible{outline:3px solid #246b90;outline-offset:3px}
-.session-audio{display:flex;align-items:center;gap:14px;margin-top:12px}
-.session-audio>button{display:grid;place-items:center;flex:none;width:44px;height:44px;border:0;border-radius:50%;background:#203e38;color:#fffaf0;cursor:pointer}
-.session-audio>div{flex:1;min-width:0}
-.session-audio input{display:block;width:100%;height:28px;accent-color:#203e38;cursor:pointer}
-.session-audio-time{display:flex;justify-content:space-between;font-size:11px;line-height:1;color:#687770;font-variant-numeric:tabular-nums}
 .walk-session .story-text p{font-size:15px;line-height:1.65;margin-bottom:12px}
 @media(min-width:700px){.walk-session{--walk-header-top:calc(18px + env(safe-area-inset-top))}.walk-session-header{left:50%;right:auto;width:min(760px,calc(100% - 56px));transform:translateX(-50%)}.walk-session-panel{left:50%;right:auto;width:420px;transform:translateX(-50%);bottom:108px;max-height:calc(100dvh - 108px - var(--walk-controls-top))}}
+/* Низкий вертикальный телефон (320×568): столбик кнопок масштаба кончается на 88 px ниже
+   шапки, а панель до старта с названием прогулки в две строки поднимается выше и упирается
+   в него. Кнопки встают в ряд под шапкой у правого края, «Моё местоположение» — в тот же ряд
+   слева, и низ кнопок поднимается на 44 px. */
+@media(orientation:portrait) and (max-width:699px) and (max-height:600px){
+  .walk-session-map .leaflet-control-zoom{display:flex;margin:0}
+  .walk-session-map .leaflet-control-zoom a{width:44px;border-bottom:0}
+  .walk-session-map .leaflet-control-zoom a:first-child{border-right:1px solid #203e381a}
+  .walk-session-locate{top:var(--walk-controls-top);right:calc(12px + 88px + 8px)}
+}
 @media(max-height:560px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button){margin-top:4px}}
 
 /* Низкий горизонтальный экран: панель во всю ширину или по центру поднималась почти

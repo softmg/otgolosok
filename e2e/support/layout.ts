@@ -46,7 +46,7 @@ export type Invariant =
   | "body" // an overflowing sheet body keeps less than 48 px visible
   | "notices" // the notices region clips its first notice
   | "free" // the uncovered map has no 160×72 rectangle
-  | "focus" // the selected marker or the route is under a region or outside the viewport
+  | "focus" // the selected marker, the first stop or the route is under a region or outside the viewport
   | "content"; // a content page puts its last control under the navigation or under the top inset
 
 export type Violation = { invariant: Invariant; detail: string };
@@ -54,8 +54,8 @@ export type Violation = { invariant: Invariant; detail: string };
 export type LayoutOptions = {
   /** Map screens keep a usable uncovered area. */
   map?: boolean;
-  /** The selected marker or the route must stay in the uncovered area. */
-  focus?: "marker" | "route";
+  /** The selected marker, the first stop of a walk or the route must stay in the uncovered area. */
+  focus?: "marker" | "first-stop" | "route";
   /** Content pages: the last control must not end under the navigation. */
   content?: boolean;
 };
@@ -191,10 +191,12 @@ export async function collectViolations(page: Page, options: LayoutOptions, safe
       if (!found) add("free", "на карте нет свободного места 160×72");
     }
 
-    // focus: the selected marker or the route line stays in the uncovered map.
+    // focus: the selected marker, the first stop or the route line stays in the uncovered map.
     if (options.focus) {
-      const element = options.focus === "marker" ? document.querySelector("[data-marker][data-selected=true]") : document.querySelector("[data-route]");
-      if (!element) add("focus", options.focus === "marker" ? "нет выбранной отметки" : "нет линии маршрута");
+      const selectors = { marker: "[data-marker][data-selected=true]", "first-stop": '[data-marker="pin"][title^="Остановка 1:"]', route: "[data-route]" };
+      const missing = { marker: "нет выбранной отметки", "first-stop": "нет первой остановки", route: "нет линии маршрута" };
+      const element = document.querySelector(selectors[options.focus]);
+      if (!element) add("focus", missing[options.focus]);
       else {
         const box = toBox(element.getBoundingClientRect());
         if (box.left < safe.left || box.top < safe.top || box.right > safe.right || box.bottom > safe.bottom) add("focus", `${options.focus} ${round(box)} за краем окна`);

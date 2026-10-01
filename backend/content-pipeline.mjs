@@ -86,9 +86,10 @@ function reviewRound(round,review) {
  *     deepResearchModel?: string | null, deepResearchSources?: ((prompt: string, options?: {signal?: AbortSignal}) => Promise<{sources: {url: string, title?: string}[]}>) | null,
  *     searchModel?: string | null, searchSources?: ((prompt: string, options?: {signal?: AbortSignal}) => Promise<{sources: {url: string, title?: string}[]}>) | null},
  *   fetchPage?: (url: string, options?: {signal?: AbortSignal}) => Promise<any>, resolveLocation?: ((place: any) => any) | null,
- *   signal?: AbortSignal, timeoutMs?: number, autoApprove?: boolean, onSearchFailure?: (code: string) => void}} options
+ *   signal?: AbortSignal, timeoutMs?: number, autoApprove?: boolean, onSearchFailure?: (code: string) => void,
+ *   placeImages?: {ensure: (place: any, options?: {signal?: AbortSignal, timeoutMs?: number}) => Promise<unknown>} | null}} options
  */
-export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=job.checkpoint?.researchMode===DEEP_RESEARCH_REQUIRED?DEEP_CONTENT_TIMEOUT_MS:600000,autoApprove=false,onSearchFailure=()=>{}}) {
+export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=job.checkpoint?.researchMode===DEEP_RESEARCH_REQUIRED?DEEP_CONTENT_TIMEOUT_MS:600000,autoApprove=false,onSearchFailure=()=>{},placeImages=null}) {
   const deadline=AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])]);let checkpoint=job.checkpoint??{};
   const save=patch=>{checkpoint={...checkpoint,...patch};store.updateContentCheckpoint(job.id,checkpoint);};
   const call=async(prompt,options={})=>{const result=await provider.response(prompt,{...options,signal:deadline});const tokens=usageTokens(result.usage);if(tokens)save({usageTokens:Number(checkpoint.usageTokens??0)+tokens});return result;};
@@ -147,6 +148,9 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
     const placeIdentified=checkpoint.evidence.addressConfirmed===false;
     if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:placeIdentified?placeLabel(job.place):job.place.address??job.place.name,placeIdentified,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),
       onReview:(review,round=1)=>save({review,reviewRounds:[...(round>1?checkpoint.reviewRounds??[]:[]),reviewRound(round,review)]})});save({draft});}
+    // Mirrors the store's auto-approve rule, so the photo row exists before the place becomes visible. Only the job deadline
+    // stops here; a Wikimedia failure or the photo's own timeout publishes the story without a photo.
+    if(autoApprove&&job.identityPolicy!=="weak_identity"&&placeImages)await placeImages.ensure(job.place,{signal:deadline,timeoutMs:30000});
     const completed=store.completeContentJob(job.id,{story:checkpoint.draft,evidence:checkpoint.evidence,verification:"automatic",autoApprove,replaceDraft:[PERPLEXITY_REQUIRED,DEEP_RESEARCH_REQUIRED].includes(checkpoint.researchMode)});
     if(autoApprove&&completed.story.audioDisposition!=="not_applicable_short_text")for(const profileId of completed.audioProfiles)await store.enqueueExternalAudio({sourceJobId:`place-text:${completed.id}`,sourceRevision:0,
       story:{...completed.story,address:job.place.address??job.place.name},profileId,signal:deadline});

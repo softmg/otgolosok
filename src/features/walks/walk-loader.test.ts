@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { loadCatalogCards, loadJson, loadLocalWalkView, WalkLoadError } from "./walk-loader";
+import { loadJson, loadLocalWalkView, WalkLoadError } from "./walk-loader";
 import type { WalkDocument } from "./model";
 
 describe("загрузка прогулок", () => {
@@ -8,11 +8,15 @@ describe("загрузка прогулок", () => {
       .mockRejectedValueOnce(new TypeError("offline"))
       .mockResolvedValueOnce(new Response(JSON.stringify({ walks: [] }), { status: 200 }));
     vi.stubGlobal("fetch", fetcher);
-    await expect(loadCatalogCards(new AbortController().signal)).resolves.toEqual([]);
+    const walks = (value: unknown) => {
+      if (!value || typeof value !== "object" || !Array.isArray((value as { walks?: unknown }).walks)) throw new TypeError();
+      return (value as { walks: unknown[] }).walks;
+    };
+    await expect(loadJson("/api/top-walks", new AbortController().signal, walks)).resolves.toEqual([]);
     expect(fetcher).toHaveBeenCalledTimes(2);
 
     fetcher.mockReset().mockResolvedValue(new Response("{}", { status: 200 }));
-    await expect(loadCatalogCards(new AbortController().signal)).rejects.toMatchObject({ retryable: false });
+    await expect(loadJson("/api/top-walks", new AbortController().signal, walks)).rejects.toMatchObject({ retryable: false });
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
@@ -24,6 +28,16 @@ describe("загрузка прогулок", () => {
       retryable: true,
       retryAfterMs: 1000,
     } satisfies Partial<WalkLoadError>));
+  });
+
+  it("не повторяет 429, если лимит снимется позже бюджета повторов, и отправляет PUT с заголовками", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { message: "Слишком часто" } }), { status: 429, headers: { "Retry-After": "600" } }));
+    vi.stubGlobal("fetch", fetcher);
+    await expect(loadJson("/api/x", new AbortController().signal, value => value, 3, { rating: 5 }, { method: "PUT", headers: { "X-Review-Key": "k" } }))
+      .rejects.toMatchObject({ status: 429, retryable: false, message: "Слишком часто" });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    const [, init] = fetcher.mock.calls[0] as [string, RequestInit];
+    expect(init).toMatchObject({ method: "PUT", body: JSON.stringify({ rating: 5 }), headers: { "X-Review-Key": "k", "Content-Type": "application/json" } });
   });
 
   it("показывает опубликованные истории остановок из OSM в гостевой прогулке", async () => {

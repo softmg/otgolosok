@@ -1,8 +1,8 @@
 import { createServer as httpServer } from "node:http";
 import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { mkdir, readFile, stat } from "node:fs/promises";
 import { resolve, join, extname, sep } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { createStore } from "./store.mjs";
 import { createProvider } from "./provider.mjs";
@@ -22,10 +22,15 @@ import { validateWalkResearch, publicWalkResearch, walkResearchKey } from "./wal
 import { createBackendLogger } from "./logs.mjs";
 import { ingestAudio, sweepAudioTemporaries } from "./audio-ingest.mjs";
 import { startContentWorker } from "./content-pipeline.mjs";
+import { createPlaceImageService, createWikimediaClient, placeImageUserAgent, startPlaceImageWorker } from "./place-images.mjs";
 import { openOsmGeocoder } from "./osm-geocoder.mjs";
 import { createAuth, authRequestHandler, authSession, sessionCsrfToken, validSessionCsrf, verifySessionPassword } from "./auth.mjs";
 import { favoriteSummary } from "./favorite-summary.mjs";
 import { createAccountStore } from "./account-store.mjs";
+import { createWalkLaunchRoutes } from "./walk-launch-routes.mjs";
+import { createTopWalks } from "./walk-top.mjs";
+import { createReviewRateLimiter } from "./walk-reviews.mjs";
+import { createWalkReviewRoutes } from "./walk-review-routes.mjs";
 import { resolveWalkView } from "./walk-view.mjs";
 import { builtinRoutes } from "./builtin-routes.mjs";
 import { catalogWalkView } from "./walk-catalog.mjs";
@@ -101,6 +106,8 @@ export function parseUserDailyLimit(value) {
  * @property {ReturnType<typeof createElevenLabsTts> | null} [elevenLabsTts]
  * @property {string} origin
  * @property {string} [audioDirectory]
+ * @property {string} [imageDirectory] DATA_DIR/place-images
+ * @property {ReturnType<typeof createPlaceImageService> | null} [placeImages] null unless PLACE_IMAGE_SYNC=true
  * @property {string} [staticDirectory]
  * @property {boolean} [workerEnabled]
  * @property {ReturnType<typeof loadLocalTtsConfig>} [localTts]
@@ -121,10 +128,13 @@ export function parseUserDailyLimit(value) {
  * @property {() => void | Promise<void>} [closeAuth]
  * @property {number} [userDailyLimit]
  * @property {number} [shutdownGraceMs]
+ * @property {ReturnType<typeof createReviewRateLimiter>} [reviewLimiter] review writes per account or client IP
+ * @property {ReturnType<typeof createReviewRateLimiter>} [launchLimiter] walk launch reports per account or client IP
+ * @property {ReturnType<typeof createReviewRateLimiter>} [launchWalkLimiter] counted launches of one walk per client IP
  */
 
 /** @param {CreateAppOptions} options */
-export function createApp({store,provider,osmGeocoder=null,yandexTts=null,elevenLabsTts=null,origin,audioDirectory,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,promoWalksToken=process.env.PROMO_WALKS_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{},userDailyLimit=6,shutdownGraceMs=20000}) {
+export function createApp({store,provider,osmGeocoder=null,yandexTts=null,elevenLabsTts=null,origin,audioDirectory,imageDirectory,placeImages=null,staticDirectory,workerEnabled=true,localTts=loadLocalTtsConfig({}),ttsApiClient=null,resolvePlace=createPlaceResolver(),planWalk=null,discoverResearch,planResearchWalk,adminToken=process.env.ADMIN_TOKEN,allowLegacyAdminToken,workerToken=process.env.WORKER_API_TOKEN,promoWalksToken=process.env.PROMO_WALKS_TOKEN,logs=null,audioIngest=ingestAudio,auth=null,authSecret="",accountStore=null,closeAuth=async()=>{},userDailyLimit=6,shutdownGraceMs=20000,reviewLimiter=createReviewRateLimiter(),launchLimiter=createReviewRateLimiter({limit:60}),launchWalkLimiter=createReviewRateLimiter({limit:30,windowMs:86_400_000})}) {
   const walkPlanner=planWalk??createWalkPlanner({candidateProvider:query=>store.listWalkCandidates?.(query)??[]});
   const speechProviders={openai:provider,yandex:yandexTts,elevenlabs:elevenLabsTts};
   const ttsProviders=[{id:"openai",label:"OpenAI",available:Boolean(provider),...ttsVoiceOptions("openai",provider?.voice)},
@@ -134,7 +144,8 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
   const audioProfiles=[{id:localTts.defaultProfile,label:localTts.engine==="f5"?"F5 (локальный TTS)":"Silero (локальный TTS)"},
     ...(elevenLabsTts?[{id:ELEVENLABS_PROFILE_ID,label:"ElevenLabs v3 (с аудиотегами)"}]:[])];
   const worker=(provider||yandexTts)&&workerEnabled?startWorker({store,provider,speechProviders,audioDirectory,discoverResearch,planResearchWalk,logs}):null;
-  const contentWorker=provider&&workerEnabled?startContentWorker({store,provider,logs,resolveLocation:osmGeocoder ? place=>osmGeocoder.resolve(place) : null,concurrency:Number(process.env.CONTENT_WORKER_CONCURRENCY??1),autoApprove:process.env.CONTENT_AUTO_APPROVE==="true"}):null;
+  const contentWorker=provider&&workerEnabled?startContentWorker({store,provider,logs,resolveLocation:osmGeocoder ? place=>osmGeocoder.resolve(place) : null,concurrency:Number(process.env.CONTENT_WORKER_CONCURRENCY??1),autoApprove:process.env.CONTENT_AUTO_APPROVE==="true",placeImages}):null;
+  const placeImageWorker=workerEnabled&&placeImages?startPlaceImageWorker({service:placeImages,logs}):null;
   const ttsApiWorker=workerEnabled&&localTts.transport==="http"&&ttsApiClient?startTtsApiWorker({store,client:ttsApiClient,audioDirectory,profileId:localTts.defaultProfile,logs}):null;
   const elevenLabsWorker=workerEnabled&&elevenLabsTts?startSpeechAudioWorker({store,speechProvider:elevenLabsTts,profileId:ELEVENLABS_PROFILE_ID,audioDirectory,logs}):null;
   const authorizeAdmin=adminAuth(adminToken);
@@ -142,6 +153,9 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
   if(promoEnabled&&promoWalksToken.length<32)throw new Error("PROMO_WALKS_TOKEN must contain at least 32 characters");
   const authorizePromo=adminAuth(promoEnabled?promoWalksToken:"");
   const promoWalks=promoEnabled&&accountStore?createPromoWalkService({accountStore,planWalk:walkPlanner,store,origin}):null;
+  const reviews=createWalkReviewRoutes({store,accountStore,origin,authSecret,limiter:reviewLimiter,json,body});
+  const launches=createWalkLaunchRoutes({store,accountStore,authSecret,limiter:launchLimiter,walkLimiter:launchWalkLimiter,json,body});
+  const topWalks=accountStore?createTopWalks({accountStore,store,builtinRoutes}):null;
   const legacyAdminEnabled=allowLegacyAdminToken??(!auth||process.env.ALLOW_LEGACY_ADMIN_TOKEN==="true");
   const server=httpServer(async(req,res)=>{
     try {
@@ -169,7 +183,15 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
           json(res,200,resolveWalkView(walk.snapshot,walk.revision,store));return;
         }
         const ownWalkSharing=new RegExp(`^/api/me/walks/(${UUID})/sharing$`).exec(url.pathname);
-        if(ownWalkSharing&&req.method==="PUT"){const input=await body(req);if(Object.keys(input).some(key=>!["revision","enabled"].includes(key))){throw failure("BAD_REQUEST");}const walk=accountStore.setWalkSharing(session.user.id,ownWalkSharing[1],input.revision,input.enabled);json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;}
+        if(ownWalkSharing&&req.method==="PUT"){
+          const input=await body(req),keys=Object.keys(input);
+          // Legacy {revision, enabled} from service-worker-cached clients; remove once old clients are gone.
+          const legacy=keys.includes("enabled");
+          if(keys.some(key=>!["revision","visibility","enabled"].includes(key))||legacy===keys.includes("visibility")||(legacy&&typeof input.enabled!=="boolean"))throw failure("BAD_REQUEST");
+          const visibility=legacy?(input.enabled?"shared":"private"):input.visibility;
+          const walk=accountStore.setWalkVisibility(session.user.id,ownWalkSharing[1],input.revision,visibility);
+          json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;
+        }
         if(ownWalk&&req.method==="GET"){const walk=accountStore.getWalk(session.user.id,ownWalk[1]);json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Walk not found."}});return;}
         if(ownWalk&&req.method==="PATCH"){const walk=accountStore.updateWalk(session.user.id,ownWalk[1],await body(req,100000));json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Walk not found."}});return;}
         if(ownWalk&&req.method==="DELETE"){json(res,accountStore.deleteWalk(session.user.id,ownWalk[1])?200:404,{success:true});return;}
@@ -179,6 +201,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         const favorite=/^\/api\/me\/favorites\/(story|walk)\/([a-zA-Z0-9-]{1,128})$/.exec(url.pathname);
         if(favorite&&req.method==="PUT"){accountStore.setFavorite(session.user.id,favorite[1],favorite[2]);json(res,200,{success:true});return;}
         if(favorite&&req.method==="DELETE"){accountStore.deleteFavorite(session.user.id,favorite[1],favorite[2]);json(res,200,{success:true});return;}
+        if(await reviews.own(req,res,url,session))return;
         json(res,404,{error:{code:"NOT_FOUND",message:"Account endpoint not found."}});return;
       }
       if(url.pathname==="/api/worker/v1/claim"||url.pathname.startsWith("/api/worker/v1/jobs/")) {
@@ -314,11 +337,23 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
           json(res,status,{error:{code:status===429?"ADMIN_THROTTLED":"UNAUTHORIZED",message:"Admin authentication required."}});return;
         }
         if(roleAuthorized&&!["GET","HEAD"].includes(req.method)&&!validSessionCsrf(authSecret,session.session.id,req.headers["x-csrf-token"])) {json(res,403,{error:{code:"CSRF",message:"Refresh the editor and retry."}});return;}
+        if(await reviews.admin(req,res,url,roleAuthorized?session.user.id:null))return;
         if(req.method==="GET"&&url.pathname==="/api/story-admin/walks/shared") {
           const entries=[...url.searchParams];
-          if(entries.some(([key,value])=>!["limit","offset","q","author","mode"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
+          if(entries.some(([key,value])=>!["limit","offset","q","author","mode","access","listing"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
           if(!accountStore){json(res,503,{error:{code:"UNAVAILABLE",message:"Хранилище прогулок недоступно."}});return;}
-          json(res,200,accountStore.listSharedWalksAdmin({limit:Number(url.searchParams.get("limit")??25),offset:Number(url.searchParams.get("offset")??0),q:url.searchParams.get("q")??"",author:url.searchParams.get("author")??"",mode:url.searchParams.get("mode")??"all"}));return;
+          json(res,200,accountStore.listSharedWalksAdmin({limit:Number(url.searchParams.get("limit")??25),offset:Number(url.searchParams.get("offset")??0),q:url.searchParams.get("q")??"",author:url.searchParams.get("author")??"",mode:url.searchParams.get("mode")??"all",access:url.searchParams.get("access")??"all",listing:url.searchParams.get("listing")??"all"}));return;
+        }
+        const walkListing=new RegExp(`^/api/story-admin/walks/shared/(${UUID})/listing$`).exec(url.pathname);
+        if(walkListing) {
+          if(req.method!=="POST"){res.setHeader("Allow","POST");json(res,405,{error:{code:"METHOD_NOT_ALLOWED",message:"Method not allowed."}});return;}
+          if(!accountStore){json(res,503,{error:{code:"UNAVAILABLE",message:"Хранилище прогулок недоступно."}});return;}
+          const input=await body(req);
+          if(url.search||Object.keys(input).some(key=>!["action","revision"].includes(key)))throw failure("BAD_REQUEST");
+          let walk;
+          try{walk=accountStore.moderateWalkListing(walkListing[1],{action:input.action,revision:input.revision});}
+          catch(error){if(error.code!=="CONFLICT")throw error;json(res,409,{error:{code:"CONFLICT",message:error.message}});return;}
+          json(res,walk?200:404,walk?{walk}:{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;
         }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/walks") {
           const entries=[...url.searchParams];
@@ -414,7 +449,11 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         if(contentPlace&&req.method==="GET"){const place=store.getPlace(contentPlace[1]);json(res,place?200:404,place?{place}:{error:{code:"NOT_FOUND",message:"Place not found."}});return;}
         const approveContent=/^\/api\/story-admin\/content\/places\/(osm:(?:node|way|relation):\d+)\/approve$/.exec(url.pathname);
         if(approveContent&&req.method==="POST"){if(!origin||req.headers.origin!==origin){json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
-          const input=await body(req,32768),place=store.approvePlaceText(approveContent[1],input?.story??null);
+          const input=await body(req,32768);
+          // The photo is looked up before the place becomes visible; Wikimedia problems never block the approval.
+          const draftPlace=placeImages?store.getPlace(approveContent[1]):null;
+          if(draftPlace)await placeImages.ensure(draftPlace,{timeoutMs:15000}).catch(error=>logs?.captureException(error,{operation:"placeImages.approve",context:{placeId:draftPlace.id}}));
+          const place=store.approvePlaceText(approveContent[1],input?.story??null);
           if(place)for(const profileId of place.audioProfiles??[])await store.enqueueExternalAudio({sourceJobId:`place-text:${place.text.id}`,sourceRevision:0,story:{...place.text.story,address:place.address??place.name},profileId});
           json(res,place?200:404,place?{place}:{error:{code:"NOT_FOUND",message:"Place text not found."}});return;}
         const revoiceContent=/^\/api\/story-admin\/content\/places\/(osm:(?:node|way|relation):\d+)\/audio$/.exec(url.pathname);
@@ -551,6 +590,13 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         const {cell,points}=store.getMapCell(Number(mapCell[1]),Number(mapCell[2]));
         sendCacheableJson(req,res,serializeCell(cell,points));return;
       }
+      if(await reviews.public(req,res,url,session))return;
+      if(url.pathname==="/api/top-walks") {
+        if(!["GET","HEAD"].includes(req.method)){res.setHeader("Allow","GET, HEAD");json(res,405,{error:{code:"METHOD_NOT_ALLOWED",message:"Method not allowed."}});return;}
+        if(url.search)throw failure("BAD_REQUEST");
+        if(!topWalks){json(res,503,{error:{code:"UNAVAILABLE",message:"Топ прогулок временно недоступен."}});return;}
+        json(res,200,{walks:topWalks.list()});return;
+      }
       const publishedWalk=/^\/api\/story-walks\/([a-z0-9][a-z0-9-]{0,127})$/.exec(url.pathname);
       if(req.method==="GET"&&url.pathname==="/api/story-walks"){json(res,200,{walks:builtinRoutes.filter(route=>route.walk?.steps?.length).map(route=>({id:route.id,title:route.title,subtitle:route.subtitle,durationMin:route.duration_min}))});return;}
       const sharedWalk=new RegExp(`^/api/story-walks/shared/(${UUID})$`).exec(url.pathname);
@@ -598,6 +644,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
           if(Object.keys(input).some(key=>!["document","revision"].includes(key))||!Number.isSafeInteger(input.revision)||input.revision<0)throw failure("BAD_REQUEST");
           json(res,200,resolveWalkView(input.document,input.revision,store));return;
         }
+        if(await launches(req,res,url,session))return;
         if(!provider) {json(res,503,{error:{message:"Подготовка историй пока недоступна."}});return;}
         // Story generation spends paid model and speech calls, so it is charged to a signed-in user.
         if(!auth||!accountStore){json(res,503,{error:{code:"AUTH_REQUIRED",message:errorMessages.AUTH_REQUIRED}});return;}
@@ -630,6 +677,8 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
       }
       const audio=/^\/api\/story-audio\/([a-f0-9]{64}\.mp3)$/.exec(url.pathname);
       if(["GET","HEAD"].includes(req.method)&&audio) {await sendFile(req,res,join(audioDirectory,audio[1]),"audio/mpeg",true);return;}
+      const placeImage=/^\/api\/place-images\/([a-f0-9]{64}\.jpg)$/.exec(url.pathname);
+      if(["GET","HEAD"].includes(req.method)&&placeImage&&imageDirectory) {await sendFile(req,res,join(imageDirectory,placeImage[1]),"image/jpeg",true);return;}
       // Local production preview only; deployed frontend remains in Nginx.
       if(staticDirectory&&["GET","HEAD"].includes(req.method)&&!url.pathname.startsWith("/api/")) {
         const root=resolve(staticDirectory);const relative=decodeURIComponent(url.pathname).replace(/^\/+/,"")||"index.html";
@@ -644,6 +693,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
       if(res.headersSent||res.destroyed)return;
       const status=["QUEUE_FULL","QUOTA_EXCEEDED","UPLOAD_BUSY"].includes(error.code)?429:error.code==="AUDIO_STORAGE_FULL"?507:["CONFLICT","RETRY_LIMIT","LEASE_LOST","CLAIM_EXPIRED","WORKER_BUSY","STORAGE_LIMIT"].includes(error.code)?409:
         error.code==="AUDIO_TOO_LARGE"?413:["BAD_AUDIO_TYPE","BAD_AUDIO","AUDIO_CHECKSUM","AUDIO_DURATION"].includes(error.code)?422:["INVALID_ADDRESS","BAD_REQUEST","INVALID_DRAFT"].includes(error.code)?400:500;
+      if(error.code==="WALK_NOT_READY"){json(res,409,{error:{code:error.code,message:"Сначала постройте маршрут — черновик нельзя открыть всем."}});return;}
       if(status===500) logs?.captureException(error,{operation:"API request",context:{method:req.method,status}});
       // Account storage limits carry a user-facing message written by the account store.
       json(res,status,{error:["BAD_REQUEST","INVALID_DRAFT"].includes(error.code)?{code:error.code,message:"Invalid request or draft."}:error.code==="STORAGE_LIMIT"?{code:error.code,message:error.message}:safeError(error)});
@@ -658,7 +708,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
     let timer;
     await Promise.race([drained,new Promise(done=>{timer=setTimeout(done,shutdownGraceMs);timer.unref?.();})]);
     clearTimeout(timer);server.closeAllConnections();await drained;
-    await Promise.all([worker?.stop(),contentWorker?.stop(),ttsApiWorker?.stop(),elevenLabsWorker?.stop()]);
+    await Promise.all([worker?.stop(),contentWorker?.stop(),ttsApiWorker?.stop(),elevenLabsWorker?.stop(),placeImageWorker?.stop()]);
     osmGeocoder?.close();await closeAuth();
   };
   return {server,close};
@@ -686,6 +736,22 @@ export async function loadElevenLabsTts(env,provider,logs,fetchImpl=fetch) {
   return createElevenLabsTts({apiKey,voice,voices,tagNarration:createAudioTagger(provider),model:env.ELEVENLABS_MODEL?.trim()||undefined,baseUrl,proxyToken,fetchImpl});
 }
 
+export const EDITORIAL_PLACE_IMAGES=fileURLToPath(new URL("./place-images-editorial.json",import.meta.url));
+
+/**
+ * Mirrors the editorial photo catalog into the store on every start (a malformed catalog stops the start) and, only
+ * with PLACE_IMAGE_SYNC=true, builds the Wikimedia photo service. Off by default: local test placeholders make
+ * thousands of places "published" and would download their photos on a development machine.
+ * @param {{env: NodeJS.ProcessEnv, store: ReturnType<typeof createStore>, directory: string, origin: string, logs?: any, fetchImpl?: typeof fetch, catalogPath?: string}} options
+ */
+export async function setupPlaceImages({env,store,directory,origin,logs=null,fetchImpl=fetch,catalogPath=EDITORIAL_PLACE_IMAGES}) {
+  store.syncEditorialPlaceImages(JSON.parse(await readFile(catalogPath,"utf8")));
+  if(env.PLACE_IMAGE_SYNC!=="true")return null;
+  await mkdir(directory,{recursive:true});
+  const client=createWikimediaClient({fetch:fetchImpl,userAgent:placeImageUserAgent(origin)});
+  return createPlaceImageService({store,client,directory,logs});
+}
+
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {
   const directory=resolve(process.env.DATA_DIR??"backend/data");
   const localTts=loadLocalTtsConfig(process.env);
@@ -705,9 +771,11 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   const accountStore=createAccountStore(authRuntime.accountDatabase);
   if(process.env.PROMO_WALKS_TOKEN)ensurePromoWalksUser(authRuntime.accountDatabase);
   const osmGeocoder=openOsmGeocoder(join(directory,"osm-addresses.sqlite"));
+  const imageDirectory=join(directory,"place-images");
+  const placeImages=await setupPlaceImages({env:process.env,store,directory:imageDirectory,origin:appOrigin,logs});
   try {const swept=await sweepAudioTemporaries(join(directory,"audio"));if(swept)console.log(`Removed ${swept} abandoned temporary audio files`);}
   catch(error) {logs?.captureException(error,{operation:"sweepAudioTemporaries"});}
-  const app=createApp({store,provider,osmGeocoder,yandexTts,elevenLabsTts,origin:appOrigin,audioDirectory:join(directory,"audio"),staticDirectory:process.env.STATIC_DIR,localTts,ttsApiClient,logs,auth:authRuntime.auth,authSecret:process.env.BETTER_AUTH_SECRET??"development-only-better-auth-secret-32",accountStore,closeAuth:authRuntime.close,userDailyLimit});
+  const app=createApp({store,provider,osmGeocoder,yandexTts,elevenLabsTts,origin:appOrigin,audioDirectory:join(directory,"audio"),imageDirectory,placeImages,staticDirectory:process.env.STATIC_DIR,localTts,ttsApiClient,logs,auth:authRuntime.auth,authSecret:process.env.BETTER_AUTH_SECRET??"development-only-better-auth-secret-32",accountStore,closeAuth:authRuntime.close,userDailyLimit});
   app.server.listen(port,process.env.HOST??"127.0.0.1",()=>console.log(`Story service listening on ${port}; provider ${provider?"configured":"unavailable"}`));
   let stopping=false;
   for(const signal of ["SIGINT","SIGTERM"])process.on(signal,async()=>{

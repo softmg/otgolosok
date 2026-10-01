@@ -64,16 +64,16 @@ test("walk storage migrates legacy snapshots, keeps account IDs addressable and 
   const created=store.createWalk("walk-user",{title:accountDocument.title,snapshot:accountDocument,idempotencyKey:"account-walk-1"});
   assert.match(created.id,/^[a-f0-9-]{36}$/);assert.equal(created.id,accountDocument.id);assert.equal(created.snapshot.id,created.id);
   assert.throws(()=>store.createWalk("walk-user",{title:"Другой маршрут",snapshot:accountDocument,idempotencyKey:"account-walk-1"}),/** @param {Error & {code?: string}} error */ error=>error.code==="CONFLICT");
-  const shared=store.setWalkSharing("walk-user",created.id,created.revision,true);
+  const shared=store.setWalkVisibility("walk-user",created.id,created.revision,"shared");
   assert.equal(shared.visibility,"shared");assert.match(shared.shareToken,/^[a-f0-9-]{36}$/);
-  assert.throws(()=>store.setWalkSharing("walk-user",created.id,created.revision,false),/** @param {Error & {code?: string}} error */ error=>error.code==="CONFLICT");
+  assert.throws(()=>store.setWalkVisibility("walk-user",created.id,created.revision,"private"),/** @param {Error & {code?: string}} error */ error=>error.code==="CONFLICT");
   const token=shared.shareToken,changed=store.updateWalk("walk-user",created.id,{title:"Переименованный маршрут",snapshot:{...created.snapshot,title:"Переименованный маршрут"},revision:shared.revision});
   assert.equal(store.getSharedWalk(token).title,"Переименованный маршрут");
-  assert.equal(store.setWalkSharing("walk-user",created.id,changed.revision,false).visibility,"private");
+  assert.equal(store.setWalkVisibility("walk-user",created.id,changed.revision,"private").visibility,"private");
   assert.equal(store.getSharedWalk(token),null);
-  const reenabled=store.setWalkSharing("walk-user",created.id,changed.revision+1,true);
+  const reenabled=store.setWalkVisibility("walk-user",created.id,changed.revision+1,"shared");
   assert.equal(reenabled.shareToken,token);
-  assert.equal(store.setWalkSharing("walk-user",created.id,changed.revision,true).shareToken,token);
+  assert.equal(store.setWalkVisibility("walk-user",created.id,changed.revision,"shared").shareToken,token);
 });
 
 test("oversized auth bodies are refused with 413 before Better Auth reads them",async t=>{

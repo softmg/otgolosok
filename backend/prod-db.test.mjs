@@ -16,7 +16,7 @@ function database(path,label,audio) {
   db.close();
 }
 
-test("production import and restore keep the SQLite snapshot and its audio",()=>{
+test("production import and restore keep the SQLite snapshot, its audio and place photos",()=>{
   const root=mkdtempSync(join(tmpdir(),"otgolosok-prod-db-")),data=join(root,"data"),dump=join(root,"dump");
   try {
     mkdirSync(join(data,"audio"),{recursive:true});mkdirSync(join(dump,"audio"),{recursive:true});
@@ -24,13 +24,17 @@ test("production import and restore keep the SQLite snapshot and its audio",()=>
     database(join(data,"jobs.sqlite"),"old",`${oldHash}.mp3`);writeFileSync(join(data,"audio",`${oldHash}.mp3`),"old-audio");
     database(join(dump,"jobs.sqlite"),"new",`${newHash}.mp3`);writeFileSync(join(dump,"audio",`${newHash}.mp3`),"new-audio");
     const env={...process.env,DATA_DIR:data,DUMP_DIR:dump};
+    mkdirSync(join(data,"place-images"));writeFileSync(join(data,"place-images",`${oldHash}.jpg`),"old-photo");
+    mkdirSync(join(dump,"place-images"));writeFileSync(join(dump,"place-images",`${newHash}.jpg`),"new-photo");
     execFileSync(process.execPath,[script,"import"],{env,stdio:"pipe"});
     assert.equal(readFileSync(join(data,"audio",`${newHash}.mp3`),"utf8"),"new-audio");
+    assert.deepEqual(readdirSync(join(data,"place-images")),[`${newHash}.jpg`]);
     let db=new DatabaseSync(join(data,"jobs.sqlite"),{readOnly:true});assert.equal(JSON.parse(/** @type {string} */ (db.prepare("SELECT record_json FROM jobs").get().record_json)).address,"new");db.close();
     const backup=readdirSync(data).find(name=>name.startsWith("backup-local-"));assert.ok(backup);
     execFileSync(process.execPath,[script,"restore"],{env:{...env,BACKUP:backup},stdio:"pipe"});
     assert.equal(readFileSync(join(data,"audio",`${oldHash}.mp3`),"utf8"),"old-audio");
     assert.equal(readdirSync(join(data,"audio")).includes(`${newHash}.mp3`),false);
+    assert.deepEqual(readdirSync(join(data,"place-images")),[`${oldHash}.jpg`]);
     db=new DatabaseSync(join(data,"jobs.sqlite"),{readOnly:true});assert.equal(JSON.parse(/** @type {string} */ (db.prepare("SELECT record_json FROM jobs").get().record_json)).address,"old");db.close();
   } finally {rmSync(root,{recursive:true,force:true});}
 });

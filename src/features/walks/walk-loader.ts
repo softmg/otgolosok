@@ -7,8 +7,10 @@ export type WalkCard = {
   subtitle?: string;
   revision?: number;
   updatedAt?: string;
-  visibility?: "private" | "shared";
+  visibility?: "private" | "shared" | "public";
   shareToken?: string | null;
+  /** Top-listing state of a public walk; null for other access levels. */
+  listingStatus?: "pending" | "approved" | "hidden" | null;
   kind: "local" | "account" | "catalog";
 };
 
@@ -37,14 +39,21 @@ async function readJson(response: Response) {
   if (!response.ok) {
     const record = value && typeof value === "object" ? value as { error?: { message?: string } } : {};
     const retryAfter = response.headers.get("retry-after");
-    const retryAfterMs = retryAfter && /^\d+(?:\.\d+)?$/.test(retryAfter) ? Math.min(5_000, Number(retryAfter) * 1_000) : 0;
-    throw new WalkLoadError(record.error?.message ?? "Не удалось открыть прогулку.", response.status, retryableStatus(response.status), retryAfterMs);
+    const retryAfterMs = retryAfter && /^\d+(?:\.\d+)?$/.test(retryAfter) ? Number(retryAfter) * 1_000 : 0;
+    // A limit that lifts later than the retry budget allows is reported at once instead of retried in vain.
+    const retryable = retryableStatus(response.status) && !(response.status === 429 && retryAfterMs > 5_000);
+    throw new WalkLoadError(record.error?.message ?? "Не удалось открыть прогулку.", response.status, retryable, Math.min(5_000, retryAfterMs));
   }
   return value;
 }
 
-/** payload, если задан, отправляется POST-запросом в JSON; запрос должен быть идемпотентным. */
-export async function loadJson<T>(url: string, signal: AbortSignal, validate: (value: unknown) => T, attempts = 3, payload?: unknown): Promise<T> {
+export type LoadJsonInit = { method?: "PUT" | "DELETE"; headers?: Record<string, string> };
+
+/**
+ * payload, если задан, отправляется в JSON (по умолчанию POST); init задаёт метод PUT/DELETE и заголовки.
+ * Запрос повторяется, поэтому должен быть идемпотентным.
+ */
+export async function loadJson<T>(url: string, signal: AbortSignal, validate: (value: unknown) => T, attempts = 3, payload?: unknown, init: LoadJsonInit = {}): Promise<T> {
   if (!Number.isSafeInteger(attempts) || attempts < 1 || attempts > 3) throw new RangeError("Количество попыток должно быть от 1 до 3.");
   let last: unknown = null;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
@@ -52,8 +61,8 @@ export async function loadJson<T>(url: string, signal: AbortSignal, validate: (v
     const timeout = withTimeout(signal, 20_000);
     try {
       const response = await fetch(url, payload === undefined
-        ? { signal: timeout.signal, credentials: "same-origin", cache: "no-store" }
-        : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: timeout.signal, credentials: "same-origin", cache: "no-store" });
+        ? { ...(init.method ? { method: init.method } : {}), ...(init.headers ? { headers: init.headers } : {}), signal: timeout.signal, credentials: "same-origin", cache: "no-store" }
+        : { method: init.method ?? "POST", headers: { ...init.headers, "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: timeout.signal, credentials: "same-origin", cache: "no-store" });
       const value = await readJson(response);
       try {
         return validate(value);
@@ -144,14 +153,4 @@ export async function loadWalkWithOfflineCopy(load: (signal: AbortSignal) => Pro
     if (saved && usable(saved.view)) return { view: saved.view, offline: true, savedAt: saved.manifest.savedAt };
     throw error;
   }
-}
-
-export function loadCatalogCards(signal: AbortSignal): Promise<WalkCard[]> {
-  return loadJson("/api/story-walks", signal, value => {
-    if (!value || typeof value !== "object" || !Array.isArray((value as { walks?: unknown }).walks)) throw new Error();
-    return (value as { walks: Array<Record<string, unknown>> }).walks.flatMap(item => {
-      if (typeof item.id !== "string" || typeof item.title !== "string") return [];
-      return [{ id: item.id, title: item.title, subtitle: typeof item.subtitle === "string" ? item.subtitle : undefined, kind: "catalog" as const }];
-    });
-  });
 }

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import type { ReactNode, Ref } from "react";
 import { Sheet } from "../shell/sheet";
+import { cx } from "../ui/cx";
 import { ExploreIcon } from "./icons";
 import { nearbyRadii, type NearbyRadius, type NearbyRecommendation } from "./nearby-stories";
-import { PlacePhotoHeading } from "./place-photo";
+import { StoryAudioPlayer } from "../tour/story-audio-player";
+import { PlacePhotoBanner } from "./place-photo";
 import { usePlaceStory } from "./place-story";
 import type { StoryPin } from "./story-pin";
 import a from "./around.module.css";
@@ -26,8 +28,8 @@ export function LocationPromptSheet({ geo, onLocate, onDismiss }: { geo: GeoStat
 }
 
 /** A selected story: its label and close stay put, the text scrolls, the main action is always visible. */
-export function StorySheet({ story, metadata, walkHref, startRef, onStart, onClose, onWalk }: {
-  story: StoryPin; metadata: string; walkHref: string | null; startRef?: Ref<HTMLButtonElement>;
+export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk }: {
+  story: StoryPin; walkHref: string | null; startRef?: Ref<HTMLButtonElement>;
   onStart: (chapter?: number) => void; onClose: () => void; onWalk: () => void;
 }) {
   // A catalog point carries only its header; the text, sources and audio load when the sheet opens.
@@ -40,17 +42,20 @@ export function StorySheet({ story, metadata, walkHref, startRef, onStart, onClo
       ? <Link className={a.primary} href={`/create?job=${story.jobId}`} prefetch={false}>{story.duration ? "Открыть и слушать" : "Открыть подготовку"}<ExploreIcon name={story.duration ? "headphones" : "arrow"} /></Link>
       : null;
   const pendingText = catalog && loaded.status !== "ready";
+  const label = story.pending ? "Готовим для вас" : story.chapter !== undefined ? `По дороге · часть ${story.chapter + 1}` : null;
+  const heading = <><h2 id="selected-place-title" className={a.title}>{story.title}</h2>{story.title !== story.address ? <p className={styles.address}>{story.address}</p> : null}</>;
+  const close = (className?: string) => <button type="button" className={cx(a.iconButton, className)} aria-label="Закрыть карточку" onClick={onClose}><ExploreIcon name="close" /></button>;
   return <Sheet name="story" labelledBy="selected-place-title" bodyLabel={content.paragraphs?.length ? "Текст истории" : undefined}
-    header={<div className={a.headerRow}>
-      <span className={a.label}>{story.pending ? "Готовим для вас" : story.chapter !== undefined ? `По дороге · часть ${story.chapter + 1}` : "История места"}</span>
-      <button type="button" className={a.iconButton} aria-label="Закрыть карточку" onClick={onClose}><ExploreIcon name="close" /></button>
-    </div>}
-    // The player stays with the action: scrolling the text never takes it away.
-    footer={content.audioUrl || action ? <>{content.audioUrl ? <audio className={styles.audio} controls preload="metadata" src={content.audioUrl}>Ваш браузер не поддерживает аудио.</audio> : null}{action}</> : null}>
+    // Only catalog places have photos; the index flag holds the banner until the detail arrives.
+    media={catalog ? <PlacePhotoBanner key={story.id} photo={loaded.story?.photo} pending={story.hasPhoto === true && loaded.status === "loading"} title={story.title} /> : null}
+    // Walk parts and stories in progress keep their label row. A place card has none: its close button sits in the
+    // corner over the photo, and the title scrolls with the text so a short screen still shows the story.
+    header={label ? <div className={a.headerRow}><span className={a.label}>{label}</span>{close()}</div> : null}
+    corner={label ? null : close(styles.cornerClose)}
+    // The player stays with the action: scrolling the text never takes it away. It is the walk's player too.
+    footer={content.audioUrl || action ? <>{content.audioUrl ? <StoryAudioPlayer key={content.audioUrl} className={styles.audio} src={content.audioUrl} /> : null}{action}</> : null}>
     <>
-      <PlacePhotoHeading key={story.id} placeId={story.placeId} title={story.title} address={story.address}
-        titleClassName={a.title} addressClassName={styles.address} />
-      <small className={a.meta}>{metadata}</small>
+      {label ? heading : <div className={styles.titleRow}>{heading}</div>}
       {pendingText && loaded.status === "loading" ? <p className={a.text} role="status">Загружаем рассказ…</p> : null}
       {pendingText && loaded.status === "error" ? <div role="alert"><p className={a.text}>Не удалось загрузить рассказ.</p><button type="button" className={a.secondary} onClick={loaded.retry}>Повторить</button></div> : null}
       {pendingText && loaded.status === "missing" ? <p className={a.text} role="status">Эта история больше недоступна.</p> : null}
@@ -85,16 +90,19 @@ export function PlaceSheet({ address, busy, error, createHref, walkHref, onClose
 }
 
 /** Ready stories around a point, nearest first, with the radius to search in. */
-export function NearbySheet({ status = "ready", radius, recommendations, onRadius, onSelect, onReset }: {
+export function NearbySheet({ status = "ready", radius, recommendations, onRadius, onSelect, onClose }: {
   status?: "loading" | "ready" | "error";
   radius: NearbyRadius; recommendations: NearbyRecommendation[];
-  onRadius: (radius: NearbyRadius) => void; onSelect: (id: string) => void; onReset: () => void;
+  onRadius: (radius: NearbyRadius) => void; onSelect: (id: string) => void; onClose: () => void;
 }) {
   const wider = nearbyRadii[nearbyRadii.indexOf(radius) + 1];
   return <Sheet name="nearby" labelledBy="nearby-title"
-    header={<div>
-      <span className={a.label}>Готовые истории рядом</span>
-      <h2 id="nearby-title" className={a.title}>В радиусе {radius} м</h2>
+    header={<div className={a.headerRow}>
+      <div>
+        <span className={a.label}>Готовые истории рядом</span>
+        <h2 id="nearby-title" className={a.title}>В радиусе {radius} м</h2>
+      </div>
+      <button type="button" className={a.iconButton} aria-label="Закрыть истории рядом" onClick={onClose}><ExploreIcon name="close" /></button>
     </div>}>
     <div className={styles.radius} role="group" aria-label="Радиус поиска">
       {nearbyRadii.map(value => <button key={value} type="button" aria-pressed={radius === value} onClick={() => onRadius(value)}>{value} м</button>)}
@@ -110,7 +118,7 @@ export function NearbySheet({ status = "ready", radius, recommendations, onRadiu
     </li>)}</ol> : status==="ready"?<>
       <p className={a.text}>В этом радиусе пока нет готовой проверенной истории.</p>
       {wider ? <button type="button" className={a.secondary} onClick={() => onRadius(wider)}>Искать в большем радиусе <ExploreIcon name="arrow" /></button>
-        : <button type="button" className={a.secondary} onClick={onReset}>Выбрать другую точку <ExploreIcon name="map" /></button>}
+        : <button type="button" className={a.secondary} onClick={onClose}>Выбрать другую точку <ExploreIcon name="map" /></button>}
     </>:null}
   </Sheet>;
 }

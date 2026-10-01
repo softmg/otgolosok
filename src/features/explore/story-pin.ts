@@ -12,4 +12,6 @@ export type StoryPin = MapItem & {
   status?: string;
   paragraphs?: string[];
   attribution?: SourceAttribution;
+  /** A catalog place with a photo: its card keeps the preview slot while the detail loads. */
+  hasPhoto?: boolean;
 };

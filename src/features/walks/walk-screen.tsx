@@ -9,6 +9,8 @@ import { getLocalWalk, migrateLocalWalks } from "./local-store";
 import { loadAccountWalk, loadCatalogWalk, loadSharedWalk, loadWalkWithOfflineCopy, localWalkView, resolveLocalWalkView, WalkLoadError, type LoadedWalk } from "./walk-loader";
 import { offlineWalkRef, type OfflineWalkRef } from "./offline";
 import type { WalkView } from "./model";
+import type { ReviewTarget } from "../reviews/model";
+import { launchesPath } from "./launches";
 import "./walks.css";
 import { toUserMessage } from "@/lib/errors/user-message";
 
@@ -75,9 +77,13 @@ export function WalkScreen() {
   if (createIntent) return <p role="status">Открываем карту…</p>;
   if (selected.length === 0) return <p role="status">Открываем историю…</p>;
   const current = loaded.key === queryKey ? loaded : null;
+  // Local guest walks exist only in this browser, so the server cannot accept reviews for them.
+  const reviewTarget: ReviewTarget | null = selectedKind === "catalog" ? { kind: "catalog", id: catalogId }
+    : selectedKind === "share" ? { kind: "share", token: shareToken }
+    : selectedKind === "id" ? { kind: "account", id: accountId } : null;
   if (current?.error) return <WalkError message={current.error} />;
   if (!current?.view) return <main className="walk-screen"><p role="status">Открываем прогулку…</p></main>;
-  return <>{current.offlineNotice ? <p className="walk-offline-notice walk-offline-notice--map" data-region="notices" role="status">{current.offlineNotice}</p> : null}<TourExperience key={queryKey} walk={current.view} offline={current.offlineRef} /></>;
+  return <>{current.offlineNotice ? <p className="walk-offline-notice walk-offline-notice--map" data-region="notices" role="status">{current.offlineNotice}</p> : null}<TourExperience key={queryKey} walk={current.view} offline={current.offlineRef} reviewTarget={reviewTarget} launchTarget={launchesPath(reviewTarget) ? reviewTarget : null} /></>;
 }
 
 function WalkError({ message }: { message: string }) {

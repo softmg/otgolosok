@@ -27,16 +27,21 @@ import { useWalkAudio } from "./use-walk-audio";
 import { ClassicWalkView, type PlayerState } from "./classic-walk-view";
 import { AroundScreen } from "../explore/around-screen";
 import { isWalkCreation } from "../explore/panel-state";
+import { formatRatingSummary, type ReviewTarget } from "../reviews/model";
+import { useWalkReviews } from "../reviews/use-walk-reviews";
+import { ReviewDialog } from "../reviews/review-dialog";
+import { WalkReviews } from "../reviews/walk-reviews";
+import { useLaunchReport } from "../walks/launches";
 
 type SessionPhase = "reading" | "walking";
 
-export function TourExperience({ route, walk, offline = null }: { route?: Route; walk?: WalkView; offline?: OfflineWalkRef | null }) {
+export function TourExperience({ route, walk, offline = null, reviewTarget = null, launchTarget = null }: { route?: Route; walk?: WalkView; offline?: OfflineWalkRef | null; reviewTarget?: ReviewTarget | null; launchTarget?: ReviewTarget | null }) {
   const resolvedRoute = walk ? walkViewToRoute(walk) : route;
   if (!resolvedRoute) return <main className="shell"><section className="hero-copy"><h1>Прогулка не найдена</h1><p className="dek">Откройте ссылку ещё раз или вернитесь к списку прогулок.</p></section></main>;
-  return <AvailableTour route={resolvedRoute} universal={Boolean(walk)} view={walk} offlineRef={walk ? offline : null} />;
+  return <AvailableTour route={resolvedRoute} universal={Boolean(walk)} view={walk} offlineRef={walk ? offline : null} reviewTarget={walk ? reviewTarget : null} launchTarget={walk ? launchTarget : null} />;
 }
 
-function AvailableTour({ route: initialRoute, universal = false, view, offlineRef }: { route: Route; universal?: boolean; view?: WalkView; offlineRef: OfflineWalkRef | null }) {
+function AvailableTour({ route: initialRoute, universal = false, view, offlineRef, reviewTarget, launchTarget }: { route: Route; universal?: boolean; view?: WalkView; offlineRef: OfflineWalkRef | null; reviewTarget: ReviewTarget | null; launchTarget: ReviewTarget | null }) {
   const [route, setRoute] = useState(initialRoute);
   const firstPoi = route.pois[0];
   const [phase, setPhase] = useState<SessionPhase>("reading");
@@ -50,6 +55,10 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
   // Diagnostics are for field testing only: ?replay=… or ?debug=1.
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const offlineCopy = useOfflineCopy(view, offlineRef);
+  const reviews = useWalkReviews(reviewTarget);
+  const reportLaunch = useLaunchReport(launchTarget);
+  const [rateOpen, setRateOpen] = useState(false);
+  // A UX filter against drive-by ratings, not a security control: the server does not check it.
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const walkTitleRef = useRef<HTMLHeadingElement>(null);
   const sessionActiveRef = useRef(false);
@@ -173,6 +182,8 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
     // First, while the click still owns user activation (iOS).
     audio.begin(initialIndex, initialPosition, startAudioUrl);
     setPhase("walking");
+    // After audio.begin: counting must not delay the start or spend the click's user activation.
+    reportLaunch();
     setChapterIndex(initialIndex);
     setShowSources(false);
     setIsReplay(replayMode === "clean" || replayMode === "walk");
@@ -267,9 +278,12 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
         <p className="privacy-note"><i aria-hidden="true" /> Координаты остаются на устройстве</p>
       </header> : null}
 
+      {universal && reviewTarget ? <ReviewDialog reviews={reviews} open={rateOpen} onClose={() => setRateOpen(false)} walkTitle={route.title.trim() || "Ваш маршрут"} /> : null}
       {universal ? <WalkSession route={route} chapters={chapters} index={chapterIndex} active={isWalking} completed={completed}
         user={position.diagnostics.lastFix} positionFailed={positionFailed(position.diagnostics)} resume={Boolean(savedCheckpoint)} titleRef={walkTitleRef} startRef={startButtonRef}
         onStart={() => startTour()} onSelect={selectChapter} onStop={stopTour}
+        ratingLabel={formatRatingSummary(reviews.summary)}
+        hasReview={Boolean(reviews.mine)} ratingCount={reviews.summary?.count ?? null} reviews={reviewTarget ? <WalkReviews reviews={reviews} onRate={() => setRateOpen(true)} /> : null} onRate={() => setRateOpen(true)}
         audioError={audioStatus === "blocked" || audioStatus === "error" ? "Не удалось включить аудио. Нажмите «Повторить запуск звука»." : ""}
         player={walkAudioUrl ? <AudioPlayerControls compact position={playbackTime} duration={duration} canSeek={canSeek} playing={audioStatus === "playing"}
           label={audioButtonLabel} rate={settings.rate} onToggle={audio.toggle} onSeek={audio.seek} onRate={rate => updateSettings({ rate })} /> : null}
@@ -279,7 +293,6 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
           <label>Скорость аудио<select value={settings.rate} onChange={event => updateSettings({ rate: Number(event.target.value) as PlaybackRate })}>{playbackRates.map(rate => <option key={rate} value={rate}>{String(rate).replace(".", ",")}×</option>)}</select></label>
           {offlineRef ? <OfflineCopyControls copy={offlineCopy} statusClassName="walk-session-muted" /> : null}
           {shellStatus ? <p className="walk-session-muted" role="status">{shellStatus}</p> : null}
-          {isWalking ? <button type="button" onClick={() => stopTour()}>Остановить прогулку</button> : null}
         </div>} /> : isWalking ? (
         <ClassicWalkView route={route} chapters={chapters} chapterIndex={chapterIndex} titleRef={walkTitleRef}
           diagnostics={position.diagnostics} triggerConfig={triggerConfig} player={player} wakeStatus={wakeStatus}

@@ -56,6 +56,8 @@ test("create shares the walk and a replay returns it without planning again", as
   assert.equal(walk.shareUrl, `${origin}/walk?share=${walk.shareToken}`);
   assert.equal(accountStore.getSharedWalk(walk.shareToken)?.id, walk.id);
   assert.equal(created.body.view.chapters.length, 2);
+  const stored = accountStore.getWalk(PROMO_WALKS_USER_ID, walk.id);
+  assert.deepEqual([stored.visibility, stored.listingStatus], ["public", "approved"], "promo walks enter the top without pre-moderation");
 
   const replayed = await service.create(request());
   assert.equal(replayed.status, 200);
@@ -84,6 +86,18 @@ test("a walk stored before sharing is shared on replay", async t => {
   const replayed = await service.create(request());
   assert.equal(replayed.status, 200);
   assert.equal(accountStore.getSharedWalk(replayed.body.walk.shareToken)?.id, stored.id);
+  assert.equal(accountStore.getWalk(PROMO_WALKS_USER_ID, stored.id).visibility, "public");
+});
+
+test("a replay publishes a promo walk created when promo walks were link-only", async t => {
+  const { service, accountStore } = await fixture(t);
+  const { document } = (await service.create(request({ dryRun: true }))).body.view;
+  const stored = accountStore.createWalk(PROMO_WALKS_USER_ID, { title: request().title, snapshot: document, idempotencyKey: request().idempotencyKey }, { maxWalks: Infinity });
+  const shared = accountStore.setWalkVisibility(PROMO_WALKS_USER_ID, stored.id, stored.revision, "shared");
+  const replayed = await service.create(request());
+  assert.equal(replayed.body.walk.shareToken, shared.shareToken);
+  const walk = accountStore.getWalk(PROMO_WALKS_USER_ID, stored.id);
+  assert.deepEqual([walk.visibility, walk.listingStatus], ["public", "approved"]);
 });
 
 test("planner failures keep their status and retry hint", async t => {

@@ -67,3 +67,6 @@ next-env.d.ts
 
 # Cloudflare Wrangler local state
 .wrangler/
+
+# Локальные переопределения Docker Compose
+compose.override.yaml

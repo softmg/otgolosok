@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp,writeFile,rm } from "node:fs/promises";
+import { mkdtemp,readFile,writeFile,rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createStore } from "./store.mjs";
-import { createApp, workerLeaseSecret } from "./server.mjs";
+import { createApp, EDITORIAL_PLACE_IMAGES, setupPlaceImages, workerLeaseSecret } from "./server.mjs";
+import { createPlaceImageService, createWikimediaClient } from "./place-images.mjs";
 import { createAuth, sessionCsrfToken } from "./auth.mjs";
 import { createAccountStore } from "./account-store.mjs";
 import { ensurePromoWalksUser } from "./promo-walks.mjs";
@@ -580,4 +581,68 @@ test("published place details are revalidated by ETag while a missing place stay
   assert.equal((await raw(f.base,"/api/content/places/osm:node:8",{"If-None-Match":response.headers.etag})).status,304);
   const missing=await raw(f.base,"/api/content/places/osm:node:404");
   assert.equal(missing.status,404);assert.equal(missing.headers["cache-control"],"no-store");assert.equal(missing.headers.etag,undefined);
+});
+
+test("place photos are served immutable by content-addressed name only",async t=>{
+  const images=await mkdtemp(join(tmpdir(),"place-images-"));t.after(()=>rm(images,{recursive:true,force:true}));
+  const f=await fixture(t,{imageDirectory:images}),name=`${"c".repeat(64)}.jpg`;
+  await writeFile(join(images,name),Buffer.from([0xff,0xd8,0xff,0xe0]));
+  const response=await raw(f.base,`/api/place-images/${name}`);
+  assert.equal(response.status,200);assert.equal(response.headers["content-type"],"image/jpeg");assert.equal(response.headers["cache-control"],"public, max-age=31536000, immutable");
+  assert.equal((await raw(f.base,`/api/place-images/${name}`,{},"HEAD")).status,200);
+  assert.equal((await raw(f.base,`/api/place-images/${"d".repeat(64)}.jpg`)).status,404);
+  for(const path of [`/api/place-images/${"c".repeat(63)}.jpg`,`/api/place-images/..%2F${"c".repeat(64)}.jpg`,`/api/place-images/${"C".repeat(64)}.jpg`,`/api/place-images/${"c".repeat(64)}.png`])
+    assert.equal((await raw(f.base,path)).status,404,path);
+});
+
+test("the published place detail carries its photo",async t=>{
+  const f=await mapFixture(t);
+  f.store.savePlaceImage("osm:node:8",{status:"ready",source:"wikidata",inputHash:"h",thumbnailUrl:`/api/place-images/${"1".repeat(64)}.jpg`,srcUrl:`/api/place-images/${"2".repeat(64)}.jpg`,
+    width:960,height:720,author:null,license:"Public domain",licenseUrl:"https://commons.wikimedia.org/wiki/File:A.jpg",sourceUrl:"https://commons.wikimedia.org/wiki/File:A.jpg",
+    checkedAt:"2026-10-01T00:00:00.000Z",nextCheckAt:"2026-10-08T00:00:00.000Z"});
+  const value=/** @type {any} */ (await (await fetch(`${f.base}/api/content/places/osm:node:8`)).json());
+  assert.deepEqual(value.place.photo,{thumbnail:`/api/place-images/${"1".repeat(64)}.jpg`,src:`/api/place-images/${"2".repeat(64)}.jpg`,width:960,height:720,alt:"История: Сад",
+    author:null,sourceUrl:"https://commons.wikimedia.org/wiki/File:A.jpg",license:"Public domain",licenseUrl:"https://commons.wikimedia.org/wiki/File:A.jpg"});
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/content/places/osm:node:9`)).json()).place.photo,null);
+});
+
+async function approvalFixture(t,placeImages) {
+  const f=await fixture(t,{placeImages});
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),places:[{placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{wikidata:"Q1"}}]});
+  f.store.createBatch({requestKey:"photo-approve",placeIds:["osm:node:7"],limit:1});
+  const job=f.store.claimContentJob();f.store.completeContentJob(job.id,{story:{title:"Парк",paragraphs:[{text:"Текст",factIds:["f1"]}]},evidence:{facts:[]}});
+  return f;
+}
+
+test("manual approval looks up the photo first and never waits on Wikimedia failures",async t=>{
+  const calls=[];
+  const working=await approvalFixture(t,{ensure:async(place,options)=>{calls.push([place.id,place.tags.wikidata,options.timeoutMs]);return null;}});
+  assert.equal((await working.post("/api/story-admin/content/places/osm:node:7/approve",{})).status,200);
+  assert.deepEqual(calls,[["osm:node:7","Q1",15000]]);
+  const broken=await approvalFixture(t,{ensure:async()=>{throw new Error("bug");}});
+  assert.equal((await broken.post("/api/story-admin/content/places/osm:node:7/approve",{})).status,200);
+  assert.ok(broken.store.getPublishedPlace("osm:node:7"));
+  // A real service with Wikimedia unreachable: the story is published and the photo is retried later.
+  const images=await mkdtemp(join(tmpdir(),"place-images-"));t.after(()=>rm(images,{recursive:true,force:true}));
+  let service=null;
+  const down=await approvalFixture(t,{ensure:(...args)=>service.ensure(...args)});
+  service=createPlaceImageService({store:down.store,directory:images,
+    client:createWikimediaClient({fetch:async()=>{throw new TypeError("fetch failed");},userAgent:"test",sleep:async()=>{},apiIntervalMs:0})});
+  assert.equal((await down.post("/api/story-admin/content/places/osm:node:7/approve",{})).status,200);
+  assert.equal(down.store.getPlaceImageRow("osm:node:7").status,"failed");
+  assert.equal(down.store.getPublishedPlace("osm:node:7").photo,null);
+});
+
+test("photo sync is off unless PLACE_IMAGE_SYNC=true, while the editorial catalog is always mirrored",async t=>{
+  const store=createStore(":memory:");t.after(()=>store.close());
+  const images=await mkdtemp(join(tmpdir(),"place-images-"));t.after(()=>rm(images,{recursive:true,force:true}));
+  const options={store,directory:join(images,"place-images"),origin:"https://otgolosok.test",fetchImpl:async()=>{throw new Error("no network in tests");}};
+  assert.equal(await setupPlaceImages({...options,env:{}}),null);
+  const catalog=JSON.parse(await readFile(EDITORIAL_PLACE_IMAGES,"utf8"));
+  assert.equal(store.getPlaceImageRow(Object.keys(catalog)[0]).source,"editorial");
+  assert.equal(await setupPlaceImages({...options,env:{PLACE_IMAGE_SYNC:"1"}}),null);
+  const service=await setupPlaceImages({...options,env:{PLACE_IMAGE_SYNC:"true"}});
+  assert.equal(typeof service?.ensure,"function");
+  const broken=join(images,"broken.json");await writeFile(broken,JSON.stringify({"osm:node:1":{src:"x"}}));
+  await assert.rejects(setupPlaceImages({...options,env:{},catalogPath:broken}),{code:"INVALID_EDITORIAL_CATALOG"});
 });

@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createStore } from "./store.mjs";
 import { etagOf, serializeCell } from "./map-cells.mjs";
+import { placeImageInputHash } from "./place-images.mjs";
 
 const catalog={source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[
   {placeId:"osm:node:1",osmType:"node",osmId:1,name:"Памятник",location:{lat:55.75,lon:37.61},tags:{historic:"memorial",wikidata:"Q1"}},
@@ -624,4 +625,88 @@ test("place texts are indexed by place for the map queries", () => {
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
+});
+
+const photoRow = (overrides = {}) => ({ status: "ready", source: "wikidata", inputHash: "h", entityId: "Q1", commonsTitle: "File:A.jpg", commonsSha1: "a".repeat(40),
+  thumbnailUrl: `/api/place-images/${"1".repeat(64)}.jpg`, srcUrl: `/api/place-images/${"2".repeat(64)}.jpg`, width: 960, height: 720, author: "NVO",
+  license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0", sourceUrl: "https://commons.wikimedia.org/wiki/File:A.jpg",
+  attempts: 0, checkedAt: "2026-10-01T00:00:00.000Z", nextCheckAt: "2026-10-08T00:00:00.000Z", ...overrides });
+const editorialPhoto = { thumbnail: "/images/places/node-1-aaaaaaaaaaaa.jpg", src: "/images/places/node-1-bbbbbbbbbbbb.jpg", width: 1280, height: 960,
+  alt: "Редакционное фото", author: "Автор", sourceUrl: "https://commons.wikimedia.org/wiki/File:A.jpg", license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0" };
+/** Both catalog places published (the draft "osm:node:3" stays unpublished). */
+function photoStore(t) {
+  const store = createStore(":memory:", { maxActive: 100 });t.after(() => store.close());
+  store.importPlaces({ ...catalog, places: [...catalog.places, { placeId: "osm:node:3", osmType: "node", osmId: 3, name: "Черновик", location: { lat: 55.77, lon: 37.63 }, tags: { wikidata: "Q3" } }] });
+  store.createBatch({ requestKey: "photo-batch-1", placeIds: ["osm:node:1", "osm:way:2", "osm:node:3"], limit: 3 });
+  for (let job = store.claimContentJob(); job; job = store.claimContentJob())
+    store.completeContentJob(job.id, { story: { title: `История ${job.place.name}`, paragraphs: [{ text: "Текст", factIds: [] }] }, evidence: {}, autoApprove: job.place.id !== "osm:node:3" });
+  return store;
+}
+
+test("place_images is added to an existing database", t => {
+  const directory = mkdtempSync(join(tmpdir(), "photo-migration-")), file = join(directory, "jobs.sqlite");t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const first = createStore(file);first.importPlaces(catalog);first.close();
+  const db = new DatabaseSync(file);db.exec("DROP TABLE place_images");db.close();
+  const store = createStore(file);
+  try {
+    assert.equal(store.getPlaceImageRow("osm:node:1"), null);
+    assert.ok(store.savePlaceImage("osm:node:1", photoRow()));
+  } finally { store.close(); }
+});
+
+test("the editorial catalog is mirrored, wins over the sync and rejects malformed entries", t => {
+  const store = photoStore(t);
+  store.savePlaceImage("osm:way:2", photoRow());
+  assert.deepEqual(store.syncEditorialPlaceImages({ "osm:node:1": editorialPhoto, "osm:way:2": editorialPhoto }), { editorial: 2, removed: 0 });
+  assert.equal(store.getPlaceImageRow("osm:way:2").source, "editorial");
+  assert.equal(store.savePlaceImage("osm:node:1", photoRow()), null);
+  assert.equal(store.getPublishedPlace("osm:node:1").photo.alt, "Редакционное фото");
+  // An entry that left the catalog is handed over to the sync.
+  assert.deepEqual(store.syncEditorialPlaceImages({ "osm:node:1": editorialPhoto }), { editorial: 1, removed: 1 });
+  assert.equal(store.getPlaceImageRow("osm:way:2"), null);
+  for (const broken of [[], { "node:1": editorialPhoto }, { "osm:node:1": { ...editorialPhoto, src: "https://example.org/a.jpg" } },
+    { "osm:node:1": { ...editorialPhoto, width: 0 } }, { "osm:node:1": { ...editorialPhoto, author: " " } }, { "osm:node:1": { ...editorialPhoto, sourceUrl: "https://example.org/" } }])
+    assert.throws(() => store.syncEditorialPlaceImages(broken), { code: "INVALID_EDITORIAL_CATALOG" }, JSON.stringify(broken).slice(0, 80));
+  assert.equal(store.getPlaceImageRow("osm:node:1").source, "editorial");
+});
+
+test("due photos are published, non-editorial places, missing rows first", t => {
+  const store = photoStore(t), ids = at => store.listDuePlaceImages({ now: at }).map(entry => entry.place.id);
+  assert.deepEqual(ids("2026-10-01T00:00:00.000Z"), ["osm:node:1", "osm:way:2"]);
+  assert.deepEqual(store.listDuePlaceImages()[0].place.tags, { historic: "memorial", wikidata: "Q1" });
+  store.savePlaceImage("osm:node:1", photoRow({ nextCheckAt: "2026-10-05T00:00:00.000Z" }));
+  assert.deepEqual(ids("2026-10-01T00:00:00.000Z"), ["osm:way:2"]);
+  assert.deepEqual(ids("2026-10-06T00:00:00.000Z"), ["osm:way:2", "osm:node:1"]);
+  assert.equal(store.markPlaceImagesDue({ placeIds: ["osm:node:1"], now: "2026-10-01T00:00:00.000Z" }), 1);
+  assert.deepEqual(ids("2026-10-01T00:00:00.000Z"), ["osm:way:2", "osm:node:1"]);
+  store.syncEditorialPlaceImages({ "osm:way:2": editorialPhoto });
+  assert.equal(store.markPlaceImagesDue({ placeIds: null, now: "2026-10-01T00:00:00.000Z" }), 1);
+  assert.deepEqual(ids("2026-10-01T00:00:00.000Z"), ["osm:node:1"]);
+  assert.deepEqual([...store.listReferencedPlaceImageFiles()].sort(), [`${"1".repeat(64)}.jpg`, `${"2".repeat(64)}.jpg`]);
+});
+
+test("a reimport makes a photo due only when the place's identifiers change", t => {
+  const store = photoStore(t), later = "2026-12-01T00:00:00.000Z", place = catalog.places[0];
+  store.savePlaceImage("osm:node:1", photoRow({ inputHash: placeImageInputHash(place.tags), nextCheckAt: later }));
+  store.importPlaces({ ...catalog, places: [{ ...place, name: "Памятник (новое имя)" }, catalog.places[1]] });
+  assert.equal(store.getPlaceImageRow("osm:node:1").nextCheckAt, later);
+  store.importPlaces({ ...catalog, places: [{ ...place, tags: { ...place.tags, wikidata: "Q7" } }, catalog.places[1]] });
+  assert.ok(store.getPlaceImageRow("osm:node:1").nextCheckAt < later);
+});
+
+test("map points flag ready photos and the detail carries the photo", t => {
+  const store = photoStore(t), etag = () => store.listMapCells()[0].etag, point = id => store.getMapCell(55, 37).points.find(item => item.id === id);
+  const before = etag();
+  assert.equal("photo" in point("osm:node:1"), false);
+  store.savePlaceImage("osm:node:1", photoRow());
+  assert.equal(point("osm:node:1").photo, true);
+  assert.notEqual(etag(), before);
+  assert.deepEqual(store.getPublishedPlace("osm:node:1").photo, { thumbnail: `/api/place-images/${"1".repeat(64)}.jpg`, src: `/api/place-images/${"2".repeat(64)}.jpg`,
+    width: 960, height: 720, alt: "История Памятник", author: "NVO", sourceUrl: "https://commons.wikimedia.org/wiki/File:A.jpg", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0" });
+  for (const status of ["none", "failed"]) {
+    store.savePlaceImage("osm:node:1", photoRow({ status }));
+    assert.equal(store.getPublishedPlace("osm:node:1").photo, null);
+    assert.equal("photo" in point("osm:node:1"), false);
+  }
+  assert.equal(store.getPublishedPlace("osm:way:2").photo, null);
 });

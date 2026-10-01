@@ -66,8 +66,10 @@ export function createPromoWalkService({ accountStore, planWalk, store, origin }
       view: resolveWalkView(walk.snapshot, walk.revision, store),
     },
   });
-  // A replay after a crash between createWalk and setWalkSharing finishes the share.
-  const shared = walk => walk.visibility === "shared" ? walk : accountStore.setWalkSharing(PROMO_WALKS_USER_ID, walk.id, walk.revision, true);
+  // The trusted promo service publishes straight to the top. A replay after a crash between
+  // createWalk and setWalkVisibility, or of a walk created when promo walks were link-only,
+  // finishes the publication.
+  const shared = walk => walk.visibility === "public" ? walk : accountStore.setWalkVisibility(PROMO_WALKS_USER_ID, walk.id, walk.revision, "public", { autoApprove: true });
   const replay = request => {
     const stored = accountStore.findWalkByIdempotencyKey(PROMO_WALKS_USER_ID, request.idempotencyKey);
     if (!stored) return null;

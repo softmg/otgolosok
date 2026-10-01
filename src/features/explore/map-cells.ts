@@ -2,10 +2,11 @@ import type { CatalogBounds } from "./catalog-bounds";
 import { RequestError, fetchWithRetry } from "../walk-builder/request";
 
 /** Wire format of one slim map point (`GET /api/content/map-cells/{lat}/{lon}`). */
-export type MapPoint = { id: string; lat: number; lon: number; title: string; address: string; durationSec: number | null; facts: number; sources: number };
+/** `photo` is present (true) only for a place with a photo, so the card can reserve the preview slot before the detail loads. */
+export type MapPoint = { id: string; lat: number; lon: number; title: string; address: string; durationSec: number | null; facts: number; sources: number; photo?: boolean };
 export type CatalogPoint = {
   id: string; location: { lat: number; lon: number }; title: string; address: string;
-  durationSec: number | null; facts: number; sources: number;
+  durationSec: number | null; facts: number; sources: number; photo: boolean;
 };
 type ManifestCell = { count: number; etag: string };
 export type CellStatus = "ready" | "loading" | "error";
@@ -80,9 +81,9 @@ function parseCell(value: unknown, key: string): CatalogPoint[] {
       || typeof point.lat !== "number" || !Number.isFinite(point.lat) || typeof point.lon !== "number" || !Number.isFinite(point.lon)
       || typeof point.title !== "string" || typeof point.address !== "string"
       || !(point.durationSec === null || typeof point.durationSec === "number" && Number.isFinite(point.durationSec) && point.durationSec > 0)
-      || !isCount(point.facts) || !isCount(point.sources)) throw new Error("Некорректная область карты.");
+      || !isCount(point.facts) || !isCount(point.sources) || !(point.photo === undefined || point.photo === true)) throw new Error("Некорректная область карты.");
     return { id: point.id, location: { lat: point.lat, lon: point.lon }, title: point.title, address: point.address,
-      durationSec: point.durationSec as number | null, facts: point.facts, sources: point.sources };
+      durationSec: point.durationSec as number | null, facts: point.facts, sources: point.sources, photo: point.photo === true };
   });
 }
 

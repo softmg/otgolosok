@@ -38,14 +38,6 @@
   color: var(--map-muted);
 }
 
-.meta {
-  display: block;
-  margin: var(--space-xs) 0;
-  font-size: var(--text-secondary);
-  line-height: 1.5;
-  color: var(--map-muted);
-}
-
 .iconButton {
   display: inline-grid;
   place-items: center;

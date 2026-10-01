@@ -1,0 +1,68 @@
+.dialog {
+  width: calc(100% - 2rem);
+  max-width: 24rem;
+  max-height: calc(100% - 2rem);
+  margin: auto;
+  padding: var(--space-md);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--map-green);
+  background: var(--surface-island);
+  border: 0;
+  border-radius: var(--radius-lg);
+}
+
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--map-green) 60%, transparent);
+}
+
+.dialog h2 {
+  margin: 0;
+  font-size: var(--text-control);
+  font-weight: var(--weight-bold);
+  line-height: 1.3;
+}
+
+.dialog p {
+  margin: var(--space-xs) 0 0;
+  color: var(--map-muted);
+  font-size: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+.secondary,
+.danger {
+  flex: 1 1 8rem;
+  min-height: var(--control-primary-min);
+  padding: 0 var(--space-lg);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.secondary {
+  color: var(--map-green);
+  background: transparent;
+  border: 1px solid var(--control-border);
+}
+
+.danger {
+  color: var(--on-dark);
+  background: var(--map-orange);
+  border: 0;
+}
+
+.secondary:focus-visible,
+.danger:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}

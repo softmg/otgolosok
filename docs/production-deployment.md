@@ -247,6 +247,23 @@ waits at most ten minutes for existing jobs to become idle, stops the single
 generator, archives its data/configuration, then recreates it. Never use
 `down -v`, prune, or launch another worker on the same SQLite database.
 
+## Фото мест из Wikidata и Commons
+
+- Перед включением проверьте с VPS доступ к Wikimedia, например
+  `docker exec otgolosok-generator-generator-1 node -e "fetch('https://www.wikidata.org/w/api.php?action=query&format=json').then(r=>console.log(r.status))"`.
+  При реализации (1 октября 2026) это не проверялось: SSH-ключ хоста VPS на машине разработки не был известен.
+- Добавьте в `.generator.env` строку `PLACE_IMAGE_SYNC=true` (production-compose подключает файл через `env_file`;
+  если переменные перечислены явно, добавьте `PLACE_IMAGE_SYNC: ${PLACE_IMAGE_SYNC:-false}` как в `compose.yaml`)
+  и выложите backend штатным `make deploy-otgolosok-generator`. Файлы ложатся в `generator-data/place-images/`
+  (`/data/place-images` в контейнере), этот каталог сохраняется вместе с базой.
+- Первый проход: `docker exec otgolosok-generator-generator-1 node sync-place-images.mjs --dry-run --limit 200`,
+  затем без `--dry-run`. Команда печатает итог по причинам и завершается с ошибкой, если Wikimedia попросил подождать.
+  Остальное догоняет фоновый обработчик.
+- Раз в месяц или после массовых перепроверок: `docker exec otgolosok-generator-generator-1 node sync-place-images.mjs --prune`.
+- `/api/place-images/` проходит через существующий маршрут Traefik на backend; после выкладки проверьте у одного
+  файла `Cache-Control: public, max-age=31536000, immutable` и 404 для несуществующего хеша.
+- Подробности — `docs/agents/place-photo-preview.md`.
+
 ## Служебный API промо-прогулок
 
 - Добавьте в `.generator.env` новое случайное значение `PROMO_WALKS_TOKEN`

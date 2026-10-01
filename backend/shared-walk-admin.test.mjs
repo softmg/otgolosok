@@ -13,7 +13,7 @@ function fixture(t) {
   function create(title, owner = "one", mode = "loop", shared = true) {
     const walk = store.createWalk(owner, { title, idempotencyKey: `shared-test-${sequence++}`,
       snapshot: { version: 1, title, start: null, stops: [], mode, minutes: 30, route: null, jobs: [], submitting: null } });
-    return shared ? store.setWalkSharing(owner, walk.id, walk.revision, true) : walk;
+    return shared ? store.setWalkVisibility(owner, walk.id, walk.revision, "shared") : walk;
   }
   return { db, store, create };
 }
@@ -33,7 +33,7 @@ test("admin lists shared walks of every owner, with author and public token but 
   assert.equal(row.walkingMinutes, null);
   assert.equal("snapshot" in row, false);
   assert.equal("snapshot_json" in row, false);
-  store.setWalkSharing("one", a.id, a.revision, false);
+  store.setWalkVisibility("one", a.id, a.revision, "private");
   assert.equal(store.listSharedWalksAdmin().total, 1);
 });
 
@@ -73,7 +73,7 @@ test("a damaged snapshot remains visible and cannot break filtering", t => {
 
 test("empty results have a valid first page", t => {
   const { store } = fixture(t);
-  assert.deepEqual(store.listSharedWalksAdmin({ offset: 100 }), { walks: [], total: 0, offset: 0, hasMore: false });
+  assert.deepEqual(store.listSharedWalksAdmin({ offset: 100 }), { walks: [], total: 0, offset: 0, hasMore: false, pending: 0 });
 });
 
 test("invalid pagination and filters are rejected", t => {
@@ -82,4 +82,67 @@ test("invalid pagination and filters are rejected", t => {
     { mode: "unknown" }, { q: null }, { q: "x".repeat(121) }, { author: "x".repeat(121) }]) {
     assert.throws(() => store.listSharedWalksAdmin(value), { code: "BAD_REQUEST" });
   }
+});
+
+const point = (lat, lon) => ({ lat, lon });
+/** @param {any} store @param {string} title @param {string} [owner] */
+function createPublic(store, title, owner = "one") {
+  const start = { address: "Москва, Арбат, 1", location: point(55.75, 37.6) }, stop = { address: "Москва, Арбат, 10", location: point(55.751, 37.601) };
+  const id = crypto.randomUUID();
+  const snapshot = { version: 2, id, title, description: "", city: "Москва", mode: "open", minutes: 30, start,
+    stops: [{ id: crypto.randomUUID(), place: stop, storyRef: null, transition: "", nextHint: "" }],
+    route: { geometry: [start.location, stop.location], distanceM: 200, walkingMinutes: 3, attribution: "OSM" }, fieldChecked: false };
+  const walk = store.createWalk(owner, { title, snapshot, idempotencyKey: `public-${id}` });
+  return store.setWalkVisibility(owner, walk.id, walk.revision, "public");
+}
+
+test("access and listing filters narrow the list, and pending counts every public walk awaiting review", t => {
+  const { store, create } = fixture(t);
+  create("Ссылка");
+  const pending = createPublic(store, "Ждёт"), approved = createPublic(store, "Одобрена"), hidden = createPublic(store, "Скрыта", "two");
+  store.moderateWalkListing(approved.id, { action: "approve", revision: approved.revision });
+  store.moderateWalkListing(hidden.id, { action: "hide", revision: hidden.revision });
+  const all = store.listSharedWalksAdmin();
+  assert.equal(all.total, 4);
+  assert.equal(all.pending, 1);
+  assert.deepEqual(Object.fromEntries(all.walks.map(w => [w.title, [w.visibility, w.listingStatus]])),
+    { "Ссылка": ["shared", null], "Ждёт": ["public", "pending"], "Одобрена": ["public", "approved"], "Скрыта": ["public", "hidden"] });
+  assert.equal(all.walks.find(w => w.id === pending.id).revision, pending.revision);
+  assert.equal(store.listSharedWalksAdmin({ access: "shared" }).total, 1);
+  assert.equal(store.listSharedWalksAdmin({ access: "public" }).total, 3);
+  for (const [listing, title] of [["pending", "Ждёт"], ["approved", "Одобрена"], ["hidden", "Скрыта"]]) {
+    const page = store.listSharedWalksAdmin({ listing });
+    assert.deepEqual(page.walks.map(w => w.title), [title], listing);
+    assert.equal(page.pending, 1, "the counter ignores filters");
+  }
+  assert.equal(store.listSharedWalksAdmin({ access: "shared", listing: "pending" }).total, 0);
+  for (const value of [{ access: "everyone" }, { listing: "rejected" }, { access: null }])
+    assert.throws(() => store.listSharedWalksAdmin(/** @type {any} */ (value)), { code: "BAD_REQUEST" });
+});
+
+test("moderation approves or hides a public walk without bumping its revision", t => {
+  const { store, db } = fixture(t);
+  const walk = createPublic(store, "Публичная");
+  const before = /** @type {any} */ (db.prepare("SELECT updated_at FROM user_walks WHERE id=?").get(walk.id)).updated_at;
+  const approved = store.moderateWalkListing(walk.id, { action: "approve", revision: walk.revision });
+  assert.equal(approved.listingStatus, "approved");
+  assert.equal(approved.revision, walk.revision);
+  assert.equal(approved.updatedAt, before);
+  assert.equal(store.getWalk("one", walk.id).listingStatus, "approved");
+  const hidden = store.moderateWalkListing(walk.id, { action: "hide", revision: walk.revision });
+  assert.equal(hidden.listingStatus, "hidden");
+  assert.equal(hidden.revision, walk.revision);
+  // The owner's next edit is not a conflict.
+  assert.equal(store.updateWalk("one", walk.id, { title: walk.title, snapshot: walk.snapshot, revision: walk.revision }).revision, walk.revision + 1);
+});
+
+test("moderation refuses stale revisions, non-public walks and bad input", t => {
+  const { store, create } = fixture(t);
+  const walk = createPublic(store, "Публичная");
+  assert.throws(() => store.moderateWalkListing(walk.id, { action: "approve", revision: walk.revision + 1 }), { code: "CONFLICT", message: "Прогулка изменилась — обновите список." });
+  const shared = create("Ссылка");
+  assert.throws(() => store.moderateWalkListing(shared.id, { action: "approve", revision: shared.revision }), { code: "CONFLICT" });
+  assert.equal(store.moderateWalkListing(crypto.randomUUID(), { action: "hide", revision: 0 }), null);
+  for (const input of [{ action: "publish", revision: 0 }, { action: "approve", revision: -1 }, { action: "hide" }])
+    assert.throws(() => store.moderateWalkListing(walk.id, /** @type {any} */ (input)), { code: "BAD_REQUEST" });
 });

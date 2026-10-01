@@ -3,7 +3,19 @@ import { RequestError, fetchWithRetry } from "../walk-builder/request";
 import { mapCellStore } from "./map-cells";
 import { openDataAttribution, type SourceAttribution, type StorySourceRef } from "./source-attribution";
 
-export type PlaceStory = { paragraphs: string[]; attribution?: SourceAttribution; audioUrl?: string; durationSec?: number };
+/** A place photo served from our own origin, with the author and license credit shown under the full image. */
+export type PlacePhoto = {
+  src: string;
+  thumbnail: string;
+  width: number;
+  height: number;
+  alt: string;
+  author: string | null;
+  sourceUrl: string;
+  license: string;
+  licenseUrl: string;
+};
+export type PlaceStory = { paragraphs: string[]; attribution?: SourceAttribution; audioUrl?: string; durationSec?: number; photo?: PlacePhoto };
 export type PlaceStoryState = { status: "idle" | "loading" | "ready" | "missing" | "error"; story?: PlaceStory; retry: () => void };
 
 const CACHE_LIMIT = 100;
@@ -16,18 +28,42 @@ function remember(id: string, story: PlaceStory) {
   if (stories.size > CACHE_LIMIT) stories.delete(stories.keys().next().value as string);
 }
 
+const PHOTO_PATH = /^(?:\/api\/place-images\/[a-f0-9]{64}|\/images\/places\/[a-z0-9-]+)\.jpg$/;
+const text = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
+const webUrl = (value: unknown) => {
+  if (typeof value !== "string") return undefined;
+  try { const url = new URL(value); return url.protocol === "https:" || url.protocol === "http:" ? url.href : undefined; }
+  catch { return undefined; }
+};
+const size = (value: unknown) => Number.isSafeInteger(value) && (value as number) > 0 ? value as number : undefined;
+
+/** The photo of a place detail; anything malformed means no photo, never a broken story. */
+export function parsePlacePhoto(value: unknown): PlacePhoto | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const photo = value as Record<string, unknown>;
+  const thumbnail = typeof photo.thumbnail === "string" && PHOTO_PATH.test(photo.thumbnail) ? photo.thumbnail : undefined;
+  const src = typeof photo.src === "string" && PHOTO_PATH.test(photo.src) ? photo.src : undefined;
+  const width = size(photo.width), height = size(photo.height), alt = text(photo.alt), license = text(photo.license);
+  const sourceUrl = webUrl(photo.sourceUrl), licenseUrl = webUrl(photo.licenseUrl);
+  if (photo.author !== null && typeof photo.author !== "string") return undefined;
+  if (!thumbnail || !src || !width || !height || !alt || !license || !sourceUrl || !licenseUrl) return undefined;
+  return { thumbnail, src, width, height, alt, author: text(photo.author) ?? null, sourceUrl, license, licenseUrl };
+}
+
 /** Maps `GET /api/content/places/:id` to the sheet body; a body without a published text is malformed. */
 export function parsePlaceStory(value: unknown): PlaceStory {
-  const text = (value as { place?: { text?: { story?: unknown; audio?: unknown } } } | null)?.place?.text;
-  const story = text?.story as { paragraphs?: unknown; sources?: unknown } | null | undefined;
+  const place = (value as { place?: { text?: { story?: unknown; audio?: unknown }; photo?: unknown } } | null)?.place;
+  const placeText = place?.text;
+  const story = placeText?.story as { paragraphs?: unknown; sources?: unknown } | null | undefined;
   if (!story || typeof story !== "object" || !Array.isArray(story.paragraphs)) throw new Error("Некорректный ответ рассказа.");
   const paragraphs = (story.paragraphs as Array<{ text?: unknown } | null>)
     .map(paragraph => paragraph?.text).filter((paragraph): paragraph is string => typeof paragraph === "string" && paragraph.trim().length > 0);
-  const audio = text?.audio as { url?: unknown; durationSec?: unknown } | null | undefined;
+  const audio = placeText?.audio as { url?: unknown; durationSec?: unknown } | null | undefined;
   const audioUrl = typeof audio?.url === "string" && audio.url ? audio.url : undefined;
   const durationSec = audioUrl && typeof audio?.durationSec === "number" && Number.isFinite(audio.durationSec) && audio.durationSec > 0 ? audio.durationSec : undefined;
   const attribution = openDataAttribution(Array.isArray(story.sources) ? story.sources as StorySourceRef[] : undefined);
-  return { paragraphs, ...(attribution ? { attribution } : {}), ...(audioUrl ? { audioUrl } : {}), ...(durationSec ? { durationSec } : {}) };
+  const photo = parsePlacePhoto(place?.photo);
+  return { paragraphs, ...(attribution ? { attribution } : {}), ...(audioUrl ? { audioUrl } : {}), ...(durationSec ? { durationSec } : {}), ...(photo ? { photo } : {}) };
 }
 
 /** null: the story was unpublished after the map index was loaded. */

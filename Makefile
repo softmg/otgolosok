@@ -14,6 +14,7 @@ shell_quote = '$(subst ','"'"',$(1))'
 .PHONY: help install dev dev-https replay build serve lint typecheck test check clean
 .PHONY: docker-up docker-down docker-logs docker-ps docker-config
 .PHONY: db-dump db-pack db-import db-restore db-info db-prune-audio osm-import osm-load
+.PHONY: place-images place-images-prune
 .PHONY: admin-create admin-create-prod
 
 help: ## Показать доступные команды
@@ -93,6 +94,12 @@ db-info: ## Показать состав локальной базы генер
 
 db-prune-audio: ## Удалить старые аудиофайлы без ссылок в базе
 	$(NODE) scripts/prune-audio.mjs
+
+place-images: ## Подобрать и обновить фото мест из Wikidata/Commons (аргументы: PLACE_IMAGES_ARGS)
+	$(NODE) backend/sync-place-images.mjs $(PLACE_IMAGES_ARGS)
+
+place-images-prune: ## Удалить файлы фото мест без ссылок в базе
+	$(NODE) backend/sync-place-images.mjs --prune
 
 osm-import: ## Собрать каталог достопримечательностей; PBF=path/to/Moscow.osm.pbf
 	python scripts/import-osm-attractions.py $(PBF) --output backend/data/osm-attractions.json $(OSM_IMPORT_ARGS)

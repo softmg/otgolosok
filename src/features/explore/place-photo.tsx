@@ -2,34 +2,20 @@
 
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
-import photos from "../../../content/place-images.json";
 import { ExploreIcon } from "./icons";
+import type { PlacePhoto } from "./place-story";
 import styles from "./place-photo.module.css";
 
-type PlacePhoto = {
-  src: string;
-  thumbnail: string;
-  width: number;
-  height: number;
-  alt: string;
-  author: string;
-  sourceUrl: string;
-  license: string;
-  licenseUrl: string;
-};
+export type { PlacePhoto };
 
-const catalog: Readonly<Record<string, PlacePhoto>> = photos;
-
-/** The caller keys this heading by place so loading failures cannot leak into the next card. */
-export function PlacePhotoHeading({ placeId, title, address, titleClassName, addressClassName }: {
-  placeId?: string;
-  title: string;
-  address: string;
-  titleClassName?: string;
-  addressClassName?: string;
-}) {
-  const photo = placeId && Object.hasOwn(catalog, placeId) ? catalog[placeId] : undefined;
-  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+/**
+ * The wide photo on top of a place card, as in map apps; a tap opens the full image with its credit.
+ * The caller keys it by place so loading failures cannot leak into the next card. `pending` holds an
+ * empty banner while the photo of a place known to have one is loading, so the card never jumps.
+ * Renders nothing without a photo or after the banner image fails.
+ */
+export function PlacePhotoBanner({ photo, pending = false, title }: { photo?: PlacePhoto; pending?: boolean; title: string }) {
+  const [bannerFailed, setBannerFailed] = useState(false);
   const [open, setOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -38,9 +24,10 @@ export function PlacePhotoHeading({ placeId, title, address, titleClassName, add
   const trigger = useRef<HTMLButtonElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const dialogTitle = useId();
-  const heading = <><h2 id="selected-place-title" className={titleClassName}>{title}</h2>{title !== address ? <p className={addressClassName}>{address}</p> : null}</>;
 
-  if (!photo || thumbnailFailed) return heading;
+  // Static on purpose: no shimmer, so it is safe with reduced motion.
+  if (!photo && pending) return <span aria-hidden="true" className={styles.placeholder} data-photo-placeholder />;
+  if (!photo || bannerFailed) return null;
 
   function showPhoto() {
     try {
@@ -55,15 +42,13 @@ export function PlacePhotoHeading({ placeId, title, address, titleClassName, add
   }
 
   return <>
-    <div className={styles.heading} data-photo-heading>
-      <div className={styles.headingText}>{heading}</div>
-      <button ref={trigger} type="button" className={styles.preview} onClick={showPhoto}
-        aria-label={`Открыть фото: ${title}`} aria-haspopup="dialog">
-        <Image unoptimized src={photo.thumbnail} width={240} height={240} alt={photo.alt}
-          onError={() => setThumbnailFailed(true)} />
-      </button>
-    </div>
-    {openFailed ? <p role="status">Не удалось открыть фотографию. Попробуйте ещё раз.</p> : null}
+    <button ref={trigger} type="button" className={styles.banner} onClick={showPhoto} data-photo-banner
+      aria-label={`Открыть фото: ${title}`} aria-haspopup="dialog">
+      {/* The full copy: the 250 px preview would be blurry stretched across the card, and the viewer then opens from cache. */}
+      <Image unoptimized src={photo.src} width={photo.width} height={photo.height} alt={photo.alt}
+        loading="eager" onError={() => setBannerFailed(true)} />
+    </button>
+    {openFailed ? <p className={styles.status} role="status">Не удалось открыть фотографию. Попробуйте ещё раз.</p> : null}
     <dialog ref={dialog} className={styles.viewer} aria-labelledby={dialogTitle}
       onClose={() => { setOpen(false); trigger.current?.focus({ preventScroll: true }); }}
       onClick={event => {
@@ -80,7 +65,7 @@ export function PlacePhotoHeading({ placeId, title, address, titleClassName, add
         <button type="button" onClick={() => { setAttempt(value => value + 1); setImageFailed(false); }}>Повторить</button>
       </div> : <Image key={attempt} unoptimized src={photo.src} width={photo.width} height={photo.height}
         loading="eager" alt={photo.alt} className={styles.full} onError={() => setImageFailed(true)} /> : null}
-      <p className={styles.credit}>Фото: {photo.author}. <a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">Wikimedia Commons</a> · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a></p>
+      <p className={styles.credit}>Фото: {photo.author ? `${photo.author}. ` : null}<a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">Wikimedia Commons</a> · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a></p>
     </dialog>
   </>;
 }

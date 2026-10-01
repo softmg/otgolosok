@@ -86,6 +86,22 @@ test("сбой сессии не выглядит как отсутствие п
   await expect(page.locator("main").getByRole("alert")).toContainText("вход");
 });
 
+test("вкладки истории переключаются кликом и клавишами, а URL следует за ними", async ({ page }) => {
+  await page.route("**/api/**", route => route.fulfill({ json: { user: null, walks: [] } }));
+  await page.goto("/history?tab=top");
+  const mine = page.getByRole("tab", { name: "Мои прогулки", exact: true }), top = page.getByRole("tab", { name: "Топ прогулок", exact: true });
+  await expect(top).toHaveAttribute("aria-selected", "true");
+  await mine.click();
+  await expect(mine).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#history-panel-mine")).toBeVisible();
+  await expect(page).toHaveURL(/\/history\/?\?tab=mine$/);
+  await mine.press("ArrowRight");
+  await expect(top).toHaveAttribute("aria-selected", "true");
+  await expect(top).toBeFocused();
+  await expect(page.locator("#history-panel-top")).toBeVisible();
+  await expect(page).toHaveURL(/\/history\/?\?tab=top$/);
+});
+
 test("создаёт A→Б на карте и восстанавливает его из истории", async ({ page }, info) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -351,7 +367,7 @@ test("длинная история прокручивается внутри к
   const story = await openLongStory(page);
   const card = page.locator('[data-sheet="story"]');
   const close = page.getByRole("button", { name: "Закрыть карточку", exact: true });
-  const audio = card.locator("audio");
+  const audio = card.getByRole("region", { name: "Плеер истории" });
   const state = () => story.evaluate(el => {
     const style = getComputedStyle(el);
     return { fadeTop: style.getPropertyValue("--fade-top"), fadeBottom: style.getPropertyValue("--fade-bottom"), rest: el.scrollHeight - el.clientHeight - el.scrollTop };

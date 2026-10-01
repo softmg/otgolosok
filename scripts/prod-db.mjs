@@ -26,6 +26,8 @@ const DUMP_DIR = resolve(ROOT, process.env.DUMP_DIR ?? "backend/data/prod-dump")
 const DATA_DIR = resolve(ROOT, process.env.DATA_DIR ?? "backend/data");
 const REMOTE_SNAPSHOT = "/tmp/otgolosok-dump.sqlite";
 const JOURNAL = ["jobs.sqlite", "jobs.sqlite-wal", "jobs.sqlite-shm"];
+// Files the database refers to by name: story audio and place photos travel with every snapshot.
+const MEDIA_DIRS = ["audio", "place-images"];
 
 /** Runs inside the generator container, piped to its node over ssh. */
 const SNAPSHOT_SCRIPT = `
@@ -91,12 +93,16 @@ function describe(file) {
   for (const { stage } of jobs) stages.set(stage, (stages.get(stage) ?? 0) + 1);
   const chapters = tables.has("walk_chapters") ? db.prepare("SELECT count(*) AS n FROM walk_chapters").get().n : null;
   const placeAudio = tables.has("place_texts") ? db.prepare("SELECT audio_json FROM place_texts WHERE audio_json IS NOT NULL").all() : [];
+  const placeImages = tables.has("place_images")
+    ? db.prepare("SELECT thumbnail_url, src_url FROM place_images WHERE status = 'ready'").all()
+      .flatMap((row) => [row.thumbnail_url, row.src_url]).filter((url) => typeof url === "string" && url.startsWith("/api/place-images/")).map((url) => url.split("/").pop())
+    : [];
   db.close();
-  return { integrity, jobs, stages, chapters, placeAudio, bytes: statSync(file).size };
+  return { integrity, jobs, stages, chapters, placeAudio, placeImages, bytes: statSync(file).size };
 }
 
 function report(file, dataDir) {
-  const { integrity, jobs, stages, chapters, placeAudio, bytes } = describe(file);
+  const { integrity, jobs, stages, chapters, placeAudio, placeImages, bytes } = describe(file);
   const audio = jobs.flatMap((row) => {
     const record = JSON.parse(row.record_json);
     return row.stage === "ready" && record.data?.audio ? [record.data.audio.url.split("/").pop()] : [];
@@ -104,13 +110,15 @@ function report(file, dataDir) {
   const catalogAudio=placeAudio.map(row=>JSON.parse(row.audio_json)?.url?.split("/").pop()).filter(Boolean);
   const allAudio=[...new Set([...audio,...catalogAudio])];
   const missing = dataDir ? allAudio.filter((name) => !existsSync(join(dataDir, "audio", name))) : [];
+  const missingImages = dataDir ? [...new Set(placeImages)].filter((name) => !existsSync(join(dataDir, "place-images", name))) : [];
   process.stdout.write(`  целостность: ${integrity}, ${(bytes / 1024).toFixed(0)} КБ\n`);
   process.stdout.write(`  заданий: ${jobs.length}${jobs.length ? ` (${[...stages].map(([stage, count]) => `${stage}=${count}`).join(", ")})` : ""}\n`);
-  process.stdout.write(`  глав прогулки: ${chapters ?? "таблицы ещё нет"}, аудио адресов: ${audio.length}, аудио OSM: ${catalogAudio.length}\n`);
+  process.stdout.write(`  глав прогулки: ${chapters ?? "таблицы ещё нет"}, аудио адресов: ${audio.length}, аудио OSM: ${catalogAudio.length}, файлов фото мест: ${new Set(placeImages).size}\n`);
   if (dataDir) {
     process.stdout.write(missing.length
       ? `  ВНИМАНИЕ: не хватает записей: ${missing.join(", ")}\n`
       : `  все записи готовых историй на месте\n`);
+    if (missingImages.length) process.stdout.write(`  ВНИМАНИЕ: не хватает файлов фото мест: ${missingImages.length}\n`);
   }
   if (integrity !== "ok") fail("База не прошла проверку целостности.");
 }
@@ -126,9 +134,13 @@ function dump() {
   ssh(`docker exec ${CONTAINER} rm -f ${REMOTE_SNAPSHOT}`);
   if (sha256(bytes) !== expected) fail("Контрольные суммы снимка не совпали, выгрузка не сохранена.");
 
-  mkdirSync(join(DUMP_DIR, "audio"), { recursive: true });
   writeFileSync(join(DUMP_DIR, "jobs.sqlite"), bytes);
-  run("rsync", ["-a", `${VPS}:${REMOTE_DIR}/generator-data/audio/`, `${join(DUMP_DIR, "audio")}/`]);
+  for (const name of MEDIA_DIRS) {
+    mkdirSync(join(DUMP_DIR, name), { recursive: true });
+    // place-images appears only after the first photo sync on the server.
+    const remote = `${REMOTE_DIR}/generator-data/${name}`;
+    if (ssh(`test -d ${remote} && echo yes || true`).trim() === "yes") run("rsync", ["-a", `${VPS}:${remote}/`, `${join(DUMP_DIR, name)}/`]);
+  }
 
   process.stdout.write(`Выгрузка: ${DUMP_DIR}\n`);
   report(join(DUMP_DIR, "jobs.sqlite"), DUMP_DIR);
@@ -155,19 +167,23 @@ function importDump() {
 
   const backup = join(DATA_DIR, `backup-local-${stamp()}`);
   mkdirSync(backup, { recursive: true });
-  mkdirSync(join(DATA_DIR, "audio"), { recursive: true });
   for (const name of JOURNAL) {
     if (existsSync(join(DATA_DIR, name))) cpSync(join(DATA_DIR, name), join(backup, name));
   }
-  if(existsSync(join(DATA_DIR,"audio")))cpSync(join(DATA_DIR,"audio"),join(backup,"audio"),{recursive:true});
+  for (const name of MEDIA_DIRS) {
+    mkdirSync(join(DATA_DIR, name), { recursive: true });
+    cpSync(join(DATA_DIR, name), join(backup, name), { recursive: true });
+  }
   process.stdout.write(`Прежняя база сохранена: ${backup}\n`);
 
   // The journal belongs to the database it was written for. Leaving it next to a
   // different jobs.sqlite is what turns a restore into a corrupt database.
   for (const name of JOURNAL) rmSync(join(DATA_DIR, name), { force: true });
   cpSync(source, join(DATA_DIR, "jobs.sqlite"));
-  rmSync(join(DATA_DIR, "audio"), { recursive: true, force: true });
-  copyDirectoryContents(join(DUMP_DIR, "audio"), join(DATA_DIR, "audio"));
+  for (const name of MEDIA_DIRS) {
+    rmSync(join(DATA_DIR, name), { recursive: true, force: true });
+    copyDirectoryContents(join(DUMP_DIR, name), join(DATA_DIR, name));
+  }
 
   process.stdout.write(`Импортировано в ${DATA_DIR}\n`);
   report(join(DATA_DIR, "jobs.sqlite"), DATA_DIR);
@@ -188,15 +204,17 @@ function restore() {
   }
   const backup = join(DATA_DIR, chosen);
   if (!existsSync(join(backup, "jobs.sqlite"))) fail(`В ${backup} нет jobs.sqlite.`);
-  const currentAudio=join(DATA_DIR,"audio"),backupAudio=join(backup,"audio");
   for (const name of JOURNAL) rmSync(join(DATA_DIR, name), { force: true });
   for (const name of JOURNAL) {
     if (existsSync(join(backup, name))) cpSync(join(backup, name), join(DATA_DIR, name));
   }
-  if(existsSync(backupAudio)){rmSync(currentAudio,{recursive:true,force:true});cpSync(backupAudio,currentAudio,{recursive:true});}
+  for (const name of MEDIA_DIRS) {
+    const current = join(DATA_DIR, name), saved = join(backup, name);
+    if (existsSync(saved)) { rmSync(current, { recursive: true, force: true }); cpSync(saved, current, { recursive: true }); }
+  }
   process.stdout.write(`Восстановлено из ${backup}\n`);
   report(join(DATA_DIR, "jobs.sqlite"), DATA_DIR);
-  process.stdout.write("Лишние записи в audio/ ничему не мешают и остаются на месте.\n");
+  process.stdout.write("Лишние файлы в audio/ и place-images/ ничему не мешают и остаются на месте.\n");
 }
 
 function info() {

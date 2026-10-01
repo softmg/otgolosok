@@ -50,6 +50,28 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 
   });
 }
 
+test("прогулка по ссылке открывается на первой остановке, а не на всём маршруте", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  // Остановки в паре километров друг от друга: весь маршрут вписался бы мельче, и первая остановка ушла бы от центра.
+  const far = [{ address: "Москва, Арбат, 3", location: { lat: 55.752, lon: 37.598 } }, { address: "Москва, Маросейка, 2", location: { lat: 55.758, lon: 37.635 } }];
+  const document = draftToWalkDocument({ version: 1, title: "Через центр", start, destination: far[1], mode: "open", minutes: 60,
+    stops: far, route: { stops: far, geometry: [start.location, ...far.map(s => s.location)], distanceM: 2600, walkingMinutes: 35, attribution: "OSM" }, jobs: [], submitting: null }, id);
+  await page.addInitScript(({ id, document }) => {
+    localStorage.setItem("otgolosok:walks:v2", JSON.stringify({ version: 2, legacyId: null, items: { [id]: { document, revision: 0 } } }));
+  }, { id, document });
+  await page.route("**/api/**", route => route.fulfill({ json: { user: null } }));
+  await page.goto(`/walk?local=${id}`);
+  await expect(page.getByRole("button", { name: "Начать прогулку", exact: true })).toBeVisible();
+  await expect.poll(() => firstStopIsVisible(page)).toBe(true);
+  const pins = page.locator('.walk-session-map [data-marker="pin"]');
+  const centerX = (index: number) => pins.nth(index).evaluate(pin => { const box = pin.getBoundingClientRect(); return box.left + box.width / 2; });
+  // Свободная часть карты на телефоне симметрична по горизонтали: первая остановка в её середине.
+  await expect.poll(() => centerX(0)).toBeCloseTo(195, -1);
+  // Вторая остановка в двух километрах — за краем окна: карта приближена к первой, а не показывает весь маршрут.
+  const second = await centerX(1);
+  expect(second < 0 || second > 390).toBe(true);
+});
+
 test("маршрут без историй можно пройти и завершить на карте", async ({ page }) => {
   await setup(page, true);
   await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
@@ -83,6 +105,37 @@ test("аудио, текст и список остановок открываю
   await page.getByRole("link", { name: "Закрыть прогулку" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator(".walk-session")).toHaveCount(0);
+});
+
+test("крестик в карточке прерывает прогулку только после подтверждения", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await setup(page);
+  await expect(page.getByRole("button", { name: "Прервать прогулку" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+  await page.getByRole("button", { name: "Дальше", exact: true }).click();
+  await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
+
+  const stop = page.getByRole("button", { name: "Прервать прогулку" });
+  const dialog = page.getByRole("dialog", { name: "Прервать прогулку?" });
+  await stop.click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Продолжить" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Продолжить" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
+
+  await stop.click();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
+
+  await stop.click();
+  await dialog.getByRole("button", { name: "Прервать", exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Арбат", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Начать прогулку|Продолжить прогулку/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Прервать прогулку" })).toHaveCount(0);
+  await expect(page).toHaveURL(/\/walk\?local=/);
 });
 
 test("поиск в шапке прогулки открывает поиск адреса на карте", async ({ page }) => {
@@ -174,16 +227,16 @@ function edges(page: Page, selector: string) {
   });
 }
 
-// Карта вписывает линию маршрута в видимую часть: она не уходит под панель, навигацию и за край окна.
-function routeIsVisible(page: Page) {
+// Прогулка открывается на первой остановке: её метка в видимой части карты, а не под шапкой, панелью, навигацией или за краем окна.
+function firstStopIsVisible(page: Page) {
   return page.evaluate(() => {
-    const path = document.querySelector('.leaflet-overlay-pane path[stroke="#203e38"]');
-    if (!path) return false;
-    const route = path.getBoundingClientRect();
-    const inside = route.left >= 0 && route.top >= 0 && route.right <= innerWidth && route.bottom <= innerHeight;
-    return inside && [".walk-session-panel", '[data-region="nav"]'].every(selector => {
+    const pin = document.querySelector('.walk-session-map [data-marker="pin"][title^="Остановка 1:"]');
+    if (!pin) return false;
+    const stop = pin.getBoundingClientRect();
+    const inside = stop.left >= 0 && stop.top >= 0 && stop.right <= innerWidth && stop.bottom <= innerHeight;
+    return inside && [".walk-session-header", ".walk-session-panel", '[data-region="nav"]'].every(selector => {
       const other = document.querySelector(selector)!.getBoundingClientRect();
-      return route.right <= other.left || route.left >= other.right || route.bottom <= other.top || route.top >= other.bottom;
+      return stop.right <= other.left || stop.left >= other.right || stop.bottom <= other.top || stop.top >= other.bottom;
     });
   });
 }
@@ -205,12 +258,12 @@ async function checkPanelStates(page: Page, check: (state: string) => Promise<vo
   await check("с текстом истории");
 }
 
-// Кнопки карты свободны, а линия маршрута видна.
+// Кнопки карты свободны, а первая остановка видна.
 async function expectMapUsable(page: Page, state: string) {
   const controls = await controlsState(page);
   expect(Object.keys(controls), state).toEqual(expect.arrayContaining(["крестик", "поиск", "плюс", "минус", "подпись OSM"]));
   expect(controls, state).toEqual(Object.fromEntries(Object.keys(controls).map(name => [name, "свободна"])));
-  await expect.poll(() => routeIsVisible(page), { message: `маршрут виден: ${state}` }).toBe(true);
+  await expect.poll(() => firstStopIsVisible(page), { message: `первая остановка видна: ${state}` }).toBe(true);
 }
 
 // Панель над навигацией, шапка вверху, под ней на 12 px ниже — кнопки масштаба и геопозиции справа и подпись OSM слева.
@@ -262,4 +315,80 @@ test.describe("панель прогулки на телефоне", () => {
 test("панель прогулки сохраняет раскладку на компьютере 1440×900", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await expectBottomPanel(page, { left: 510, right: 510, bottom: 108 }, { top: 18, left: 340, right: 340 });
+});
+
+test.describe("отзывы к каталожной прогулке", () => {
+  const oneStop = routeToWalkView({ ...catalog, walk: { ...catalog.walk!, steps: catalog.walk!.steps.slice(0, 1) } });
+  const page0 = { summary: { average: 4.6, count: 12 }, reviews: [{ id: "r1", author: "Анна", rating: 5, text: "Очень понравилось.\nВернусь ещё.", createdAt: "2026-09-30T10:00:00Z" }], nextCursor: null, mine: null };
+
+  async function openWithReviews(page: Page) {
+    const writes: Array<{ method: string; body: unknown; key: string | null }> = [];
+    await page.route("**/api/**", route => route.fulfill({ json: { user: null } }));
+    await page.route("**/api/story-walks/paveletskaya/view", route => route.fulfill({ json: oneStop }));
+    await page.route("**/api/story-walks/paveletskaya/reviews**", async route => {
+      const request = route.request();
+      if (request.method() === "GET") { await route.fulfill({ json: page0 }); return; }
+      writes.push({ method: request.method(), body: request.postDataJSON(), key: await request.headerValue("x-review-key") });
+      await route.fulfill({ json: { summary: page0.summary, mine: { rating: 4, text: "Отличный маршрут", status: "pending", updatedAt: "2026-10-01T10:00:00Z" } } });
+    });
+    await page.goto("/walk?catalog=paveletskaya");
+    return writes;
+  }
+
+  test("итог в описании, отзыв после завершения уходит на модерацию", async ({ page }) => {
+    const writes = await openWithReviews(page);
+    await expect(page.locator(".walk-session-meta")).toContainText("★ 4,6 · 12 оценок");
+    await page.getByRole("button", { name: "Отзывы", exact: true }).click();
+    await expect(page.getByText("Очень понравилось.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Оставить отзыв" }), "отзыв можно оставить и до старта прогулки").toBeVisible();
+    await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+    await page.getByRole("button", { name: "Завершить", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Прогулка завершена" })).toBeVisible();
+    await page.getByRole("button", { name: "Оставить отзыв" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog, "форма открывается отдельным окном").toHaveAccessibleName("Оцените прогулку");
+    await expect(page.locator(".walk-session-panel form"), "в панели прогулки формы нет").toHaveCount(0);
+    await dialog.getByLabel("4 звезды из 5").check();
+    await dialog.getByLabel("Отзыв (необязательно)").fill("Отличный маршрут");
+    await dialog.getByRole("button", { name: "Отправить отзыв" }).click();
+    await expect(dialog.getByRole("status")).toHaveText("Спасибо! Отзыв появится после проверки редакцией.");
+    await expect(dialog.getByRole("button", { name: "Закрыть" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: /Сохранить изменения|Удалить отзыв/ })).toHaveCount(0);
+    await expect(dialog, "окно закрывается само через несколько секунд").toBeHidden({ timeout: 6_000 });
+    await expect(page.getByRole("button", { name: "Изменить отзыв" }), "после отправки финальная кнопка предлагает изменить отзыв").toBeVisible();
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toMatchObject({ method: "PUT", body: { rating: 4, text: "Отличный маршрут" } });
+    expect(writes[0].key).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  });
+
+  for (const [width, height] of [[390, 844], [320, 568], [568, 400]] as const) {
+    test(`окно отзыва помещается на экране ${width}×${height} и закрывается по Escape`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      await openWithReviews(page);
+      await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+      await page.getByRole("button", { name: "Завершить", exact: true }).click();
+      const rate = page.getByRole("button", { name: "Оставить отзыв" });
+      await expect(rate).toBeInViewport({ ratio: 1 });
+      await expect(page.getByRole("link", { name: "На карту" })).toBeInViewport({ ratio: 1 });
+      await rate.click();
+      const dialog = page.getByRole("dialog", { name: "Оцените прогулку" });
+      const box = await dialog.boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.y).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(height);
+      await expect(dialog.getByRole("button", { name: "Закрыть" })).toBeInViewport({ ratio: 1 });
+      await dialog.getByRole("button", { name: "Отправить отзыв" }).scrollIntoViewIfNeeded();
+      await expect(dialog.getByRole("button", { name: "Отправить отзыв" })).toBeInViewport({ ratio: 1 });
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await expect(rate, "фокус возвращается к кнопке").toBeFocused();
+    });
+  }
+});
+
+test("у гостевой прогулки нет отзывов", async ({ page }) => {
+  await setup(page);
+  await expect(page.getByRole("button", { name: "Начать прогулку", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Отзывы", exact: true })).toHaveCount(0);
 });

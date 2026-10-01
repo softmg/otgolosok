@@ -49,3 +49,10 @@
 .table td:last-child {
   min-width: 10rem;
 }
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
