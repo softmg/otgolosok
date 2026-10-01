@@ -98,13 +98,14 @@ it("exposes the map as a labelled region", async () => {
 });
 
 const catalog = (): MapItem[] => [
-  { id: "c", title: "Каталог: дом", location: { lat: 55.7249, lon: 37.6507 } },
-  { id: "d", title: "Каталог: сад", location: { lat: 55.7249, lon: 37.6507 } },
+  { id: "c", title: "Каталог: дом", location: { lat: 55.7249, lon: 37.6507 }, clusterable: true },
+  { id: "d", title: "Каталог: сад", location: { lat: 55.7249, lon: 37.6507 }, clusterable: true },
   {
     id: "e",
     title: "Каталог: башня",
     location: { lat: 55.7249, lon: 37.6507 },
     compact: true,
+    clusterable: true,
   },
 ];
 const counts = () =>
@@ -149,6 +150,13 @@ it("keeps selected and pending places outside clusters and restores groups on de
   await render([...catalog(), pending]);
   expect(counts()).toEqual([3]);
   expect(pins().map((pin) => pin.title)).toEqual(["Готовим историю"]);
+});
+
+it("keeps the user's own finished stories outside catalog clusters", async () => {
+  const own = { id: "job", title: "Моя история", location: catalog()[0].location };
+  await render([...catalog(), own]);
+  await vi.waitFor(() => expect(counts()).toEqual([3]));
+  expect(pins().map((pin) => pin.title)).toEqual(["Моя история"]);
 });
 
 it("reindexes a catalog marker after its source coordinates change", async () => {

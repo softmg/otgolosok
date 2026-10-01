@@ -83,6 +83,8 @@ export type MapItem = {
   number?: number;
   pending?: boolean;
   compact?: boolean;
+  /** Only catalog points join clusters; chapters, own jobs and picked places stay individual pins. */
+  clusterable?: boolean;
 };
 export type { MapFocus };
 export type MapViewState = {
@@ -345,7 +347,7 @@ export function ExploreMap({
     const additions: Leaflet.Marker[] = [];
     for (const item of items) {
       const active = item.id === selectedId;
-      const clustered = !active && item.number === undefined && !item.pending;
+      const clustered = item.clusterable === true && !active;
       // Marker contents are fixed symbols/numbers, never upstream HTML.
       const label = item.number
         ? String(item.number)

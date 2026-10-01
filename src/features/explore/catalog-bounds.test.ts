@@ -1,8 +1,11 @@
 // @vitest-environment jsdom
 import * as L from "leaflet";
 import { expect, it } from "vitest";
-import { catalogArea, containsBounds, nearbyBounds } from "./catalog-bounds";
+import { catalogArea, nearbyBounds, type CatalogBounds } from "./catalog-bounds";
 import { distanceMeters } from "../../lib/geo/distance";
+
+const containsBounds = (outer: CatalogBounds, inner: CatalogBounds) => outer.west <= inner.west + 1e-9 && outer.south <= inner.south + 1e-9
+  && outer.east >= inner.east - 1e-9 && outer.north >= inner.north - 1e-9;
 
 function map(zoom: number, width: number, height: number) {
   const center = L.latLng(55.7249, 37.6507);
@@ -24,11 +27,9 @@ it.each([[390, 844], [1440, 1000]])("loads exactly two zoom-out steps on a %i ×
   expect(containsBounds(area.buffered, catalogArea(map(15, width, height)).required)).toBe(true);
   expect(containsBounds(area.buffered, catalogArea(map(14, width, height)).required)).toBe(false);
 });
-it("respects minimum zoom and an inclusive coverage boundary", () => {
+it("respects minimum zoom", () => {
   const area = catalogArea(map(10, 390, 844));
   expect(area.required).toEqual(area.buffered);
-  expect(containsBounds(area.required, area.required)).toBe(true);
-  expect(containsBounds(area.required, { ...area.required, east: area.required.east + 0.001 })).toBe(false);
 });
 it.each([100, 200, 300])("includes the whole nearby radius of %i metres", radius => {
   const center = { lat: 55.75, lon: 37.6 };

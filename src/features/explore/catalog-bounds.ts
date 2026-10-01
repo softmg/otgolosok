@@ -4,12 +4,6 @@ import type { Coordinates } from "../tour/types";
 export type CatalogBounds = { west: number; south: number; east: number; north: number };
 export type CatalogArea = { required: CatalogBounds; buffered: CatalogBounds };
 
-export function containsBounds(outer: CatalogBounds, inner: CatalogBounds) {
-  const epsilon = 1e-9;
-  return outer.west <= inner.west + epsilon && outer.south <= inner.south + epsilon
-    && outer.east >= inner.east - epsilon && outer.north >= inner.north - epsilon;
-}
-
 /** Project pixels at the target zoom: padding latitude directly is not Mercator-correct. */
 export function catalogArea(map: Pick<Leaflet.Map, "getCenter" | "getZoom" | "getMinZoom" | "getSize" | "project" | "unproject">): CatalogArea {
   const size = map.getSize();

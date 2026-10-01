@@ -6,6 +6,7 @@ import { Sheet } from "../shell/sheet";
 import { ExploreIcon } from "./icons";
 import { nearbyRadii, type NearbyRadius, type NearbyRecommendation } from "./nearby-stories";
 import { PlacePhotoHeading } from "./place-photo";
+import { usePlaceStory } from "./place-story";
 import type { StoryPin } from "./story-pin";
 import a from "./around.module.css";
 import styles from "./around-sheets.module.css";
@@ -29,25 +30,33 @@ export function StorySheet({ story, metadata, walkHref, startRef, onStart, onClo
   story: StoryPin; metadata: string; walkHref: string | null; startRef?: Ref<HTMLButtonElement>;
   onStart: (chapter?: number) => void; onClose: () => void; onWalk: () => void;
 }) {
+  // A catalog point carries only its header; the text, sources and audio load when the sheet opens.
+  const catalog = story.placeId !== undefined && story.chapter === undefined && story.jobId === undefined;
+  const loaded = usePlaceStory(catalog ? story.placeId : undefined);
+  const content: Pick<StoryPin, "paragraphs" | "attribution" | "audioUrl"> = catalog ? loaded.story ?? {} : story;
   const action = story.chapter !== undefined
     ? <button type="button" className={a.primary} ref={startRef} onClick={() => onStart(story.chapter)}>Слушать эту часть <ExploreIcon name="headphones" /></button>
     : story.jobId
       ? <Link className={a.primary} href={`/create?job=${story.jobId}`} prefetch={false}>{story.duration ? "Открыть и слушать" : "Открыть подготовку"}<ExploreIcon name={story.duration ? "headphones" : "arrow"} /></Link>
       : null;
-  return <Sheet name="story" labelledBy="selected-place-title" bodyLabel={story.paragraphs?.length ? "Текст истории" : undefined}
+  const pendingText = catalog && loaded.status !== "ready";
+  return <Sheet name="story" labelledBy="selected-place-title" bodyLabel={content.paragraphs?.length ? "Текст истории" : undefined}
     header={<div className={a.headerRow}>
       <span className={a.label}>{story.pending ? "Готовим для вас" : story.chapter !== undefined ? `По дороге · часть ${story.chapter + 1}` : "История места"}</span>
       <button type="button" className={a.iconButton} aria-label="Закрыть карточку" onClick={onClose}><ExploreIcon name="close" /></button>
     </div>}
     // The player stays with the action: scrolling the text never takes it away.
-    footer={story.audioUrl || action ? <>{story.audioUrl ? <audio className={styles.audio} controls preload="metadata" src={story.audioUrl}>Ваш браузер не поддерживает аудио.</audio> : null}{action}</> : null}>
+    footer={content.audioUrl || action ? <>{content.audioUrl ? <audio className={styles.audio} controls preload="metadata" src={content.audioUrl}>Ваш браузер не поддерживает аудио.</audio> : null}{action}</> : null}>
     <>
       <PlacePhotoHeading key={story.id} placeId={story.placeId} title={story.title} address={story.address}
         titleClassName={a.title} addressClassName={styles.address} />
       <small className={a.meta}>{metadata}</small>
-      {story.paragraphs?.length ? <div className={styles.story}>{story.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div> : null}
-      {story.attribution ? <p className={styles.source}>Источник: <a href={story.attribution.url} target="_blank" rel="noopener noreferrer">{story.attribution.label}</a></p> : null}
-      {!action && story.placeId && !story.paragraphs?.length ? <p className={a.text}>Проверенный текст доступен в карточке места{story.audioUrl ? "; запись можно слушать здесь." : "; озвучивание ещё не готово."}</p> : null}
+      {pendingText && loaded.status === "loading" ? <p className={a.text} role="status">Загружаем рассказ…</p> : null}
+      {pendingText && loaded.status === "error" ? <div role="alert"><p className={a.text}>Не удалось загрузить рассказ.</p><button type="button" className={a.secondary} onClick={loaded.retry}>Повторить</button></div> : null}
+      {pendingText && loaded.status === "missing" ? <p className={a.text} role="status">Эта история больше недоступна.</p> : null}
+      {content.paragraphs?.length ? <div className={styles.story}>{content.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div> : null}
+      {content.attribution ? <p className={styles.source}>Источник: <a href={content.attribution.url} target="_blank" rel="noopener noreferrer">{content.attribution.label}</a></p> : null}
+      {!action && story.placeId && !pendingText && !content.paragraphs?.length ? <p className={a.text}>Проверенный текст доступен в карточке места{content.audioUrl ? "; запись можно слушать здесь." : "; озвучивание ещё не готово."}</p> : null}
       {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} /> : null}
     </>
   </Sheet>;
