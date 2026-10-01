@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { loadCatalogCards, loadJson, loadLocalWalkView, WalkLoadError } from "./walk-loader";
+import { loadJson, loadLocalWalkView, WalkLoadError } from "./walk-loader";
 import type { WalkDocument } from "./model";
 
 describe("загрузка прогулок", () => {
@@ -8,11 +8,15 @@ describe("загрузка прогулок", () => {
       .mockRejectedValueOnce(new TypeError("offline"))
       .mockResolvedValueOnce(new Response(JSON.stringify({ walks: [] }), { status: 200 }));
     vi.stubGlobal("fetch", fetcher);
-    await expect(loadCatalogCards(new AbortController().signal)).resolves.toEqual([]);
+    const walks = (value: unknown) => {
+      if (!value || typeof value !== "object" || !Array.isArray((value as { walks?: unknown }).walks)) throw new TypeError();
+      return (value as { walks: unknown[] }).walks;
+    };
+    await expect(loadJson("/api/top-walks", new AbortController().signal, walks)).resolves.toEqual([]);
     expect(fetcher).toHaveBeenCalledTimes(2);
 
     fetcher.mockReset().mockResolvedValue(new Response("{}", { status: 200 }));
-    await expect(loadCatalogCards(new AbortController().signal)).rejects.toMatchObject({ retryable: false });
+    await expect(loadJson("/api/top-walks", new AbortController().signal, walks)).rejects.toMatchObject({ retryable: false });
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 

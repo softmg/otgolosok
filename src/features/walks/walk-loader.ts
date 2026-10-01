@@ -7,8 +7,10 @@ export type WalkCard = {
   subtitle?: string;
   revision?: number;
   updatedAt?: string;
-  visibility?: "private" | "shared";
+  visibility?: "private" | "shared" | "public";
   shareToken?: string | null;
+  /** Top-listing state of a public walk; null for other access levels. */
+  listingStatus?: "pending" | "approved" | "hidden" | null;
   kind: "local" | "account" | "catalog";
 };
 
@@ -151,14 +153,4 @@ export async function loadWalkWithOfflineCopy(load: (signal: AbortSignal) => Pro
     if (saved && usable(saved.view)) return { view: saved.view, offline: true, savedAt: saved.manifest.savedAt };
     throw error;
   }
-}
-
-export function loadCatalogCards(signal: AbortSignal): Promise<WalkCard[]> {
-  return loadJson("/api/story-walks", signal, value => {
-    if (!value || typeof value !== "object" || !Array.isArray((value as { walks?: unknown }).walks)) throw new Error();
-    return (value as { walks: Array<Record<string, unknown>> }).walks.flatMap(item => {
-      if (typeof item.id !== "string" || typeof item.title !== "string") return [];
-      return [{ id: item.id, title: item.title, subtitle: typeof item.subtitle === "string" ? item.subtitle : undefined, kind: "catalog" as const }];
-    });
-  });
 }

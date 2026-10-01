@@ -19,7 +19,7 @@ test("редактор находит общедоступные прогулк�
       const owner = index === 26 ? "anna" : "boris";
       const walk = accountStore.createWalk(owner, { title, idempotencyKey: `browser-walk-${index}`, snapshot: { version: 1, title, start: null, stops: [], mode: index === 26 ? "open" : "loop", minutes: 30, route: null, jobs: [], submitting: null } });
       if (!walk) throw new Error("Не удалось создать тестовую прогулку");
-      accountStore.setWalkSharing(owner, walk.id, walk.revision, true);
+      accountStore.setWalkVisibility(owner, walk.id, walk.revision, "shared");
     }
     await new Promise<void>(resolve => app.server.listen(0, "127.0.0.1", resolve));
     const apiBase = `http://127.0.0.1:${(app.server.address() as AddressInfo).port}`;

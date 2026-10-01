@@ -303,6 +303,7 @@ export function useWalkDraft() {
     if(!accountUser){router.push(`/login?returnTo=${encodeURIComponent(location.pathname+location.search)}`);return;}
     setBusy("Сохраняем прогулку…");setError("");
     try {
+      let awaitsReview = false;
       const id = serverWalk?.id ?? documentRef.current?.id ?? localWalkId.current ?? crypto.randomUUID();
       const snapshot = draftToWalkDocument(current.current, id, documentRef.current);
       documentRef.current = snapshot;
@@ -312,6 +313,8 @@ export function useWalkDraft() {
         setServerWalk({id:data.walk.id,revision:data.walk.revision});
         localStorage.setItem("otgolosok:walk:active-account",data.walk.id);
         localStorage.setItem("otgolosok:walk:active-revision",String(data.walk.revision));
+        // Changed texts of a public walk send it back to the editors before it returns to the top.
+        awaitsReview = data.walk.visibility === "public" && data.walk.listingStatus === "pending";
       } else {
         const keyName = `otgolosok:walk:account-operation:${id}`;
         const key = accountOperationKey.current ?? localStorage.getItem(keyName) ?? `walk-${crypto.randomUUID()}`;
@@ -326,7 +329,7 @@ export function useWalkDraft() {
         if(!new URLSearchParams(location.search).get("id"))history.replaceState(null,"",`/?walk=create&id=${data.walk.id}&edit=1`);
       }
       localWalkId.current = null;
-      setMessage("Прогулка сохранена в личном кабинете.");
+      setMessage(awaitsReview ? "Прогулка сохранена. В топе она появится после проверки редакцией." : "Прогулка сохранена в личном кабинете.");
     } catch(caught) { setError(toUserMessage(caught, "Не удалось сохранить прогулку.")); }
     finally {setBusy("");}
   }

@@ -9,7 +9,7 @@ async function api(path: string, init?: RequestInit) {
   const response = await ((!init?.method || init.method === "GET") ? readFetch : fetch)(path, { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(20000), ...init,
     headers: { "Content-Type": "application/json", ...(init?.method && !["GET","HEAD"].includes(init.method) && csrf ? {"X-CSRF-Token":csrf} : {}), ...(init?.headers ?? {}) } });
   const value = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(value?.message ?? value?.error?.message ?? "Не удалось выполнить запрос.");
+  if (!response.ok) throw Object.assign(new Error(value?.message ?? value?.error?.message ?? "Не удалось выполнить запрос."), { status: response.status, code: typeof value?.error?.code === "string" ? value.error.code : null });
   return value;
 }
 export async function getSession(): Promise<AuthUser | null> {
