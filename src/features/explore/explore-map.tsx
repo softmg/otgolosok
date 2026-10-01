@@ -107,6 +107,8 @@ export type ExploreMapProps = {
   onSelect: (id: string) => void;
   onPoint: (point: Coordinates) => void;
   geometry?: Coordinates[];
+  /** False keeps the view on the focus: the route line is drawn without fitting the map to it. */
+  fitGeometry?: boolean;
   mapLabel?: string;
   viewState?: MapViewState;
   /** The part of the map no panel covers: focus and route are kept inside it. */
@@ -131,6 +133,7 @@ export function ExploreMap({
   onSelect,
   onPoint,
   geometry,
+  fitGeometry = true,
   mapLabel,
   viewState,
   insets = NO_INSETS,
@@ -470,8 +473,9 @@ export function ExploreMap({
       { color: rt.colors.route, weight: 5, opacity: 0.9, interactive: false },
     ).addTo(rt.route);
     line.getElement()?.setAttribute("data-route", "");
-    rt.view.fit(line.getBounds());
-  }, [geometry, ready]);
+    if (fitGeometry) rt.view.fit(line.getBounds());
+    else rt.view.clearFit();
+  }, [geometry, fitGeometry, ready]);
 
   useEffect(() => {
     runtime.current?.view.setInsets(insets);

@@ -24,7 +24,11 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   // The panel covers the bottom of the map or, on a low landscape screen, a column on the right.
   // The header covers the top of the map; its bottom edge is measured from the top of the screen.
   const [cover, setCover] = useState<{ side: "bottom" | "right"; size: number; top: number }>({ side: "bottom", size: 250, top: 74 });
-  const [focus, setFocus] = useState<MapFocus | null>(null);
+  // A walk opens on its first stop; a walk without stops shows the whole route.
+  const [focus, setFocus] = useState<MapFocus | null>(() => {
+    const first = chapters[0];
+    return first ? { ...(first.trigger_location ?? first.location) } : null;
+  });
   const [drawer, setDrawer] = useState<"stops" | "story" | "settings" | null>(null);
   const chapter = chapters[index];
   const geometry = useMemo(() => (route.walk?.path.coordinates ?? []).map(([lon, lat]) => ({ lat, lon })), [route.walk?.path]);
@@ -64,7 +68,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   return <>
     <div className="walk-session-map">
       <ExploreMap items={items} selectedId={active ? chapter?.id : undefined} focus={focus} user={user}
-        geometry={geometry} insets={padding} legacyChrome onPoint={noop} onSelect={id => {
+        geometry={geometry} fitGeometry={!focus} insets={padding} legacyChrome onPoint={noop} onSelect={id => {
           const position = chapters.findIndex(item => item.id === id);
           if (position >= 0) { if (active) select(position); else setDrawer("stops"); }
         }} mapLabel="Карта прогулки: пешеходный маршрут и остановки" />

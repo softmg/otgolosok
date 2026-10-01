@@ -124,7 +124,7 @@ export const SCREEN_STATES: ScreenState[] = [
     await page.goto("/?walk=create&resume=1");
     await expect(page.getByRole("heading", { name: "Ваш маршрут", exact: true })).toBeVisible(); await mapReady(page);
   } },
-  { screen: "прогулка", state: "до старта", options: { map: true, focus: "route" }, open: async page => {
+  { screen: "прогулка", state: "до старта", options: { map: true, focus: "first-stop" }, open: async page => {
     await openLongCatalogWalk(page); await mapReady(page);
   } },
   { screen: "прогулка", state: "остановка", options: { map: true }, open: async page => {

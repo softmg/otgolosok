@@ -50,6 +50,28 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 
   });
 }
 
+test("прогулка по ссылке открывается на первой остановке, а не на всём маршруте", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  // Остановки в паре километров друг от друга: весь маршрут вписался бы мельче, и первая остановка ушла бы от центра.
+  const far = [{ address: "Москва, Арбат, 3", location: { lat: 55.752, lon: 37.598 } }, { address: "Москва, Маросейка, 2", location: { lat: 55.758, lon: 37.635 } }];
+  const document = draftToWalkDocument({ version: 1, title: "Через центр", start, destination: far[1], mode: "open", minutes: 60,
+    stops: far, route: { stops: far, geometry: [start.location, ...far.map(s => s.location)], distanceM: 2600, walkingMinutes: 35, attribution: "OSM" }, jobs: [], submitting: null }, id);
+  await page.addInitScript(({ id, document }) => {
+    localStorage.setItem("otgolosok:walks:v2", JSON.stringify({ version: 2, legacyId: null, items: { [id]: { document, revision: 0 } } }));
+  }, { id, document });
+  await page.route("**/api/**", route => route.fulfill({ json: { user: null } }));
+  await page.goto(`/walk?local=${id}`);
+  await expect(page.getByRole("button", { name: "Начать прогулку", exact: true })).toBeVisible();
+  await expect.poll(() => firstStopIsVisible(page)).toBe(true);
+  const pins = page.locator('.walk-session-map [data-marker="pin"]');
+  const centerX = (index: number) => pins.nth(index).evaluate(pin => { const box = pin.getBoundingClientRect(); return box.left + box.width / 2; });
+  // Свободная часть карты на телефоне симметрична по горизонтали: первая остановка в её середине.
+  await expect.poll(() => centerX(0)).toBeCloseTo(195, -1);
+  // Вторая остановка в двух километрах — за краем окна: карта приближена к первой, а не показывает весь маршрут.
+  const second = await centerX(1);
+  expect(second < 0 || second > 390).toBe(true);
+});
+
 test("маршрут без историй можно пройти и завершить на карте", async ({ page }) => {
   await setup(page, true);
   await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
@@ -174,16 +196,16 @@ function edges(page: Page, selector: string) {
   });
 }
 
-// Карта вписывает линию маршрута в видимую часть: она не уходит под панель, навигацию и за край окна.
-function routeIsVisible(page: Page) {
+// Прогулка открывается на первой остановке: её метка в видимой части карты, а не под шапкой, панелью, навигацией или за краем окна.
+function firstStopIsVisible(page: Page) {
   return page.evaluate(() => {
-    const path = document.querySelector('.leaflet-overlay-pane path[stroke="#203e38"]');
-    if (!path) return false;
-    const route = path.getBoundingClientRect();
-    const inside = route.left >= 0 && route.top >= 0 && route.right <= innerWidth && route.bottom <= innerHeight;
-    return inside && [".walk-session-panel", '[data-region="nav"]'].every(selector => {
+    const pin = document.querySelector('.walk-session-map [data-marker="pin"][title^="Остановка 1:"]');
+    if (!pin) return false;
+    const stop = pin.getBoundingClientRect();
+    const inside = stop.left >= 0 && stop.top >= 0 && stop.right <= innerWidth && stop.bottom <= innerHeight;
+    return inside && [".walk-session-header", ".walk-session-panel", '[data-region="nav"]'].every(selector => {
       const other = document.querySelector(selector)!.getBoundingClientRect();
-      return route.right <= other.left || route.left >= other.right || route.bottom <= other.top || route.top >= other.bottom;
+      return stop.right <= other.left || stop.left >= other.right || stop.bottom <= other.top || stop.top >= other.bottom;
     });
   });
 }
@@ -205,12 +227,12 @@ async function checkPanelStates(page: Page, check: (state: string) => Promise<vo
   await check("с текстом истории");
 }
 
-// Кнопки карты свободны, а линия маршрута видна.
+// Кнопки карты свободны, а первая остановка видна.
 async function expectMapUsable(page: Page, state: string) {
   const controls = await controlsState(page);
   expect(Object.keys(controls), state).toEqual(expect.arrayContaining(["крестик", "поиск", "плюс", "минус", "подпись OSM"]));
   expect(controls, state).toEqual(Object.fromEntries(Object.keys(controls).map(name => [name, "свободна"])));
-  await expect.poll(() => routeIsVisible(page), { message: `маршрут виден: ${state}` }).toBe(true);
+  await expect.poll(() => firstStopIsVisible(page), { message: `первая остановка видна: ${state}` }).toBe(true);
 }
 
 // Панель над навигацией, шапка вверху, под ней на 12 px ниже — кнопки масштаба и геопозиции справа и подпись OSM слева.
