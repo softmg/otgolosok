@@ -42,6 +42,10 @@ Storage или конфликт revision не подменяются пусты�
 snapshot. Запись и публикация защищены сессией, same-origin и CSRF, обновление
 использует revision.
 
+Отзывы: `GET /api/story-walks/:slug/reviews`, `GET /api/story-walks/shared/:token/reviews`
+и `GET /api/me/walks/:id/reviews`, запись — `PUT`/`DELETE …/reviews/mine`. Подробности
+в [`walk-reviews.md`](walk-reviews.md).
+
 Первое включение общего доступа создаёт случайный токен. Изменение документа
 сохраняет ссылку, отключение делает её недоступной, а повторное включение
 возвращает тот же токен. По `GET /api/story-walks/shared/:token` сервер выдаёт

@@ -1,6 +1,6 @@
 # Plan: walk reviews (5-star rating and text)
 
-Status: in progress since 2026-10-01.
+Status: implemented 2026-10-01 in branch `feat/promo-walks-stories-only`. Caveat: the manual end-to-end check published the guest review directly in SQLite instead of clicking through `/admin?section=reviews` as an editor (no editor account in the local DB); the admin tab is covered by component and HTTP tests.
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
@@ -249,6 +249,16 @@ E2E (Playwright, `pnpm test:e2e`):
 - Keep the existing local-walk scenarios passing: no review UI for `?local=`, and the catch-all `{user:null}` stub must not break the screen.
 
 Run before each commit: `pnpm lint`, `pnpm typecheck`, `pnpm test` (plus `pnpm test:e2e` for the UI phase). End-to-end: `pnpm build` + `pnpm generator:dev`, open a catalog and a shared walk in the browser, complete them, submit a review as guest and as a signed-in user, moderate it in `/admin?section=reviews` with an editor account, and confirm the public list and average update.
+
+### Implementation notes (divergences from the plan above)
+
+- Server routes live in `backend/walk-review-routes.mjs` (`createWalkReviewRoutes` → `public`, `own`, `admin`); `server.mjs` only creates it and calls the three handlers at the planned spots. Those `server.mjs` lines landed in commit 7037022 of a parallel session that committed the whole file.
+- `backend/walk-reviews-api.test.mjs` uses a stub `auth.api.getSession` (as in `shared-walk-admin-api.test.mjs`) with real `sessionCsrfToken`, not a real `createAuth` fixture.
+- `loadJson` no longer retries a 429 whose `Retry-After` exceeds 5 s for every caller, not just reviews.
+- `WalkReviews` takes `{ reviews, intent, canRate }`; the signed-in name comes from the hook (`reviewer`, resolved once via `getSession()`), not a separate `signedInName` prop. The hook also exposes `reviewer`, `reload` and `loadingMore`.
+- A guest GET sends `X-Review-Key` only when a key already exists; the key is created on the first write.
+- With an existing review the list button reads «Изменить отзыв» instead of «Оставить отзыв».
+- The stars are radios inside a `fieldset` with a legend (no extra `role="radiogroup"`).
 
 Suggested atomic commits: (1) backend store + limiter + tests; (2) server routes + API tests; (3) client model/api/hook + tests; (4) walk-screen UI + e2e; (5) admin tab + tests; (6) docs.
 
