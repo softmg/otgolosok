@@ -10,15 +10,24 @@
   min-width: 0;
 }
 
-.preview {
+.preview,
+.placeholder {
   flex: none;
   width: clamp(var(--control-min), 22cqi, 5.5rem);
   height: clamp(var(--control-min), 22cqi, 5.5rem);
+  border-radius: var(--radius-md);
+}
+
+/* Static on purpose: no shimmer, so it is safe with reduced motion. */
+.placeholder {
+  background: var(--control-soft);
+}
+
+.preview {
   padding: 0;
   overflow: hidden;
   background: var(--control-soft);
   border: 0;
-  border-radius: var(--radius-md);
   cursor: zoom-in;
 }
 

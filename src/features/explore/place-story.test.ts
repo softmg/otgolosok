@@ -105,3 +105,34 @@ it("shares one request between the StrictMode remount and a second sheet of the 
   expect(signals).toHaveLength(1);
   expect(signals[0].aborted).toBe(false);
 });
+
+const photo = {
+  thumbnail: `/api/place-images/${"1".repeat(64)}.jpg`, src: `/api/place-images/${"2".repeat(64)}.jpg`, width: 960, height: 720,
+  alt: "Дом Пашкова", author: "NVO", sourceUrl: "https://commons.wikimedia.org/wiki/File:A.jpg",
+  license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0",
+};
+const storyWith = (value: unknown) => placeStory.parsePlaceStory({ place: { text: { story: { paragraphs: [{ text: "Абзац." }] } }, ...(value === undefined ? {} : { photo: value }) } });
+
+it("reads the place photo, including an editorial copy and a photo without an author", () => {
+  expect(storyWith(photo).photo).toEqual(photo);
+  const editorial = { ...photo, thumbnail: "/images/places/way-1-7bb38a14d975.jpg", src: "/images/places/way-1-46765eae7280.jpg" };
+  expect(storyWith(editorial).photo).toEqual(editorial);
+  expect(storyWith({ ...photo, author: null }).photo).toEqual({ ...photo, author: null });
+  expect(storyWith(undefined)).toEqual({ paragraphs: ["Абзац."] });
+  expect(storyWith(null)).toEqual({ paragraphs: ["Абзац."] });
+});
+
+it.each([
+  ["a foreign host", { thumbnail: "https://upload.wikimedia.org/a.jpg" }],
+  ["a path traversal", { src: `/api/place-images/../${"2".repeat(64)}.jpg` }],
+  ["a short hash", { src: "/api/place-images/abc.jpg" }],
+  ["a zero width", { width: 0 }],
+  ["a fractional height", { height: 1.5 }],
+  ["an empty license", { license: " " }],
+  ["an empty alt", { alt: "" }],
+  ["a script source link", { sourceUrl: "javascript:alert(1)" }],
+  ["a relative license link", { licenseUrl: "/license" }],
+  ["a numeric author", { author: 7 }],
+])("drops a photo with %s and keeps the story", (_, broken) => {
+  expect(storyWith({ ...photo, ...broken })).toEqual({ paragraphs: ["Абзац."] });
+});

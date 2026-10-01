@@ -112,7 +112,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
       const job=jobs[item.id];return {...item,jobId:item.id,title:job?.story?.title??item.address,duration:job?.audio?.durationSec,pending:job?!terminalStages.has(job.stage):false,status:job?stageLabels[job.stage]:"Открыть подготовку"};
     });
     // The text, sources and audio of a catalog point load when its sheet opens (usePlaceStory).
-    const places=catalog.map(place=>({id:place.id,placeId:place.id,title:place.title,address:place.address,location:place.location,duration:place.durationSec??undefined,status:place.durationSec!=null?"Готово к прослушиванию":"Текст готов",clusterable:true}));
+    const places=catalog.map(place=>({id:place.id,placeId:place.id,title:place.title,address:place.address,location:place.location,duration:place.durationSec??undefined,status:place.durationSec!=null?"Готово к прослушиванию":"Текст готов",hasPhoto:place.photo,clusterable:true}));
     return [...chapters,...own,...places.filter(place=>![...chapters,...own].some(existing=>existing.id===place.id))];
   },[route,openChapter,tracked,jobs,catalog]);
   const recommendations=useMemo(()=>nearbyCenter?recommendNearbyStories(nearbyCenter,nearbyRadius,catalog.flatMap(place=>place.durationSec!=null?[{id:place.id,title:place.title,address:place.address,location:place.location,durationSec:place.durationSec,sourceCount:place.sources,factCount:place.facts}]:[])):[],[nearbyCenter,nearbyRadius,catalog]);

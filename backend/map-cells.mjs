@@ -21,7 +21,9 @@ const round = value => Math.round(value * 1e5) / 1e5;
 
 /**
  * Slim map point: enough for the marker, the story sheet header and the nearby ranking, without the text.
- * @param {{id: string, name: string, address: string | null, lat: number, lon: number, title?: unknown, durationSec?: unknown, facts?: unknown, sources?: unknown}} row
+ * `photo: true` only when the place has a ready photo: the card reserves the preview slot before the detail arrives.
+ * The flag is omitted otherwise, so points without photos keep their bytes.
+ * @param {{id: string, name: string, address: string | null, lat: number, lon: number, title?: unknown, durationSec?: unknown, facts?: unknown, sources?: unknown, photo?: unknown}} row
  */
 export function toMapPoint(row) {
   const duration = typeof row.durationSec === "number" && Number.isFinite(row.durationSec) && row.durationSec > 0 ? row.durationSec : null;
@@ -34,6 +36,7 @@ export function toMapPoint(row) {
     durationSec: duration,
     facts: count(row.facts),
     sources: count(row.sources),
+    ...(row.photo === true ? { photo: true } : {}),
   };
 }
 

@@ -488,3 +488,49 @@ test("deep research can finish both long attempts and still prepare its story", 
   assert.ok(result.story, JSON.stringify(result.error));
   assert.equal(f.last().research.sources[0].url, "https://deep.example/1");
 });
+
+const readyPhoto = { status: "ready", source: "wikidata", inputHash: "h", thumbnailUrl: `/api/place-images/${"1".repeat(64)}.jpg`, srcUrl: `/api/place-images/${"2".repeat(64)}.jpg`,
+  width: 960, height: 720, author: "NVO", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0",
+  sourceUrl: "https://commons.wikimedia.org/wiki/File:A.jpg", checkedAt: "2026-10-01T00:00:00.000Z", nextCheckAt: "2026-10-08T00:00:00.000Z" };
+/** A photo service stub that records calls in `events` and stores a ready photo unless `ensure` is replaced. */
+function photoFixture(t, options = {}) {
+  const f = fixture(t), events = [], complete = f.store.completeContentJob;
+  f.store.completeContentJob = (...args) => { events.push("complete");return complete.apply(f.store, args); };
+  const placeImages = { ensure: async (place, ensureOptions) => { events.push(["ensure", place.id, ensureOptions.timeoutMs]);return f.store.savePlaceImage(place.id, readyPhoto); }, ...options };
+  const run = (job, runOptions = {}) => runContentJob(job ?? f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(f.page), placeImages, autoApprove: true, ...runOptions });
+  return { ...f, events, run };
+}
+
+test("an auto-approved job resolves the photo before publication", async t => {
+  const f = photoFixture(t);
+  const result = await f.run();
+  assert.equal(result.story.title, "Памятник");
+  assert.deepEqual(f.events, [["ensure", "osm:node:1", 30000], "complete"]);
+  assert.ok(f.store.getPublishedPlace("osm:node:1").photo);
+});
+
+test("jobs that are not auto-approved skip the photo step", async t => {
+  const manual = photoFixture(t);
+  await manual.run(undefined, { autoApprove: false });
+  assert.deepEqual(manual.events, ["complete"]);
+  const weak = photoFixture(t), job = weak.store.claimContentJob();
+  await weak.run({ ...job, identityPolicy: "weak_identity" }, { provider: { ...weak.provider, searchSources: null } });
+  assert.deepEqual(weak.events, ["complete"]);
+});
+
+test("a failed photo lookup still publishes the story", async t => {
+  const f = photoFixture(t, { ensure: async () => null });
+  const result = await f.run();
+  assert.equal(result.error, undefined);
+  assert.equal(f.store.getPublishedPlace("osm:node:1").photo, null);
+});
+
+test("the job deadline during the photo step fails the job as a timeout", async t => {
+  const f = photoFixture(t, { ensure: (_, { signal }) => new Promise((_, reject) => signal.addEventListener("abort", () => reject(signal.reason), { once: true })) });
+  const controller = new AbortController();
+  const pending = f.run(undefined, { signal: controller.signal });
+  setTimeout(() => controller.abort(), 20);
+  const result = await pending;
+  assert.equal(result.error.code, "TIMEOUT");
+  assert.equal(f.store.getPublishedPlace("osm:node:1"), null);
+});

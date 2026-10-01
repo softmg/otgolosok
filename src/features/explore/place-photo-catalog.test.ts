@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import photos from "../../../content/place-images.json";
+import photos from "../../../backend/place-images-editorial.json";
 
 describe("редакционный каталог фотографий", () => {
   it.each(Object.entries(photos))("%s: локальные файлы и указание авторства готовы к публикации", (id, photo) => {

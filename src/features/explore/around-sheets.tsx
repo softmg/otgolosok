@@ -48,7 +48,9 @@ export function StorySheet({ story, metadata, walkHref, startRef, onStart, onClo
     // The player stays with the action: scrolling the text never takes it away.
     footer={content.audioUrl || action ? <>{content.audioUrl ? <audio className={styles.audio} controls preload="metadata" src={content.audioUrl}>Ваш браузер не поддерживает аудио.</audio> : null}{action}</> : null}>
     <>
-      <PlacePhotoHeading key={story.id} placeId={story.placeId} title={story.title} address={story.address}
+      {/* Only catalog places have photos; the index flag holds the preview slot until the detail arrives. */}
+      <PlacePhotoHeading key={story.id} photo={catalog ? loaded.story?.photo : undefined}
+        pending={catalog && story.hasPhoto === true && loaded.status === "loading"} title={story.title} address={story.address}
         titleClassName={a.title} addressClassName={styles.address} />
       <small className={a.meta}>{metadata}</small>
       {pendingText && loaded.status === "loading" ? <p className={a.text} role="status">Загружаем рассказ…</p> : null}

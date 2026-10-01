@@ -1,12 +1,15 @@
 import type { Page, Route } from "@playwright/test";
+import type { PlacePhoto } from "../../src/features/explore/place-story";
 
 /** A catalog point as the tests describe it: the slim index fields plus the text served on demand. */
 export type CatalogFixture = {
   id: string; title: string; address?: string; lat: number; lon: number;
   durationSec?: number | null; facts?: number; sources?: number;
   paragraphs?: string[]; audioUrl?: string; storySources?: unknown[];
+  /** Served in the detail; the index flags the point unless `indexPhoto` says otherwise (a photo removed after the index loaded). */
+  photo?: PlacePhoto; indexPhoto?: boolean;
 };
-type Options = {
+export type CatalogOptions = {
   /** Called before a manifest, cell or detail answer; may delay it or answer itself (return true). */
   intercept?: (path: string, route: Route) => Promise<boolean | void> | boolean | void;
 };
@@ -23,7 +26,7 @@ function etagOf(body: string) {
  * place details. `places` is read on every request, so a test may change it between requests.
  * Returns the paths requested, in order.
  */
-export async function mockMapCatalog(page: Page, places: CatalogFixture[], { intercept }: Options = {}) {
+export async function mockMapCatalog(page: Page, places: CatalogFixture[], { intercept }: CatalogOptions = {}) {
   const requests: string[] = [];
   const cells = () => {
     const grouped = new Map<string, CatalogFixture[]>();
@@ -33,7 +36,8 @@ export async function mockMapCatalog(page: Page, places: CatalogFixture[], { int
   const cellBody = (key: string) => {
     const [lat, lon] = key.split(":").map(Number);
     const points = (cells().get(key) ?? []).map(place => ({ id: place.id, lat: place.lat, lon: place.lon, title: place.title, address: place.address ?? place.title,
-      durationSec: place.durationSec ?? null, facts: place.facts ?? 1, sources: place.sources ?? 1 })).sort((a, b) => a.id < b.id ? -1 : 1);
+      durationSec: place.durationSec ?? null, facts: place.facts ?? 1, sources: place.sources ?? 1,
+      ...(place.indexPhoto ?? Boolean(place.photo) ? { photo: true } : {}) })).sort((a, b) => a.id < b.id ? -1 : 1);
     return JSON.stringify({ lat, lon, points });
   };
   const respond = (route: Route, body: string) => {
@@ -60,7 +64,7 @@ export async function mockMapCatalog(page: Page, places: CatalogFixture[], { int
     return respond(route, JSON.stringify({ place: { id: place.id, name: place.title, address: place.address ?? null, location: { lat: place.lat, lon: place.lon }, text: {
       story: { title: place.title, paragraphs: (place.paragraphs ?? []).map(text => ({ text })), sources: place.storySources ?? [], facts: [] },
       audio: place.audioUrl ? { url: place.audioUrl, durationSec: place.durationSec ?? 60 } : null,
-    } } }));
+    }, photo: place.photo ?? null } }));
   });
   return requests;
 }

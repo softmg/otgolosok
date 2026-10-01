@@ -2,33 +2,24 @@
 
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
-import photos from "../../../content/place-images.json";
 import { ExploreIcon } from "./icons";
+import type { PlacePhoto } from "./place-story";
 import styles from "./place-photo.module.css";
 
-type PlacePhoto = {
-  src: string;
-  thumbnail: string;
-  width: number;
-  height: number;
-  alt: string;
-  author: string;
-  sourceUrl: string;
-  license: string;
-  licenseUrl: string;
-};
+export type { PlacePhoto };
 
-const catalog: Readonly<Record<string, PlacePhoto>> = photos;
-
-/** The caller keys this heading by place so loading failures cannot leak into the next card. */
-export function PlacePhotoHeading({ placeId, title, address, titleClassName, addressClassName }: {
-  placeId?: string;
+/**
+ * The caller keys this heading by place so loading failures cannot leak into the next card.
+ * `pending` keeps an empty preview slot while the photo of a place known to have one is loading, so the title never reflows.
+ */
+export function PlacePhotoHeading({ photo, pending = false, title, address, titleClassName, addressClassName }: {
+  photo?: PlacePhoto;
+  pending?: boolean;
   title: string;
   address: string;
   titleClassName?: string;
   addressClassName?: string;
 }) {
-  const photo = placeId && Object.hasOwn(catalog, placeId) ? catalog[placeId] : undefined;
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
   const [open, setOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
@@ -40,6 +31,10 @@ export function PlacePhotoHeading({ placeId, title, address, titleClassName, add
   const dialogTitle = useId();
   const heading = <><h2 id="selected-place-title" className={titleClassName}>{title}</h2>{title !== address ? <p className={addressClassName}>{address}</p> : null}</>;
 
+  if (!photo && pending) return <div className={styles.heading} data-photo-heading>
+    <div className={styles.headingText}>{heading}</div>
+    <span aria-hidden="true" className={styles.placeholder} data-photo-placeholder />
+  </div>;
   if (!photo || thumbnailFailed) return heading;
 
   function showPhoto() {
@@ -80,7 +75,7 @@ export function PlacePhotoHeading({ placeId, title, address, titleClassName, add
         <button type="button" onClick={() => { setAttempt(value => value + 1); setImageFailed(false); }}>Повторить</button>
       </div> : <Image key={attempt} unoptimized src={photo.src} width={photo.width} height={photo.height}
         loading="eager" alt={photo.alt} className={styles.full} onError={() => setImageFailed(true)} /> : null}
-      <p className={styles.credit}>Фото: {photo.author}. <a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">Wikimedia Commons</a> · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a></p>
+      <p className={styles.credit}>Фото: {photo.author ? `${photo.author}. ` : null}<a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">Wikimedia Commons</a> · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a></p>
     </dialog>
   </>;
 }

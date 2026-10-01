@@ -4,6 +4,7 @@ import { assessPlaceEligibility, CONTENT_PROFILE_VERSION } from "./place-eligibi
 import { osmPostalAddress } from "./osm-context.mjs";
 import { IDENTITY_RULES_VERSION, IDENTITY_TIERS } from "./identity-triage.mjs";
 import { cellKey, cellOf, etagOf, isCellLat, isCellLon, serializeCell, toMapPoint } from "./map-cells.mjs";
+import { EDITORIAL_NEXT_CHECK, editorialPlaceImages, PLACE_IMAGE_FILE, PLACE_IMAGE_URL_PREFIX, placeImageInputHash } from "./place-images.mjs";
 
 const encode = JSON.stringify;
 const decode = value => value == null ? null : JSON.parse(value);
@@ -85,14 +86,25 @@ const DRAFT_RESEARCH_STATUS=`CASE WHEN j.id IS NULL THEN 'plain'
 const DRAFT_RESEARCH_FILTERS=["all","plain","perplexity","queued","failed"];
 // Slim map points: the latest approved story and its latest approved audio, the same "ready" rule as listPlaces.
 const MAP_POINT_SELECT=`SELECT id,name,address,lat,lon,json_extract(story_json,'$.title') title,
-  json_array_length(story_json,'$.facts') facts,json_array_length(story_json,'$.sources') sources,duration_sec
+  json_array_length(story_json,'$.facts') facts,json_array_length(story_json,'$.sources') sources,duration_sec,has_photo
   FROM (SELECT p.id,p.name,p.address,p.lat,p.lon,
+    EXISTS(SELECT 1 FROM place_images i WHERE i.place_id=p.id AND i.status='ready') has_photo,
     (SELECT approved_story_json FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) story_json,
     (SELECT json_extract(audio_json,'$.durationSec') FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL AND t.audio_json IS NOT NULL AND t.audio_json<>'null' ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) duration_sec
     FROM places p WHERE p.archived=0 /*BOUNDS*/)
   WHERE story_json IS NOT NULL`;
 const mapPoint=row=>toMapPoint({id:row.id,name:row.name,address:row.address,lat:row.lat,lon:row.lon,title:row.title,
-  durationSec:row.duration_sec==null?null:Number(row.duration_sec),facts:row.facts==null?0:Number(row.facts),sources:row.sources==null?0:Number(row.sources)});
+  durationSec:row.duration_sec==null?null:Number(row.duration_sec),facts:row.facts==null?0:Number(row.facts),sources:row.sources==null?0:Number(row.sources),photo:Boolean(row.has_photo)});
+const PLACE_IMAGE_COLUMNS=["status","source","input_hash","entity_id","commons_title","commons_sha1","thumbnail_url","src_url","width","height",
+  "author","license","license_url","source_url","alt","reason","attempts","checked_at","next_check_at"];
+const PLACE_IMAGE_UPSERT=`INSERT INTO place_images (place_id,${PLACE_IMAGE_COLUMNS.join(",")}) VALUES (${Array(PLACE_IMAGE_COLUMNS.length+1).fill("?").join(",")})
+  ON CONFLICT(place_id) DO UPDATE SET ${PLACE_IMAGE_COLUMNS.map(column=>`${column}=excluded.${column}`).join(",")}`;
+const camel=name=>name.replace(/_([a-z])/g,(_,letter)=>letter.toUpperCase());
+const viewPlaceImage=row=>row?Object.fromEntries([["placeId",row.place_id],...PLACE_IMAGE_COLUMNS.map(column=>[camel(column),
+  ["width","height","attempts"].includes(column)?(row[column]==null?null:Number(row[column])):row[column]??null])]):null;
+/** The public photo of a published place: only ready rows; alt is editorial, else the story title, else the place name. */
+const publicPhoto=(row,story,name)=>row?.status!=="ready"?null:{thumbnail:row.thumbnailUrl,src:row.srcUrl,width:row.width,height:row.height,
+  alt:row.alt??(typeof story?.title==="string"&&story.title.trim()?story.title.trim():name),author:row.author??null,sourceUrl:row.sourceUrl,license:row.license,licenseUrl:row.licenseUrl};
 
 export function createContentStore({db,now,transaction}) {
   db.exec(`
@@ -120,6 +132,13 @@ export function createContentStore({db,now,transaction}) {
     CREATE TABLE IF NOT EXISTS place_identity_candidates (place_id TEXT PRIMARY KEY,content_hash TEXT NOT NULL,rules_version TEXT NOT NULL,
       tier TEXT NOT NULL,score INTEGER NOT NULL,category TEXT NOT NULL,reasons_json TEXT NOT NULL,signals_json TEXT NOT NULL,
       location_json TEXT NOT NULL,assessed_at TEXT NOT NULL);
+    -- One photo row per place: 'ready' (shown), 'none' (no usable image) or 'failed' (transient error, retried with backoff).
+    -- Editorial rows mirror backend/place-images-editorial.json and are never touched by the sync.
+    CREATE TABLE IF NOT EXISTS place_images (place_id TEXT PRIMARY KEY,status TEXT NOT NULL,source TEXT,input_hash TEXT NOT NULL,
+      entity_id TEXT,commons_title TEXT,commons_sha1 TEXT,thumbnail_url TEXT,src_url TEXT,width INTEGER,height INTEGER,
+      author TEXT,license TEXT,license_url TEXT,source_url TEXT,alt TEXT,reason TEXT,attempts INTEGER NOT NULL DEFAULT 0,
+      checked_at TEXT NOT NULL,next_check_at TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS place_images_due_idx ON place_images(next_check_at);
     CREATE INDEX IF NOT EXISTS place_identity_candidates_tier_idx ON place_identity_candidates(tier,score DESC);
     CREATE TABLE IF NOT EXISTS place_open_data (place_id TEXT NOT NULL,dataset_id INTEGER NOT NULL,record_id TEXT NOT NULL,dataset_version TEXT NOT NULL,
       match_json TEXT NOT NULL,record_json TEXT NOT NULL,content_hash TEXT NOT NULL,imported_at TEXT NOT NULL,PRIMARY KEY(place_id,dataset_id));
@@ -206,6 +225,8 @@ export function createContentStore({db,now,transaction}) {
           content_hash=excluded.content_hash,import_id=excluded.import_id,archived=0,updated_at=excluded.updated_at,
           geometry_json=excluded.geometry_json,provenance_json=excluded.provenance_json`);
         const alias=db.prepare("INSERT INTO place_osm_aliases VALUES (?,?,?,?) ON CONFLICT(osm_type,osm_id) DO UPDATE SET place_id=excluded.place_id,import_id=excluded.import_id");
+        // Changed Wikidata/Wikipedia identifiers make the photo due for a recheck right away.
+        const photoDue=db.prepare("UPDATE place_images SET next_check_at=? WHERE place_id=? AND source IS NOT 'editorial' AND input_hash<>?");
         for(const place of catalog.places) {
           if(!place||typeof place.placeId!=="string"||!place.name||!Number.isFinite(place.location?.lat)||!Number.isFinite(place.location?.lon))throw fail("BAD_REQUEST");
           const tags=place.tags??{},geometry=place.geometry??{type:"Point",coordinates:[place.location.lon,place.location.lat]},
@@ -213,6 +234,7 @@ export function createContentStore({db,now,transaction}) {
             hash=sha256(encode({name:place.name,location:place.location,geometry,tags}));
           upsert.run(place.placeId,String(place.name).slice(0,250),addressOf(place),place.location.lat,place.location.lon,encode(tags),hash,id,timestamp,timestamp,encode(geometry),encode(provenance));
           alias.run(place.osmType,String(place.osmId),place.placeId,id);
+          photoDue.run(timestamp,place.placeId,placeImageInputHash(tags));
         }
         if(complete)db.prepare("UPDATE places SET archived=1,updated_at=? WHERE import_id<>?").run(timestamp,id);
         return {id,count:catalog.places.length,complete,createdAt:timestamp};
@@ -288,8 +310,53 @@ export function createContentStore({db,now,transaction}) {
     getPublishedPlace(id) {
       const place=viewPlace(db.prepare("SELECT * FROM places WHERE id=? AND archived=0").get(id));if(!place)return null;
       const text=db.prepare("SELECT * FROM place_texts WHERE place_id=? AND approved_story_json IS NOT NULL ORDER BY created_at DESC,rowid DESC LIMIT 1").get(id);if(!text)return null;
-      const audio=latestApprovedAudio(id);
-      return {...place,text:{id:text.id,profile:text.profile,story:decode(text.approved_story_json),verification:text.verification,audio:decode(audio),createdAt:text.created_at}};
+      const audio=latestApprovedAudio(id),story=decode(text.approved_story_json);
+      return {...place,text:{id:text.id,profile:text.profile,story,verification:text.verification,audio:decode(audio),createdAt:text.created_at},
+        photo:publicPhoto(this.getPlaceImageRow(id),story,place.name)};
+    },
+    /** Mirrors the editorial catalog: upserts its entries and drops editorial rows that left it, so the sync takes them over. */
+    syncEditorialPlaceImages(catalog) {
+      const entries=editorialPlaceImages(catalog);
+      return transaction(()=>{
+        const timestamp=iso(now),upsert=db.prepare(PLACE_IMAGE_UPSERT);
+        for(const entry of entries)upsert.run(entry.placeId,"ready","editorial","editorial",null,null,null,entry.thumbnailUrl,entry.srcUrl,entry.width,entry.height,
+          entry.author,entry.license,entry.licenseUrl,entry.sourceUrl,entry.alt,null,0,timestamp,EDITORIAL_NEXT_CHECK);
+        const ids=new Set(entries.map(entry=>entry.placeId)),remove=db.prepare("DELETE FROM place_images WHERE place_id=?");let removed=0;
+        for(const row of db.prepare("SELECT place_id FROM place_images WHERE source='editorial'").all())if(!ids.has(row.place_id)){remove.run(row.place_id);removed++;}
+        return {editorial:entries.length,removed};
+      });
+    },
+    getPlaceImageRow(placeId) {return viewPlaceImage(db.prepare("SELECT * FROM place_images WHERE place_id=?").get(placeId));},
+    /** Upserts a synced photo row; an editorial row is never overwritten (returns null then). */
+    savePlaceImage(placeId,fields) {
+      if(typeof placeId!=="string"||!["ready","none","failed"].includes(fields?.status)||fields.source==="editorial"||typeof fields.inputHash!=="string"
+        ||typeof fields.checkedAt!=="string"||typeof fields.nextCheckAt!=="string")throw fail("BAD_REQUEST");
+      const values=PLACE_IMAGE_COLUMNS.map(column=>column==="attempts"?fields.attempts??0:fields[camel(column)]??null);
+      const result=db.prepare(`${PLACE_IMAGE_UPSERT} WHERE place_images.source IS NOT 'editorial'`).run(placeId,...values);
+      return Number(result.changes)?this.getPlaceImageRow(placeId):null;
+    },
+    /** Published places whose photo is missing or due, missing rows first; editorial places never. */
+    listDuePlaceImages({limit=50,now:at=iso(now)}={}) {
+      if(!Number.isSafeInteger(limit)||limit<1||limit>100000||typeof at!=="string")throw fail("BAD_REQUEST");
+      return db.prepare(`SELECT p.id,p.name,p.tags_json FROM places p LEFT JOIN place_images i ON i.place_id=p.id
+        WHERE p.archived=0 AND EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)
+          AND (i.place_id IS NULL OR (i.source IS NOT 'editorial' AND i.next_check_at<=?))
+        ORDER BY i.place_id IS NOT NULL,i.next_check_at,p.id LIMIT ?`).all(at,limit)
+        .map(row=>({place:{id:row.id,name:row.name,tags:decode(row.tags_json)},row:this.getPlaceImageRow(row.id)}));
+    },
+    /** Makes synced rows due now: the given places, or all of them when placeIds is null. */
+    markPlaceImagesDue({placeIds=null,now:at=iso(now)}={}) {
+      if(placeIds===null)return Number(db.prepare("UPDATE place_images SET next_check_at=? WHERE source IS NOT 'editorial'").run(at).changes);
+      if(!Array.isArray(placeIds)||placeIds.some(id=>typeof id!=="string"))throw fail("BAD_REQUEST");
+      const mark=db.prepare("UPDATE place_images SET next_check_at=? WHERE place_id=? AND source IS NOT 'editorial'");
+      return transaction(()=>placeIds.reduce((count,id)=>count+Number(mark.run(at,id).changes),0));
+    },
+    /** File names in DATA_DIR/place-images that some row still points to. */
+    listReferencedPlaceImageFiles() {
+      const names=new Set();
+      for(const row of db.prepare("SELECT thumbnail_url,src_url FROM place_images").all())for(const url of [row.thumbnail_url,row.src_url]){
+        const name=typeof url==="string"&&url.startsWith(PLACE_IMAGE_URL_PREFIX)?url.slice(PLACE_IMAGE_URL_PREFIX.length):"";if(PLACE_IMAGE_FILE.test(name))names.add(name);}
+      return names;
     },
     createBatch({requestKey,name="OSM batch",placeIds=null,limit=50,textProfile="story-v1",mode="text-only",ttsProfile=null,identityPolicy="standard"}) {
       validateBatch({requestKey,name,limit,textProfile,mode,identityPolicy});
