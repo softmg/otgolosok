@@ -31,16 +31,17 @@ import { formatRatingSummary, type ReviewTarget } from "../reviews/model";
 import { useWalkReviews } from "../reviews/use-walk-reviews";
 import { ReviewDialog } from "../reviews/review-dialog";
 import { WalkReviews } from "../reviews/walk-reviews";
+import { useLaunchReport } from "../walks/launches";
 
 type SessionPhase = "reading" | "walking";
 
-export function TourExperience({ route, walk, offline = null, reviewTarget = null }: { route?: Route; walk?: WalkView; offline?: OfflineWalkRef | null; reviewTarget?: ReviewTarget | null }) {
+export function TourExperience({ route, walk, offline = null, reviewTarget = null, launchTarget = null }: { route?: Route; walk?: WalkView; offline?: OfflineWalkRef | null; reviewTarget?: ReviewTarget | null; launchTarget?: ReviewTarget | null }) {
   const resolvedRoute = walk ? walkViewToRoute(walk) : route;
   if (!resolvedRoute) return <main className="shell"><section className="hero-copy"><h1>Прогулка не найдена</h1><p className="dek">Откройте ссылку ещё раз или вернитесь к списку прогулок.</p></section></main>;
-  return <AvailableTour route={resolvedRoute} universal={Boolean(walk)} view={walk} offlineRef={walk ? offline : null} reviewTarget={walk ? reviewTarget : null} />;
+  return <AvailableTour route={resolvedRoute} universal={Boolean(walk)} view={walk} offlineRef={walk ? offline : null} reviewTarget={walk ? reviewTarget : null} launchTarget={walk ? launchTarget : null} />;
 }
 
-function AvailableTour({ route: initialRoute, universal = false, view, offlineRef, reviewTarget }: { route: Route; universal?: boolean; view?: WalkView; offlineRef: OfflineWalkRef | null; reviewTarget: ReviewTarget | null }) {
+function AvailableTour({ route: initialRoute, universal = false, view, offlineRef, reviewTarget, launchTarget }: { route: Route; universal?: boolean; view?: WalkView; offlineRef: OfflineWalkRef | null; reviewTarget: ReviewTarget | null; launchTarget: ReviewTarget | null }) {
   const [route, setRoute] = useState(initialRoute);
   const firstPoi = route.pois[0];
   const [phase, setPhase] = useState<SessionPhase>("reading");
@@ -55,6 +56,7 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const offlineCopy = useOfflineCopy(view, offlineRef);
   const reviews = useWalkReviews(reviewTarget);
+  const reportLaunch = useLaunchReport(launchTarget);
   const [rateOpen, setRateOpen] = useState(false);
   // A UX filter against drive-by ratings, not a security control: the server does not check it.
   const startButtonRef = useRef<HTMLButtonElement>(null);
@@ -180,6 +182,8 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
     // First, while the click still owns user activation (iOS).
     audio.begin(initialIndex, initialPosition, startAudioUrl);
     setPhase("walking");
+    // After audio.begin: counting must not delay the start or spend the click's user activation.
+    reportLaunch();
     setChapterIndex(initialIndex);
     setShowSources(false);
     setIsReplay(replayMode === "clean" || replayMode === "walk");
