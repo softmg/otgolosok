@@ -33,6 +33,17 @@ Compressing the 6,107-point body with gzip plus br (quality 5) takes ≈ 40 ms l
 
 Moscow inside the MKAD (lat 55.57–55.91, lon 37.37–37.86) is the single cell `55:37`. The whole validation region of the legacy list (lat 55.05–56.05, lon 36.75–38.25) spans cells lat {55, 56} × lon {36, 37, 38}.
 
+**Cell boundaries in real data** (local DB, 6,107 places):
+- `55:37` holds 6,075 places, `56:37` holds 20 and `55:36` holds 12.
+- The 56°N line runs through Zelenograd. "Братская могила воинов РККА" (56.0004, 37.2440) and "Пионерам" (55.9986, 37.2390) are a few hundred metres apart but in different cells.
+- About 100 places lie within 5 km of a cell line.
+
+Cells are only a transport and cache unit, so a line must never be visible on the map:
+- Every point belongs to exactly one cell, computed from raw coordinates.
+- The client merges all loaded cells into one set of points (deduplicated by `id`).
+- Clustering and the nearby radius work on that merged set, so a cluster or a radius that spans a cell line uses points from both sides.
+- See the boundary rules in steps 1, 2 and 5.
+
 ## Approved decisions
 
 1. **Slim index without text.** Each point has `id`, `lat`, `lon`, `title`, `address`, `durationSec` (null without audio), `facts` and `sources` (counts, for the nearby ranking). This is enough for marker titles (accessibility), the story sheet header and the "Рядом" recommendations without extra requests.
@@ -191,7 +202,9 @@ Moscow inside the MKAD (lat 55.57–55.91, lon 37.37–37.86) is the single cell
   - `MapPoint` (wire format).
   - `CatalogPoint = {id, location:{lat,lon}, title, address, durationSec: number|null, facts, sources}`.
 - Strict runtime validation of manifest and cell bodies. A malformed body is an error, never a partial success (as `loadPublishedCatalog` does today).
-- `cellsFor(bounds: CatalogBounds): string[]`: keys for `floor(south)…floor(north)` × `floor(west)…floor(east)`, clamped like the server.
+- `cellsFor(manifest, bounds: CatalogBounds): string[]`: returns the keys of **manifest cells** whose square `[lat, lat+1] × [lon, lon+1]` intersects `bounds` (edges touching count as intersecting).
+  - Do not enumerate every 1° key of the bounds. `catalogArea` returns the whole world (−180…180) when the view wraps near the antimeridian, which would mean 64,800 keys. At the minimum zoom the buffered area already covers ~50 empty keys.
+  - Iterating the manifest (a handful of cells) avoids both problems.
 - `isServiceMaintenance`: move it here from `published-catalog.ts`.
 - `CellStorage` interface: `read(url) → {etag, body}|null`, `write(url, etag, body)`.
   - Default implementation: `caches.open("map-cells-v1")`, storing a `Response` with the `ETag` header.
@@ -217,15 +230,16 @@ Moscow inside the MKAD (lat 55.57–55.91, lon 37.37–37.86) is the single cell
   - Deduplicate in-flight fetches per key, and fetch at most 4 cells concurrently.
   - Shared fetches are not aborted when one screen unmounts; their results land in the cache. The hook only ignores late updates after dispose.
   - Read API: `subscribe(listener)` and `snapshot() → {points: CatalogPoint[] (union of loaded cells), cellStatus: Map<key, "ready"|"loading"|"error">, manifestStatus, maintenance}`.
+  - The union is deduplicated by `id`, and the most recently fetched cell wins. When an import moves a place across a cell line, both cells change. For a moment the client may hold the new cell and the stale old one, and the place must not appear twice. Points are never filtered by cell on the client: the map and the nearby ranking always see the whole union.
   - No eviction: at most a few cells exist. Document the bound in a comment.
 
 **`src/features/explore/use-map-catalog.ts`** (new), replacing `use-published-catalog.ts`. Same contract minus `total`/`loaded`: `{places, status, nearbyStatus, maintenance, retry, onViewport}`.
-- `onViewport(area)` → `ensureCells(cellsFor(area.buffered))`.
+- `onViewport(area)` → `ensureCells(cellsFor(manifest, area.buffered))`. The buffer (two zoom steps) prefetches the neighbouring cell before the user pans across a line, so points do not pop in at the edge.
 - `status`:
   - `"loading"` only while a cell intersecting `area.required` has no data at all, neither memory nor storage. Background revalidation of cached data is silent.
   - `"error"` when such a cell failed and has no copy.
   - Otherwise `"ready"`.
-- Nearby: `ensureCells(cellsFor(nearbyBounds(center, radius)))`. `nearbyStatus` follows those cells.
+- Nearby: `ensureCells(cellsFor(manifest, nearbyBounds(center, radius)))`. A radius that crosses a line loads both cells, and `nearbyStatus` stays `"loading"` until all of them are ready, so recommendations are never computed from half the circle.
 - Move the `/service-status` polling and the 5 s maintenance auto-retry unchanged.
 - `retry()` re-runs manifest and cell loading for the current area and nearby keys.
 
@@ -300,6 +314,8 @@ All tests use local fixtures and mocks. No external or paid API calls.
   - The latest approved story wins over an older approved one and over a newer unapproved draft.
   - Audio duration comes from the latest approved audio.
   - The lower cell boundary is inclusive and the upper exclusive.
+  - A place at lat 55.999999 is served by cell 55, even though its rounded coordinate is 56.0. A place at exactly 56.0 is served by cell 56.
+  - The last row and column are inclusive (lat 90 → cell 89, lon 180 → cell 179), so the manifest and the cell endpoint agree.
   - The manifest etag equals `etagOf(serializeCell(getMapCell(...)))`.
   - The etag changes after `approvePlaceText`, after audio acceptance and after archiving via a `complete` import.
   - `place_texts_place_idx` exists.
@@ -319,7 +335,13 @@ All tests use local fixtures and mocks. No external or paid API calls.
   - Existing tests stay green.
   - `fetchWithRetry` returns a 304 without throwing, retries 5xx/429/timeouts with backoff, and does not retry other 4xx.
 - `map-cells.test.ts`, with injected storage and fetch:
-  - `cellsFor` is table-driven.
+  - `cellsFor` is table-driven:
+    - bounds inside one cell;
+    - bounds straddling 56°N (Zelenograd) → both cells;
+    - bounds touching a line exactly;
+    - bounds with no manifest cell → none;
+    - world bounds (−180…180) → only manifest cells.
+  - The union is deduplicated by `id` when the same place is in two cached cells (moved across a line).
   - Manifest: served from storage and then revalidated (304); a 200 replaces it.
   - A cell is fetched only when its etag differs from the manifest.
   - Concurrent `ensureCells` calls are deduplicated, with at most 4 in flight.
@@ -339,6 +361,7 @@ All tests use local fixtures and mocks. No external or paid API calls.
   - Renders every point of a cell.
   - A remount renders immediately from memory without network.
   - Nearby recommendations come from cells, including a cell outside the viewport.
+  - A nearby radius centred just south of 56°N includes a story just north of the line, and waits for both cells.
   - Opening a catalog point shows title and address immediately, then the text and the audio player.
   - The loading notice appears only without cached data.
   - Error plus retry, and maintenance auto-recovery (adapt the existing test).
@@ -350,6 +373,7 @@ All tests use local fixtures and mocks. No external or paid API calls.
 - In `e2e/map-catalog.spec.ts`, `e2e/interface.spec.ts` and `e2e/support/scenarios.ts`, replace the `**/api/content/places?*` mocks with manifest/cell routes and a detail route.
 - Scenarios:
   - The first open makes one manifest request and one cell request (no paging).
+  - With two mocked cells meeting at 56°N, a viewport over the line shows a cluster that combines points from both cells. The line is invisible: there are no separate per-cell groups.
   - A city-wide zoom-out makes no further requests within the same cell.
   - The story card shows the text after the detail response.
   - After a reload with the cell and manifest routes failing, the points still render from Cache Storage.
