@@ -204,9 +204,9 @@ test("a stopped batch item explains itself: coordinates, found pages lined up wi
   const item=store.getBatchItemDetail(batch.id,"osm:node:1");
   assert.equal(item.state,"review_required");assert.equal(item.error.code,"PLACE_UNCLEAR");
   assert.deepEqual(item.sources,[
-    {url:"https://a.example/1",title:"Первый",sourceId:null,publisher:null,chars:0,failure:"SOURCE_EMPTY",openData:null},
-    {url:"https://b.example/2?r=1",title:"Второй",sourceId:"s2",publisher:"b.example",chars:1200,failure:null,openData:null},
-    {url:"https://c.example/3",title:"Третий",sourceId:null,publisher:null,chars:0,failure:"FETCH_TIMEOUT",openData:null},
+    {url:"https://a.example/1",title:"Первый",sourceId:null,publisher:null,chars:0,failure:"SOURCE_EMPTY",openData:null,origin:null},
+    {url:"https://b.example/2?r=1",title:"Второй",sourceId:"s2",publisher:"b.example",chars:1200,failure:null,openData:null,origin:null},
+    {url:"https://c.example/3",title:"Третий",sourceId:null,publisher:null,chars:0,failure:"FETCH_TIMEOUT",openData:null,origin:null},
   ]);
   assert.equal(JSON.stringify(item).includes("x".repeat(100)),false);
   assert.equal(item.model.outcome,"rejected");assert.equal(item.model.identityConfirmed,false);
@@ -223,7 +223,7 @@ test("a batch item past the facts step reports the accepted identification",t=>{
   store.failContentJob(job.id,{code:"REVIEW_REQUIRED",message:"REVIEW_REQUIRED"},"review_required");
   const item=store.getBatchItemDetail(batch.id,"osm:node:1");
   // Without a search step on record the fetched pages are listed as they are.
-  assert.deepEqual(item.sources,[{url:"https://a.example/1",title:"Первый",sourceId:"s1",publisher:"a.example",chars:5,failure:null,openData:null}]);
+  assert.deepEqual(item.sources,[{url:"https://a.example/1",title:"Первый",sourceId:"s1",publisher:"a.example",chars:5,failure:null,openData:null,origin:null}]);
   assert.deepEqual(item.model,{outcome:"accepted",identityConfirmed:true,addressConfirmed:true,placeName:"Памятник",resolvedAddress:"Москва, Тверская",
     identityNote:"Совпадают название и место",facts:[{claim:"Открыт в 1950 году",kind:"identity",subjectRelation:"object",evidence:[{sourceId:"s1",quote:"открыт в 1950 году"}]}]});
 });
@@ -376,7 +376,165 @@ test("open-data records head the item's sources with their dataset, before the s
       {id:"s1",url:"https://a.example/1",title:"Первый",publisher:"a.example",text:"страница"}],sourceFailures:[]});
   store.failContentJob(job.id,{code:"REVIEW_REQUIRED",message:"REVIEW_REQUIRED"},"review_required");
   assert.deepEqual(store.getBatchItemDetail(batch.id,"osm:node:1").sources,[
-    {url:"https://data.mos.ru/opendata/2801",title:"Портал открытых данных",sourceId:"d1",publisher:"data.mos.ru",chars:5,failure:null,openData:{datasetId:2801,recordId:"42",datasetVersion:"3.86"}},
-    {url:"https://a.example/1",title:"Первый",sourceId:"s1",publisher:"a.example",chars:8,failure:null,openData:null},
+    {url:"https://data.mos.ru/opendata/2801",title:"Портал открытых данных",sourceId:"d1",publisher:"data.mos.ru",chars:5,failure:null,openData:{datasetId:2801,recordId:"42",datasetVersion:"3.86"},origin:null},
+    {url:"https://a.example/1",title:"Первый",sourceId:"s1",publisher:"a.example",chars:8,failure:null,openData:null,origin:null},
   ]);
+});
+
+// Draft re-research through the search model: which drafts are queued, and how completion replaces them.
+function draftStore(t, count = 4) {
+  let clock = Date.parse("2026-09-29T10:00:00Z");
+  const store = createStore(":memory:", { maxActive: 100, now: () => clock += 60000 }); t.after(() => store.close());
+  const places = Array.from({ length: count }, (_, index) => ({ ...catalog.places[0], placeId: `osm:node:${index + 1}`, osmId: index + 1, name: `Место ${index + 1}` }));
+  store.importPlaces({ ...catalog, places });
+  store.createBatch({ requestKey: "draft-drafts-key", placeIds: places.map(place => place.placeId), limit: count, identityPolicy: "weak_identity" });
+  const story = title => ({ title, paragraphs: [{ text: `Текст: ${title}`, factIds: ["f1"] }] });
+  // Each text gets a later clock tick; the order of claims decides which draft is the oldest.
+  const order = [];
+  for (let index = 0; index < count; index++) {
+    const job = store.claimContentJob(); order.push(job.place.id);
+    store.completeContentJob(job.id, { story: story(`старый ${job.place.id}`), evidence: { facts: [] } });
+  }
+  const draft = placeId => store.listDrafts({ limit: 100 }).items.find(item => item.placeId === placeId);
+  return { store, story, order, draft };
+}
+
+test("draft re-research takes the oldest unprocessed drafts, skipping approved and busy ones", t => {
+  const { store, order } = draftStore(t, 5);
+  const [oldest, second, third] = order;
+  store.approvePlaceText(oldest);
+  assert.equal(store.listDrafts().unresearched, 4);
+  const { batch, count } = store.researchDrafts({ requestKey: "draft-bulk-1-key", limit: 1 });
+  assert.equal(count, 1);
+  assert.equal(batch.identityPolicy, "weak_identity");
+  assert.deepEqual(store.getBatch(batch.id).items.map(item => [item.placeId, item.state]), [[second, "queued"]]);
+  // A queued draft is not picked again; the next oldest is.
+  const next = store.researchDrafts({ requestKey: "draft-bulk-2-key", limit: 1 });
+  assert.deepEqual(store.getBatch(next.batch.id).items.map(item => item.placeId), [third]);
+  const job = store.claimContentJob();
+  assert.equal(job.place.id, second);
+  assert.deepEqual(job.checkpoint, { researchMode: "perplexity_required" });
+  // A repeated request key returns the first batch without queuing more.
+  assert.equal(store.researchDrafts({ requestKey: "draft-bulk-1-key", limit: 5 }).batch.id, batch.id);
+});
+
+test("drafts already researched through Perplexity are skipped in bulk but can be repeated one by one", t => {
+  const { store, order, story } = draftStore(t, 2);
+  store.researchDrafts({ requestKey: "draft-one-key", placeIds: [order[0]] });
+  const job = store.claimContentJob();
+  store.updateContentCheckpoint(job.id, { ...job.checkpoint, research: { sources: [], perplexity: { status: "ok", count: 3 } } });
+  store.completeContentJob(job.id, { story: story("новый"), evidence: { facts: [] }, replaceDraft: true });
+  assert.equal(store.listDrafts().unresearched, 1);
+  const bulk = store.researchDrafts({ requestKey: "draft-bulk-key", limit: 50 });
+  assert.deepEqual(store.getBatch(bulk.batch.id).items.map(item => item.placeId), [order[1]]);
+  assert.throws(() => store.researchDrafts({ requestKey: "bulk-again", limit: 50 }), { code: "NO_DRAFTS_TO_RESEARCH" });
+  const repeat = store.researchDrafts({ requestKey: "draft-repeat-key", placeIds: [order[0]] });
+  assert.equal(repeat.count, 1);
+});
+
+test("draft re-research validates its input", t => {
+  const { store } = draftStore(t, 1);
+  for (const input of [{ limit: 0 }, { limit: 51 }, { limit: 1.5 }, { requestKey: "" }, { placeIds: [] }, { placeIds: ["../etc"] },
+    { placeIds: Array.from({ length: 51 }, (_, index) => `osm:node:${index + 1}`) }, { placeIds: "osm:node:1" }]) {
+    assert.throws(() => store.researchDrafts(/** @type {any} */ ({ requestKey: "draft-validation", ...input })), { code: "BAD_REQUEST" }, JSON.stringify(input));
+  }
+  assert.throws(() => store.researchDrafts({ requestKey: "draft-unknown-key", placeIds: ["osm:node:999"] }), { code: "NO_DRAFTS_TO_RESEARCH" });
+  assert.equal(store.researchDrafts({ requestKey: "draft-max-key", limit: 50 }).count, 1);
+});
+
+test("a completed re-research replaces only an unapproved draft", async t => {
+  for (const [approvedBefore, expected] of [[false, "новый"], [true, "старый osm:node:1"]]) {
+    await t.test(`approved: ${approvedBefore}`, t => {
+      const { store, story, draft } = draftStore(t, 1);
+      const before = draft("osm:node:1");
+      store.researchDrafts({ requestKey: "draft-redo-key", placeIds: ["osm:node:1"] });
+      const job = store.claimContentJob();
+      if (approvedBefore) store.approvePlaceText("osm:node:1");
+      const result = store.completeContentJob(job.id, { story: story("новый"), evidence: { facts: [{ claim: "Новый факт" }] }, replaceDraft: true });
+      assert.equal(result.id, before.text.id);
+      if (approvedBefore) assert.equal(store.getPlace("osm:node:1").text.story.title, expected);
+      else {
+        assert.equal(draft("osm:node:1").text.title, expected);
+        assert.ok(draft("osm:node:1").text.createdAt > before.text.createdAt);
+      }
+    });
+  }
+});
+
+test("completion without replaceDraft keeps an existing text as before", t => {
+  const { store, story, draft } = draftStore(t, 1);
+  store.researchDrafts({ requestKey: "draft-redo-key", placeIds: ["osm:node:1"] });
+  store.completeContentJob(store.claimContentJob().id, { story: story("новый"), evidence: { facts: [] } });
+  assert.equal(draft("osm:node:1").text.title, "старый osm:node:1");
+});
+
+test("draft research status follows the latest text's job and filters the list by it", t => {
+  const { store, story, draft, order } = draftStore(t, 3);
+  assert.deepEqual(store.listDrafts({ limit: 100 }).items.map(item => item.research), ["plain", "plain", "plain"]);
+  assert.deepEqual(store.listDrafts().counts, { plain: 3 });
+  assert.equal(store.listDrafts({ research: "plain", limit: 100 }).total, 3);
+  assert.equal(store.listDrafts({ research: "perplexity", limit: 100 }).total, 0);
+  for (const research of /** @type {any[]} */ (["bogus", "", null, 3])) assert.throws(() => store.listDrafts({ research }), { code: "BAD_REQUEST" }, JSON.stringify(research));
+
+  // A queued or working re-research stands in place of the still-current old text.
+  store.researchDrafts({ requestKey: "draft-status-1", placeIds: [order[0]] });
+  assert.equal(draft(order[0]).research, "queued");
+  const job = store.claimContentJob();
+  assert.equal(job.place.id, order[0]);
+  assert.equal(draft(order[0]).research, "queued");
+  assert.deepEqual(store.listDrafts().counts, { plain: 2, queued: 1 });
+  assert.deepEqual(store.listDrafts({ research: "queued", limit: 100 }).items.map(item => item.placeId), [order[0]]);
+
+  // A completed re-research through Perplexity marks the replaced draft.
+  store.updateContentCheckpoint(job.id, { ...job.checkpoint, research: { sources: [], perplexity: { status: "ok", count: 3 } } });
+  store.completeContentJob(job.id, { story: story("новый"), evidence: { facts: [] }, replaceDraft: true });
+  assert.equal(draft(order[0]).research, "perplexity");
+  assert.deepEqual(store.listDrafts().counts, { plain: 2, perplexity: 1 });
+
+  // A failed re-research keeps the old draft text and reports the failure.
+  store.researchDrafts({ requestKey: "draft-status-2", placeIds: [order[1]] });
+  const failing = store.claimContentJob();
+  store.failContentJob(failing.id, { code: "PERPLEXITY_UNAVAILABLE", message: "Perplexity недоступен" }, "failed", { countAttempt: false });
+  assert.equal(draft(order[1]).research, "failed");
+  assert.equal(draft(order[1]).text.title, `старый ${order[1]}`);
+  assert.deepEqual(store.listDrafts().counts, { plain: 1, perplexity: 1, failed: 1 });
+  assert.deepEqual(store.listDrafts({ research: "failed", limit: 100 }).items.map(item => item.placeId), [order[1]]);
+});
+
+test("deep draft research is explicit, single-place and idempotent", t => {
+  const {store,order}=draftStore(t,2);
+  for(const input of [{mode:"deep"},{mode:"deep",placeIds:order},{mode:"unknown",placeIds:[order[0]]}])
+    assert.throws(()=>store.researchDrafts({requestKey:"deep-invalid-key",...input}),{code:"BAD_REQUEST"});
+  const input={requestKey:"deep-draft-single",placeIds:[order[0]],mode:"deep"};
+  const result=store.researchDrafts(input);
+  assert.equal(result.count,1);
+  assert.equal(store.researchDrafts(input).batch.id,result.batch.id);
+  assert.throws(()=>store.researchDrafts({...input,placeIds:[order[1]]}),{code:"BAD_REQUEST"});
+  assert.throws(()=>store.researchDrafts({...input,mode:"search"}),{code:"BAD_REQUEST"});
+  const job=store.claimContentJob();
+  assert.equal(job.place.id,order[0]);
+  assert.equal(job.checkpoint.researchMode,"perplexity_deep_required");
+  store.failContentJob(job.id,{code:"DEEP_RESEARCH_UNAVAILABLE"},"failed");
+  assert.equal(store.listDrafts({research:"failed"}).items[0].placeId,order[0]);
+  assert.equal(store.getPlace(order[0]).text.draft.title.includes("новый"),false);
+  store.updateContentCheckpoint(job.id,{researchMode:"perplexity_deep_required",deepResearchStarted:true});
+  store.retryBatchItem(result.batch.id,order[0],{restartFrom:"research"});
+  assert.deepEqual(store.claimContentJob().checkpoint,{researchMode:"perplexity_deep_required"});
+});
+
+
+test("catalog bounds filter before pagination and include rectangle edges", t => {
+  const store = createStore(":memory:"); t.after(() => store.close());
+  store.importPlaces(catalog);
+  const bounds = { west: 37.6, south: 55.74, east: 37.61, north: 55.75 };
+  const result = store.listPlaces({ bounds, limit: 1 });
+  assert.deepEqual(result.places.map(place => place.id), ["osm:node:1"]);
+  assert.equal(result.total, 1); assert.equal(result.hasMore, false);
+  assert.equal(store.listPlaces({ bounds, offset: 1 }).places.length, 0);
+  assert.equal(store.listPlaces({ bounds: { ...bounds, north: 55.749 } }).total, 0);
+  for (const invalid of [
+    { ...bounds, west: NaN }, { ...bounds, north: 91 }, { ...bounds, east: 181 },
+    { ...bounds, west: 38 }, { ...bounds, south: 56 }, { ...bounds, east: bounds.west },
+  ]) assert.throws(() => store.listPlaces({ bounds: invalid }), { code: "BAD_REQUEST" });
+  assert.throws(() => store.listPlaces({ bounds, lat: 55.75, lon: 37.61, radius: 200 }), { code: "BAD_REQUEST" });
 });

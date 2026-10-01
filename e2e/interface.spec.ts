@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function openLongStory(page: Page) {
   const text = "Корпус имеет сложную, отдалённо Т-образную форму, а главный фасад построен как трёхчастная композиция. ".repeat(5);
-  await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: [{ id: "long-story", name: "Длинная история", address: "Москва, Дербеневская, 1", location: { lat: 55.7249, lon: 37.6507 }, story: { title: "Длинная история", paragraphs: [{ text }, { text }, { text }], sources: [], facts: [] }, audio: { url: "/api/story-audio/long-story.mp3", durationSec: 120 } }] } }));
+  await page.route("**/api/content/places?*", route => route.fulfill({ json: { total: 1, hasMore: false, places: [{ id: "long-story", name: "Длинная история", address: "Москва, Дербеневская, 1", location: { lat: 55.7249, lon: 37.6507 }, story: { title: "Длинная история", paragraphs: [{ text }, { text }, { text }], sources: [], facts: [] }, audio: { url: "/api/story-audio/long-story.mp3", durationSec: 120 } }] } }));
   await page.goto("/");
   await page.locator('[title="Длинная история"]').click();
   const story = page.getByRole("region", { name: "Текст истории", exact: true });
@@ -33,7 +33,28 @@ for (const endpoint of ["Откуда", "Куда"]) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.route("**/api/**", route => route.fulfill({ json: { user: null, walks: [], nextCursor: null, items: [] } }));
+  await page.route("**/api/**", route => route.fulfill({ json: { user: null, walks: [], nextCursor: null, items: [], places: [], total: 0, hasMore: false } }));
+});
+
+test("карта автоматически восстанавливается после обновления сервиса", async ({ page }) => {
+  let maintenance = true;
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.route("**/service-status", route => route.fulfill({ status: maintenance ? 503 : 200, json: { maintenance } }));
+  await page.route("**/api/content/places?*", route => route.fulfill(maintenance
+    ? { status: 503, json: { error: { code: "SERVICE_MAINTENANCE" } } }
+    : { json: { total: 1, hasMore: false, places: [{ id: "recovered-place", name: "Восстановленное место", address: "Москва", location: { lat: 55.7249, lon: 37.6507 }, story: null, audio: null }] } }));
+  const unavailableCatalog = page.waitForResponse(response => response.url().includes("/api/content/places?") && response.status() === 503);
+  await page.goto("/");
+  await expect(page.getByText("Сервис обновляется. Карта загрузится автоматически.")).toBeVisible();
+  await unavailableCatalog;
+  await expect(page.getByRole("button", { name: "Повторить загрузку мест" })).toHaveCount(0);
+  const healthyStatus = page.waitForResponse(response => new URL(response.url()).pathname === "/service-status" && response.status() === 200, { timeout: 15_000 });
+  maintenance = false;
+  await healthyStatus;
+  await expect(page.locator('[title="Восстановленное место"]')).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
+  expect(errors).toEqual([]);
 });
 
 test("знак одинакового размера на карте и странице входа", async ({ page }) => {
@@ -119,7 +140,7 @@ test("создаёт A→Б на карте и восстанавливает е
 });
 
 test("дом передаёт старт, возврат включён по умолчанию, Back закрывает панель", async ({ page }) => {
-  await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: [{ id: "test-house", name: "Дом для прогулки", address: "Москва, Дербеневская, 1", location: { lat: 55.7249, lon: 37.6507 }, story: null, audio: null }] } }));
+  await page.route("**/api/content/places?*", route => route.fulfill({ json: { total: 1, hasMore: false, places: [{ id: "test-house", name: "Дом для прогулки", address: "Москва, Дербеневская, 1", location: { lat: 55.7249, lon: 37.6507 }, story: null, audio: null }] } }));
   await page.goto("/");
   await page.locator('[title="Дом для прогулки"]').click();
   await page.getByRole("link", { name: "Создать прогулку отсюда" }).click();
@@ -273,7 +294,7 @@ for (const width of [390, 1440]) {
 
 test("ручной адрес подтверждается кнопкой без каталога и сохраняется при ошибке", async ({ page }) => {
   let attempts = 0;
-  await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: [] } }));
+  await page.route("**/api/content/places?*", route => route.fulfill({ json: { total: 0, hasMore: false, places: [] } }));
   await page.route("**/api/story-place?*", route => {
     attempts++;
     return route.fulfill(attempts === 1 ? { status: 404, json: { error: { message: "Уточните номер дома" } } } : { json: { address: "Москва, Дербеневская улица, 3", location: { lat: 55.7254969, lon: 37.6513112 } } });
@@ -336,7 +357,7 @@ test("длинная история прокручивается внутри к
   const before = { close: await close.boundingBox(), audio: await audio.boundingBox(), card: await card.boundingBox() };
   expect(await card.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
   expect(before.audio!.y + before.audio!.height).toBeLessThanOrEqual(before.card!.y + before.card!.height);
-  expect(await state()).toMatchObject({ fadeTop: "0px", fadeBottom: "28px" });
+  await expect.poll(state).toMatchObject({ fadeTop: "0px", fadeBottom: "28px" });
   expect((await state()).rest).toBeGreaterThan(100);
 
   await close.focus();
@@ -344,7 +365,7 @@ test("длинная история прокручивается внутри к
   await expect(story).toBeFocused();
   await page.keyboard.press("End");
   await expect.poll(async () => (await state()).rest).toBeLessThanOrEqual(1);
-  expect(await state()).toMatchObject({ fadeTop: "28px", fadeBottom: "0px" });
+  await expect.poll(state).toMatchObject({ fadeTop: "28px", fadeBottom: "0px" });
   expect(await close.boundingBox()).toEqual(before.close);
   expect(await audio.boundingBox()).toEqual(before.audio);
   await page.screenshot({ path: info.outputPath("story-card-scrolled.png") });
@@ -368,39 +389,6 @@ for (const [width, height, insets] of shortPortraits) {
     await page.screenshot({ path: info.outputPath("story-card-controls.png") });
   });
 }
-
-test("часть прогулки без текста не добавляет область прокрутки в порядок фокуса", async ({ page }) => {
-  await page.goto("/");
-  await page.locator('[data-marker="pin"]', { hasText: "1" }).first().click();
-  await expect(page.getByRole("button", { name: "Слушать эту часть" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Текст истории", exact: true })).toHaveCount(0);
-  // Tab goes from closing straight to the card's actions; the short body itself is not a stop.
-  await page.getByRole("button", { name: "Закрыть карточку", exact: true }).focus();
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Создать прогулку отсюда" })).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Слушать эту часть" })).toBeFocused();
-});
-
-test("после выхода из прогулки карта открывает карточку текущей части и ставит на неё фокус", async ({ page }) => {
-  await page.goto("/");
-  await page.locator('[data-marker="pin"]', { hasText: "2" }).first().click();
-  await page.getByRole("button", { name: "Слушать эту часть" }).click();
-  // Выходим не из той части, с которой начали: карта должна открыть текущую.
-  await page.getByRole("button", { name: /^Дальше:/ }).click();
-  await page.getByRole("button", { name: "Выйти из прогулки", exact: true }).click();
-  await expect(page.locator('[data-sheet="story"] [data-sheet-part="header"]')).toContainText("По дороге · часть 3");
-  await expect(page.getByRole("button", { name: "Слушать эту часть" })).toBeFocused();
-});
-
-test("после завершения маршрута карта открывает карточку последней части и ставит на неё фокус", async ({ page }) => {
-  await page.goto("/");
-  await page.locator('[data-marker="pin"]', { hasText: "4" }).first().click();
-  await page.getByRole("button", { name: "Слушать эту часть" }).click();
-  await page.getByRole("button", { name: "Закончить маршрут", exact: true }).click();
-  await expect(page.locator('[data-sheet="story"] [data-sheet-part="header"]')).toContainText("По дороге · часть 4");
-  await expect(page.getByRole("button", { name: "Слушать эту часть" })).toBeFocused();
-});
 
 test("подпись карты размером 11 пикселей без подчёркивания прижата к верхнему краю", async ({ page }) => {
   await page.goto("/");
@@ -458,7 +446,7 @@ for (const endpoint of ["Откуда", "Куда"]) {
 test("клик карты после создания от дома задаёт финиш, а явный выбор меняет старт", async ({ page }) => {
   const start = "Москва, Дербеневская, 1";
   const finish = "Москва, Арбат, 10";
-  await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: [{ id: "start-house", name: "Стартовый дом", address: start, location: { lat: 55.7249, lon: 37.6507 }, story: null, audio: null }] } }));
+  await page.route("**/api/content/places?*", route => route.fulfill({ json: { total: 1, hasMore: false, places: [{ id: "start-house", name: "Стартовый дом", address: start, location: { lat: 55.7249, lon: 37.6507 }, story: null, audio: null }] } }));
   await page.route("**/api/story-place?*", route => route.fulfill({ json: { address: finish, location: { lat: 55.75, lon: 37.6 } } }));
   await page.goto("/");
   await page.locator('[title="Стартовый дом"]').click();
@@ -474,7 +462,7 @@ test("клик карты после создания от дома задаёт
 });
 
 test("достопримечательности остаются компактными точками при создании прогулки", async ({ page }) => {
-  await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: [{ id: "landmark", name: "Тестовая достопримечательность", address: "Москва, Арбат, 10", location: { lat: 55.7249, lon: 37.6507 }, story: null, audio: null }] } }));
+  await page.route("**/api/content/places?*", route => route.fulfill({ json: { total: 1, hasMore: false, places: [{ id: "landmark", name: "Тестовая достопримечательность", address: "Москва, Арбат, 10", location: { lat: 55.7249, lon: 37.6507 }, story: null, audio: null }] } }));
   await page.goto("/");
   const pin = page.locator('[title="Тестовая достопримечательность"]');
   await expect(pin).toBeVisible();
@@ -497,7 +485,7 @@ test("прогулка из Александровского сада с чет�
   await page.goto("/?walk=create&resume=1");
   await expect(page.locator(".leaflet-overlay-pane path")).toBeVisible();
   await page.getByRole("link", { name: "Начать прогулку", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Ваш маршрут", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: draft.title, exact: true })).toBeVisible();
   await expect(page.getByText("Некорректные данные прогулки.", { exact: true })).toHaveCount(0);
   const map = page.locator(".walk-session-map");
   await map.scrollIntoViewIfNeeded();

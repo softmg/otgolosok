@@ -22,6 +22,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 
   test(`карта остаётся при старте и смене остановки ${viewport.width}`, async ({ page }, info) => {
     await page.setViewportSize(viewport);
     await setup(page);
+    await expect(page.getByRole("heading", { name: "Арбат", exact: true })).toBeVisible();
     const map = page.locator(".walk-session-map");
     await expect(map.locator(".leaflet-overlay-pane path")).toBeVisible();
     await expect(page.locator(".hero, .debug-panel, .walk-plan")).toHaveCount(0);

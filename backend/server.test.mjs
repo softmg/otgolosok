@@ -383,3 +383,124 @@ test("a short promo walks token stops the server from starting",t=>{
   const store=createStore(":memory:",{maxActive:1});t.after(()=>store.close());
   assert.throws(()=>createApp({store,provider:null,origin:"https://otgolosok.test",audioDirectory:tmpdir(),workerEnabled:false,promoWalksToken:"short"}),/PROMO_WALKS_TOKEN must contain at least 32 characters/);
 });
+
+test("drafts list unapproved texts with their paragraphs and leave once approved",async(t)=>{
+  const f=await fixture(t);
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[
+    {placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}},
+    {placeId:"osm:node:8",osmType:"node",osmId:8,name:"Сквер",location:{lat:55.76,lon:37.62},tags:{leisure:"park"}}]});
+  f.store.createBatch({requestKey:"drafts-api-1",placeIds:["osm:node:7","osm:node:8"],limit:2});
+  const story=title=>({title,paragraphs:[{text:`${title}: первый абзац`,factIds:["f1"]},{text:`${title}: второй абзац`,factIds:["f2"]}]});
+  // Claim order is not guaranteed: each job gets the story of its own place.
+  for(let index=0;index<2;index++){const job=f.store.claimContentJob();f.store.completeContentJob(job.id,{story:story(job.place.name),evidence:{facts:[]}});}
+  const list=async()=>/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?limit=10&offset=0`)).json());
+  const drafts=await list();
+  assert.equal(drafts.total,2);
+  assert.deepEqual(drafts.counts,{plain:2});
+  assert.deepEqual(drafts.items.find(item=>item.placeId==="osm:node:7"),{placeId:"osm:node:7",name:"Парк",address:null,location:{lat:55.75,lon:37.61},research:"plain",
+    text:{id:drafts.items.find(item=>item.placeId==="osm:node:7").text.id,title:"Парк",paragraphs:["Парк: первый абзац","Парк: второй абзац"],verification:"automatic",
+      createdAt:drafts.items.find(item=>item.placeId==="osm:node:7").text.createdAt}});
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?limit=10&offset=0&research=plain`)).json()).total,2);
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?limit=10&offset=0&research=perplexity`)).json()).total,0);
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/stats`)).json()).drafts,2);
+  assert.equal((await f.post("/api/story-admin/content/places/osm:node:7/approve",{story:story("Парк")})).status,200);
+  assert.deepEqual((await list()).items.map(item=>item.placeId),["osm:node:8"]);
+  assert.equal(/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/stats`)).json()).drafts,1);
+  for(const query of ["limit=0","limit=101","offset=-1","limit=abc","status=draft","research=bogus","research="])
+    assert.equal((await fetch(`${f.base}/api/story-admin/content/drafts?${query}`)).status,400,query);
+});
+
+test("drafts can be queued for Perplexity re-research only when the search model is configured",async(t)=>{
+  const searchProvider=/** @type {any} */ ({searchModel:"perplexity-web/pplx-auto",searchSources:async()=>({sources:[]})});
+  const disabled=await fixture(t);
+  assert.equal(/** @type {any} */ (await (await fetch(`${disabled.base}/api/story-admin/content/drafts`)).json()).researchAvailable,false);
+  const off=await disabled.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-0",limit:5});
+  assert.equal(off.status,409);assert.equal(/** @type {any} */ (await off.json()).error.code,"SEARCH_DISABLED");
+
+  const f=await fixture(t,{provider:searchProvider});
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[
+    {placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}}]});
+  f.store.createBatch({requestKey:"research-api-batch",placeIds:["osm:node:7"],limit:1,identityPolicy:"weak_identity"});
+  const job=f.store.claimContentJob();f.store.completeContentJob(job.id,{story:{title:"Парк",paragraphs:[{text:"Абзац",factIds:["f1"]}]},evidence:{facts:[]}});
+  const drafts=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts`)).json());
+  assert.equal(drafts.researchAvailable,true);assert.equal(drafts.unresearched,1);
+  for(const body of [{requestKey:"research-api-1",limit:0},{requestKey:"research-api-1",placeIds:["bad"]},{requestKey:"research-api-1",extra:true},{requestKey:"x",limit:1}])
+    assert.equal((await f.post("/api/story-admin/content/drafts/research",body)).status,400,JSON.stringify(body));
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-1",limit:1},"https://evil.example")).status,403);
+  const csrf=await fetch(`${f.base}/api/story-admin/content/drafts/research`,{method:"POST",headers:{Origin:"https://otgolosok.test","Content-Type":"application/json"},body:JSON.stringify({requestKey:"research-api-1",limit:1})});
+  assert.equal(csrf.status,403);
+  const queued=await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-1",placeIds:["osm:node:7"]});
+  assert.equal(queued.status,200);assert.equal(/** @type {any} */ (await queued.json()).count,1);
+  const inFlight=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts?research=queued`)).json());
+  assert.deepEqual(inFlight.counts,{queued:1});
+  assert.deepEqual(inFlight.items.map(item=>[item.placeId,item.research]),[["osm:node:7","queued"]]);
+  const none=await f.post("/api/story-admin/content/drafts/research",{requestKey:"research-api-2",limit:20});
+  assert.equal(none.status,409);assert.equal(/** @type {any} */ (await none.json()).error.code,"NO_DRAFTS_TO_RESEARCH");
+});
+
+test("place revoicing accepts only configured audio profiles and offers ElevenLabs when it is set up",async t=>{
+  const elevenLabsTts=/** @type {any} */ ({ttsProvider:"elevenlabs",voice:"RuVoice1",voices:[{id:"RuVoice1",label:"Отголосок (ru)"}],speech:async()=>Buffer.from("")});
+  /** @type {[object, string[]][]} */
+  const cases=[[{},["silero-ru-v1"]],[{elevenLabsTts},["silero-ru-v1","elevenlabs-v3"]]];
+  for(const [options,profiles] of cases){
+    const f=await fixture(t,options);
+    f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[{placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}}]});
+    f.store.createBatch({requestKey:"revoice-profile",placeIds:["osm:node:7"],limit:1,mode:"text-only"});
+    const paragraph=("Проверенный рассказ о московском парке, его истории, архитектуре и людях. ").repeat(9).trim();
+    const job=f.store.claimContentJob(),story={title:"Парк",paragraphs:[{text:paragraph,factIds:["f1"]},{text:paragraph,factIds:["f2"]}]};
+    f.store.completeContentJob(job.id,{story,evidence:{facts:[]}});
+    assert.equal((await f.post("/api/story-admin/content/places/osm:node:7/approve",{story})).status,200);
+    const workers=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/workers`)).json());
+    assert.deepEqual(workers.audioProfiles.map(profile=>profile.id),profiles);
+    for(const profileId of ["unknown-profile",...(profiles.includes("elevenlabs-v3")?[]:["elevenlabs-v3"])])
+      assert.equal((await f.post("/api/story-admin/content/places/osm:node:7/audio",{profileId})).status,400,profileId);
+    for(const profileId of profiles){
+      const response=await f.post("/api/story-admin/content/places/osm:node:7/audio",{profileId});
+      assert.equal(response.status,200);assert.equal(/** @type {any} */ (await response.json()).audioJob.profileId,profileId);
+    }
+  }
+});
+
+test("deep research API exposes availability and queues only one explicit draft",async t=>{
+  const provider=/** @type {any} */ ({deepResearchSources:async()=>({sources:[]})});
+  const f=await fixture(t,{provider});
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),rulesVersion:"v1",coverage:"fixture",places:[
+    {placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{leisure:"park"}}]});
+  f.store.createBatch({requestKey:"deep-api-fixture",placeIds:["osm:node:7"],limit:1,identityPolicy:"weak_identity"});
+  const job=f.store.claimContentJob();f.store.completeContentJob(job.id,{story:{title:"Старый черновик",paragraphs:[{text:"Абзац",factIds:["f1"]}]},evidence:{facts:[]}});
+  const drafts=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/content/drafts`)).json());
+  assert.equal(drafts.deepResearchAvailable,true);
+  assert.equal(drafts.researchAvailable,false);
+  const input={requestKey:"deep-api-request",mode:"deep",placeIds:["osm:node:7"]};
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",{requestKey:input.requestKey,mode:"deep",limit:1})).status,400);
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",input,"https://evil.example")).status,403);
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",input)).status,200);
+  assert.equal((await f.post("/api/story-admin/content/drafts/research",input)).status,200);
+  assert.equal(f.store.claimContentJob().checkpoint.researchMode,"perplexity_deep_required");
+  assert.equal(f.store.getPlace("osm:node:7").text.draft.title,"Старый черновик");
+  const disabled=await fixture(t);
+  assert.equal((await disabled.post("/api/story-admin/content/drafts/research",input)).status,409);
+});
+
+
+test("public catalog accepts only complete finite non-wrapping bounds", async t => {
+  const f = await fixture(t);
+  f.store.importPlaces({ source: "fixture", sourceSha256: "a".repeat(64), places: [1, 2].map(id => ({ placeId: `osm:node:${id}`, osmType: "node", osmId: id, name: `Место ${id}`, location: { lat: 55.75, lon: 37.61 }, tags: {} })) });
+  f.store.createBatch({ requestKey: "bounds-http", placeIds: ["osm:node:1"], limit: 1 });
+  const job = f.store.claimContentJob();
+  f.store.completeContentJob(job.id, { story: { title: "История", paragraphs: [{ text: "Проверенный текст", factIds: ["f1"] }] }, evidence: {} });
+  f.store.approvePlaceText("osm:node:1");
+  const response = await fetch(`${f.base}/api/content/places?west=37&south=55&east=38&north=56`);
+  assert.equal(response.status, 200);
+  const result = /** @type {any} */ (await response.json());
+  assert.equal(result.total, 1); assert.equal(result.hasMore, false);
+  assert.deepEqual(result.places.map(place => place.id), ["osm:node:1"]);
+  const outside = await fetch(`${f.base}/api/content/places?west=37.7&south=55&east=38&north=56`);
+  assert.deepEqual(await outside.json(), { total: 0, places: [], hasMore: false });
+  for (const query of [
+    "west=37&south=55&east=38", "west=&south=55&east=38&north=56",
+    "west=NaN&south=55&east=38&north=56", "west=38&south=55&east=37&north=56",
+    "west=37&south=55&east=38&north=56&west=36",
+    "west=37&south=55&east=38&north=56&lat=55.75&lon=37.61&radius=200",
+  ]) assert.equal((await fetch(`${f.base}/api/content/places?${query}`)).status, 400, query);
+});

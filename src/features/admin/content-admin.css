@@ -112,3 +112,14 @@
 @media (max-width: 60rem) {
   .content-item-detail { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* The draft editor opens inline under its row; on narrow screens it stays pinned to the visible part of the scrolling table. */
+.admin-table tbody tr.drafts-editor-row > td { padding: 0 .75rem 1.5rem; background: var(--raised); }
+.content-admin .drafts-editor-row .admin-document { position: sticky; left: .75rem; max-width: calc(100vw - 3.5rem); margin-top: 0; padding-top: 1rem; border-top: 0; }
+.content-admin .drafts-research { flex-wrap: wrap; margin: .5rem 0 1rem; }
+.content-admin .drafts-research label { display: inline-flex; align-items: center; gap: .5rem; }
+.content-admin .drafts-research input { width: 5rem; }
+/* Leaves the opened draft's own row in view above the editor heading. */
+#draft-place-title { scroll-margin-top: 6rem; }
+.content-audio-profile { display: inline-flex; align-items: center; gap: .5rem; }
+.content-audio-profile span { font-weight: 600; }

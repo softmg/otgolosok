@@ -2,7 +2,7 @@ import { EDITORIAL_EVIDENCE_VERSION, failure, validateFacts } from "./domain.mjs
 import { validateSourceUrl, fetchSource } from "./safe-fetch.mjs";
 import { withRetry } from "./retry.mjs";
 import { sourceText } from "./source-text.mjs";
-import { researchPrompt, factsPrompt } from "./prompts.mjs";
+import { researchPrompt, factsPrompt, searchSourcesPrompt } from "./prompts.mjs";
 import { requestStructured, usageTokens } from "./model-output.mjs";
 import { writeStory } from "./story-writing.mjs";
 import { errorMessages, SOURCE_RETRY } from "./pipeline.mjs";
@@ -24,6 +24,9 @@ const CONTENT_FAILURES = {
   PLACE_UNCLEAR: "Источники не позволяют уверенно определить объект. Проверьте, о том ли месте найдены материалы.",
   IDENTITY_UNCONFIRMED: "Источники не называют объект так, как он подписан в OSM. Проверьте вручную, о том ли месте найдены материалы.",
   OSM_ADDRESS_LOOKUP_FAILED: "Не удалось прочитать адресные ориентиры OSM. Проверьте локальный адресный индекс перед повтором.",
+  DEEP_RESEARCH_UNAVAILABLE: "Глубокое исследование не завершилось. Черновик сохранён. Новый запуск расходует квоту Deep Research.",
+  DEEP_RESEARCH_INTERRUPTED: "Глубокое исследование было прервано. Автоматический повтор не запущен, чтобы повторно не расходовать квоту. Запустите его из черновика при необходимости.",
+  PERPLEXITY_UNAVAILABLE: "Perplexity недоступен: вероятно, истекла сессия или закончилась квота. Черновик не изменён, повторите позже.",
 };
 
 /** The code drives filtering and routing, the message is what the editor reads, so a failure carries both. */
@@ -41,11 +44,18 @@ function placeLabel(place) {
   return type?`${place.name} (OSM: ${type})`:place.name;
 }
 
-function sourcesFrom(result) {
-  const seen=new Set();
-  return (result.sources??result.citedUrls?.map(url=>({url}))??[]).slice(0,5).flatMap(source=>{
-    try{const url=validateSourceUrl(source.url).href;if(seen.has(url))return[];seen.add(url);return[{url,title:(source.title||new URL(url).hostname).slice(0,250)}];}catch{return[];}});
+/** Up to `limit` fetchable, distinct URLs of a search result, in its order; `seen` is shared to dedupe across searches. */
+function sourcesFrom(result,{limit=5,seen=new Set(),origin=null}={}) {
+  return (result.sources??result.citedUrls?.map(url=>({url}))??[]).flatMap(source=>{
+    try{const url=validateSourceUrl(source.url).href;if(seen.has(url))return[];seen.add(url);return[{url,title:(source.title||new URL(url).hostname).slice(0,250),...(origin?{origin}:{})}];}catch{return[];}}).slice(0,limit);
 }
+const MAX_RESEARCH_SOURCES=8;
+
+/** Draft re-research asks for Perplexity explicitly: without it the regular search would only repeat the current draft. */
+export const PERPLEXITY_REQUIRED="perplexity_required";
+export const DEEP_RESEARCH_REQUIRED="perplexity_deep_required";
+// Leave time to fetch sources, extract facts and review the story after both search attempts.
+const DEEP_CONTENT_TIMEOUT_MS=45*60*1000;
 
 function invalidateEditorialCheckpoint(checkpoint) {
   const retained={...checkpoint};
@@ -72,11 +82,13 @@ function reviewRound(round,review) {
 /**
  * @param {any} job
  * @param {{store: ReturnType<typeof import("./store.mjs").createStore>,
- *   provider: {writerModel?: string, response: (prompt: string, options?: object) => Promise<any>},
+ *   provider: {writerModel?: string, response: (prompt: string, options?: object) => Promise<any>,
+ *     deepResearchModel?: string | null, deepResearchSources?: ((prompt: string, options?: {signal?: AbortSignal}) => Promise<{sources: {url: string, title?: string}[]}>) | null,
+ *     searchModel?: string | null, searchSources?: ((prompt: string, options?: {signal?: AbortSignal}) => Promise<{sources: {url: string, title?: string}[]}>) | null},
  *   fetchPage?: (url: string, options?: {signal?: AbortSignal}) => Promise<any>, resolveLocation?: ((place: any) => any) | null,
- *   signal?: AbortSignal, timeoutMs?: number, autoApprove?: boolean}} options
+ *   signal?: AbortSignal, timeoutMs?: number, autoApprove?: boolean, onSearchFailure?: (code: string) => void}} options
  */
-export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=600000,autoApprove=false}) {
+export async function runContentJob(job,{store,provider,fetchPage=fetchSource,resolveLocation=null,signal,timeoutMs=job.checkpoint?.researchMode===DEEP_RESEARCH_REQUIRED?DEEP_CONTENT_TIMEOUT_MS:600000,autoApprove=false,onSearchFailure=()=>{}}) {
   const deadline=AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])]);let checkpoint=job.checkpoint??{};
   const save=patch=>{checkpoint={...checkpoint,...patch};store.updateContentCheckpoint(job.id,checkpoint);};
   const call=async(prompt,options={})=>{const result=await provider.response(prompt,{...options,signal:deadline});const tokens=usageTokens(result.usage);if(tokens)save({usageTokens:Number(checkpoint.usageTokens??0)+tokens});return result;};
@@ -92,7 +104,34 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
     // A job stopped before the import picks the record up on retry; facts and the story must be redone with it.
     if(checkpoint.sources&&openSources.some(source=>!checkpoint.sources.some(saved=>saved.openData&&openKey(saved)===openKey(source)))){
       checkpoint={...invalidateEditorialCheckpoint(checkpoint),sources:[...openSources,...checkpoint.sources.filter(saved=>!saved.openData)]};store.updateContentCheckpoint(job.id,checkpoint);}
-    if(!checkpoint.research&&!checkpoint.sources){const research=await call(researchPrompt(job.place.address,context),{search:true,timeoutMs:180000,maxTokens:3000});const sources=sourcesFrom(research);if(!sources.length&&!openSources.length)throw failure("INSUFFICIENT_EVIDENCE");save({research:{sources}});}
+    if(!checkpoint.research&&!checkpoint.sources){
+      // Weakly identified places also get a search model's citations (Perplexity), ranked first. Only its URLs are used:
+      // pages are fetched and quotes checked like any other source. Its failure never stops a regular job.
+      const seen=new Set(),deep=checkpoint.researchMode===DEEP_RESEARCH_REQUIRED,required=deep||checkpoint.researchMode===PERPLEXITY_REQUIRED;let found=[],perplexity=null;
+      // Saved before the regular search: a retry after its failure must not spend the scarce search quota again.
+      if(checkpoint.perplexityResearch){({sources:found,perplexity}=checkpoint.perplexityResearch);for(const source of found)seen.add(source.url);}
+      else if(deep){
+        if(checkpoint.deepResearchStarted)throw failure("DEEP_RESEARCH_INTERRUPTED");
+        if(!provider.deepResearchSources)throw failure("DEEP_RESEARCH_UNAVAILABLE");
+        save({deepResearchStarted:true});
+        try {
+          found=sourcesFrom(await provider.deepResearchSources(`${searchSourcesPrompt(context)}\nПроведи глубокое исследование: сопоставь исторические названия, даты и авторов. Поставь в начало списка первоисточники с фактами именно об этом объекте.`,{signal:deadline}),{seen,origin:"perplexity",limit:MAX_RESEARCH_SOURCES});
+          if(!found.length)throw failure("NO_SEARCH_EVIDENCE");
+          perplexity={status:"ok",count:found.length,model:provider.deepResearchModel,mode:"deep"};
+          save({perplexityResearch:{sources:found,perplexity}});
+        } catch(error) {save({deepResearchFailure:error?.code??error?.name??"SEARCH_FAILED"});throw failure("DEEP_RESEARCH_UNAVAILABLE");}
+      }
+      else if(job.identityPolicy==="weak_identity"&&provider.searchSources){
+        try{found=sourcesFrom(await provider.searchSources(searchSourcesPrompt(context),{signal:deadline}),{seen,origin:"perplexity"});perplexity={status:"ok",count:found.length,model:provider.searchModel};}
+        catch(error){if(deadline.aborted)throw error;const code=error?.code??"SEARCH_FAILED";perplexity={status:"failed",code,count:0,model:provider.searchModel};onSearchFailure(code);}
+        if(perplexity.status==="ok"&&!found.length)perplexity={...perplexity,status:"failed",code:"NO_SEARCH_EVIDENCE"};
+        if(perplexity.status==="ok")save({perplexityResearch:{sources:found,perplexity}});
+      }
+      if(required&&perplexity?.status!=="ok")throw failure("PERPLEXITY_UNAVAILABLE");
+      const research=deep?{sources:[]}:await call(researchPrompt(job.place.address,context),{search:true,timeoutMs:180000,maxTokens:3000});
+      const sources=[...found,...sourcesFrom(research,{seen,origin:perplexity?"search":null})].slice(0,MAX_RESEARCH_SOURCES);
+      if(!sources.length&&!openSources.length)throw failure("INSUFFICIENT_EVIDENCE");save({research:{sources,...(perplexity?{perplexity}:{})}});}
+    if(checkpoint.perplexityResearch&&checkpoint.research){checkpoint={...checkpoint};delete checkpoint.perplexityResearch;store.updateContentCheckpoint(job.id,checkpoint);}
     if(!checkpoint.sources){const results=await Promise.allSettled(checkpoint.research.sources.map(async(source,index)=>{const page=await withRetry(()=>fetchPage(source.url,{signal:deadline}),SOURCE_RETRY(deadline));const text=await sourceText(page,{keywords:[job.place.name,job.place.address]});if(text.length<300)throw failure("SOURCE_EMPTY");return{id:`s${index+1}`,url:page.url,title:source.title,publisher:new URL(page.url).hostname.split(".").slice(-2).join("."),text};}));
       const sources=[...openSources,...results.filter(result=>result.status==="fulfilled").map(result=>result.value)];if(!sources.length)throw failure("SOURCE_ACCESS_FAILED");save({sources,sourceFailures:results.filter(result=>result.status==="rejected").map(result=>result.reason?.code??"SOURCE_FAILED")});}
     if(!checkpoint.evidence){
@@ -101,14 +140,14 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
       const anchor=job.place.address;const facts=await requestStructured(provider,factsPrompt(anchor,checkpoint.sources,context),{signal:deadline,timeoutMs:150000,maxTokens:5500});
       const raw={...facts.value,addressConfirmed:facts.value.addressConfirmed===true,resolvedAddress:facts.value.resolvedAddress||job.place.address||job.place.name,placeName:facts.value.placeName||job.place.name};
       let evidence;
-      try{evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true,identityMode:"place"});if(job.identityPolicy==="weak_identity")evidence=restrictWeakIdentityEvidence(evidence,job.place);}
+      try{evidence=validateFacts(raw,checkpoint.sources,{requireEditorialScope:true,identityMode:"place"});if(job.identityPolicy==="weak_identity")evidence=restrictWeakIdentityEvidence(evidence);}
       catch(error){if(error?.code)save({factsRejection:factsRejection(error.code,facts.value)});throw error;}
       save({evidence,editorialVersion:EDITORIAL_EVIDENCE_VERSION});}
     // Evidence saved before identityMode "place" has no addressConfirmed flag: it was validated against the address.
     const placeIdentified=checkpoint.evidence.addressConfirmed===false;
     if(!checkpoint.draft){const draft=await writeStory(checkpoint.evidence,{profile:job.profile,provider,address:placeIdentified?placeLabel(job.place):job.place.address??job.place.name,placeIdentified,signal:deadline,onCandidate:candidate=>save({draftCandidateRaw:candidate}),
       onReview:(review,round=1)=>save({review,reviewRounds:[...(round>1?checkpoint.reviewRounds??[]:[]),reviewRound(round,review)]})});save({draft});}
-    const completed=store.completeContentJob(job.id,{story:checkpoint.draft,evidence:checkpoint.evidence,verification:"automatic",autoApprove});
+    const completed=store.completeContentJob(job.id,{story:checkpoint.draft,evidence:checkpoint.evidence,verification:"automatic",autoApprove,replaceDraft:[PERPLEXITY_REQUIRED,DEEP_RESEARCH_REQUIRED].includes(checkpoint.researchMode)});
     if(autoApprove&&completed.story.audioDisposition!=="not_applicable_short_text")for(const profileId of completed.audioProfiles)await store.enqueueExternalAudio({sourceJobId:`place-text:${completed.id}`,sourceRevision:0,
       story:{...completed.story,address:job.place.address??job.place.name},profileId,signal:deadline});
     return completed;
@@ -119,7 +158,7 @@ export async function runContentJob(job,{store,provider,fetchPage=fetchSource,re
   }
 }
 
-const OUTAGE_PAUSE_MS = 60000, OUTAGE_PAUSE_MAX_MS = 30*60000;
+const OUTAGE_PAUSE_MS = 60000, OUTAGE_PAUSE_MAX_MS = 30*60000, SEARCH_REPORT_INTERVAL_MS = 30*60000;
 
 /**
  * While the provider is unavailable (429, 5xx, rejected key, network/DNS) the worker stops claiming jobs, pausing
@@ -135,10 +174,15 @@ export function startContentWorker(options) {
     console.warn(`Content provider unavailable (${result.error.code}); queue paused for ${Math.round(pause/1000)} s`);
     if(outages===1)options.logs?.captureMessage("Content provider unavailable; queue paused","warn",{operation:"contentWorker",context:{code:result.error.code}});
   };
+  // Every search failure goes to the container log; remote logs get one message per half hour, not one per job.
+  let searchReportedAt=-Infinity;
+  const onSearchFailure=code=>{console.warn(`Source search unavailable (${code})`);
+    if(now()-searchReportedAt<SEARCH_REPORT_INTERVAL_MS)return;searchReportedAt=now();
+    options.logs?.captureMessage("Perplexity search unavailable","warn",{operation:"contentWorker",context:{code}});};
   const wake=()=>{if(stopped||!options.provider||now()<pausedUntil)return;
     const limit=outages?1:concurrency;
     try{while(running.size<limit){const job=options.store.claimContentJob();if(!job)break;
-      const task=runContentJob(job,{...options,signal:controller.signal}).then(settle,error=>options.logs?.captureException(error,{operation:"contentJob",context:{jobId:job.id}})).finally(()=>{running.delete(task);if(!stopped)queueMicrotask(wake);});running.add(task);}}
+      const task=runContentJob(job,{...options,onSearchFailure,signal:controller.signal}).then(settle,error=>options.logs?.captureException(error,{operation:"contentJob",context:{jobId:job.id}})).finally(()=>{running.delete(task);if(!stopped)queueMicrotask(wake);});running.add(task);}}
     catch(error){options.logs?.captureException(error,{operation:"contentWorker.claim"});if(!options.logs)console.error("Content worker could not claim a job",error?.code??error);}};
   const timer=setInterval(wake,2000);wake();return{wake,stop:async()=>{stopped=true;clearInterval(timer);controller.abort();await Promise.allSettled(running);}};
 }

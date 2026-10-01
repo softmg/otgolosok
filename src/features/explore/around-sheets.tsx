@@ -5,6 +5,7 @@ import type { ReactNode, Ref } from "react";
 import { Sheet } from "../shell/sheet";
 import { ExploreIcon } from "./icons";
 import { nearbyRadii, type NearbyRadius, type NearbyRecommendation } from "./nearby-stories";
+import { PlacePhotoHeading } from "./place-photo";
 import type { StoryPin } from "./story-pin";
 import a from "./around.module.css";
 import styles from "./around-sheets.module.css";
@@ -40,13 +41,15 @@ export function StorySheet({ story, metadata, walkHref, startRef, onStart, onClo
     </div>}
     // The player stays with the action: scrolling the text never takes it away.
     footer={story.audioUrl || action ? <>{story.audioUrl ? <audio className={styles.audio} controls preload="metadata" src={story.audioUrl}>Ваш браузер не поддерживает аудио.</audio> : null}{action}</> : null}>
-    <h2 id="selected-place-title" className={a.title}>{story.title}</h2>
-    {story.title !== story.address ? <p className={styles.address}>{story.address}</p> : null}
-    <small className={a.meta}>{metadata}</small>
-    {story.paragraphs?.length ? <div className={styles.story}>{story.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div> : null}
-    {story.attribution ? <p className={styles.source}>Источник: <a href={story.attribution.url} target="_blank" rel="noopener noreferrer">{story.attribution.label}</a></p> : null}
-    {!action && story.placeId && !story.paragraphs?.length ? <p className={a.text}>Проверенный текст доступен в карточке места{story.audioUrl ? "; запись можно слушать здесь." : "; озвучивание ещё не готово."}</p> : null}
-    {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} /> : null}
+    <>
+      <PlacePhotoHeading key={story.id} placeId={story.placeId} title={story.title} address={story.address}
+        titleClassName={a.title} addressClassName={styles.address} />
+      <small className={a.meta}>{metadata}</small>
+      {story.paragraphs?.length ? <div className={styles.story}>{story.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div> : null}
+      {story.attribution ? <p className={styles.source}>Источник: <a href={story.attribution.url} target="_blank" rel="noopener noreferrer">{story.attribution.label}</a></p> : null}
+      {!action && story.placeId && !story.paragraphs?.length ? <p className={a.text}>Проверенный текст доступен в карточке места{story.audioUrl ? "; запись можно слушать здесь." : "; озвучивание ещё не готово."}</p> : null}
+      {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} /> : null}
+    </>
   </Sheet>;
 }
 
@@ -73,7 +76,8 @@ export function PlaceSheet({ address, busy, error, createHref, walkHref, onClose
 }
 
 /** Ready stories around a point, nearest first, with the radius to search in. */
-export function NearbySheet({ radius, recommendations, onRadius, onSelect, onReset }: {
+export function NearbySheet({ status = "ready", radius, recommendations, onRadius, onSelect, onReset }: {
+  status?: "loading" | "ready" | "error";
   radius: NearbyRadius; recommendations: NearbyRecommendation[];
   onRadius: (radius: NearbyRadius) => void; onSelect: (id: string) => void; onReset: () => void;
 }) {
@@ -86,6 +90,7 @@ export function NearbySheet({ radius, recommendations, onRadius, onSelect, onRes
     <div className={styles.radius} role="group" aria-label="Радиус поиска">
       {nearbyRadii.map(value => <button key={value} type="button" aria-pressed={radius === value} onClick={() => onRadius(value)}>{value} м</button>)}
     </div>
+    {status!=="ready"?<p role="status">{status==="loading"?"Ищем истории рядом…":"Не удалось загрузить все истории рядом. Повторите загрузку мест."}</p>:null}
     {recommendations.length ? <ol className={styles.list}>{recommendations.map((story, index) => <li key={story.id}>
       <div>
         <strong>{story.title}</strong>
@@ -93,11 +98,11 @@ export function NearbySheet({ radius, recommendations, onRadius, onSelect, onRes
         {index === 0 ? <small>{story.reason}</small> : null}
       </div>
       <button type="button" className={index === 0 ? a.primary : a.secondary} onClick={() => onSelect(story.id)}>{index === 0 ? "Слушать" : "Альтернатива"}<ExploreIcon name={index === 0 ? "headphones" : "arrow"} /></button>
-    </li>)}</ol> : <>
+    </li>)}</ol> : status==="ready"?<>
       <p className={a.text}>В этом радиусе пока нет готовой проверенной истории.</p>
       {wider ? <button type="button" className={a.secondary} onClick={() => onRadius(wider)}>Искать в большем радиусе <ExploreIcon name="arrow" /></button>
         : <button type="button" className={a.secondary} onClick={onReset}>Выбрать другую точку <ExploreIcon name="map" /></button>}
-    </>}
+    </>:null}
   </Sheet>;
 }
 

@@ -1,3 +1,4 @@
+import { createSharedWalkAdminStore } from "./shared-walk-admin.mjs";
 import { randomUUID } from "node:crypto";
 import { createHash } from "node:crypto";
 import { validateWalkDocument, migrateLegacyDraft } from "./walk-document.mjs";
@@ -104,6 +105,7 @@ export function createAccountStore(db, now = Date.now) {
       ...(snapshot ? {draft:!snapshot.route,walkingMinutes:snapshot.route?.walkingMinutes??null,distanceM:snapshot.route?.distanceM??null} : {})};
   };
   return {
+    ...createSharedWalkAdminStore(db, viewWalk),
     updateProfile(userId, name) { const value=cleanName(name),time=timestamp();db.prepare("UPDATE user SET name=?,updatedAt=? WHERE id=?").run(value,time,userId);return value; },
     listWalks(userId, limit=20,after=null) { limit=Math.min(50,Math.max(1,limit));const c=cursor(after),rows=c?db.prepare("SELECT * FROM user_walks WHERE user_id=? AND (updated_at<? OR (updated_at=? AND id<?)) ORDER BY updated_at DESC,id DESC LIMIT ?").all(userId,c.time,c.time,c.id,limit+1):db.prepare("SELECT * FROM user_walks WHERE user_id=? ORDER BY updated_at DESC,id DESC LIMIT ?").all(userId,limit+1);const result=page(rows,limit,listItem);return {walks:result.items,nextCursor:result.nextCursor,hasMore:Boolean(result.nextCursor)}; },
     getWalk(userId,id) { return viewWalk(db.prepare("SELECT * FROM user_walks WHERE id=? AND user_id=?").get(id,userId)) ?? null; },

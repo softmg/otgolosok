@@ -13,6 +13,16 @@ class ImporterTest(unittest.TestCase):
         self.assertEqual(MODULE.selected({"name":"Парк","leisure":"park"})["leisure"],"park")
         self.assertEqual(MODULE.selected({"name":"Дом","building":"yes","architect":"Автор"})["building"],"yes")
         self.assertIsNone(MODULE.selected({"name":"Дом","building":"yes"}))
+    def test_preserves_city_without_requiring_a_street_address(self):
+        for city in ("Москва", "", None):
+            with self.subTest(city=city):
+                tags=MODULE.selected({"name":"Парк","leisure":"park","addr:city":city})
+                self.assertIsNotNone(tags)
+                if city:
+                    self.assertEqual(tags["addr:city"],city)
+                else:
+                    self.assertNotIn("addr:city",tags)
+                self.assertNotIn("addr:street",tags)
     def test_duplicate_candidates_are_conservative(self):
         items=[{"placeId":"osm:node:1","name":"Памятник","location":{"lat":55.75,"lon":37.61},"tags":{"wikidata":"Q1"}},
                {"placeId":"osm:way:2","name":"памятник","location":{"lat":55.75001,"lon":37.61001},"tags":{"wikidata":"Q1"}}]

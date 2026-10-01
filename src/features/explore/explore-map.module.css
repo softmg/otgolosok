@@ -103,3 +103,27 @@
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
+
+.cluster {
+  display: grid;
+  place-items: center;
+  color: var(--on-dark);
+  font-weight: 700;
+  font-size: var(--text-map-pin);
+  font-family: var(--font-body), sans-serif;
+  line-height: 1;
+  background: var(--map-green);
+  border: 3px solid var(--raised);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--map-green) 25%, transparent);
+  cursor: pointer;
+}
+
+.cluster:hover {
+  background: color-mix(in srgb, var(--map-green) 88%, var(--on-dark));
+}
+
+.cluster:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}

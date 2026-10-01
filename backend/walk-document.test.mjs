@@ -20,16 +20,16 @@ test("walk document preserves distinct chapters and real geometry", () => {
   assert.throws(() => validateWalkDocument(impossible), { code: "BAD_REQUEST" });
 });
 
-test("walk documents accept ten stops and reject an eleventh", () => {
+test("walk documents accept forty stops and reject a forty-first", () => {
   const document = walk();
-  document.stops = Array.from({ length: 10 }, (_, index) => ({
+  document.stops = Array.from({ length: 40 }, (_, index) => ({
     id: `22222222-2222-4222-8222-${String(index + 1).padStart(12, "0")}`,
     place: place(`Москва, Арбат, ${index + 2}`, 55.751 + index * 0.001, 37.601),
     storyRef: null, transition: "", nextHint: "",
   }));
   document.route.geometry = [start.location, ...document.stops.map(item => item.place.location)];
   assert.deepEqual(validateWalkDocument(document), document);
-  document.stops.push({ id: "22222222-2222-4222-8222-000000000011", place: place("Москва, Арбат, 12", 55.761, 37.601), storyRef: null, transition: "", nextHint: "" });
+  document.stops.push({ id: "22222222-2222-4222-8222-000000000041", place: place("Москва, Арбат, 42", 55.791, 37.601), storyRef: null, transition: "", nextHint: "" });
   assert.throws(() => validateWalkDocument(document), { code: "BAD_REQUEST" });
 });
 
@@ -76,4 +76,23 @@ test("public view rejects hidden fields and unrelated chapters", () => {
   assert.throws(() => validateWalkView({ ...view, chapters: [] }), { code: "BAD_REQUEST" });
   assert.throws(() => validateWalkView({ ...view, chapters: [{ ...view.chapters[0], story: { recoveryToken: "secret" } }] }), { code: "BAD_REQUEST" });
   assert.throws(() => validateWalkView({ ...view, chapters: [{ ...view.chapters[0], audio: { url: "https://other.example/audio", sha256: "x", durationSec: 1 } }] }), { code: "BAD_REQUEST" });
+});
+
+test("long public views preserve chapter order and reject duplicates or swapped chapters", () => {
+  const document = walk();
+  document.stops = Array.from({ length: 40 }, (_, index) => ({ ...document.stops[0], id: `stop-${index}` }));
+  const view = { document, revision: 1, contentVersion: "long-walk", chapters: document.stops.map(item => ({ id: item.id, status: "ready", story: { title: item.id, address: item.place.address, paragraphs: [{ text: "История места.", factIds: [] }], sources: [], facts: [] }, audio: { url: `/audio/walk/${item.id}.mp3`, sha256: "a".repeat(64), durationSec: 60 } })) };
+  assert.deepEqual(validateWalkView(view).chapters.map(item => item.id), document.stops.map(item => item.id));
+  assert.throws(() => validateWalkView({ ...view, chapters: view.chapters.toReversed() }), { code: "BAD_REQUEST" });
+  assert.throws(() => validateWalkView({ ...view, document: { ...document, stops: [...document.stops.slice(0, -1), document.stops[0]] } }), { code: "BAD_REQUEST" });
+});
+
+for (const count of [11, 28, 40]) test(`legacy migration preserves ${count} ordered stops`, () => {
+  const stops = Array.from({ length: count }, (_, index) => place(`Москва, Арбат, ${index + 2}`, 55.751 + index * 0.001, 37.601));
+  const legacy = { version: 1, title: "Арбат", start, stops, mode: "open", minutes: 90, route: null, jobs: [] };
+  assert.deepEqual(migrateLegacyDraft(legacy, id).stops.map(item => item.place), stops);
+  if (count === 40) {
+    assert.throws(() => migrateLegacyDraft({ ...legacy, stops: [...stops, stop] }, id), { code: "BAD_REQUEST" });
+    assert.throws(() => migrateLegacyDraft({ ...legacy, jobs: [{ place: start, id: chapter }] }, id), { code: "BAD_REQUEST" });
+  }
 });

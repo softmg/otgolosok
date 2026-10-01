@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { AUTO_SCORE, assessIdentityCandidate, identityNameKey, quoteNamesPlace, restrictWeakIdentityEvidence } from "./identity-triage.mjs";
+import { AUTO_SCORE, assessIdentityCandidate, identityNameKey, restrictWeakIdentityEvidence } from "./identity-triage.mjs";
 
 const point = { lat: 55.75, lon: 37.61 };
 const inside = { status: "matched", containingBuilding: { address: "Москва, Тверская улица, 12 с8", relation: "point_in_building" },
@@ -72,59 +72,35 @@ test("name keys fold case, ё and quotes so namesakes are counted together", () 
   assert.equal(identityNameKey("Бобёр"), identityNameKey("БОБЕР"));
 });
 
-test("quotes must name the object as OSM does", () => {
-  const cases = [
-    ["Сквер Бунина", "В сквере имени Бунина в 2010 году поставили памятник писателю.", true],
-    ["Сквер Бунина", "Сквер у дома 5 на Поварской улице благоустроили в 2010 году.", false],
-    ["Дом-музей и экспедиционный штаб Федора Конюхова", "Дом-музей Фёдора Конюхова открылся в Садовниках.", true],
-    ["Дом-музей и экспедиционный штаб Федора Конюхова", "Дом-музей Юрия Никулина открылся на Бронной.", false],
-    ["Архитекторам дома", "Доска посвящена архитекторам дома в Чистом переулке.", true],
-    ["Ю. В. Никулину", "Мемориальная доска в честь клоуна появилась в 1998 году.", false],
-    ["Ю. В. Никулину", "Мемориальная доска Ю. В. Никулину появилась в 1998 году.", true],
-    // A full name: sources about a mural or plaque usually drop the patronymic.
-    ["Василий Семёнович Лановой", "Черно-белый портрет Василия Ланового в роли генерала.", true],
-    ["Василий Семёнович Лановой", "Новое граффити с Василием Лановым разделило жителей Таганки.", true],
-    ["Василий Семёнович Лановой", "Имя при рождении Василий Семёнович Лановой.", true],
-    ["Василий Семёнович Лановой", "Андрей Лановой, сын актёра, открыл выставку.", false],
-    ["Василий Семёнович Лановой", "На стене появился портрет Ланового.", false],
-    ["Мария Ивановна Ермолова", "Доска в честь актрисы Марии Ермоловой.", true],
-    ["Мария Ивановна Ермолова", "Доска в честь актрисы Ермоловой.", false],
-    // Not a full name: the capitalised words stay required.
-    ["Дом бабочек муравьёв и рептилий", "Дом бабочек, муравьев и рептилий — выставочное пространство.", true],
-    ["Храм Чуда Архистратига Михаила в Хонех", "Собор Чуда Архангела Михаила находится под зданием 1932 года.", false],
-    // A short surname is declined as a whole word: "Мень" → "Меню", but not "меньше".
-    ["Александр Мень", "Памятник о.Александру Меню был установлен в библиотеке 9 сентября 2000 года.", true],
-    ["Александр Мень", "Александр рассказал об этом меньше, чем мог.", false],
-    ["Александр Мень", "Памятник Александру Пушкину установлен в 1880 году.", false],
-    ["Лесе Украинке", "Ансамбль на Украинском бульваре: скульптуры «Содружество», памятник Леси Украинки.", true],
-    ["Сквер имени 200 лет со дня рождения А.С. Пушкина", "Сквер имени 200-летия А.С. Пушкина протянулся вдоль Люблинской улицы.", true],
-    // "Великой Отечественной войне" is a dedication formula, not the object's name; sources write "1941-1945".
-    ["Погибшим в Великой Отечественной войне работникам завода «Эмитрон»", "Памятный камень павшим в боях за Родину работникам завода \"Эмитрон\" 1941-1945 годов", true],
-    ["Погибшим в Великой Отечественной войне работникам завода «Эмитрон»", "Памятный камень работникам завода «Серп и молот» 1941-1945 годов", false],
-    ["Погибшим в Великой Отечественной войне", "Памятник погибшим землякам открыли в 1975 году.", false],
-    ["Завод по выпуску Катюш в годы Великой Отечественной войны", "В память о создании реактивных минометов «Катюш» в годы Великой Отечественной войны.", true],
-    // A railway acronym is often dropped; the station name still has to be there.
-    ["Вокзал станции Канатчиково МОЖД", "Вокзал станции Канатчиково (Канатчиковский проезд, 6)", true],
-    ["Вокзал станции Канатчиково МОЖД", "Вокзал станции Потылиха МОЖД сохранился.", false],
-  ];
-  for (const [name, quote, expected] of cases) assert.equal(quoteNamesPlace(quote, { name, tags: { name } }), expected, `${name} / ${quote}`);
-  assert.equal(quoteNamesPlace("Старое название — сад Эрмитаж.", { name: "Сад", tags: { name: "Сад", old_name: "Сад Эрмитаж" } }), true);
-});
-
-test("weak identity evidence keeps only object facts and requires a naming identity quote", () => {
-  const target = { name: "Сквер Бунина", tags: { name: "Сквер Бунина" } };
+test("weak identity evidence keeps object facts and requires useful content", () => {
   const fact = (id, kind, subjectRelation, quote, sourceId = "s1") => ({ id, claim: `Факт ${id}`, kind, subjectRelation, evidence: [{ sourceId, quote }] });
   const evidence = { placeName: "Сквер Бунина", facts: [
     fact("f1", "identity", "object", "Сквер имени Бунина расположен на Поварской."),
     fact("f2", "content", "object", "Сквер назвали в честь писателя в 2010 году."),
     fact("f3", "content", "nearby", "Рядом стоит усадьба Долгоруковых.", "s2"),
   ], sources: [{ id: "s1" }, { id: "s2" }] };
-  const restricted = restrictWeakIdentityEvidence(evidence, target);
+  const restricted = restrictWeakIdentityEvidence(evidence);
   assert.deepEqual(restricted.facts.map(item => item.id), ["f1", "f2"]);
   assert.deepEqual(restricted.sources, [{ id: "s1" }]);
   assert.equal(restricted.identityPolicy, "weak_identity");
-  assert.throws(() => restrictWeakIdentityEvidence({ ...evidence, facts: evidence.facts.slice(1) }, target), { code: "IDENTITY_UNCONFIRMED" });
-  assert.throws(() => restrictWeakIdentityEvidence({ ...evidence, facts: [evidence.facts[0], evidence.facts[2]] }, target), { code: "INSUFFICIENT_EVIDENCE" });
+  assert.deepEqual(restrictWeakIdentityEvidence({ ...evidence, facts: evidence.facts.slice(1) }).facts, [evidence.facts[1]]);
+  assert.throws(() => restrictWeakIdentityEvidence({ ...evidence, facts: [evidence.facts[0], evidence.facts[2]] }), { code: "INSUFFICIENT_EVIDENCE" });
   const nearbyIdentity = { ...evidence, facts: [{ ...evidence.facts[0], subjectRelation: "site_context" }, evidence.facts[1]] };
-  assert.throws(() => restrictWeakIdentityEvidence(nearbyIdentity, target), { code: "IDENTITY_UNCONFIRMED" });
+  assert.deepEqual(restrictWeakIdentityEvidence(nearbyIdentity).facts, [evidence.facts[1]]);
+});
+
+test("declined and descriptive source names do not veto an identified object", () => {
+  for (const [name, quote] of [
+    ["Пещерный лев", "Скульптура Пещерного льва Panthera leo spelaea на палеотропе Дарвиновского музея."],
+    ["Живые павшим обязаны вечно", "Мемориальная доска памяти павших сотрудников кондитерской фабрики Красный Октябрь."],
+    ["Парк усадьбы Старо-Никольское", "Усадьба открыта для посетителей, благоустроен парк вокруг главного здания."],
+  ]) {
+    const evidence = { placeName: name, sources: [{ id: "s1" }], facts: [
+      { id: "f1", kind: "identity", subjectRelation: "object", evidence: [{ sourceId: "s1", quote }] },
+      { id: "f2", kind: "content", subjectRelation: "object", evidence: [{ sourceId: "s1", quote }] },
+    ] };
+    const result = restrictWeakIdentityEvidence(evidence);
+    assert.deepEqual(result.facts, evidence.facts, name);
+    assert.deepEqual(result.sources, evidence.sources, name);
+  }
 });

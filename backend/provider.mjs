@@ -1,3 +1,4 @@
+import { Agent, fetch as longFetch } from "undici";
 import { failure } from "./domain.mjs";
 import { fetchWithRetry, isTransientError } from "./retry.mjs";
 
@@ -39,8 +40,8 @@ export const PROVIDER_OUTAGE_CODES = new Set(["PROVIDER_BUSY", "PROVIDER_AUTH", 
 const RETRY = { attempts: 3, baseMs: 1000, maxMs: 10000 };
 
 /** A network or DNS failure is not the request's fault: report it as an unreachable provider, not a bare TypeError. */
-async function providerFetch(fetchImpl, url, init) {
-  try { return await fetchWithRetry(fetchImpl, url, init, RETRY); }
+async function providerFetch(fetchImpl, url, init, retry = RETRY) {
+  try { return await fetchWithRetry(fetchImpl, url, init, retry); }
   catch (error) {
     if (init.signal?.aborted || !isTransientError(error)) throw error;
     throw Object.assign(failure("PROVIDER_UNREACHABLE"), { cause: error });
@@ -59,7 +60,23 @@ export function unpackResponse(bytes, contentType) {
   throw failure("PROVIDER_INCOMPLETE");
 }
 
-export function createProvider({ baseUrl, apiKey, model = "codex/gpt-5.6-sol-medium", writerModel = "codex/gpt-5.6-sol-low", ttsModel = "gpt-4o-mini-tts", voice = "marin", fetchImpl = fetch }) {
+// Search quota is scarce (a Perplexity Pro account) and the caller has a fallback: one retry is enough.
+// Two fifteen-minute gateway attempts plus transport and retry overhead.
+export const DEEP_RESEARCH_TIMEOUT_MS = 32 * 60 * 1000;
+
+const SEARCH_RETRY = { attempts: 2, baseMs: 1000, maxMs: 5000 };
+
+/** URLs of a chat-completions search answer in rank order: search results, then annotations, then bare citations. */
+export function searchAnswerSources(payload) {
+  const sources = new Map();
+  const add = (url, title = "") => { if (typeof url === "string" && url && !sources.has(url)) sources.set(url, { url, title: typeof title === "string" ? title.slice(0, 250) : "" }); };
+  for (const item of Array.isArray(payload?.search_results) ? payload.search_results : []) add(item?.url, item?.title);
+  for (const item of Array.isArray(payload?.choices?.[0]?.message?.annotations) ? payload.choices[0].message.annotations : []) add(item?.url_citation?.url, item?.url_citation?.title);
+  for (const url of Array.isArray(payload?.citations) ? payload.citations : []) add(url);
+  return [...sources.values()];
+}
+
+export function createProvider({ baseUrl, apiKey, model = "codex/gpt-5.6-sol-medium", writerModel = "codex/gpt-5.6-sol-low", ttsModel = "gpt-4o-mini-tts", voice = "marin", searchModel = null, deepResearchModel = null, fetchImpl = fetch }) {
   const base = new URL(baseUrl);
   if (base.protocol !== "https:" || !apiKey || base.username || base.password) throw failure("PROVIDER_CONFIG");
   const endpoint = base.href.replace(/\/$/, "");
@@ -96,5 +113,35 @@ export function createProvider({ baseUrl, apiKey, model = "codex/gpt-5.6-sol-med
     if (!res.ok || !res.headers.get("content-type")?.startsWith("audio/")) { await res.body?.cancel(); throw failure("TTS_FAILED"); }
     return boundedBody(res, 10000000, deadline);
   }
-  return { response, speech, model, writerModel, ttsModel, voice };
+  /**
+   * Source discovery through a search model (Perplexity via the gateway). Only chat completions carry its citations;
+   * the answer text is not returned: callers fetch the pages themselves and never trust the model's quotes.
+   * @param {string} prompt @param {{signal?: AbortSignal, timeoutMs?: number}} [options]
+   */
+  async function searchSources(prompt, { signal, timeoutMs = 120000 } = {}) {
+    return searchWithModel(searchModel,prompt,{signal,timeoutMs});
+  }
+  /** @param {string} prompt @param {{signal?: AbortSignal, timeoutMs?: number}} [options] */
+  async function deepResearchSources(prompt, { signal, timeoutMs = DEEP_RESEARCH_TIMEOUT_MS } = {}) {
+    return searchWithModel(deepResearchModel,prompt,{signal,timeoutMs,deep:true});
+  }
+  async function searchWithModel(selectedModel,prompt,{signal,timeoutMs,deep=false}) {
+    const deadline = AbortSignal.any([AbortSignal.timeout(timeoutMs), ...(signal ? [signal] : [])]);
+    const dispatcher=deep && fetchImpl===fetch ? new Agent({headersTimeout:timeoutMs,bodyTimeout:timeoutMs}) : null;
+    const request=dispatcher ? /** @type {typeof fetch} */ (/** @type {unknown} */ ((url,init)=>longFetch(url,{...init,dispatcher}))) : fetchImpl;
+    try {
+      const res = await providerFetch(request, `${endpoint}/chat/completions`, { method: "POST", headers, signal: deadline,
+        body: JSON.stringify({ model: selectedModel, stream: false, messages: [{ role: "user", content: prompt }] }) }, SEARCH_RETRY);
+      if (!res.ok) { await res.body?.cancel(); throw failure(providerStatusCode(res.status)); }
+      let payload;
+      try { payload = JSON.parse((await boundedBody(res, 2000000, deadline)).toString("utf8")); }
+      catch (error) { if (error?.code || error?.name === "AbortError" || error?.name === "TimeoutError") throw error; throw failure("INVALID_MODEL_OUTPUT"); }
+      const sources = searchAnswerSources(payload);
+      if (!sources.length) throw failure("NO_SEARCH_EVIDENCE");
+      return { sources, model: selectedModel };
+    } finally { if(dispatcher)await dispatcher.close(); }
+  }
+  const searchEnabled = typeof searchModel === "string" && searchModel.trim() !== "";
+  const deepEnabled=typeof deepResearchModel==="string" && deepResearchModel.trim()!=="";
+  return { response, speech, model, writerModel, ttsModel, voice, deepResearchModel:deepEnabled?deepResearchModel:null,deepResearchSources:deepEnabled?deepResearchSources:null, searchModel: searchEnabled ? searchModel : null, searchSources: searchEnabled ? searchSources : null };
 }

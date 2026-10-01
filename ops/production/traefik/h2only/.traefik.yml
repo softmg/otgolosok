@@ -1,0 +1,5 @@
+displayName: HTTP/2 Only
+type: middleware
+import: github.com/softmg/h2only
+summary: Reject requests whose HTTP protocol is not HTTP/2.
+testData: {}

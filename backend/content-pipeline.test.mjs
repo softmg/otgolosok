@@ -131,13 +131,13 @@ test("a facts rejection keeps the model's explanation and quotes for the editor"
   assert.equal(last().evidence, undefined);
 });
 
-test("a weak_identity rejection shows which quotes the model offered", async t => {
+test("model-confirmed weak identity proceeds without a lexical naming gate", async t => {
   const f = fixture(t), last = recordCheckpoints(f.store);
   const job = { ...f.store.claimContentJob(), identityPolicy: "weak_identity" };
   const result = await runContentJob(job, { store: f.store, provider: f.provider, fetchPage: readPage(f.page) });
-  assert.equal(result.error.code, "IDENTITY_UNCONFIRMED");
-  assert.equal(last().factsRejection.code, "IDENTITY_UNCONFIRMED");
-  assert.deepEqual(last().factsRejection.facts.map(fact => fact.kind), ["content", "content", "content"]);
+  assert.equal(result.story.facts.length, 3);
+  assert.equal(last().factsRejection, undefined);
+  assert.equal(last().evidence.identityPolicy, "weak_identity");
 });
 
 test("model output in a rejection is clipped to the evidence limits", async t => {
@@ -314,4 +314,177 @@ test("a place without open data keeps the search-only behaviour", async t => {
   const f = openDataFixture(t, { imported: false });
   const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage("") });
   assert.equal(result.error.code, "INSUFFICIENT_EVIDENCE");
+});
+
+// Perplexity source discovery for weak_identity jobs: only its URLs are used, the pipeline fetches and checks them.
+const plaquePage = "Мемориальная доска академику установлена на здании академии. ".repeat(12);
+const urls = (prefix, count) => Array.from({ length: count }, (_, index) => ({ url: `https://${prefix}.example/${index + 1}`, title: `${prefix} ${index + 1}` }));
+/** @param {any} t @param {{found?: {url: string, title?: string}[], search?: {url: string, title?: string}[], fails?: string | null}} [options] */
+function searchFixture(t, { found = urls("pplx", 2), search = urls("codex", 2), fails = null } = {}) {
+  const f = openDataFixture(t, { searchSources: search }), calls = [], failures = [];
+  const provider = { ...f.provider, searchModel: "perplexity-web/pplx-auto", searchSources: async (prompt, options) => {
+    calls.push({ prompt, options }); if (fails) throw Object.assign(new Error(), { code: fails }); return { sources: found }; } };
+  return { ...f, provider, calls, failures, onSearchFailure: code => failures.push(code), last: recordCheckpoints(f.store) };
+}
+const draftText = f => f.store.listDrafts().items.find(item => item.placeId === "osm:node:1")?.text;
+
+test("weak_identity research ranks Perplexity URLs first, dedupes and caps the merged list", async t => {
+  const f = searchFixture(t, { found: [...urls("pplx", 6), { url: "javascript:alert(1)" }], search: [urls("pplx", 1)[0], ...urls("codex", 5)] });
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage), onSearchFailure: f.onSearchFailure });
+  assert.ok(result.story, JSON.stringify(result.error));
+  const research = f.last().research;
+  assert.deepEqual(research.sources.map(source => `${source.origin}:${source.url}`), [
+    ...urls("pplx", 5).map(source => `perplexity:${source.url}`), ...urls("codex", 3).map(source => `search:${source.url}`)]);
+  assert.deepEqual(research.perplexity, { status: "ok", count: 5, model: "perplexity-web/pplx-auto" });
+  assert.match(f.calls[0].prompt, /В\. М\. Клечковскому/);
+  assert.deepEqual(f.failures, []);
+  assert.equal(f.last().perplexityResearch, undefined);
+  const detail = f.store.getBatchItemDetail(f.batch.id, "osm:node:1");
+  assert.deepEqual(detail.perplexity, { status: "ok", code: null, count: 5 });
+  assert.deepEqual(detail.sources.slice(1).map(source => source.origin), [...Array(5).fill("perplexity"), ...Array(3).fill("search")]);
+});
+
+test("a Perplexity failure falls back to the regular search without stopping the job", async t => {
+  for (const code of ["PROVIDER_AUTH", "PROVIDER_REJECTED", "PROVIDER_BUSY", "NO_SEARCH_EVIDENCE"]) {
+    await t.test(code, async t => {
+      const f = searchFixture(t, { fails: code });
+      const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage), onSearchFailure: f.onSearchFailure });
+      assert.ok(result.story, JSON.stringify(result.error));
+      const research = f.last().research;
+      assert.deepEqual(research.sources.map(source => source.url), urls("codex", 2).map(source => source.url));
+      assert.deepEqual(research.perplexity, { status: "failed", code, count: 0, model: "perplexity-web/pplx-auto" });
+      assert.deepEqual(f.failures, [code]);
+    });
+  }
+});
+
+test("Perplexity URLs that are all unusable count as a failed search", async t => {
+  const f = searchFixture(t, { found: [{ url: "ftp://plain.example/" }, { url: "not a url" }, { url: "https://user:pw@secret.example/" }] });
+  await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.deepEqual(f.last().research.perplexity, { status: "failed", code: "NO_SEARCH_EVIDENCE", count: 0, model: "perplexity-web/pplx-auto" });
+});
+
+test("standard jobs never call the search model", async t => {
+  const f = fixture(t);
+  let called = false;
+  const provider = { ...f.provider, searchModel: "perplexity-web/pplx-auto", searchSources: async () => { called = true; return { sources: [] }; } };
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider, fetchPage: readPage(f.page) });
+  assert.ok(result.story, JSON.stringify(result.error));
+  assert.equal(called, false);
+});
+
+test("a regular-search outage after Perplexity does not spend the search quota again on retry", async t => {
+  const f = searchFixture(t);
+  // The first regular search fails with an outage; the scripted answers stay for the retry.
+  const response = f.provider.response;
+  let outage = true;
+  f.provider.response = async (prompt, options) => {
+    if (outage) { outage = false; throw Object.assign(new Error(), { code: "PROVIDER_UNAVAILABLE" }); }
+    return response(prompt, options);
+  };
+  const stopped = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.equal(stopped.error.code, "PROVIDER_UNAVAILABLE");
+  assert.equal(f.last().perplexityResearch.perplexity.status, "ok");
+  f.store.retryBatchItem(f.batch.id, "osm:node:1", { restartFrom: "auto" });
+  const result = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.ok(result.story, JSON.stringify(result.error));
+  assert.equal(f.calls.length, 1);
+  assert.equal(f.last().research.sources[0].origin, "perplexity");
+  assert.equal(f.last().perplexityResearch, undefined);
+});
+
+test("draft re-research replaces the unapproved draft or stops without touching it", async t => {
+  const f = searchFixture(t);
+  const first = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.ok(first.story, JSON.stringify(first.error));
+  const before = draftText(f);
+
+  f.store.researchDrafts({ requestKey: "draft-redo-fail", placeIds: ["osm:node:1"] });
+  const failing = { ...f.provider, searchSources: async () => { throw Object.assign(new Error(), { code: "PROVIDER_REJECTED" }); } };
+  const queued = f.queue.length;
+  const stopped = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: failing, fetchPage: readPage(plaquePage) });
+  assert.equal(stopped.error.code, "PERPLEXITY_UNAVAILABLE");
+  assert.equal(stopped.state, "failed");
+  assert.equal(stopped.error.message, contentFailureMessage("PERPLEXITY_UNAVAILABLE"));
+  assert.equal(f.queue.length, queued, "the regular search must not run");
+  assert.deepEqual(draftText(f), before);
+
+  f.store.researchDrafts({ requestKey: "draft-redo-ok", placeIds: ["osm:node:1"] });
+  f.queue.push({ text: "Поиск", sources: urls("codex", 1) }, f.factsAnswer, { text: f.text.replaceAll("Её создали", "Её сделали") }, f.review);
+  const redone = await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.ok(redone.story, JSON.stringify(redone.error));
+  const after = draftText(f);
+  assert.equal(after.id, before.id);
+  assert.notDeepEqual(after.paragraphs, before.paragraphs);
+  assert.equal(f.store.listDrafts().total, 1);
+});
+
+test("an approval made while a draft is re-researched is kept", async t => {
+  const f = searchFixture(t);
+  await runContentJob(f.store.claimContentJob(), { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  f.store.researchDrafts({ requestKey: "draft-redo-key", placeIds: ["osm:node:1"] });
+  const job = f.store.claimContentJob();
+  const approved = f.store.approvePlaceText("osm:node:1");
+  f.queue.push({ text: "Поиск", sources: [] }, f.factsAnswer, { text: f.text.replaceAll("Её создали", "Её сделали") }, f.review);
+  const result = await runContentJob(job, { store: f.store, provider: f.provider, fetchPage: readPage(plaquePage) });
+  assert.ok(result.story, JSON.stringify(result.error));
+  assert.deepEqual(f.store.getPlace("osm:node:1").text.story, approved.text.story);
+});
+
+test("explicit deep research uses its sources without an ordinary search", async t => {
+  const f=searchFixture(t), job=f.store.claimContentJob();
+  job.checkpoint={researchMode:"perplexity_deep_required"};
+  f.queue.shift();
+  const provider={...f.provider,deepResearchModel:"perplexity-web/pplx-deep-research",deepResearchSources:async()=>({sources:urls("deep",12)})};
+  const result=await runContentJob(job,{store:f.store,provider,fetchPage:readPage(plaquePage)});
+  assert.ok(result.story,JSON.stringify(result.error));
+  assert.deepEqual(f.last().research.sources.map(s=>s.url),urls("deep",8).map(s=>s.url));
+  assert.equal(f.last().research.perplexity.mode,"deep");
+  assert.equal(f.calls.length,0);
+  assert.equal(f.queue.length,0);
+});
+
+test("interrupted or failed deep research preserves the draft and stops automatic quota spending", async t => {
+  for(const started of [false,true]) {
+    const f=searchFixture(t),job=f.store.claimContentJob();
+    job.checkpoint={researchMode:"perplexity_deep_required",...(started?{deepResearchStarted:true}:{})};
+    let calls=0;
+    const provider={...f.provider,deepResearchSources:async()=>{calls++;throw Object.assign(new Error(),{name:"TimeoutError"});}};
+    const result=await runContentJob(job,{store:f.store,provider});
+    assert.equal(result.state,"failed");
+    assert.equal(result.error.code,started?"DEEP_RESEARCH_INTERRUPTED":"DEEP_RESEARCH_UNAVAILABLE");
+    assert.equal(calls,started?0:1);
+    assert.equal(f.queue.length,4);
+  }
+});
+
+test("retry after source failure reuses saved deep research", async t => {
+  const f=searchFixture(t),job=f.store.claimContentJob();
+  job.checkpoint={researchMode:"perplexity_deep_required",deepResearchStarted:true,perplexityResearch:{sources:urls("saved",1),perplexity:{status:"ok",mode:"deep",count:1}}};
+  f.queue.shift();
+  const provider={...f.provider,deepResearchSources:async()=>{throw new Error("must not spend quota again");}};
+  const result=await runContentJob(job,{store:f.store,provider,fetchPage:readPage(plaquePage)});
+  assert.ok(result.story,JSON.stringify(result.error));
+  assert.equal(f.last().research.sources[0].url,"https://saved.example/1");
+});
+
+
+test("deep research can finish both long attempts and still prepare its story", async t => {
+  const f = searchFixture(t), job = f.store.claimContentJob();
+  job.checkpoint = { researchMode: "perplexity_deep_required" };
+  f.queue.shift();
+  const deadlines = [];
+  t.mock.method(AbortSignal, "timeout", milliseconds => {
+    const controller = new AbortController();
+    deadlines.push({ controller, milliseconds });
+    return controller.signal;
+  });
+  const provider = { ...f.provider, deepResearchSources: async (_prompt, { signal }) => {
+    for (const { controller, milliseconds } of deadlines) if (milliseconds <= 31 * 60 * 1000) controller.abort(new DOMException("deadline", "TimeoutError"));
+    signal.throwIfAborted();
+    return { sources: urls("deep", 1) };
+  } };
+  const result = await runContentJob(job, { store: f.store, provider, fetchPage: readPage(plaquePage) });
+  assert.ok(result.story, JSON.stringify(result.error));
+  assert.equal(f.last().research.sources[0].url, "https://deep.example/1");
 });

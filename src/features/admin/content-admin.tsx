@@ -11,15 +11,17 @@ import {
 import { skeletonRows } from "./table-skeleton";
 import { IdentityCandidates } from "./identity-candidates";
 import { BatchItemDetail } from "./batch-item-detail";
+import { PlaceTextFields, placeTextValid } from "./place-text-fields";
 import "./content-admin.css";
 
 type ContentAdminProps = { api: AdminApi; busy: string; run: AdminRun; onDirtyChange: (dirty: boolean) => void };
 type Stats = {
-  places: number; texts: number; audio: number; awaitingApproval?: number;
+  places: number; texts: number; drafts?: number; audio: number; awaitingApproval?: number;
   jobs?: Record<string, number>; external?: Record<string, number>;
   textUsageTokens?: number; oldestTextQueuedAt?: string | null;
   audioQueue?: { oldestQueuedAt: string | null; averageAttemptSec: number | null; artifactBytes: number; artifacts: number };
 };
+type AudioProfile = { id: string; label: string };
 type PlacePage = { places: ContentPlaceSummary[]; total: number; hasMore: boolean };
 
 const PLACE_PAGE = 50;
@@ -82,6 +84,8 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
   const [audioJobs, setAudioJobs] = useState<ContentAudioJob[]>([]);
   const [workerToken, setWorkerToken] = useState("");
   const [ttsTransport, setTtsTransport] = useState<"worker" | "http">("worker");
+  const [audioProfiles, setAudioProfiles] = useState<AudioProfile[]>([]);
+  const [audioProfile, setAudioProfile] = useState("");
   const [workerStatusLoaded, setWorkerStatusLoaded] = useState(false);
   // Freshness is read off the clock when the list arrives: during render `Date.now()` would be impure and the
   // callout would silently go stale anyway, because nothing re-renders the component as the window expires.
@@ -119,12 +123,15 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
       const [batchList, nextStats, workerList, audio] = await Promise.all([
         api<{ batches: ContentBatch[] }>("/content/batches", signal),
         api<Stats>("/content/stats", signal),
-        api<{ transport: "worker" | "http"; workers: ContentWorker[]; heartbeats: ContentHeartbeat[] }>("/content/workers", signal),
+        api<{ transport: "worker" | "http"; audioProfiles?: AudioProfile[]; workers: ContentWorker[]; heartbeats: ContentHeartbeat[] }>("/content/workers", signal),
         api<{ audioJobs: ContentAudioJob[] }>("/content/audio", signal),
       ]);
       setBatches(batchList.batches); setStats(nextStats);
       setWorkers(workerList.workers); setHeartbeats(workerList.heartbeats); setAudioJobs(audio.audioJobs);
       setTtsTransport(workerList.transport);
+      const profiles = workerList.audioProfiles ?? [];
+      setAudioProfiles(profiles);
+      setAudioProfile(current => profiles.some(profile => profile.id === current) ? current : profiles[0]?.id ?? "");
       setWorkerOnline(workerList.workers.some(worker => !worker.revokedAt && worker.lastSeenAt
         && Date.now() - new Date(worker.lastSeenAt).valueOf() < HEARTBEAT_WINDOW_MS));
       setWorkerStatusLoaded(true);
@@ -216,7 +223,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
     setPlace(null); setDraft(null); setBaseline("");
   }
 
-  const draftValid = Boolean(draft?.title.trim() && draft.paragraphs.length && draft.paragraphs.every(item => item.text.trim()));
+  const draftValid = placeTextValid(draft);
 
   return (
     <section className="admin-addresses content-admin" aria-labelledby="admin-content-title">
@@ -231,7 +238,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
 
       {stats ? <dl className="content-stats">
         <div><dt>Мест в каталоге</dt><dd>{numbers.format(stats.places)}</dd></div>
-        <div><dt>Текстов</dt><dd>{numbers.format(stats.texts)}</dd></div>
+        <div><dt>Текстов</dt><dd>{numbers.format(stats.texts)}</dd>{stats.drafts != null ? <span>черновиков {numbers.format(stats.drafts)}</span> : null}</div>
         <div><dt>Аудио</dt><dd>{numbers.format(stats.audio)}</dd>{stats.awaitingApproval ? <span>ждут утверждения {numbers.format(stats.awaitingApproval)}</span> : null}</div>
         <div><dt>Очередь текстов</dt><dd>{numbers.format(stats.jobs?.queued ?? 0)}</dd><span>в работе {numbers.format(stats.jobs?.working ?? 0)}</span></div>
         <div><dt>Очередь аудио</dt><dd>{numbers.format(stats.external?.queued ?? 0)}</dd><span>у воркеров {numbers.format(stats.external?.leased ?? 0)}</span></div>
@@ -454,14 +461,7 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
             <button disabled={disabled} onClick={closePlace}>Закрыть</button>
           </div>
           {draft ? <>
-            <label htmlFor="content-title">Заголовок</label>
-            <input id="content-title" value={draft.title} disabled={disabled}
-              onChange={event => setDraft({ ...draft, title: event.target.value })} />
-            {draft.paragraphs.map((paragraph, index) => <div className="admin-paragraph" key={index}>
-              <label htmlFor={`content-paragraph-${index}`}>Абзац {index + 1}</label>
-              <textarea id={`content-paragraph-${index}`} rows={6} value={paragraph.text} disabled={disabled}
-                onChange={event => setDraft({ ...draft, paragraphs: draft.paragraphs.map((value, i) => i === index ? { ...value, text: event.target.value } : value) })} />
-            </div>)}
+            <PlaceTextFields draft={draft} disabled={disabled} onChange={setDraft} />
             <div className="admin-actions">
               <button className="admin-primary" disabled={disabled || !draftValid} onClick={() => void run("Утверждение текста…", async signal => {
                 const value = (await api<{ place: ContentPlace }>(`/content/places/${place.id}/approve`, signal, { story: draft })).place;
@@ -474,13 +474,20 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
                 setPlace(null); setDraft(null); setBaseline("");
                 setNotice("Текст утверждён.");
               })}>Утвердить текст</button>
+              {place.text?.verification === "editorial" && audioProfiles.length > 1 && <label className="content-audio-profile" htmlFor="content-audio-profile">
+                <span>Озвучка</span>
+                <select id="content-audio-profile" value={audioProfile} disabled={disabled || dirty} onChange={event => setAudioProfile(event.target.value)}>
+                  {audioProfiles.map(profile => <option key={profile.id} value={profile.id}>{profile.label}</option>)}
+                </select>
+              </label>}
               {place.text?.verification === "editorial" && <button disabled={disabled || dirty} onClick={() => void run("Постановка аудио…", async signal => {
-                await api(`/content/places/${place.id}/audio`, signal, {});
+                await api(`/content/places/${place.id}/audio`, signal, audioProfile ? { profileId: audioProfile } : {});
                 await loadOverview(signal);
                 setNotice("Озвучка поставлена в очередь.");
               })}>Озвучить заново</button>}
             </div>
-            {ttsTransport === "worker" && !workerOnline && <p className="admin-callout">Сейчас нет online-воркера TTS. Поставленная озвучка останется в очереди до его подключения.</p>}
+            {ttsTransport === "worker" && !workerOnline && audioProfile === (audioProfiles[0]?.id ?? "") && <p className="admin-callout">Сейчас нет online-воркера TTS. Поставленная озвучка останется в очереди до его подключения.</p>}
+            {audioProfile === "elevenlabs-v3" && <p className="admin-meta">Перед синтезом модель расставит в тексте аудиотеги в квадратных скобках ([warmly], [short pause] и т. п.). Сам текст не меняется. Каждая озвучка расходует кредиты ElevenLabs.</p>}
           </> : <p className="admin-empty">Для этого места текст ещё не создан. Включите его в новую партию, чтобы запустить подготовку.</p>}
         </article>}
       </section>

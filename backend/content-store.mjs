@@ -21,6 +21,8 @@ export const BATCH_ITEM_STATES = {
 
 export const IDENTITY_PILOT_LIMIT = 50;
 const IDENTITY_POLICIES = ["standard", "weak_identity"];
+// Above the regular queue (priority 0) so an editor sees re-researched drafts soon.
+const DRAFT_RESEARCH_PRIORITY = 10;
 // Everything derived from the facts step onward; research and fetched sources stay, so a restart repeats no paid search.
 const FACTS_STAGE_KEYS = ["evidence","editorialVersion","factsRejection","draft","draftCandidateRaw","review","reviewRounds"];
 const factsCheckpoint = json => {if(!json)return null;const checkpoint=JSON.parse(json);for(const key of FACTS_STAGE_KEYS)delete checkpoint[key];return encode(checkpoint);};
@@ -32,7 +34,7 @@ const contentInputKey = (place,profile) => sha256(encode({placeId:place.id,conte
  */
 function diagnosisSources(found,fetched,failures) {
   const view=source=>({url:source.url,title:source.title,sourceId:source.id,publisher:source.publisher,chars:Number(source.chars??0),failure:null,
-    openData:source.open_data?decode(source.open_data):null});
+    openData:source.open_data?decode(source.open_data):null,origin:null});
   // Open-data records (d1, d2…) are not search results: they come first, whatever the search found.
   const open=fetched.filter(source=>source.open_data).map(view),pages=fetched.filter(source=>!source.open_data);
   const byId=new Map(pages.map(source=>[source.id,source]));
@@ -40,8 +42,9 @@ function diagnosisSources(found,fetched,failures) {
   let failed=0;
   return [...open,...found.map((source,index)=>{
     const page=byId.get(`s${index+1}`);
-    if(page)return {...view(page),title:source.title};
-    return {url:source.url,title:source.title,sourceId:null,publisher:null,chars:0,failure:typeof failures[failed]==="string"?failures[failed++]:null,openData:null};
+    // origin: "perplexity" or "search" when the job used the search model, otherwise null.
+    if(page)return {...view(page),title:source.title,origin:source.origin??null};
+    return {url:source.url,title:source.title,sourceId:null,publisher:null,chars:0,failure:typeof failures[failed]==="string"?failures[failed++]:null,openData:null,origin:source.origin??null};
   })];
 }
 
@@ -62,6 +65,24 @@ function viewBatch(row,counts={}) {
       working:Number(counts.working??0),ready:Number(counts.ready??0),failed:Number(counts.failed??0)}};
 }
 
+// A draft: the place has a generated text and none of its texts is approved yet (the catalog "draft" filter).
+// A draft is re-researched through its latest text's job; only a job at rest can be queued again.
+const DRAFT_JOB=`FROM places p JOIN place_texts t ON t.id=(SELECT x.id FROM place_texts x WHERE x.place_id=p.id ORDER BY x.created_at DESC,x.rowid DESC LIMIT 1)
+  JOIN content_jobs j ON j.input_key=t.input_key WHERE p.archived=0 AND j.state IN ('ready','failed','review_required','insufficient_evidence')`;
+const PERPLEXITY_DONE="coalesce(json_extract(j.checkpoint_json,'$.research.perplexity.status'),'')='ok'";
+export const DRAFT_RESEARCH_LIMIT=50;
+const DRAFT_PLACE="EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id) AND NOT EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)";
+// The latest text's job drives the draft's research status: in flight (any re-run), done through the search
+// model, failed after a required Perplexity run, or plain (never checked through the search model).
+const DRAFT_TEXT_JOIN=`JOIN place_texts t ON t.id=(SELECT x.id FROM place_texts x WHERE x.place_id=p.id ORDER BY x.created_at DESC,x.rowid DESC LIMIT 1)
+  LEFT JOIN content_jobs j ON j.input_key=t.input_key`;
+const DRAFT_RESEARCH_STATUS=`CASE WHEN j.id IS NULL THEN 'plain'
+  WHEN j.state IN ('queued','retry_wait','working') THEN 'queued'
+  WHEN ${PERPLEXITY_DONE} THEN 'perplexity'
+  WHEN j.state='failed' AND json_extract(j.checkpoint_json,'$.researchMode') IN ('perplexity_required','perplexity_deep_required') THEN 'failed'
+  ELSE 'plain' END`;
+const DRAFT_RESEARCH_FILTERS=["all","plain","perplexity","queued","failed"];
+
 export function createContentStore({db,now,transaction}) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS osm_imports (id TEXT PRIMARY KEY, source TEXT NOT NULL, source_sha256 TEXT NOT NULL,
@@ -76,6 +97,7 @@ export function createContentStore({db,now,transaction}) {
     CREATE TABLE IF NOT EXISTS content_jobs (id TEXT PRIMARY KEY,input_key TEXT NOT NULL UNIQUE,place_id TEXT NOT NULL,state TEXT NOT NULL,
       profile TEXT NOT NULL,attempts INTEGER NOT NULL DEFAULT 0,max_attempts INTEGER NOT NULL DEFAULT 3,next_attempt_at TEXT NOT NULL,
       checkpoint_json TEXT,error_json TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS places_coordinates_idx ON places(lat,lon) WHERE archived=0;
     CREATE INDEX IF NOT EXISTS content_jobs_available_idx ON content_jobs(state,next_attempt_at,created_at);
     CREATE TABLE IF NOT EXISTS content_job_attempts (job_id TEXT NOT NULL,generation INTEGER NOT NULL,state TEXT NOT NULL,
       started_at TEXT NOT NULL,finished_at TEXT,error_json TEXT,PRIMARY KEY(job_id,generation));
@@ -102,6 +124,8 @@ export function createContentStore({db,now,transaction}) {
   // weak_identity jobs come only from triage pilots: stricter evidence and never auto-approved.
   if(!contentJobColumns.has("identity_policy"))db.exec("ALTER TABLE content_jobs ADD COLUMN identity_policy TEXT NOT NULL DEFAULT 'standard'");
   if(!db.prepare("PRAGMA table_info(content_batches)").all().some(column=>column.name==="identity_policy"))db.exec("ALTER TABLE content_batches ADD COLUMN identity_policy TEXT NOT NULL DEFAULT 'standard'");
+
+  if(!db.prepare("PRAGMA table_info(content_batches)").all().some(column=>column.name==="research_mode"))db.exec("ALTER TABLE content_batches ADD COLUMN research_mode TEXT NOT NULL DEFAULT 'search'");
 
   const batchCounts=id=>db.prepare(`SELECT count(*) total,sum(state IN ('queued','retry_wait')) queued,
     sum(state='working') working,sum(state='ready') ready,sum(state IN ('failed','review_required','insufficient_evidence','cancelled')) failed
@@ -182,13 +206,17 @@ export function createContentStore({db,now,transaction}) {
         return {id,count:catalog.places.length,complete,createdAt:timestamp};
       });
     },
-    listPlaces({limit=50,offset=0,q="",status="all",lat=null,lon=null,radius=null}={}) {
+    listPlaces({limit=50,offset=0,q="",status="all",lat=null,lon=null,radius=null,bounds=null}={}) {
       if(!Number.isSafeInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(offset)||offset<0||typeof q!=="string"||q.length>200||!["all","ready","draft","missing"].includes(status)
         ||([lat,lon,radius].some(value=>value!==null)&&(!Number.isFinite(lat)||!Number.isFinite(lon)||!Number.isFinite(radius)||lat<55.05||lat>56.05||lon<36.75||lon>38.25||radius<50||radius>5000)))throw fail("BAD_REQUEST");
+      if(bounds!==null && (typeof bounds!=="object" || ![bounds.west,bounds.south,bounds.east,bounds.north].every(Number.isFinite)
+        || bounds.west < -180 || bounds.east > 180 || bounds.south < -90 || bounds.north > 90
+        || bounds.west >= bounds.east || bounds.south >= bounds.north || [lat,lon,radius].some(value=>value!==null)))throw fail("BAD_REQUEST");
       const filters=["p.archived=0"],params=[];
+      if(bounds!==null){filters.push("p.lat BETWEEN ? AND ? AND p.lon BETWEEN ? AND ?");params.push(bounds.south,bounds.north,bounds.west,bounds.east);}
       if(q.trim()){filters.push("(instr(casefold(p.name),casefold(?))>0 OR instr(casefold(COALESCE(p.address,'')),casefold(?))>0)");params.push(q.trim(),q.trim());}
       if(status==="ready")filters.push("EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)");
-      if(status==="draft")filters.push("EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id) AND NOT EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id AND t.approved_story_json IS NOT NULL)");
+      if(status==="draft")filters.push(DRAFT_PLACE);
       if(status==="missing")filters.push("NOT EXISTS(SELECT 1 FROM place_texts t WHERE t.place_id=p.id)");
       if(lat!==null){const latDelta=radius/111320,lonDelta=radius/(111320*Math.cos(lat*Math.PI/180));filters.push("p.lat BETWEEN ? AND ? AND p.lon BETWEEN ? AND ?");params.push(lat-latDelta,lat+latDelta,lon-lonDelta,lon+lonDelta);}
       const distanceSql=lat===null?"NULL":`6371000*2*asin(min(1,sqrt(pow(sin(radians(p.lat-?)/2),2)+cos(radians(?))*cos(radians(p.lat))*pow(sin(radians(p.lon-?)/2),2))))`;
@@ -355,17 +383,18 @@ export function createContentStore({db,now,transaction}) {
           json_extract(j.checkpoint_json,'$.evidence.identityNote') evidence_identity_note,
           json_extract(j.checkpoint_json,'$.evidence.addressConfirmed') evidence_address_confirmed,
           json_extract(j.checkpoint_json,'$.evidence.facts') evidence_facts_json,
-          json_extract(j.checkpoint_json,'$.sourceFailures') source_failures_json
+          json_extract(j.checkpoint_json,'$.sourceFailures') source_failures_json,
+          json_extract(j.checkpoint_json,'$.research.perplexity') perplexity_json
         FROM batch_items i JOIN places p ON p.id=i.place_id JOIN content_jobs j ON j.id=i.text_job_id
         WHERE i.batch_id=? AND i.place_id=?`).get(batchId,placeId);
       if(!row)return null;
       const jobId=row.text_job_id;
-      const found=db.prepare(`SELECT json_extract(s.value,'$.url') url,json_extract(s.value,'$.title') title
+      const found=db.prepare(`SELECT json_extract(s.value,'$.url') url,json_extract(s.value,'$.title') title,json_extract(s.value,'$.origin') origin
         FROM content_jobs j,json_each(j.checkpoint_json,'$.research.sources') s WHERE j.id=? ORDER BY s.key`).all(jobId);
       const fetched=db.prepare(`SELECT json_extract(s.value,'$.id') id,json_extract(s.value,'$.url') url,json_extract(s.value,'$.title') title,
           json_extract(s.value,'$.publisher') publisher,length(json_extract(s.value,'$.text')) chars,json_extract(s.value,'$.openData') open_data
         FROM content_jobs j,json_each(j.checkpoint_json,'$.sources') s WHERE j.id=? ORDER BY s.key`).all(jobId);
-      const rejection=decode(row.rejection_json);
+      const rejection=decode(row.rejection_json),perplexity=decode(row.perplexity_json);
       const model=rejection?{outcome:"rejected",identityConfirmed:rejection.identityConfirmed??null,addressConfirmed:rejection.addressConfirmed===true,
           placeName:rejection.placeName??null,resolvedAddress:rejection.resolvedAddress??null,identityNote:rejection.identityNote??null,facts:rejection.facts??[]}
         :row.evidence_place_name!=null?{outcome:"accepted",identityConfirmed:true,addressConfirmed:row.evidence_address_confirmed!==0,
@@ -375,11 +404,60 @@ export function createContentStore({db,now,transaction}) {
       return {placeId:row.id,name:row.name,address:row.address,location:{lat:row.lat,lon:row.lon},tags:decode(row.tags_json)??{},
         state:row.state,error:decode(row.error_json),
         job:{state:row.job_state,attempts:Number(row.attempts),maxAttempts:Number(row.max_attempts),updatedAt:row.job_updated_at},
-        sources:diagnosisSources(found,fetched,decode(row.source_failures_json)??[]),model};
+        sources:diagnosisSources(found,fetched,decode(row.source_failures_json)??[]),model,
+        perplexity:perplexity?.status?{status:perplexity.status,code:perplexity.code??null,count:Number(perplexity.count??0)}:null};
     },
     getBatch(id) {const row=db.prepare("SELECT * FROM content_batches WHERE id=?").get(id);if(!row)return null;
       const items=db.prepare(`SELECT i.*,p.name,p.address FROM batch_items i JOIN places p ON p.id=i.place_id WHERE i.batch_id=? ORDER BY p.name,p.id`).all(id)
       .map(item=>({placeId:item.place_id,name:item.name,address:item.address,state:item.state,error:decode(item.error_json)}));return {...viewBatch(row,batchCounts(id)),items};},
+    /** Drafts newest first with the latest generated text of each place: what an editor still has to approve. */
+    listDrafts({limit=50,offset=0,research="all"}={}) {
+      if(!Number.isSafeInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(offset)||offset<0||!DRAFT_RESEARCH_FILTERS.includes(research))throw fail("BAD_REQUEST");
+      const where=`p.archived=0 AND ${DRAFT_PLACE}${research==="all"?"":` AND ${DRAFT_RESEARCH_STATUS}='${research}'`}`;
+      const rows=db.prepare(`SELECT p.id,p.name,p.address,p.lat,p.lon,t.id text_id,t.story_json,t.verification,t.created_at,${DRAFT_RESEARCH_STATUS} research_status
+        FROM places p ${DRAFT_TEXT_JOIN} WHERE ${where} ORDER BY t.created_at DESC,p.id LIMIT ? OFFSET ?`).all(limit+1,offset);
+      const total=Number(db.prepare(`SELECT count(*) n FROM places p ${DRAFT_TEXT_JOIN} WHERE ${where}`).get().n);
+      const counts=Object.fromEntries(db.prepare(`SELECT ${DRAFT_RESEARCH_STATUS} s,count(*) n FROM places p ${DRAFT_TEXT_JOIN}
+        WHERE p.archived=0 AND ${DRAFT_PLACE} GROUP BY s`).all().map(row=>[row.s,Number(row.n)]));
+      const unresearched=Number(db.prepare(`SELECT count(*) n ${DRAFT_JOB} AND ${DRAFT_PLACE} AND NOT ${PERPLEXITY_DONE}`).get().n);
+      return {total,unresearched,counts,hasMore:rows.length>limit,items:rows.slice(0,limit).map(row=>{const story=decode(row.story_json)??{};
+        return {placeId:row.id,name:row.name,address:row.address,location:{lat:row.lat,lon:row.lon},research:row.research_status,
+          text:{id:row.text_id,title:typeof story.title==="string"?story.title:"",paragraphs:(Array.isArray(story.paragraphs)?story.paragraphs:[]).map(paragraph=>typeof paragraph?.text==="string"?paragraph.text:"").filter(Boolean),
+            verification:row.verification,createdAt:row.created_at}};})};
+    },
+    /**
+     * Queues drafts for a new research round through the search model (Perplexity); on success the new text replaces the
+     * unapproved draft (see completeContentJob). Without placeIds it takes the oldest drafts not yet researched this way;
+     * explicit placeIds may repeat one. A repeated requestKey returns the first batch untouched.
+     * @param {{requestKey: string, placeIds?: string[] | null, limit?: number, mode?: string}} options
+     */
+    researchDrafts({requestKey,placeIds=null,limit=20,mode="search"}) {
+      if(!["search","deep"].includes(mode)||(mode==="deep"&&(!Array.isArray(placeIds)||placeIds.length!==1)))throw fail("BAD_REQUEST");
+      if(typeof requestKey!=="string"||requestKey.length<8||requestKey.length>100||!Number.isSafeInteger(limit)||limit<1||limit>DRAFT_RESEARCH_LIMIT)throw fail("BAD_REQUEST");
+      if(placeIds!==null&&(!Array.isArray(placeIds)||!placeIds.length||placeIds.length>DRAFT_RESEARCH_LIMIT||placeIds.some(id=>typeof id!=="string"||!/^osm:(?:node|way|relation):\d+$/.test(id))))throw fail("BAD_REQUEST");
+      return transaction(()=>{
+        const existing=db.prepare("SELECT * FROM content_batches WHERE request_key=?").get(requestKey);
+        if(existing){
+          if(existing.research_mode!==mode)throw fail("BAD_REQUEST");
+          if(mode==="deep"&&db.prepare("SELECT place_id FROM batch_items WHERE batch_id=? LIMIT 1").get(existing.id)?.place_id!==placeIds[0])throw fail("BAD_REQUEST");
+          return {batch:viewBatch(existing,batchCounts(existing.id)),count:Number(batchCounts(existing.id).total??0)};
+        }
+        const rows=placeIds===null
+          ?db.prepare(`SELECT p.*,j.id job_id,j.checkpoint_json job_checkpoint ${DRAFT_JOB} AND ${DRAFT_PLACE} AND NOT ${PERPLEXITY_DONE} ORDER BY t.created_at,p.id LIMIT ?`).all(limit)
+          :[...new Set(placeIds)].map(id=>db.prepare(`SELECT p.*,j.id job_id,j.checkpoint_json job_checkpoint ${DRAFT_JOB} AND ${DRAFT_PLACE} AND p.id=?`).get(id)).filter(Boolean);
+        if(!rows.length)throw fail("NO_DRAFTS_TO_RESEARCH");
+        const timestamp=iso(now),id=randomUUID();
+        db.prepare(`INSERT INTO content_batches (id,request_key,name,state,mode,text_profile,tts_profile,created_at,updated_at,identity_policy)
+          VALUES (?,?,?,?,?,?,?,?,?,?)`).run(id,requestKey,`${mode==="deep"?"Perplexity Deep Research":"Perplexity"} · черновики · ${new Date(now()).toLocaleString("ru-RU")}`,"running","text-only","story-v1",null,timestamp,timestamp,"weak_identity");
+        db.prepare("UPDATE content_batches SET research_mode=? WHERE id=?").run(mode,id);
+        for(const row of rows){const locationContext=decode(row.job_checkpoint)?.locationContext;
+          db.prepare(`UPDATE content_jobs SET state='queued',attempts=0,max_attempts=3,priority=?,next_attempt_at=?,error_json=NULL,checkpoint_json=?,updated_at=? WHERE id=?`)
+            .run(DRAFT_RESEARCH_PRIORITY,timestamp,encode({...(locationContext?{locationContext}:{}),researchMode:mode==="deep"?"perplexity_deep_required":"perplexity_required"}),timestamp,row.job_id);
+          syncItems(row.job_id,"queued");
+          db.prepare("INSERT INTO batch_items VALUES (?,?,?,?,?,?)").run(id,row.id,row.job_id,"queued",null,timestamp);}
+        return {batch:viewBatch(db.prepare("SELECT * FROM content_batches WHERE id=?").get(id),batchCounts(id)),count:rows.length};
+      });
+    },
     getContentStats() {
       const places=Number(db.prepare("SELECT count(*) n FROM places WHERE archived=0").get().n);
       const texts=Number(db.prepare("SELECT count(*) n FROM place_texts").get().n);
@@ -390,7 +468,8 @@ export function createContentStore({db,now,transaction}) {
       // Aggregate inside SQLite: checkpoints hold fetched sources and together exceed the service heap.
       const usage=Number(db.prepare(`SELECT total(json_extract(checkpoint_json,'$.usageTokens')) n FROM content_jobs
         WHERE json_valid(checkpoint_json) AND json_type(checkpoint_json,'$.usageTokens') IN ('integer','real')`).get().n);
-      return {places,texts,audio,awaitingApproval:this.countTextsAwaitingApproval(),jobs,external,oldestTextQueuedAt:oldest,textUsageTokens:usage};
+      const drafts=Number(db.prepare(`SELECT count(*) n FROM places p WHERE p.archived=0 AND ${DRAFT_PLACE}`).get().n);
+      return {places,texts,drafts,audio,awaitingApproval:this.countTextsAwaitingApproval(),jobs,external,oldestTextQueuedAt:oldest,textUsageTokens:usage};
     },
     /** Texts the bulk voicing skips until an editor approves them: no approved story and no audio yet. */
     countTextsAwaitingApproval() {
@@ -413,7 +492,7 @@ export function createContentStore({db,now,transaction}) {
      */
     retryBatchItem(batchId,placeId,{restartFrom="auto"}={}) {return transaction(()=>{if(!["auto","facts","research"].includes(restartFrom))throw fail("BAD_REQUEST");const item=db.prepare("SELECT * FROM batch_items WHERE batch_id=? AND place_id=?").get(batchId,placeId);
       const retryable=["failed","review_required","insufficient_evidence","retry_wait",...(restartFrom==="auto"?[]:["queued"])];if(!item||!retryable.includes(item.state))return null;
-      const job=db.prepare("SELECT checkpoint_json FROM content_jobs WHERE id=?").get(item.text_job_id),checkpoint=restartFrom==="research"?null:restartFrom==="facts"?factsCheckpoint(job?.checkpoint_json):job?.checkpoint_json??null;
+      const job=db.prepare("SELECT checkpoint_json FROM content_jobs WHERE id=?").get(item.text_job_id),saved=decode(job?.checkpoint_json),checkpoint=restartFrom==="research"?(saved?.researchMode==="perplexity_deep_required"?encode({researchMode:saved.researchMode,...(saved.locationContext?{locationContext:saved.locationContext}:{})}):null):restartFrom==="facts"?factsCheckpoint(job?.checkpoint_json):job?.checkpoint_json??null;
       const timestamp=iso(now);db.prepare("UPDATE content_jobs SET state='queued',attempts=0,next_attempt_at=?,error_json=NULL,checkpoint_json=?,updated_at=? WHERE id=?").run(timestamp,checkpoint,timestamp,item.text_job_id);
       db.prepare("UPDATE batch_items SET state='queued',error_json=NULL,updated_at=? WHERE batch_id=? AND place_id=?").run(timestamp,batchId,placeId);return this.getBatch(batchId);});},
     claimContentJob() {return transaction(()=>{const timestamp=iso(now);const row=db.prepare(`SELECT j.* FROM content_jobs j WHERE j.state IN ('queued','retry_wait') AND j.next_attempt_at<=? AND j.attempts<j.max_attempts
@@ -422,12 +501,18 @@ export function createContentStore({db,now,transaction}) {
       db.prepare("INSERT OR REPLACE INTO content_job_attempts VALUES (?,?,?, ?,NULL,NULL)").run(row.id,generation,"working",timestamp);syncItems(row.id,"working");
       const place=viewPlace(db.prepare("SELECT * FROM places WHERE id=?").get(row.place_id));return {id:row.id,place,profile:row.profile,profileVersion:row.profile_version,identityPolicy:row.identity_policy,checkpoint:decode(row.checkpoint_json),attempts:Number(row.attempts)+1};});},
     updateContentCheckpoint(id,checkpoint) {db.prepare("UPDATE content_jobs SET checkpoint_json=?,updated_at=? WHERE id=?").run(encode(checkpoint),iso(now),id);},
-    completeContentJob(id,{story,evidence,verification="automatic",autoApprove:requestedAutoApprove=false}) {return transaction(()=>{const row=db.prepare("SELECT * FROM content_jobs WHERE id=?").get(id);if(!row||row.state!=="working")throw fail("CONFLICT");
+    /** replaceDraft: a re-researched draft takes the new text, unless an editor approved it meanwhile. */
+    completeContentJob(id,{story,evidence,verification="automatic",autoApprove:requestedAutoApprove=false,replaceDraft=false}) {return transaction(()=>{const row=db.prepare("SELECT * FROM content_jobs WHERE id=?").get(id);if(!row||row.state!=="working")throw fail("CONFLICT");
       // The store, not the caller, decides: a weakly identified place is published only by an editor.
       const autoApprove=requestedAutoApprove&&row.identity_policy!=="weak_identity";
       const audioProfiles=()=>autoApprove&&story.audioDisposition!=="not_applicable_short_text"?db.prepare(`SELECT b.tts_profile,max(b.created_at) created_at FROM batch_items i JOIN content_batches b ON b.id=i.batch_id
         WHERE i.text_job_id=? AND b.mode='text-and-audio' AND b.tts_profile IS NOT NULL GROUP BY b.tts_profile ORDER BY created_at,b.tts_profile`).all(id).map(item=>item.tts_profile):[];
-      const existing=db.prepare("SELECT * FROM place_texts WHERE input_key=?").get(row.input_key);if(existing){const timestamp=iso(now),selected=decode(existing.story_json);
+      const existing=db.prepare("SELECT * FROM place_texts WHERE input_key=?").get(row.input_key);
+      if(existing&&replaceDraft&&existing.approved_story_json===null){const timestamp=iso(now);
+        db.prepare("UPDATE place_texts SET story_json=?,evidence_json=?,content_hash=?,verification=?,created_at=? WHERE id=?").run(encode(story),encode(evidence),sha256(encode(story)),verification,timestamp,existing.id);
+        db.prepare("UPDATE content_jobs SET state='ready',error_json=NULL,updated_at=? WHERE id=?").run(timestamp,id);db.prepare("UPDATE content_job_attempts SET state='ready',finished_at=? WHERE job_id=? AND generation=?").run(timestamp,id,row.attempts);syncItems(id,"ready");
+        return {id:existing.id,placeId:existing.place_id,story,sourceRevision:0,audioProfiles:[]};}
+      if(existing){const timestamp=iso(now),selected=decode(existing.story_json);
         if(autoApprove&&!existing.approved_story_json)db.prepare("UPDATE place_texts SET approved_story_json=? WHERE id=?").run(encode(selected),existing.id);
         db.prepare("UPDATE content_jobs SET state='ready',updated_at=? WHERE id=?").run(timestamp,id);syncItems(id,"ready");return{id:existing.id,placeId:existing.place_id,story:selected,audioProfiles:audioProfiles()};}
       const timestamp=iso(now),textId=randomUUID();db.prepare(`INSERT INTO place_texts

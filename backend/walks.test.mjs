@@ -52,17 +52,18 @@ for(const mode of ['loop','open'])test(`manual ${mode} preserves stop order and 
 
 test('strict input validation makes no upstream calls',async()=>{
   const {plan,calls}=fixture(()=>{throw new Error('must not fetch');});
-  for(const value of [null,[],{},input({mode:'drive'}),input({minutes:'30'}),input({minutes:31}),input({extra:true}),input({stops:[]}),input({stops:undefined}),input({stops:Array.from({length:11},(_,i)=>stop(i+1))}),input({stops:[start]}),input({stops:[stop(1),stop(1)]}),input({start:{...start,address:'<script>'}}),input({start:{...start,address:'a'.repeat(241)}}),input({start:{...start,location:{lat:'55.75',lon:37.6}}}),input({start:{...start,location:{lat:56,lon:37.6}}}),input({start:{...start,location:{lat:55.75,lon:NaN}}}),input({start:{...start,location:{...start.location,z:1}}})]) {
+  for(const value of [null,[],{},input({mode:'drive'}),input({minutes:'30'}),input({minutes:31}),input({extra:true}),input({stops:[]}),input({stops:undefined}),input({stops:Array.from({length:41},(_,i)=>stop(i+1))}),input({stops:[start]}),input({stops:[stop(1),stop(1)]}),input({start:{...start,address:'<script>'}}),input({start:{...start,address:'a'.repeat(241)}}),input({start:{...start,location:{lat:'55.75',lon:37.6}}}),input({start:{...start,location:{lat:56,lon:37.6}}}),input({start:{...start,location:{lat:55.75,lon:NaN}}}),input({start:{...start,location:{...start.location,z:1}}})]) {
     await assert.rejects(plan(value),{code:'WALK_INVALID'});
   }
   assert.equal(calls.length,0);
 });
 
-test('manual routes accept ten distinct stops',async()=>{
-  const stops=Array.from({length:10},(_,index)=>stop(index+1));
+for(const count of [11,28,40])test(`manual routes accept ${count} distinct stops in order`,async()=>{
+  const stops=Array.from({length:count},(_,index)=>stop(index+1));
   const {plan}=fixture((url,o)=>route(JSON.parse(o.body)));
-  const result=await plan({start,mode:'open',minutes:30,stops});
+  const result=await plan({start,mode:'open',minutes:90,stops});
   assert.deepEqual(result.stops,stops);
+  assert.deepEqual(result.geometry.at(-1),stops.at(-1).location);
 });
 
 for(const mode of ['loop','open'])test(`automatic ${mode} selects ordered addressed buildings`,async()=>{

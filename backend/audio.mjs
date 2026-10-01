@@ -12,7 +12,7 @@ export async function createNarration(story, provider, directory, signal, { minD
   const spokenScript = await normalize(script, { signal });
   const ttsProvider = provider.ttsProvider ?? "openai";
   const key = sha256(JSON.stringify({script:spokenScript,model:provider.ttsModel,voice:provider.voice,version:2,normalizer:normalize.version ?? "custom",
-    ...(ttsProvider === "openai" ? {} : {provider:ttsProvider})}));
+    ...(ttsProvider === "openai" ? {} : {provider:ttsProvider}),...(provider.scriptVersion ? {scriptVersion:provider.scriptVersion} : {})}));
   await mkdir(directory, { recursive: true });
   const metadataPath = join(directory, `${key}.json`);
   try {

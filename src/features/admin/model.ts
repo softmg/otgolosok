@@ -11,7 +11,8 @@ export type Summary = {
   ttsProvider?: TtsProvider; ttsVoice?: string | null; audio?: Audio | null;
   error: { code?: string; message: string } | null;
 };
-export type TtsProvider = "openai" | "yandex";
+export type TtsProvider = "openai" | "yandex" | "elevenlabs";
+export const ttsProviderLabels: Record<TtsProvider, string> = { openai: "OpenAI", yandex: "Яндекс", elevenlabs: "ElevenLabs" };
 export type ContentBatch = {
   id: string; name: string; state: string; mode: string; textProfile: string; ttsProfile: string | null;
   /** "weak_identity" marks a triage pilot: stricter evidence and publication only after an editor approves. */
@@ -27,6 +28,8 @@ export type ContentItemSource = {
   url: string; title: string | null; sourceId: string | null; publisher: string | null; chars: number; failure: string | null;
   /** A data.mos.ru record matched to the place offline, not a search result. */
   openData?: { datasetId: number; recordId: string; datasetVersion: string } | null;
+  /** Which search found the page when the job also asked Perplexity; null otherwise. */
+  origin?: "perplexity" | "search" | null;
 };
 export type ContentItemFact = {
   claim: string; kind: string | null; subjectRelation: string | null; evidence: { sourceId: string; quote: string }[];
@@ -36,6 +39,8 @@ export type ContentBatchItemDetail = ContentBatchItem & {
   location: { lat: number; lon: number }; tags: Record<string, string>;
   job: { state: string; attempts: number; maxAttempts: number; updatedAt: string };
   sources: ContentItemSource[];
+  /** Outcome of the Perplexity search for a weak_identity job; null when it was not asked. */
+  perplexity?: { status: "ok" | "failed"; code: string | null; count: number } | null;
   model: {
     outcome: "rejected" | "accepted"; identityConfirmed: boolean | null; addressConfirmed: boolean;
     placeName: string | null; resolvedAddress: string | null; identityNote: string | null; facts: ContentItemFact[];
@@ -240,3 +245,51 @@ export const identitySignals: Record<string, string> = {
   area_geometry: "Контур объекта",
   extra_tags: "Дополнительные теги OSM",
 };
+
+export type ContentDraft = {
+  placeId: string; name: string; address: string | null; location: { lat: number; lon: number };
+  research: DraftResearchStatus;
+  text: { id: string; title: string; paragraphs: string[]; verification: string; createdAt: string };
+};
+/** `unresearched` counts drafts the bulk re-research would still pick; `researchAvailable` says the server has a search model. */
+export type ContentDraftPage = { total: number; hasMore: boolean; items: ContentDraft[]; unresearched?: number; counts?: Partial<Record<DraftResearchStatus, number>>; researchAvailable?: boolean; deepResearchAvailable?: boolean };
+export type DraftResearchResult = { batch: { id: string; name: string }; count: number };
+export const DRAFT_RESEARCH_LIMIT = 50;
+
+/** How the draft stands relative to the Perplexity search: the row badge spells each one out. */
+export type DraftResearchStatus = "plain" | "perplexity" | "queued" | "failed";
+export const draftResearchStatuses: Record<DraftResearchStatus, string> = {
+  plain: "Не переисследован",
+  perplexity: "Переисследован через Perplexity",
+  queued: "В очереди на переисследование",
+  failed: "Переисследование не удалось",
+};
+export type ContentDraftResearchFilter = "all" | DraftResearchStatus;
+
+/** Filter options with live counts; zeros stay visible so the editor sees what each bucket holds. */
+export function draftResearchOptions(counts: ContentDraftPage["counts"] = {}): { value: ContentDraftResearchFilter; label: string }[] {
+  const labels: Record<DraftResearchStatus, string> = {
+    plain: "Ещё не переисследованы",
+    perplexity: "Переисследованы через Perplexity",
+    queued: "В очереди на переисследование",
+    failed: "Переисследование не удалось",
+  };
+  return [
+    { value: "all", label: "Все черновики" },
+    ...(Object.keys(labels) as DraftResearchStatus[]).map(status => ({ value: status, label: `${labels[status]} (${counts[status] ?? 0})` })),
+  ];
+}
+
+/** Plain text for the editor's clipboard: the point with its coordinates, then every paragraph numbered. */
+export function draftClipboardText(draft: ContentDraft) {
+  const { lat, lon } = draft.location;
+  return [
+    `Место: ${draft.name}`,
+    ...(draft.address ? [`Адрес: ${draft.address}`] : []),
+    `Координаты: ${lat}, ${lon}`,
+    `OSM: ${draft.placeId}`,
+    `Заголовок: ${draft.text.title}`,
+    "",
+    ...draft.text.paragraphs.map((paragraph, index) => `Абзац ${index + 1}: ${paragraph}`),
+  ].join("\n");
+}

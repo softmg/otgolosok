@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     ".kilo/**",
     ".claude/worktrees/**",
     "artifacts/**",
+    "test-results/**",
+    "playwright-report/**",
   ]),
 ]);
 

@@ -64,13 +64,16 @@ export function BatchItemDetail({ item }: { item: ContentBatchItemDetail }) {
 
     <section aria-label="Источники">
       <h4>Источники</h4>
+      {item.perplexity && <p className="admin-meta">{item.perplexity.status === "ok"
+        ? `Perplexity нашёл ссылок: ${item.perplexity.count}.`
+        : `Perplexity недоступен (${item.perplexity.code ?? "причина не записана"}), использован только обычный поиск.`}</p>}
       {item.sources.length ? <ol className="content-sources">{item.sources.map((source, index) => <li key={index}>
         <a href={source.url} target="_blank" rel="noopener noreferrer">{source.title || source.url}</a>
         <span className="admin-row-id">{source.openData
           ? `${source.sourceId} · Открытые данные Москвы · набор ${source.openData.datasetId}, версия ${source.openData.datasetVersion}`
           : source.sourceId
           ? `${source.sourceId} · ${source.publisher ?? ""} · ${source.chars.toLocaleString("ru-RU")} знаков`
-          : `не прочитан: ${source.failure ? sourceFailures[source.failure] ?? source.failure : "причина не записана"}`}</span>
+          : `не прочитан: ${source.failure ? sourceFailures[source.failure] ?? source.failure : "причина не записана"}`}{source.origin === "perplexity" ? " · найдено Perplexity" : ""}</span>
       </li>)}</ol> : <p className="admin-meta">Поиск ещё не выполнялся или ничего не нашёл.</p>}
     </section>
 

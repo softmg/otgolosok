@@ -3,7 +3,7 @@ import routeData from "../../../public/data/routes/paveletskaya.json";
 import { getWalkChapters } from "../tour/walk-plan";
 import type { Route } from "../tour/types";
 import { draftToWalkDocument, routeToWalkView, walkDocumentToDraft, walkViewToRoute } from "./adapters";
-import type { Draft } from "../walk-builder/model";
+import { parseDraft, type Draft } from "../walk-builder/model";
 
 const start = { address: "Москва, Арбат, 1", location: { lat: 55.7521, lon: 37.5935 } };
 const firstStop = { address: "Москва, Арбат, 3", location: { lat: 55.7523, lon: 37.594 } };
@@ -61,6 +61,32 @@ describe("universal walk adapters", () => {
     const document = draftToWalkDocument(draft([contentStop]), "44444444-4444-4444-8444-444444444444");
     expect(document.stops.at(-1)?.storyRef).toEqual({ kind: "osm", id: "osm:way:42" });
     expect(walkDocumentToDraft(document).stops[0]).toEqual(contentStop);
+  });
+
+  it.each([11, 28, 40])("preserves %i stops through editor restore and playback", count => {
+    const stops = Array.from({ length: count }, (_, index) => ({ address: `Москва, Арбат, ${index + 3}`, location: { lat: 55.753 + index * 0.001, lon: 37.594 } }));
+    const document = draftToWalkDocument({ ...draft(stops), jobs: [] }, "55555555-5555-4555-8555-555555555555");
+    document.route = { geometry: [start.location, ...stops.map(stop => stop.location)], distanceM: 4500, walkingMinutes: 55, attribution: "OSM" };
+    document.minutes = 60;
+    expect(parseDraft(JSON.stringify(walkDocumentToDraft(document))).stops).toEqual(stops);
+    const view = { document, revision: 1, contentVersion: "long-walk", chapters: document.stops.map(stop => ({ id: stop.id, status: "preparing" as const, story: null, audio: null })) };
+    const route = walkViewToRoute(view);
+    expect(getWalkChapters(route, true).map(chapter => chapter.id)).toEqual(document.stops.map(stop => stop.id));
+    expect(route.pois.map(poi => poi.location)).toEqual(stops.map(stop => stop.location));
+    expect(route.walk?.finish.location).toEqual(stops.at(-1)?.location);
+  });
+
+  it("counts the start story among forty chapters and restores it without loss", () => {
+    const stops = Array.from({ length: 39 }, (_, index) => ({ address: `Москва, Арбат, ${index + 3}`, location: { lat: 55.753 + index * 0.001, lon: 37.594 } }));
+    const id = "66666666-6666-4666-8666-666666666666";
+    const document = draftToWalkDocument(draft(stops), id);
+    const restored = parseDraft(JSON.stringify(walkDocumentToDraft(document)));
+    expect(document.stops).toHaveLength(40);
+    expect(document.stops[0]).toMatchObject({ place: start, storyRef: { kind: "job", id: jobId } });
+    expect(restored.stops).toEqual(stops);
+    expect(restored.jobs[0]).toMatchObject({ id: jobId, place: start });
+    expect(draftToWalkDocument(restored, id, document).stops).toEqual(document.stops);
+    expect(() => draftToWalkDocument(draft([...stops, secondStop]), id)).toThrow();
   });
 
   it("round-trips the bundled catalogue through the universal view", () => {

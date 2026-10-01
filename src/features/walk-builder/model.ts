@@ -1,9 +1,10 @@
+import { MAX_WALK_STOPS } from "../../../backend/walk-document.mjs";
 import type { Coordinates } from "../tour/types";
 import { isMoscowPoint } from "../explore/map-jobs";
 import { stageLabels, type GenerationStage } from "../generator/types";
 
 export const DRAFT_KEY = "otgolosok:walk:v1";
-export const MAX_WALK_STOPS = 10;
+export { MAX_WALK_STOPS };
 export type Place = { address: string; location: Coordinates; contentId?: string };
 export type Plan = { stops: Place[]; geometry: Coordinates[]; distanceM: number; walkingMinutes: number; attribution: string };
 // Mirrors MIN_BUDGET_SHARE in backend/walks.mjs: automatic walks aim for at least this share of the chosen time.
@@ -41,8 +42,12 @@ export function storyAddressKey(address: string) {
 export function rememberStory(jobs: StoryRef[], job: StoryRef): StoryRef[] {
   return [...jobs.filter(j => j.id !== job.id), job];
 }
-export function validStops(start: Place | null, stops: Place[], destination?: Place | null) {
-  if (!start || !isPlace(start) || stops.length < (destination ? 0 : 1) || stops.length > MAX_WALK_STOPS || !stops.every(isPlace)) return false;
+export function manualStopLimit(start: Place | null, jobs: StoryRef[] = []) {
+  const hasStartStory = start && jobs.some(job => placeKey(job.place) === placeKey(start) && isJobId(job.id));
+  return MAX_WALK_STOPS - Number(Boolean(hasStartStory));
+}
+export function validStops(start: Place | null, stops: Place[], destination?: Place | null, jobs: StoryRef[] = []) {
+  if (!start || !isPlace(start) || stops.length < (destination ? 0 : 1) || stops.length > manualStopLimit(start, jobs) || !stops.every(isPlace)) return false;
   if (destination && !isPlace(destination)) return false;
   const points = [start, ...stops, ...(destination ? [destination] : [])];
   return points.every((p, i) => points.slice(0, i).every(q => {

@@ -8,11 +8,11 @@ import { runJob } from "./pipeline.mjs";
 
 /**
  * @param {import("node:test").TestContext} t
- * @param {{provider?: any, yandexTts?: any, maxActive?: number, adminToken?: string}} [options]
+ * @param {{provider?: any, yandexTts?: any, elevenLabsTts?: any, maxActive?: number, adminToken?: string}} [options]
  */
-async function fixture(t, { provider = {}, yandexTts = null, maxActive = 2, adminToken = "test-secret" } = {}) {
+async function fixture(t, { provider = {}, yandexTts = null, elevenLabsTts = null, maxActive = 2, adminToken = "test-secret" } = {}) {
   const store = createStore(":memory:", { maxActive });
-  const app = createApp({ store, provider, yandexTts, adminToken, origin: "https://site.test", workerEnabled: false });
+  const app = createApp({ store, provider, yandexTts, elevenLabsTts: /** @type {any} */ (elevenLabsTts), adminToken, origin: "https://site.test", workerEnabled: false });
   await /** @type {Promise<void>} */ (new Promise(done => app.server.listen(0, "127.0.0.1", done)));
   t.after(async () => { await app.close(); store.close(); });
   const base = `http://127.0.0.1:${/** @type {import("node:net").AddressInfo} */ (app.server.address()).port}`;
@@ -233,7 +233,7 @@ test("Yandex selection is persisted, audited and reused after an audio-only retr
   assert.equal(response.status, 200);
   const { job } = /** @type {any} */ (await response.json());
   assert.equal(job.data.ttsProvider, "yandex");
-  assert.deepEqual(job.ttsProviders.map(({ id, label, available }) => ({ id, label, available })), [{ id: "openai", label: "OpenAI", available: true }, { id: "yandex", label: "Яндекс SpeechKit", available: true }]);
+  assert.deepEqual(job.ttsProviders.map(({ id, label, available }) => ({ id, label, available })), [{ id: "openai", label: "OpenAI", available: true }, { id: "yandex", label: "Яндекс SpeechKit", available: true }, { id: "elevenlabs", label: "ElevenLabs v3 (с аудиотегами)", available: false }]);
   assert.equal(job.data.ttsVoice, "kirill");
   assert.equal(job.ttsProviders[1].defaultVoice, "marina");
   assert.ok(job.ttsProviders[1].voices.some(voice => voice.id === "kirill"));
@@ -438,4 +438,28 @@ test("address admin mutations cannot operate on queued walk chapters", t => {
   ];
   for (const call of calls) assert.throws(call, { code: "CONFLICT" });
   assert.deepEqual(store.listAdmin({ relevance: "all" }).jobs, []);
+});
+
+test("ElevenLabs revoicing offers the account voices and narrates with the selected one", async t => {
+  const elevenLabsTts = { ttsProvider: "elevenlabs", voice: "RuVoice1", voices: [{ id: "RuVoice1", label: "Отголосок (ru)" }, { id: "EnVoice1", label: "George (en)" }] };
+  const f = await fixture(t, { elevenLabsTts });
+  const original = f.seed();
+  const saved = f.store.editAdmin(original.id, original.revision, f.draft);
+  const approved = f.store.approveAdmin(saved.id, saved.revision);
+  const ready = await runJob(f.store.claimNext(), { store: f.store, provider: {}, narrate: async () => ({ url: "openai-audio", durationSec: 100, provider: "openai" }) });
+  const detail = /** @type {any} */ (await (await f.request(`/${approved.id}`)).json()).job;
+  assert.deepEqual(detail.ttsProviders.find(option => option.id === "elevenlabs"), { id: "elevenlabs", label: "ElevenLabs v3 (с аудиотегами)", available: true,
+    defaultVoice: "RuVoice1", voices: elevenLabsTts.voices });
+  assert.equal((await f.request(`/${ready.id}/revoice`, { revision: ready.revision, ttsProvider: "elevenlabs", ttsVoice: "marin" })).status, 400);
+  const response = await f.request(`/${ready.id}/revoice`, { revision: ready.revision, ttsProvider: "elevenlabs", ttsVoice: "EnVoice1" });
+  assert.equal(response.status, 200);
+  const revoiced = await runJob(f.store.claimNext(), { store: f.store, provider: {}, speechProviders: { elevenlabs: elevenLabsTts },
+    narrate: async (story, selected) => {
+      assert.deepEqual(selected, { ...elevenLabsTts, voice: "EnVoice1" }); assert.deepEqual(story, approved.data.story);
+      return { url: "elevenlabs-audio", durationSec: 100, provider: "elevenlabs", voice: "EnVoice1" };
+    } });
+  assert.equal(revoiced.stage, "ready");
+  assert.equal(revoiced.data.audio.url, "elevenlabs-audio");
+  const summary = /** @type {any} */ (await (await f.request(`/${ready.id}`)).json()).job;
+  assert.equal(summary.data.ttsProvider, "elevenlabs");
 });

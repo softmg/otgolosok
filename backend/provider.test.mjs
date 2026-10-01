@@ -70,3 +70,100 @@ test("speech retries a busy provider and stops at a deterministic refusal", asyn
   await assert.rejects(refused.speech("Рассказ"), { code: "TTS_FAILED" });
   assert.equal(calls, 1);
 });
+
+const searchProvider = (fetchImpl, searchModel = "perplexity-web/pplx-auto") => createProvider({ baseUrl: "https://provider.example/v1", apiKey: "key", searchModel, fetchImpl });
+const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+
+test("search sources come from chat completions in rank order, deduplicated", async () => {
+  const requests = [];
+  const provider = searchProvider(async (url, options) => {
+    requests.push({ url, body: JSON.parse(/** @type {string} */ (options.body)) });
+    return json({ choices: [{ message: { content: "ответ не используется", annotations: [
+      { type: "url_citation", url_citation: { url: "https://b.example/", title: "Б" } },
+      { type: "url_citation", url_citation: { url: "https://c.example/", title: "В" } }] } }],
+    search_results: [{ url: "https://a.example/", title: "А" }, { url: "https://b.example/", title: "дубль" }, { title: "без адреса" }],
+    citations: ["https://c.example/", "https://d.example/", 42, null] });
+  });
+  const result = await provider.searchSources("Найди источники");
+  assert.equal(requests[0].url, "https://provider.example/v1/chat/completions");
+  assert.deepEqual(requests[0].body, { model: "perplexity-web/pplx-auto", stream: false, messages: [{ role: "user", content: "Найди источники" }] });
+  assert.deepEqual(result.sources, [{ url: "https://a.example/", title: "А" }, { url: "https://b.example/", title: "дубль" }, { url: "https://c.example/", title: "В" }, { url: "https://d.example/", title: "" }]);
+  assert.equal(result.model, "perplexity-web/pplx-auto");
+});
+
+test("search failures map to codes; only transient statuses are retried once", async () => {
+  for (const { status, code, calls } of [{ status: 401, code: "PROVIDER_AUTH", calls: 1 }, { status: 404, code: "PROVIDER_REJECTED", calls: 1 },
+    { status: 429, code: "PROVIDER_BUSY", calls: 2 }, { status: 500, code: "PROVIDER_UNAVAILABLE", calls: 2 }]) {
+    let made = 0;
+    const provider = searchProvider(async () => { made++; return json({ error: { code: "model_not_found" } }, status); });
+    await assert.rejects(provider.searchSources("Проверка"), { code }, String(status));
+    assert.equal(made, calls, String(status));
+  }
+  await assert.rejects(searchProvider(async () => json({ choices: [{ message: { content: "нет ссылок" } }] })).searchSources("Проверка"), { code: "NO_SEARCH_EVIDENCE" });
+  await assert.rejects(searchProvider(async () => new Response("<html>", { headers: { "Content-Type": "text/html" } })).searchSources("Проверка"), { code: "INVALID_MODEL_OUTPUT" });
+});
+
+test("search is disabled without a search model", () => {
+  for (const searchModel of [null, "", "  "]) {
+    const provider = searchProvider(async () => json({}), /** @type {any} */ (searchModel));
+    assert.equal(provider.searchSources, null);
+    assert.equal(provider.searchModel, null);
+  }
+});
+
+test("deep research uses a separate model and preserves citation order", async () => {
+  const provider=createProvider({baseUrl:"https://provider.example/v1",apiKey:"key",deepResearchModel:"perplexity-web/pplx-deep-research",fetchImpl:async(_url,init)=>{
+    assert.equal(JSON.parse(String(init.body)).model,"perplexity-web/pplx-deep-research");
+    return json({choices:[{message:{content:"Непроверенный отчёт"}}],citations:["https://source.example/history"]});
+  }});
+  assert.equal(provider.searchSources,null);
+  assert.deepEqual(await provider.deepResearchSources("Объект"),{model:"perplexity-web/pplx-deep-research",sources:[{url:"https://source.example/history",title:""}]});
+  assert.equal(searchProvider(async()=>json({})).deepResearchSources,null);
+});
+
+
+test("deep research leaves time for a full retry after a fifteen-minute 502", async t => {
+  let elapsed = 0, calls = 0;
+  const deadlines = [];
+  t.mock.method(AbortSignal, "timeout", milliseconds => {
+    const controller = new AbortController();
+    deadlines.push({ controller, expires: elapsed + milliseconds });
+    return controller.signal;
+  });
+  const provider = createProvider({ baseUrl: "https://provider.example/v1", apiKey: "key",
+    deepResearchModel: "perplexity-web/pplx-deep-research", fetchImpl: async (_url, options) => {
+      calls++;
+      elapsed += 15 * 60 * 1000;
+      for (const { controller, expires } of deadlines) if (elapsed >= expires) controller.abort(new DOMException("deadline", "TimeoutError"));
+      options.signal.throwIfAborted();
+      return calls === 1 ? new Response("busy", { status: 502, headers: { "Retry-After": "0" } })
+        : json({ citations: ["https://source.example/recovered"] });
+    } });
+  const result = await provider.deepResearchSources("Объект");
+  assert.deepEqual(result.sources, [{ url: "https://source.example/recovered", title: "" }]);
+  assert.equal(calls, 2);
+});
+
+test("deep research still stops on its deadline and on caller cancellation", async t => {
+  for (const callerCancelled of [false, true]) {
+    let calls = 0;
+    const controllers = [];
+    const caller = new AbortController();
+    const timeout = t.mock.method(AbortSignal, "timeout", milliseconds => {
+      const controller = new AbortController();
+      controllers.push({ controller, milliseconds });
+      return controller.signal;
+    });
+    const provider = createProvider({ baseUrl: "https://provider.example/v1", apiKey: "key",
+      deepResearchModel: "perplexity-web/pplx-deep-research", fetchImpl: async (_url, options) => {
+        calls++;
+        if (callerCancelled) caller.abort();
+        else for (const { controller, milliseconds } of controllers) if (milliseconds <= 33 * 60 * 1000) controller.abort(new DOMException("deadline", "TimeoutError"));
+        options.signal.throwIfAborted();
+        return json({ citations: ["https://unexpected.example/"] });
+      } });
+    await assert.rejects(provider.deepResearchSources("Объект", { signal: caller.signal }), { name: callerCancelled ? "AbortError" : "TimeoutError" });
+    assert.equal(calls, 1);
+    timeout.mock.restore();
+  }
+});

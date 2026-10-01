@@ -1,4 +1,5 @@
 // Shared, dependency-free wire contract for walk documents and public views.
+export const MAX_WALK_STOPS = 40;
 const invalid = () => Object.assign(new Error("Некорректные данные прогулки."), { code: "BAD_REQUEST" });
 const object = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const fields = (value, allowed) => object(value) && Object.keys(value).every(key => allowed.includes(key));
@@ -24,14 +25,14 @@ const audio = value => value === null || (fields(value, ["url", "sha256", "durat
 /** @typedef {{document:WalkDocument,revision:number,contentVersion:string,chapters:Array<{id:string,status:string,story:object|null,audio:object|null}>}} WalkView */
 
 export function validateWalkDocument(value) {
-  if (!fields(value, ["version", "id", "title", "description", "city", "mode", "minutes", "start", "destination", "stops", "route", "fieldChecked"]) || value.version !== 2 || !(uuid(value.id) || /^[a-z0-9][a-z0-9-]{0,127}$/.test(value.id)) || !string(value.title, 120) || !string(value.description, 1000, true) || value.city !== "Москва" || !["open", "loop"].includes(value.mode) || ![15, 30, 60, 90].includes(value.minutes) || !(value.start === null || place(value.start)) || (value.destination != null && (value.mode !== "open" || !place(value.destination))) || !Array.isArray(value.stops) || value.stops.length > 10 || !value.stops.every(stop) || (value.start === null && value.stops.length !== 0) || new Set(value.stops.map(item => item.id)).size !== value.stops.length || !route(value.route) || (value.route !== null && (value.start === null || (value.stops.length === 0 && !value.destination))) || typeof value.fieldChecked !== "boolean" || JSON.stringify(value).length > 100000) throw invalid();
+  if (!fields(value, ["version", "id", "title", "description", "city", "mode", "minutes", "start", "destination", "stops", "route", "fieldChecked"]) || value.version !== 2 || !(uuid(value.id) || /^[a-z0-9][a-z0-9-]{0,127}$/.test(value.id)) || !string(value.title, 120) || !string(value.description, 1000, true) || value.city !== "Москва" || !["open", "loop"].includes(value.mode) || ![15, 30, 60, 90].includes(value.minutes) || !(value.start === null || place(value.start)) || (value.destination != null && (value.mode !== "open" || !place(value.destination))) || !Array.isArray(value.stops) || value.stops.length > MAX_WALK_STOPS || !value.stops.every(stop) || (value.start === null && value.stops.length !== 0) || new Set(value.stops.map(item => item.id)).size !== value.stops.length || !route(value.route) || (value.route !== null && (value.start === null || (value.stops.length === 0 && !value.destination))) || typeof value.fieldChecked !== "boolean" || JSON.stringify(value).length > 100000) throw invalid();
   return value;
 }
 
 // The stable UUID is assigned by the owner of the local/account record. Neither
 // legacy job IDs nor the address label alone identify a route stop.
 export function migrateLegacyDraft(value, walkId) {
-  if (!object(value) || value.version !== 1 || !uuid(walkId) || !(value.start === null || place(value.start)) || !Array.isArray(value.stops) || value.stops.length > 10 || !value.stops.every(place) || (value.start === null && value.stops.length !== 0) || !["open", "loop"].includes(value.mode) || ![30, 60, 90].includes(value.minutes) || !Array.isArray(value.jobs) || value.jobs.length > 100) throw invalid();
+  if (!object(value) || value.version !== 1 || !uuid(walkId) || !(value.start === null || place(value.start)) || !Array.isArray(value.stops) || value.stops.length > MAX_WALK_STOPS || !value.stops.every(place) || (value.start === null && value.stops.length !== 0) || !["open", "loop"].includes(value.mode) || ![30, 60, 90].includes(value.minutes) || !Array.isArray(value.jobs) || value.jobs.length > 100) throw invalid();
   const hash = (index) => {
     // A UUIDv5-shaped deterministic ID; migration is stable across retries.
     // The input is already bounded by validateWalkDocument below.

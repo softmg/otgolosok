@@ -11,9 +11,10 @@ import type { MapFocus, MapViewState } from "./explore-map";
 import { ExploreIcon } from "./icons";
 import { AppNavigation } from "../navigation/app-navigation";
 import { isMoscowPoint, MOSCOW_CENTER, readMapJobs, type MapJob } from "./map-jobs";
-import { nearbyRadiusForAccuracy, nearbyStoryCatalog, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
+import { nearbyRadiusForAccuracy, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
 import { selectExplorePanel } from "./panel-state";
-import { openDataAttribution, type StorySourceRef } from "./source-attribution";
+import { openDataAttribution } from "./source-attribution";
+import { usePublishedCatalog } from "./use-published-catalog";
 import { rememberGeoPromptDismissal, shouldShowGeoPrompt } from "./geo-prompt";
 import { MapShell } from "../shell/map-shell";
 import { MapControlButton } from "../shell/map-controls";
@@ -21,14 +22,13 @@ import { AroundHeader } from "./around-header";
 import { GeoNotice, LocationPromptSheet, MapHintNotice, NearbySheet, PlaceSheet, StorySheet } from "./around-sheets";
 import type { StoryPin } from "./story-pin";
 import a from "./around.module.css";
+import styles from "./around-screen.module.css";
 import { toUserMessage } from "@/lib/errors/user-message";
 import { describeLocateError, locateOnce } from "@/lib/position/locate";
 
 type Place = {label:string; address:string|null; location:Coordinates};
-type CatalogPlace = {id:string;name:string;address:string|null;location:Coordinates;story:{title:string;paragraphs:Array<{text:string}>;sources?:StorySourceRef[];facts?:unknown[]}|null;audio:{url:string;durationSec:number}|null;distanceM:number|null};
 // Keep the nearby viewport across client-side navigation, independently of walk maps.
 const nearbyMapView: MapViewState = {current:null};
-const MELNIKOV: StoryPin = {id:"4c76cc5f-0fcd-41db-a36e-e63cce9b3f09",jobId:"4c76cc5f-0fcd-41db-a36e-e63cce9b3f09",title:"Воздушные телефоны Дома Мельникова",address:"Кривоарбатский переулок, 10",location:{lat:55.74805556,lon:37.58944444},duration:56};
 function distance(a:Coordinates,b:Coordinates){
   const rad=Math.PI/180,dlat=(b.lat-a.lat)*rad,dlon=(b.lon-a.lon)*rad;
   return 12742000*Math.asin(Math.min(1,Math.sqrt(Math.sin(dlat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dlon/2)**2)));
@@ -58,7 +58,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   const [prompt,setPrompt]=useState(false);
   const [mapHintVisible,setMapHintVisible]=useState(true);
   const [tracked]=useState<MapJob[]>(()=>typeof window==="undefined"?[]:readMapJobs()),[jobs,setJobs]=useState<Record<string,GenerationJob>>({});
-  const [catalog,setCatalog]=useState<CatalogPlace[]>([]);
+  const {places:catalog,total:catalogTotal,loaded:catalogLoaded,status:catalogStatus,nearbyStatus,maintenance:catalogMaintenance,retry:retryCatalog,onViewport}=usePublishedCatalog(nearbyCenter,nearbyRadius);
   const lookup=useRef<AbortController|null>(null),locating=useRef<(()=>void)|null>(null);
   const input=useRef<HTMLInputElement>(null);
 
@@ -79,12 +79,6 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     const timer=setTimeout(()=>setPrompt(shouldShowGeoPrompt(localStorage)),0);
     return()=>clearTimeout(timer);
   },[]);
-  useEffect(()=>{
-    const controller=new AbortController(),params=new URLSearchParams({limit:"100",status:"ready"});
-    if(nearbyCenter){params.set("lat",String(nearbyCenter.lat));params.set("lon",String(nearbyCenter.lon));params.set("radius","5000");}
-    fetch(`/api/content/places?${params}`,{signal:controller.signal,cache:"no-store"}).then(response=>response.ok?response.json():Promise.reject()).then(value=>setCatalog(Array.isArray(value.places)?value.places:[])).catch(()=>{});
-    return()=>controller.abort();
-  },[nearbyCenter]);
   useEffect(()=>{
     if(!tracked.length)return;
     let disposed=false,running=false;
@@ -114,14 +108,14 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   },[tracked]);
 
   const pins=useMemo<StoryPin[]>(()=>{
-    const chapters=getWalkChapters(route).map((chapter,index)=>({id:chapter.id,title:chapter.title,address:chapter.place,location:chapter.location,duration:chapter.audio?.duration_sec,chapter:index,number:index+1}));
-    const own=tracked.filter(item=>item.id!==MELNIKOV.id).map(item=>{
+    const chapters=getWalkChapters(route).flatMap((chapter,index)=>index===openChapter?[{id:chapter.id,title:chapter.title,address:chapter.place,location:chapter.location,duration:chapter.audio?.duration_sec,chapter:index,number:index+1}]:[]);
+    const own=tracked.map(item=>{
       const job=jobs[item.id];return {...item,jobId:item.id,title:job?.story?.title??item.address,duration:job?.audio?.durationSec,pending:job?!terminalStages.has(job.stage):false,status:job?stageLabels[job.stage]:"Открыть подготовку"};
     });
     const places=catalog.map(place=>({id:place.id,placeId:place.id,title:place.story?.title??place.name,address:place.address??place.name,location:place.location,duration:place.audio?.durationSec,audioUrl:place.audio?.url,status:place.audio?"Готово к прослушиванию":"Текст готов",paragraphs:place.story?.paragraphs?.map(paragraph=>paragraph.text).filter(Boolean),attribution:openDataAttribution(place.story?.sources)}));
-    return [...chapters,MELNIKOV,...own,...places.filter(place=>![...chapters,MELNIKOV,...own].some(existing=>existing.id===place.id))];
-  },[route,tracked,jobs,catalog]);
-  const recommendations=useMemo(()=>nearbyCenter?recommendNearbyStories(nearbyCenter,nearbyRadius,[...nearbyStoryCatalog(route),...catalog.filter(place=>place.audio&&place.story).map(place=>({id:place.id,title:place.story!.title,address:place.address??place.name,location:place.location,durationSec:place.audio!.durationSec,sourceCount:place.story!.sources?.length??1,factCount:place.story!.facts?.length??1}))]):[],[nearbyCenter,nearbyRadius,route,catalog]);
+    return [...chapters,...own,...places.filter(place=>![...chapters,...own].some(existing=>existing.id===place.id))];
+  },[route,openChapter,tracked,jobs,catalog]);
+  const recommendations=useMemo(()=>nearbyCenter?recommendNearbyStories(nearbyCenter,nearbyRadius,catalog.filter(place=>place.audio&&place.story).map(place=>({id:place.id,title:place.story!.title,address:place.address??place.name,location:place.location,durationSec:place.audio!.durationSec,sourceCount:place.story!.sources?.length??1,factCount:place.story!.facts?.length??1}))):[],[nearbyCenter,nearbyRadius,catalog]);
   const visible=useMemo(()=>[...pins].sort((a,b)=>user?distance(user,a.location)-distance(user,b.location):0),[pins,user]);
   const creationItems=useMemo(()=>[
     ...visible.filter(pin=>!creationMap.items.some(point=>distance(pin.location,point.location)<15)).map(pin=>({...pin,compact:true})),
@@ -137,9 +131,6 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   function selectRecommendation(id:string){
     const direct=pins.find(pin=>pin.id===id);
     if(direct){select(direct);return;}
-    const chapterIndex=getWalkChapters(route).findIndex(chapter=>chapter.content_id===id);
-    const chapter=pins.find(pin=>pin.chapter===chapterIndex);
-    if(chapter)select(chapter);
   }
   function openSearch(){setSearch(true);setPrompt(false);}
   function dismissGeoPrompt(){rememberGeoPromptDismissal(localStorage);setPrompt(false);}
@@ -203,19 +194,20 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     : prompt&&!active&&!place&&!placeBusy&&!placeError ? <LocationPromptSheet geo={geo} onLocate={locate} onDismiss={dismissGeoPrompt} />
     : active ? <StorySheet story={active} metadata={metadata(active)} walkHref={active.address&&!placeBusy?walkHref:null} startRef={startRef} onStart={onStart} onClose={()=>setSelected(undefined)} onWalk={rememberOpener} />
     : explorePanel==="place" ? <PlaceSheet address={place?.address??null} busy={placeBusy} error={placeError} createHref={createHref} walkHref={place?.address?walkHref:null} onClose={closePlace} onWalk={rememberOpener} />
-    : explorePanel==="nearby" ? <NearbySheet radius={nearbyRadius} recommendations={recommendations} onRadius={setNearbyRadius} onSelect={selectRecommendation} onReset={()=>{setNearbyCenter(null);setPlace(null);setPrompt(false);}} />
+    : explorePanel==="nearby" ? <NearbySheet status={nearbyStatus} radius={nearbyRadius} recommendations={recommendations} onRadius={setNearbyRadius} onSelect={selectRecommendation} onReset={()=>{setNearbyCenter(null);setPlace(null);setPrompt(false);}} />
     : null;
   // An empty slot must stay null: the shell gives the dock room only when there is something to show.
-  const noticeList = creating ? [] : [
-    geoMessage&&!search?<GeoNotice key="geo" message={geoMessage} outside={geoOutside} denied={geo==="denied"} onMoscow={showMoscow} onRetry={locate} onClose={()=>{setGeoMessage("");setGeoOutside(false);}} />:null,
-    !sheet&&!search&&mapHintVisible?<MapHintNotice key="hint" onClose={()=>setMapHintVisible(false)} />:null,
-    updateAvailable?<a key="update" className={a.notice} href="/update.html">Доступна новая версия · обновить</a>:null,
+  const noticeList = [
+    catalogStatus!=="ready"||catalogMaintenance?<div key="catalog" className={styles.catalogStatus} data-region="catalog-status"><span role="status" aria-atomic="true">{catalogMaintenance?"Сервис обновляется. Карта загрузится автоматически.":catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalogLoaded} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="loading"&&!catalogMaintenance?<progress aria-label="Загрузка мест на карте" max={catalogTotal||1} value={catalogTotal?catalogLoaded:undefined}/>:null}{catalogStatus==="error"&&!catalogMaintenance?<button type="button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null,
+    !creating&&geoMessage&&!search?<GeoNotice key="geo" message={geoMessage} outside={geoOutside} denied={geo==="denied"} onMoscow={showMoscow} onRetry={locate} onClose={()=>{setGeoMessage("");setGeoOutside(false);}} />:null,
+    !creating&&!sheet&&!search&&mapHintVisible?<MapHintNotice key="hint" onClose={()=>setMapHintVisible(false)} />:null,
+    !creating&&updateAvailable?<a key="update" className={a.notice} href="/update.html">Доступна новая версия · обновить</a>:null,
   ].filter(Boolean);
   const notices = noticeList.length ? noticeList : null;
 
   return <>
     <MapShell
-      map={{viewState:nearbyMapView,items:creating?creationItems:mapItems,geometry:creating?creationMap.geometry:undefined,selectedId:selected??(place?"picked-place":undefined),focus:creating?creationMap.focus:focus,user,
+      map={{onViewport,viewState:nearbyMapView,items:creating?creationItems:mapItems,geometry:creating?creationMap.geometry:undefined,selectedId:selected??(place?"picked-place":undefined),focus:creating?creationMap.focus:focus,user,
         onSelect:id=>{const pin=pins.find(value=>value.id===id);if(pin){if(creating)setPicked(pin.location);else select(pin);}},
         onPoint:point=>creating?setPicked(point):void findPlace(point)}}
       header={<AroundHeader search={search&&!creating} query={query} busy={placeBusy} inputRef={input} onToggle={()=>search?setSearch(false):openSearch()} onQuery={setQuery} onSubmit={submitSearch} />}

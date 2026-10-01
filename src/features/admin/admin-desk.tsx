@@ -2,15 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "../brand/brand-mark";
-import { WalkAdmin } from "./walk-admin";
+import { WalkAdminSection as WalkAdmin } from "./shared-walk-admin";
 import { ContentAdmin } from "./content-admin";
-import { draftCheck, initialDraft, safeSourceLink, stages, type AdminApi, type Draft, type Job, type Summary, type TtsProvider } from "./model";
+import { DraftsAdmin } from "./drafts-admin";
+import { draftCheck, initialDraft, safeSourceLink, stages, ttsProviderLabels, type AdminApi, type Draft, type Job, type Summary, type TtsProvider } from "./model";
 import { skeletonRows } from "./table-skeleton";
+import { readFetch } from "../auth/read-fetch";
 import { csrfHeaders, getSession, signOut } from "../auth/client";
 
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const PAGE_SIZE = 50;
-type AdminSection = "addresses" | "walks" | "content";
+type AdminSection = "addresses" | "walks" | "content" | "drafts";
 type RelevanceFilter = "active" | "irrelevant" | "all";
 
 class ApiError extends Error {
@@ -26,7 +28,7 @@ function voiceLabel(item: Summary) {
   const voice = item.audio?.voice ?? item.ttsVoice;
   if (!voice) return "Не выбрана";
   const provider = item.audio?.provider ?? item.ttsProvider;
-  return provider ? `${provider === "yandex" ? "Яндекс" : "OpenAI"} · ${voice}` : voice;
+  return provider ? `${ttsProviderLabels[provider] ?? provider} · ${voice}` : voice;
 }
 
 export function AdminDesk() {
@@ -71,7 +73,7 @@ export function AdminDesk() {
     heading.scrollIntoView({ block: "start", behavior: "instant" });
   }, [authenticated, busy, job, section]);
 
-  useEffect(() => () => { request.current?.abort(); request.current = null; }, []);
+  useEffect(() => () => { request.current?.abort(); request.current = null; sessionRestored.current = false; }, []);
   useEffect(() => {
     if (!hasUnsavedWork && !busy) return;
     const guard = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
@@ -118,7 +120,7 @@ export function AdminDesk() {
 
   const api: AdminApi = async <T,>(path: string, signal: AbortSignal, body?: unknown): Promise<T> => {
     const endpoint = path.startsWith("/walks") ? `/api/story-admin${path}` : path.startsWith("/content/") ? `/api/story-admin${path}` : `/api/story-admin/jobs${path}`;
-    const response = await fetch(endpoint, {
+    const response = await (path.startsWith("/walks/shared?") && body === undefined ? readFetch : fetch)(endpoint, {
       method: body === undefined ? "GET" : "POST", cache: "no-store", credentials: "same-origin",
       redirect: "error", signal,
       headers: { ...(body === undefined ? {} : { "Content-Type": "application/json", ...csrfHeaders() }) },
@@ -181,6 +183,7 @@ export function AdminDesk() {
     sessionRestored.current = true;
     void run("Восстановление сессии…", async signal => {
       const user = await getSession();
+      signal.throwIfAborted();
       if (!user) {
         window.location.replace(`/login?returnTo=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
         return;
@@ -199,7 +202,7 @@ export function AdminDesk() {
         accept((await api<{ job: Job }>(`/${id}`, signal)).job);
         pendingNavigation.current = "editor";
       } else if (id) setError("В ссылке указан неверный идентификатор задания. Выберите задание из списка.");
-      else if (["walks","content"].includes(params.get("section") ?? "")) setSection(params.get("section") as AdminSection);
+      else if (["walks","content","drafts"].includes(params.get("section") ?? "")) setSection(params.get("section") as AdminSection);
     });
   // `sessionRestored` makes this effect a one-time client-side restore.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,7 +228,7 @@ export function AdminDesk() {
   function changeSection(next: AdminSection) {
     if (next === section || request.current) return;
     if (section === "walks" && walkDirty && !window.confirm("Есть несохранённые правки главы. Отбросить их и открыть другой раздел?")) return;
-    if (section === "content" && contentDirty && !window.confirm("Есть несохранённые правки текста места. Отбросить их и открыть другой раздел?")) return;
+    if ((section === "content" || section === "drafts") && contentDirty && !window.confirm("Есть несохранённые правки текста места. Отбросить их и открыть другой раздел?")) return;
     setSection(next); setWalkDirty(false); setContentDirty(false); setError(""); setNotice("");
     window.history.replaceState(window.history.state, "", next === "addresses" ? (job ? `/admin?job=${job.id}` : "/admin") : `/admin?section=${next}`);
   }
@@ -305,12 +308,15 @@ export function AdminDesk() {
             <button disabled={Boolean(busy)} aria-current={section === "addresses" ? "page" : undefined} onClick={() => changeSection("addresses")}>Адреса</button>
             <button disabled={Boolean(busy)} aria-current={section === "walks" ? "page" : undefined} onClick={() => changeSection("walks")}>Прогулки</button>
             <button disabled={Boolean(busy)} aria-current={section === "content" ? "page" : undefined} onClick={() => changeSection("content")}>OSM-партии</button>
+            <button disabled={Boolean(busy)} aria-current={section === "drafts" ? "page" : undefined} onClick={() => changeSection("drafts")}>Черновики</button>
           </nav>
 
           {section === "walks" ? (
             <WalkAdmin api={api} busy={busy} run={run} openJob={openJob} onDirtyChange={setWalkDirty} />
           ) : section === "content" ? (
             <ContentAdmin api={api} busy={busy} run={run} onDirtyChange={setContentDirty} />
+          ) : section === "drafts" ? (
+            <DraftsAdmin api={api} busy={busy} run={run} onDirtyChange={setContentDirty} />
           ) : (
             <section className="admin-addresses" aria-labelledby="admin-addresses-title">
               <div className="admin-section-head">
@@ -390,7 +396,7 @@ export function AdminDesk() {
                     })}>Сохранить текст</button>
                   </section>
                   <section className="admin-narration" aria-labelledby="admin-narration-title">
-                    <div className="admin-narration-head"><div><h3 id="admin-narration-title">Озвучивание</h3><p className="admin-meta">Выберите сервис и голос для следующего запуска.</p></div>{currentAudio && <div className="admin-current-voice"><span>Сейчас</span><strong>{currentAudio.voice ?? "Голос не указан"}</strong><small>{currentAudio.provider === "yandex" ? "Яндекс" : "OpenAI"}{currentAudio.model ? ` · ${currentAudio.model}` : ""}</small></div>}</div>
+                    <div className="admin-narration-head"><div><h3 id="admin-narration-title">Озвучивание</h3><p className="admin-meta">Выберите сервис и голос для следующего запуска.</p></div>{currentAudio && <div className="admin-current-voice"><span>Сейчас</span><strong>{currentAudio.voice ?? "Голос не указан"}</strong><small>{ttsProviderLabels[currentAudio.provider] ?? currentAudio.provider}{currentAudio.model ? ` · ${currentAudio.model}` : ""}</small></div>}</div>
                     {currentAudio && <div className="admin-audio"><audio controls preload="metadata" src={currentAudio.url}>Ваш браузер не поддерживает воспроизведение аудио.</audio>{currentAudio.durationSec > 0 && <span className="admin-meta">{Math.round(currentAudio.durationSec)} сек.</span>}</div>}
                     <div className="admin-tts">
                       <label htmlFor="admin-tts-provider">Сервис</label><select id="admin-tts-provider" value={ttsProvider} disabled={Boolean(busy) || !narrationEligible || conflict} aria-describedby="admin-tts-note" onChange={event => {
