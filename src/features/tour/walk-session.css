@@ -59,6 +59,16 @@
 .session-audio-time{display:flex;justify-content:space-between;font-size:11px;line-height:1;color:#687770;font-variant-numeric:tabular-nums}
 .walk-session .story-text p{font-size:15px;line-height:1.65;margin-bottom:12px}
 @media(min-width:700px){.walk-session{--walk-header-top:calc(18px + env(safe-area-inset-top))}.walk-session-header{left:50%;right:auto;width:min(760px,calc(100% - 56px));transform:translateX(-50%)}.walk-session-panel{left:50%;right:auto;width:420px;transform:translateX(-50%);bottom:108px;max-height:calc(100dvh - 108px - var(--walk-controls-top))}}
+/* Низкий вертикальный телефон (320×568): столбик кнопок масштаба кончается на 88 px ниже
+   шапки, а панель до старта с названием прогулки в две строки поднимается выше и упирается
+   в него. Кнопки встают в ряд под шапкой у правого края, «Моё местоположение» — в тот же ряд
+   слева, и низ кнопок поднимается на 44 px. */
+@media(orientation:portrait) and (max-width:699px) and (max-height:600px){
+  .walk-session-map .leaflet-control-zoom{display:flex;margin:0}
+  .walk-session-map .leaflet-control-zoom a{width:44px;border-bottom:0}
+  .walk-session-map .leaflet-control-zoom a:first-child{border-right:1px solid #203e381a}
+  .walk-session-locate{top:var(--walk-controls-top);right:calc(12px + 88px + 8px)}
+}
 @media(max-height:560px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button){margin-top:4px}}
 
 /* Низкий горизонтальный экран: панель во всю ширину или по центру поднималась почти
