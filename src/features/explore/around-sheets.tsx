@@ -89,16 +89,19 @@ export function PlaceSheet({ address, busy, error, createHref, walkHref, onClose
 }
 
 /** Ready stories around a point, nearest first, with the radius to search in. */
-export function NearbySheet({ status = "ready", radius, recommendations, onRadius, onSelect, onReset }: {
+export function NearbySheet({ status = "ready", radius, recommendations, onRadius, onSelect, onClose }: {
   status?: "loading" | "ready" | "error";
   radius: NearbyRadius; recommendations: NearbyRecommendation[];
-  onRadius: (radius: NearbyRadius) => void; onSelect: (id: string) => void; onReset: () => void;
+  onRadius: (radius: NearbyRadius) => void; onSelect: (id: string) => void; onClose: () => void;
 }) {
   const wider = nearbyRadii[nearbyRadii.indexOf(radius) + 1];
   return <Sheet name="nearby" labelledBy="nearby-title"
-    header={<div>
-      <span className={a.label}>Готовые истории рядом</span>
-      <h2 id="nearby-title" className={a.title}>В радиусе {radius} м</h2>
+    header={<div className={a.headerRow}>
+      <div>
+        <span className={a.label}>Готовые истории рядом</span>
+        <h2 id="nearby-title" className={a.title}>В радиусе {radius} м</h2>
+      </div>
+      <button type="button" className={a.iconButton} aria-label="Закрыть истории рядом" onClick={onClose}><ExploreIcon name="close" /></button>
     </div>}>
     <div className={styles.radius} role="group" aria-label="Радиус поиска">
       {nearbyRadii.map(value => <button key={value} type="button" aria-pressed={radius === value} onClick={() => onRadius(value)}>{value} м</button>)}
@@ -114,7 +117,7 @@ export function NearbySheet({ status = "ready", radius, recommendations, onRadiu
     </li>)}</ol> : status==="ready"?<>
       <p className={a.text}>В этом радиусе пока нет готовой проверенной истории.</p>
       {wider ? <button type="button" className={a.secondary} onClick={() => onRadius(wider)}>Искать в большем радиусе <ExploreIcon name="arrow" /></button>
-        : <button type="button" className={a.secondary} onClick={onReset}>Выбрать другую точку <ExploreIcon name="map" /></button>}
+        : <button type="button" className={a.secondary} onClick={onClose}>Выбрать другую точку <ExploreIcon name="map" /></button>}
     </>:null}
   </Sheet>;
 }

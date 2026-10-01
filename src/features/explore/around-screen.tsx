@@ -192,7 +192,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     : prompt&&!active&&!place&&!placeBusy&&!placeError ? <LocationPromptSheet geo={geo} onLocate={locate} onDismiss={dismissGeoPrompt} />
     : active ? <StorySheet story={active} walkHref={active.address&&!placeBusy?walkHref:null} startRef={startRef} onStart={onStart} onClose={()=>setSelected(undefined)} onWalk={rememberOpener} />
     : explorePanel==="place" ? <PlaceSheet address={place?.address??null} busy={placeBusy} error={placeError} createHref={createHref} walkHref={place?.address?walkHref:null} onClose={closePlace} onWalk={rememberOpener} />
-    : explorePanel==="nearby" ? <NearbySheet status={nearbyStatus} radius={nearbyRadius} recommendations={recommendations} onRadius={setNearbyRadius} onSelect={selectRecommendation} onReset={()=>{setNearbyCenter(null);setPlace(null);setPrompt(false);}} />
+    : explorePanel==="nearby" ? <NearbySheet status={nearbyStatus} radius={nearbyRadius} recommendations={recommendations} onRadius={setNearbyRadius} onSelect={selectRecommendation} onClose={()=>{setNearbyCenter(null);setPlace(null);setPrompt(false);}} />
     : null;
   // An empty slot must stay null: the shell gives the dock room only when there is something to show.
   const noticeList = [
