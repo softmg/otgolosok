@@ -16,7 +16,25 @@ function fixture() {
   loaders.push(loader);
   return { loader, updates, latest: () => updates.at(-1)! };
 }
-afterEach(() => { loaders.splice(0).forEach(loader => loader.dispose()); vi.unstubAllGlobals(); });
+afterEach(() => { loaders.splice(0).forEach(loader => loader.dispose()); vi.unstubAllGlobals(); vi.useRealTimers(); });
+
+it("retains partial places during maintenance and clears the flag after recovery", async () => {
+  vi.useFakeTimers();
+  let maintenance = true;
+  vi.stubGlobal("fetch", vi.fn(async (path: string) => {
+    const offset = Number(new URL(path, "http://localhost").searchParams.get("offset"));
+    if (offset === 0) return response([1], 2, true);
+    return maintenance ? Response.json({ error: { code: "SERVICE_MAINTENANCE" } }, { status: 503 }) : response([2], 2);
+  }));
+  const { loader, latest } = fixture();
+  loader.update(area());
+  await vi.runAllTimersAsync();
+  expect(latest()).toMatchObject({ status: "error", maintenance: true, loaded: 1, total: 2, places: [place(1)] });
+  maintenance = false;
+  loader.retry();
+  await settle();
+  expect(latest()).toMatchObject({ status: "ready", maintenance: false, places: [place(1), place(2)] });
+});
 
 it("waits for actual map bounds, caches completed and empty areas, and loads only new areas", async () => {
   const fetcher = vi.fn().mockResolvedValueOnce(response([1])).mockResolvedValueOnce(response([]));

@@ -1,5 +1,16 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { loadPublishedCatalog, type CatalogPlace, type CatalogProgress } from "./published-catalog";
+import { isServiceMaintenance, loadPublishedCatalog, type CatalogPlace, type CatalogProgress } from "./published-catalog";
+import { RequestError } from "../walk-builder/request";
+
+it.each([
+  [new RequestError("Обновление", "SERVICE_MAINTENANCE", 503), true],
+  [new RequestError("Недоступен", "SERVICE_UNAVAILABLE", 503), false],
+  [new RequestError("Отказ", "SERVICE_MAINTENANCE", 400), false],
+  [new Error("SERVICE_MAINTENANCE"), false],
+  [null, false],
+])("recognizes only a maintenance response: %j", (error, expected) => {
+  expect(isServiceMaintenance(error)).toBe(expected);
+});
 
 const bounds = { west: 37.5, south: 55.7, east: 37.7, north: 55.8 };
 const place = (id: number): CatalogPlace => ({ id: `osm:node:${id}`, name: `Место ${id}`, address: null, location: { lat: 55.75, lon: 37.6 }, story: null, audio: null, distanceM: null });

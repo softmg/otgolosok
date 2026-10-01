@@ -36,6 +36,27 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/**", route => route.fulfill({ json: { user: null, walks: [], nextCursor: null, items: [], places: [], total: 0, hasMore: false } }));
 });
 
+test("карта автоматически восстанавливается после обновления сервиса", async ({ page }) => {
+  let maintenance = true;
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.route("**/service-status", route => route.fulfill({ status: maintenance ? 503 : 200, json: { maintenance } }));
+  await page.route("**/api/content/places?*", route => route.fulfill(maintenance
+    ? { status: 503, json: { error: { code: "SERVICE_MAINTENANCE" } } }
+    : { json: { total: 1, hasMore: false, places: [{ id: "recovered-place", name: "Восстановленное место", address: "Москва", location: { lat: 55.7249, lon: 37.6507 }, story: null, audio: null }] } }));
+  const unavailableCatalog = page.waitForResponse(response => response.url().includes("/api/content/places?") && response.status() === 503);
+  await page.goto("/");
+  await expect(page.getByText("Сервис обновляется. Карта загрузится автоматически.")).toBeVisible();
+  await unavailableCatalog;
+  await expect(page.getByRole("button", { name: "Повторить загрузку мест" })).toHaveCount(0);
+  const healthyStatus = page.waitForResponse(response => new URL(response.url()).pathname === "/service-status" && response.status() === 200, { timeout: 15_000 });
+  maintenance = false;
+  await healthyStatus;
+  await expect(page.locator('[title="Восстановленное место"]')).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test("знак одинакового размера на карте и странице входа", async ({ page }) => {
   const sizes: string[] = [];
   for (const path of ["/", "/login"]) {

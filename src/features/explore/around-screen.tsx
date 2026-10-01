@@ -58,7 +58,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   const [prompt,setPrompt]=useState(false);
   const [mapHintVisible,setMapHintVisible]=useState(true);
   const [tracked]=useState<MapJob[]>(()=>typeof window==="undefined"?[]:readMapJobs()),[jobs,setJobs]=useState<Record<string,GenerationJob>>({});
-  const {places:catalog,total:catalogTotal,loaded:catalogLoaded,status:catalogStatus,nearbyStatus,retry:retryCatalog,onViewport}=usePublishedCatalog(nearbyCenter,nearbyRadius);
+  const {places:catalog,total:catalogTotal,loaded:catalogLoaded,status:catalogStatus,nearbyStatus,maintenance:catalogMaintenance,retry:retryCatalog,onViewport}=usePublishedCatalog(nearbyCenter,nearbyRadius);
   const lookup=useRef<AbortController|null>(null),locating=useRef<(()=>void)|null>(null);
   const input=useRef<HTMLInputElement>(null);
 
@@ -198,7 +198,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     : null;
   // An empty slot must stay null: the shell gives the dock room only when there is something to show.
   const noticeList = [
-    catalogStatus!=="ready"?<div key="catalog" className={styles.catalogStatus} data-region="catalog-status"><span role="status" aria-atomic="true">{catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalogLoaded} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="loading"?<progress aria-label="Загрузка мест на карте" max={catalogTotal||1} value={catalogTotal?catalogLoaded:undefined}/>:null}{catalogStatus==="error"?<button type="button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null,
+    catalogStatus!=="ready"||catalogMaintenance?<div key="catalog" className={styles.catalogStatus} data-region="catalog-status"><span role="status" aria-atomic="true">{catalogMaintenance?"Сервис обновляется. Карта загрузится автоматически.":catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalogLoaded} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="loading"&&!catalogMaintenance?<progress aria-label="Загрузка мест на карте" max={catalogTotal||1} value={catalogTotal?catalogLoaded:undefined}/>:null}{catalogStatus==="error"&&!catalogMaintenance?<button type="button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null,
     !creating&&geoMessage&&!search?<GeoNotice key="geo" message={geoMessage} outside={geoOutside} denied={geo==="denied"} onMoscow={showMoscow} onRetry={locate} onClose={()=>{setGeoMessage("");setGeoOutside(false);}} />:null,
     !creating&&!sheet&&!search&&mapHintVisible?<MapHintNotice key="hint" onClose={()=>setMapHintVisible(false)} />:null,
     !creating&&updateAvailable?<a key="update" className={a.notice} href="/update.html">Доступна новая версия · обновить</a>:null,

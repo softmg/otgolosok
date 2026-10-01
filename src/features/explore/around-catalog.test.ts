@@ -26,6 +26,10 @@ const places = Array.from({ length: 205 }, (_, index) => ({
 const route = { pois: [], chapters: [] } as unknown as Route;
 const markers = () => container.querySelectorAll('[data-place^="osm:"]');
 const response = (offset: number) => Response.json({ places: places.slice(offset, offset + 100), total: places.length, hasMore: offset + 100 < places.length });
+const stubCatalogFetch = (fetcher: (path: string, options?: RequestInit) => Promise<Response>) => {
+  vi.stubGlobal("fetch", (path: string, options?: RequestInit) => path === "/service-status"
+    ? Promise.resolve(Response.json({ maintenance: false })) : fetcher(path, options));
+};
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
@@ -43,23 +47,44 @@ afterEach(async () => {
   await act(async () => root.unmount());
   container.remove();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
+
+it("automatically restores the map after maintenance even when the status endpoint is healthy", async () => {
+  vi.useFakeTimers();
+  let maintenance = true;
+  stubCatalogFetch(vi.fn(async (path: string) => {
+    const offset = Number(new URL(path, "http://localhost").searchParams.get("offset") ?? 0);
+    return offset === 100 && maintenance
+      ? Response.json({ error: { code: "SERVICE_MAINTENANCE" } }, { status: 503 }) : response(offset);
+  }));
+  await act(async () => root.render(createElement(AroundScreen, { route, onStart: () => {}, updateAvailable: false })));
+  await act(async () => vi.advanceTimersByTimeAsync(3_000));
+  expect(markers()).toHaveLength(100);
+  expect(container.textContent).toContain("Сервис обновляется. Карта загрузится автоматически.");
+  expect([...container.querySelectorAll("button")].some(button => button.textContent === "Повторить загрузку мест")).toBe(false);
+  expect(container.querySelector("progress")).toBeNull();
+  maintenance = false;
+  await act(async () => vi.advanceTimersByTimeAsync(5_000));
+  expect(markers()).toHaveLength(205);
+  expect(container.querySelector('[data-region="catalog-status"]')).toBeNull();
 });
 
 it("renders every approved place beyond the first hundred", async () => {
-  vi.stubGlobal("fetch", vi.fn(async (path: string) => response(Number(new URL(path, "http://localhost").searchParams.get("offset") ?? 0))));
+  stubCatalogFetch(vi.fn(async (path: string) => response(Number(new URL(path, "http://localhost").searchParams.get("offset") ?? 0))));
   await act(async () => root.render(createElement(AroundScreen, { route, onStart: () => {}, updateAvailable: false })));
   expect(markers()).toHaveLength(205);
   expect(container.querySelector('[data-place="osm:node:205"]')?.textContent).toBe("История 205");
 });
 
 it("does not add built-in walk stops or the Melnikov demo to the public map", async () => {
-  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
+  stubCatalogFetch(vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
   await act(async () => root.render(createElement(AroundScreen, { route: exampleRoute as Route, onStart: () => {}, updateAvailable: false })));
   expect(container.querySelectorAll("[data-place]")).toHaveLength(0);
 });
 
 it("preserves the explicitly opened current chapter without adding the other walk stops", async () => {
-  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
+  stubCatalogFetch(vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
   let started: number | undefined;
   await act(async () => root.render(createElement(AroundScreen, {
     route: exampleRoute as Route, openChapter: 2, onStart: index => { started = index; }, updateAvailable: false,
@@ -72,7 +97,7 @@ it("preserves the explicitly opened current chapter without adding the other wal
 });
 
 it("does not recommend built-in places after geolocation", async () => {
-  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
+  stubCatalogFetch(vi.fn(async () => Response.json({ places: [], total: 0, hasMore: false })));
   vi.stubGlobal("navigator", { geolocation: { getCurrentPosition: (success: PositionCallback) => success({ coords: { latitude: 55.7249, longitude: 37.6507, accuracy: 10 } } as GeolocationPosition) } });
   await act(async () => root.render(createElement(AroundScreen, { route: exampleRoute as Route, onStart: () => {}, updateAvailable: false })));
   await act(async () => (container.querySelector('[aria-label="Моё местоположение"]') as HTMLButtonElement).click());
@@ -83,7 +108,7 @@ it("does not recommend built-in places after geolocation", async () => {
 it("shows loading before the first response and progress until the final page", async () => {
   let finish!: (response: Response) => void;
   const fetcher = vi.fn(() => new Promise<Response>(resolve => { finish = resolve; }));
-  vi.stubGlobal("fetch", fetcher);
+  stubCatalogFetch(fetcher);
   await act(async () => root.render(createElement(AroundScreen, { route, onStart: () => {}, updateAvailable: false })));
   expect(container.querySelector('[data-region="catalog-status"] [role="status"]')?.textContent).toContain("Загружаем места");
   await act(async () => finish(response(0)));
@@ -98,7 +123,7 @@ it("shows loading before the first response and progress until the final page", 
 
 it("keeps loaded markers after a failed page and completes the catalog on retry", async () => {
   let failing = true;
-  vi.stubGlobal("fetch", vi.fn(async (path: string) => {
+  stubCatalogFetch(vi.fn(async (path: string) => {
     const offset = Number(new URL(path, "http://localhost").searchParams.get("offset") ?? 0);
     return offset === 100 && failing ? Response.json({}, { status: 400 }) : response(offset);
   }));
@@ -115,7 +140,7 @@ it("keeps loaded markers after a failed page and completes the catalog on retry"
 
 it("keeps loaded map places and separately fetches the complete nearby radius", async () => {
   const fetcher = vi.fn(async (path: string) => response(Number(new URL(path, "http://localhost").searchParams.get("offset") ?? 0)));
-  vi.stubGlobal("fetch", fetcher);
+  stubCatalogFetch(fetcher);
   vi.stubGlobal("navigator", { geolocation: { getCurrentPosition: (success: PositionCallback) => success({ coords: { latitude: 55.75, longitude: 37.6, accuracy: 10 } } as GeolocationPosition) } });
   await act(async () => root.render(createElement(AroundScreen, { route, onStart: () => {}, updateAvailable: false })));
   await act(async () => (container.querySelector('[aria-label="Моё местоположение"]') as HTMLButtonElement).click());
@@ -129,7 +154,7 @@ it("keeps loaded map places and separately fetches the complete nearby radius", 
 
 it("waits for a remote nearby radius before declaring it empty and shows its stories", async () => {
   let finish!: (response: Response) => void;
-  vi.stubGlobal("fetch", vi.fn((path: string) => {
+  stubCatalogFetch(vi.fn((path: string) => {
     const west = Number(new URL(path, "http://localhost").searchParams.get("west"));
     if (west > 37.65) return new Promise<Response>(resolve => { finish = resolve; });
     return Promise.resolve(Response.json({ places: [], total: 0, hasMore: false }));

@@ -1,6 +1,6 @@
 import type { CatalogBounds } from "./catalog-bounds";
 import type { Coordinates } from "../tour/types";
-import { request } from "../walk-builder/request";
+import { RequestError, request } from "../walk-builder/request";
 import type { StorySourceRef } from "./source-attribution";
 
 export type CatalogPlace = {
@@ -11,6 +11,10 @@ export type CatalogPlace = {
 };
 export type CatalogProgress = { places: CatalogPlace[]; total: number };
 type CatalogPage = CatalogProgress & { hasMore: boolean };
+
+export function isServiceMaintenance(error: unknown) {
+  return error instanceof RequestError && error.status === 503 && error.code === "SERVICE_MAINTENANCE";
+}
 
 /** Fetch every page inside one rectangle; total and progress belong to this area. */
 export async function loadPublishedCatalog(signal: AbortSignal, onPage: (progress: CatalogProgress) => void, bounds: CatalogBounds) {
