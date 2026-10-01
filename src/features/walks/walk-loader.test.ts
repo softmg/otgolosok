@@ -26,6 +26,16 @@ describe("загрузка прогулок", () => {
     } satisfies Partial<WalkLoadError>));
   });
 
+  it("не повторяет 429, если лимит снимется позже бюджета повторов, и отправляет PUT с заголовками", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { message: "Слишком часто" } }), { status: 429, headers: { "Retry-After": "600" } }));
+    vi.stubGlobal("fetch", fetcher);
+    await expect(loadJson("/api/x", new AbortController().signal, value => value, 3, { rating: 5 }, { method: "PUT", headers: { "X-Review-Key": "k" } }))
+      .rejects.toMatchObject({ status: 429, retryable: false, message: "Слишком часто" });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    const [, init] = fetcher.mock.calls[0] as [string, RequestInit];
+    expect(init).toMatchObject({ method: "PUT", body: JSON.stringify({ rating: 5 }), headers: { "X-Review-Key": "k", "Content-Type": "application/json" } });
+  });
+
   it("показывает опубликованные истории остановок из OSM в гостевой прогулке", async () => {
     const document: WalkDocument = { version: 2, id: "22222222-2222-4222-8222-222222222222", title: "Моя прогулка", description: "", city: "Москва", mode: "loop", minutes: 30,
       start: { address: "Москва, Арбат, 1", location: { lat: 55.75, lon: 37.6 } }, stops: [{ id: "33333333-3333-4333-8333-333333333333", place: { address: "Москва, Арбат, 10", location: { lat: 55.751, lon: 37.601 } }, storyRef: { kind: "osm", id: "osm:way:10" }, transition: "", nextHint: "" }], route: null, fieldChecked: false };
