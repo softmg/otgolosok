@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "./support/test";
 import { draftToWalkDocument } from "../src/features/walks/adapters";
 
 // Телефон с сенсорным экраном. Без hasTouch Chromium не выполняет условие pointer:coarse,

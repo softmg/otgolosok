@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./support/test";
 import { DatabaseSync } from "node:sqlite";
 import type { AddressInfo } from "node:net";
 import { createAccountStore } from "../backend/account-store.mjs";

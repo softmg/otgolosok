@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/test";
 import photos from "../content/place-images.json" with { type: "json" };
 
 const photo = photos["osm:way:35814561"];

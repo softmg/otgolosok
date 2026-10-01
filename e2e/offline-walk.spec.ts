@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/test";
 import type { WalkView } from "../src/features/walks/model";
 
 const stopId = "22222222-2222-4222-8222-222222222222";

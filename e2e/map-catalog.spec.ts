@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/test";
 
 const places = Array.from({ length: 1438 }, (_, index) => ({
   id: `osm:node:${index + 1}`, name: `Каталог: ${index + 1}`, address: "Москва",

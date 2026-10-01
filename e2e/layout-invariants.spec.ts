@@ -1,5 +1,5 @@
 import { appendFileSync } from "node:fs";
-import { test } from "@playwright/test";
+import { test } from "./support/test";
 import { applyLayoutCase, collectViolations, expectLayout, layoutCases, type KnownFailure } from "./support/layout";
 import { SCREEN_STATES } from "./support/scenarios";
 
