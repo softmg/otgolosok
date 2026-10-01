@@ -25,6 +25,7 @@
 .walk-session-heading h1{font-family:inherit;font-size:22px;font-weight:700;line-height:1.25;letter-spacing:-.03em;margin:4px 0 0;overflow-wrap:anywhere}
 .walk-session-meta,.walk-session-muted{font-size:13px;line-height:1.4;color:#687770;margin:0}
 .walk-session-muted{margin-top:10px}
+.walk-session-heading-actions{display:flex;flex:none;gap:8px}
 .walk-session-icon{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;color:inherit;background:#203e380a;cursor:pointer}
 .walk-session-address{font-size:14px;line-height:1.5;margin:12px 0 0;color:#687770;overflow-wrap:anywhere}
 .walk-session-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px}

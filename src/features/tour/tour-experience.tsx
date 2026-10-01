@@ -293,7 +293,6 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
           <label>Скорость аудио<select value={settings.rate} onChange={event => updateSettings({ rate: Number(event.target.value) as PlaybackRate })}>{playbackRates.map(rate => <option key={rate} value={rate}>{String(rate).replace(".", ",")}×</option>)}</select></label>
           {offlineRef ? <OfflineCopyControls copy={offlineCopy} statusClassName="walk-session-muted" /> : null}
           {shellStatus ? <p className="walk-session-muted" role="status">{shellStatus}</p> : null}
-          {isWalking ? <button type="button" onClick={() => stopTour()}>Остановить прогулку</button> : null}
         </div>} /> : isWalking ? (
         <ClassicWalkView route={route} chapters={chapters} chapterIndex={chapterIndex} titleRef={walkTitleRef}
           diagnostics={position.diagnostics} triggerConfig={triggerConfig} player={player} wakeStatus={wakeStatus}

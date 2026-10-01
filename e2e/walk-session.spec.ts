@@ -107,6 +107,37 @@ test("аудио, текст и список остановок открываю
   await expect(page.locator(".walk-session")).toHaveCount(0);
 });
 
+test("крестик в карточке прерывает прогулку только после подтверждения", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await setup(page);
+  await expect(page.getByRole("button", { name: "Прервать прогулку" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+  await page.getByRole("button", { name: "Дальше", exact: true }).click();
+  await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
+
+  const stop = page.getByRole("button", { name: "Прервать прогулку" });
+  const dialog = page.getByRole("dialog", { name: "Прервать прогулку?" });
+  await stop.click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Продолжить" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Продолжить" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
+
+  await stop.click();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
+
+  await stop.click();
+  await dialog.getByRole("button", { name: "Прервать", exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Арбат", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Начать прогулку|Продолжить прогулку/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Прервать прогулку" })).toHaveCount(0);
+  await expect(page).toHaveURL(/\/walk\?local=/);
+});
+
 test("поиск в шапке прогулки открывает поиск адреса на карте", async ({ page }) => {
   await page.route("**/api/story-walks/paveletskaya/view", route => route.fulfill({ json: routeToWalkView(routeData as Route) }));
   await page.goto("/walk?catalog=paveletskaya");

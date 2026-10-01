@@ -7,6 +7,7 @@ import { ExploreIcon } from "../explore/icons";
 import { BrandMark } from "../brand/brand-mark";
 import type { Coordinates, Route } from "./types";
 import type { WalkChapter } from "./walk-plan";
+import { StopWalkDialog } from "./stop-walk-dialog";
 import "./walk-session.css";
 
 const noop = () => {};
@@ -40,6 +41,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
     return first ? { ...(first.trigger_location ?? first.location) } : null;
   });
   const [drawer, setDrawer] = useState<"stops" | "story" | "settings" | "reviews" | null>(null);
+  const [confirmStop, setConfirmStop] = useState(false);
   const chapter = chapters[index];
   const geometry = useMemo(() => (route.walk?.path.coordinates ?? []).map(([lon, lat]) => ({ lat, lon })), [route.walk?.path]);
   const items = useMemo(() => [
@@ -99,9 +101,12 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
             : ratingLabel}</> : null}</p>
           <h1 id="walk-session-title" ref={titleRef} tabIndex={-1}>{completed ? "Прогулка завершена" : active ? chapter?.title ?? route.walk?.finish.address ?? "Прогулка" : route.title.trim() || "Ваш маршрут"}</h1>
         </div>
-        {!completed ? <button type="button" className="walk-session-icon" aria-label="Настройки прогулки" aria-expanded={drawer === "settings"} onClick={() => setDrawer(drawer === "settings" ? null : "settings")}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor"/><circle cx="15" cy="17" r="3" fill="currentColor"/></svg>
-        </button> : null}
+        {!completed ? <div className="walk-session-heading-actions">
+          <button type="button" className="walk-session-icon" aria-label="Настройки прогулки" aria-expanded={drawer === "settings"} onClick={() => setDrawer(drawer === "settings" ? null : "settings")}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor"/><circle cx="15" cy="17" r="3" fill="currentColor"/></svg>
+          </button>
+          {active ? <button type="button" className="walk-session-icon" aria-label="Прервать прогулку" aria-haspopup="dialog" onClick={() => setConfirmStop(true)}><ExploreIcon name="close" /></button> : null}
+        </div> : null}
       </header>
       {!active && !completed ? <p className="walk-session-address">{route.walk?.start.address} → {route.walk?.finish.address}</p> : null}
       {active && chapter && chapter.title !== chapter.place ? <p className="walk-session-address">{chapter.place}</p> : null}
@@ -135,5 +140,6 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
       </footer>
       {!canStart ? <p role="alert" className="walk-session-notice">В этой прогулке ещё нет маршрута. Постройте его в редакторе из истории.</p> : null}
     </section>
+    <StopWalkDialog open={active && confirmStop} onCancel={() => setConfirmStop(false)} onConfirm={() => { setConfirmStop(false); setDrawer(null); onStop(); }} />
   </>;
 }
