@@ -7,3 +7,7 @@ Production-запрос `GET /api/story-admin/content/drafts` падал с SQLi
 Регрессионный тест проверяет реальные счётчики и статус работающего задания с большим checkpoint, а также ширину записи `SorterOpen` в SQLite EXPLAIN. До исправления тест падал (`4 !== 1`), после прошёл. Полный `pnpm check`: 649 frontend-тестов, 554 backend-теста, 20 Python-тестов и 15 subtests, линтеры, типы и production-сборка.
 
 Исправленный запрос проверен через read-only соединение на production-базе: 773 черновика, статусы `failed=49`, `perplexity=496`, `plain=228`. Проверка всех пяти фильтров не меняет базу.
+
+Исправление `ab0d019` выложено штатной целью `deploy-otgolosok-generator` под advisory-блокировкой `.deploy.lock`. Резервная копия: `/srv/sites/otgolosok.softmg.tech/backups/generator-20261001T130139Z/generator.tar.gz`. Backend healthy, запущен `2026-10-01T13:03:56.338282536Z`; SHA-256 `content-store.mjs` совпал с локальным (`667e0215fe2d840efbbedb880446467b4037f739ef84d45152e75a15da0cb8bb`). Режим обслуживания снят.
+
+Публичный API проверен по HTTPS/HTTP2 с действующей редакторской сессией, без вывода cookie или токенов: до выкладки HTTP 500, после — HTTP 200 для `all`, `plain`, `queued`, `perplexity`, `failed`, с ожидаемыми итогами и размером страниц. Штатная проверка TLS/HTTP2 прошла. Проверка интерфейса в пользовательском браузере недоступна: сервис Computer Use не запустился; подтверждение восстановления относится к реальному API, который загружает раздел черновиков.
