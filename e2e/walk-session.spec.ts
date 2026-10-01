@@ -285,3 +285,61 @@ test("панель прогулки сохраняет раскладку на �
   await page.setViewportSize({ width: 1440, height: 900 });
   await expectBottomPanel(page, { left: 510, right: 510, bottom: 108 }, { top: 18, left: 340, right: 340 });
 });
+
+test.describe("отзывы к каталожной прогулке", () => {
+  const oneStop = routeToWalkView({ ...catalog, walk: { ...catalog.walk!, steps: catalog.walk!.steps.slice(0, 1) } });
+  const page0 = { summary: { average: 4.6, count: 12 }, reviews: [{ id: "r1", author: "Анна", rating: 5, text: "Очень понравилось.\nВернусь ещё.", createdAt: "2026-09-30T10:00:00Z" }], nextCursor: null, mine: null };
+
+  async function openWithReviews(page: Page) {
+    const writes: Array<{ method: string; body: unknown; key: string | null }> = [];
+    await page.route("**/api/**", route => route.fulfill({ json: { user: null } }));
+    await page.route("**/api/story-walks/paveletskaya/view", route => route.fulfill({ json: oneStop }));
+    await page.route("**/api/story-walks/paveletskaya/reviews**", async route => {
+      const request = route.request();
+      if (request.method() === "GET") { await route.fulfill({ json: page0 }); return; }
+      writes.push({ method: request.method(), body: request.postDataJSON(), key: await request.headerValue("x-review-key") });
+      await route.fulfill({ json: { summary: page0.summary, mine: { rating: 4, text: "Отличный маршрут", status: "pending", updatedAt: "2026-10-01T10:00:00Z" } } });
+    });
+    await page.goto("/walk?catalog=paveletskaya");
+    return writes;
+  }
+
+  test("итог в описании, отзыв после завершения уходит на модерацию", async ({ page }) => {
+    const writes = await openWithReviews(page);
+    await expect(page.locator(".walk-session-meta")).toContainText("★ 4,6 · 12 оценок");
+    await page.getByRole("button", { name: "Отзывы", exact: true }).click();
+    await expect(page.getByText("Очень понравилось.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Оставить отзыв" }), "до старта прогулки оценка недоступна").toHaveCount(0);
+    await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+    await page.getByRole("button", { name: "Завершить", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Прогулка завершена" })).toBeVisible();
+    await page.getByLabel("4 звезды из 5").check();
+    await page.getByLabel("Отзыв (необязательно)").fill("Отличный маршрут");
+    await page.getByRole("button", { name: "Отправить отзыв" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "появится после проверки" })).toBeVisible();
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toMatchObject({ method: "PUT", body: { rating: 4, text: "Отличный маршрут" } });
+    expect(writes[0].key).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  });
+
+  for (const [width, height] of [[390, 844], [568, 400]] as const) {
+    test(`панель с формой отзыва помещается на экране ${width}×${height}`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      await openWithReviews(page);
+      await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+      await page.getByRole("button", { name: "Завершить", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Отправить отзыв" })).toBeAttached();
+      const panel = await page.locator(".walk-session-panel").boundingBox();
+      expect(panel!.y).toBeGreaterThanOrEqual(0);
+      expect(panel!.y + panel!.height).toBeLessThanOrEqual(height);
+      const link = page.getByRole("link", { name: "На карту" });
+      await expect(link).toBeInViewport({ ratio: 1 });
+    });
+  }
+});
+
+test("у гостевой прогулки нет отзывов", async ({ page }) => {
+  await setup(page);
+  await expect(page.getByRole("button", { name: "Начать прогулку", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Отзывы", exact: true })).toHaveCount(0);
+});

@@ -27,16 +27,20 @@ import { useWalkAudio } from "./use-walk-audio";
 import { ClassicWalkView, type PlayerState } from "./classic-walk-view";
 import { AroundScreen } from "../explore/around-screen";
 import { isWalkCreation } from "../explore/panel-state";
+import { markWalkStarted, wasWalkStarted } from "../reviews/device";
+import { formatRatingSummary, type ReviewTarget } from "../reviews/model";
+import { useWalkReviews } from "../reviews/use-walk-reviews";
+import { WalkReviews } from "../reviews/walk-reviews";
 
 type SessionPhase = "reading" | "walking";
 
-export function TourExperience({ route, walk, offline = null }: { route?: Route; walk?: WalkView; offline?: OfflineWalkRef | null }) {
+export function TourExperience({ route, walk, offline = null, reviewTarget = null }: { route?: Route; walk?: WalkView; offline?: OfflineWalkRef | null; reviewTarget?: ReviewTarget | null }) {
   const resolvedRoute = walk ? walkViewToRoute(walk) : route;
   if (!resolvedRoute) return <main className="shell"><section className="hero-copy"><h1>Прогулка не найдена</h1><p className="dek">Откройте ссылку ещё раз или вернитесь к списку прогулок.</p></section></main>;
-  return <AvailableTour route={resolvedRoute} universal={Boolean(walk)} view={walk} offlineRef={walk ? offline : null} />;
+  return <AvailableTour route={resolvedRoute} universal={Boolean(walk)} view={walk} offlineRef={walk ? offline : null} reviewTarget={walk ? reviewTarget : null} />;
 }
 
-function AvailableTour({ route: initialRoute, universal = false, view, offlineRef }: { route: Route; universal?: boolean; view?: WalkView; offlineRef: OfflineWalkRef | null }) {
+function AvailableTour({ route: initialRoute, universal = false, view, offlineRef, reviewTarget }: { route: Route; universal?: boolean; view?: WalkView; offlineRef: OfflineWalkRef | null; reviewTarget: ReviewTarget | null }) {
   const [route, setRoute] = useState(initialRoute);
   const firstPoi = route.pois[0];
   const [phase, setPhase] = useState<SessionPhase>("reading");
@@ -50,6 +54,10 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
   // Diagnostics are for field testing only: ?replay=… or ?debug=1.
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const offlineCopy = useOfflineCopy(view, offlineRef);
+  const reviews = useWalkReviews(reviewTarget);
+  // A UX filter against drive-by ratings, not a security control: the server does not check it.
+  const [started, setStarted] = useState(() => reviewTarget ? wasWalkStarted(reviewTarget) : false);
+  const canRate = Boolean(reviewTarget) && (started || Boolean(reviews.mine));
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const walkTitleRef = useRef<HTMLHeadingElement>(null);
   const sessionActiveRef = useRef(false);
@@ -161,6 +169,7 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
     if (phase !== "reading" || sessionActiveRef.current) return;
     setCompleted(false);
     sessionActiveRef.current = true;
+    if (reviewTarget) { markWalkStarted(reviewTarget); setStarted(true); }
 
     const session = sessionRef.current + 1;
     sessionRef.current = session;
@@ -270,6 +279,8 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
       {universal ? <WalkSession route={route} chapters={chapters} index={chapterIndex} active={isWalking} completed={completed}
         user={position.diagnostics.lastFix} positionFailed={positionFailed(position.diagnostics)} resume={Boolean(savedCheckpoint)} titleRef={walkTitleRef} startRef={startButtonRef}
         onStart={() => startTour()} onSelect={selectChapter} onStop={stopTour}
+        ratingLabel={formatRatingSummary(reviews.summary)} canRate={canRate}
+        reviews={reviewTarget ? intent => <WalkReviews reviews={reviews} intent={intent} canRate={canRate} /> : null}
         audioError={audioStatus === "blocked" || audioStatus === "error" ? "Не удалось включить аудио. Нажмите «Повторить запуск звука»." : ""}
         player={walkAudioUrl ? <AudioPlayerControls compact position={playbackTime} duration={duration} canSeek={canSeek} playing={audioStatus === "playing"}
           label={audioButtonLabel} rate={settings.rate} onToggle={audio.toggle} onSeek={audio.seek} onRate={rate => updateSettings({ rate })} /> : null}

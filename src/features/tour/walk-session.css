@@ -42,6 +42,9 @@
 .walk-session-stops button,.walk-session-stops p{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:8px;border:0;border-radius:12px;background:none;text-align:left;color:inherit;font:inherit;margin:0}
 .walk-session-stops button{cursor:pointer}
 .walk-session-stops [aria-current=step]{background:#203e380c}
+/* The review form after the walk keeps the drawer's height budget, so «На карту» stays on screen. */
+.walk-session-review{margin-top:12px;border-top:1px solid #203e3818;padding-top:12px;max-height:26dvh;overflow-y:auto;overscroll-behavior:contain}
+.walk-session-rate{display:flex;align-items:center;min-height:44px;margin-top:8px;padding:0;border:0;background:none;color:inherit;font:inherit;font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
 .walk-session-stops span{flex:none;color:#b64b28;font-weight:700}
 .walk-session-notice{margin:10px 0 0;font-size:13px;line-height:1.4;color:#775130}
 .walk-session-settings{display:grid;gap:12px}
