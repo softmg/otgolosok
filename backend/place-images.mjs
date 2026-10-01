@@ -179,12 +179,17 @@ export function createWikimediaClient({ fetch: fetchImpl = globalThis.fetch, use
   let pausedUntil = 0;
   const busy = () => fail("WIKIMEDIA_BUSY", `Wikimedia asked to slow down until ${new Date(pausedUntil).toISOString()}`, { transient: true, retryAt: pausedUntil });
 
-  /** One request with up to 3 attempts for network errors, 5xx and a short 429. Returns an ok response. */
-  async function request(url, headers, signal) {
-    const response = await withRetry(async attempt => {
+  /**
+   * One request with up to 3 attempts for network errors, 5xx, a short 429 and transient errors thrown by `read`.
+   * Returns `read(response)` for an ok response, or the response itself.
+   * @param {string} url @param {Record<string, string>} headers @param {AbortSignal | undefined} signal
+   * @param {(response: Response) => Promise<any>} [read]
+   */
+  async function request(url, headers, signal, read) {
+    return withRetry(async attempt => {
       if (now() < pausedUntil) throw busy();
       const response = await fetchImpl(url, { headers: { "User-Agent": userAgent, ...headers }, signal });
-      if (response.ok) return response;
+      if (response.ok) return read ? read(response) : response;
       await response.body?.cancel().catch(() => {});
       const hinted = retryAfterMs(response.headers.get("retry-after"), now());
       if (response.status === 429 && (hinted === null || hinted > 8000)) {
@@ -193,24 +198,25 @@ export function createWikimediaClient({ fetch: fetchImpl = globalThis.fetch, use
       }
       throw fail("WIKIMEDIA_HTTP", `Wikimedia responded with HTTP ${response.status}`,
         { status: response.status, retryAfter: response.headers.get("retry-after"), transient: isTransientStatus(response.status), attempt });
-    }, { attempts: 3, signal, wait, random, isTransient: (/** @type {any} */ error) => error?.code !== "WIKIMEDIA_BUSY" && isTransientError(error) });
-    return response;
+    }, { attempts: 3, signal, wait, random,
+      isTransient: (/** @type {any} */ error) => error?.code !== "WIKIMEDIA_BUSY" && (error?.transient === true || isTransientError(error)) });
   }
 
+  // No maxlag: Wikidata counts the query-service lag in it, which stays above 5 s for hours and would stall this
+  // read-only sync. The load stays polite through the serialized queue, the interval and the User-Agent.
   async function api(base, params, signal) {
-    return apiQueue(async () => {
-      const url = `${base}?${new URLSearchParams({ ...params, format: "json", formatversion: "2", maxlag: "5" })}`;
-      const response = await request(url, { "Accept-Encoding": "gzip" }, signal);
+    return apiQueue(() => request(`${base}?${new URLSearchParams({ ...params, format: "json", formatversion: "2" })}`, { "Accept-Encoding": "gzip" }, signal, async response => {
       /** @type {any} */
       let body;
       try { body = await response.json(); }
       catch (error) { throw fail("WIKIMEDIA_BAD_RESPONSE", "Wikimedia returned malformed JSON", { transient: true, cause: error }); }
       if (body?.error) {
         const transient = ["maxlag", "ratelimited", "readonly", "internal_api_error_DBQueryError"].includes(body.error.code);
-        throw fail(body.error.code === "no-such-entity" ? "NO_SUCH_ENTITY" : "WIKIMEDIA_API_ERROR", `Wikimedia API error ${body.error.code}`, { transient, apiCode: body.error.code, entityId: body.error.id });
+        throw fail(body.error.code === "no-such-entity" ? "NO_SUCH_ENTITY" : "WIKIMEDIA_API_ERROR", `Wikimedia API error ${body.error.code}`,
+          { transient, apiCode: body.error.code, entityId: body.error.id, retryAfter: response.headers.get("retry-after") });
       }
       return body;
-    }, signal);
+    }), signal);
   }
 
   /** Map input title → final page title through `normalized` and `redirects`. */

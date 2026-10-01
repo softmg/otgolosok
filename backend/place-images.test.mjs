@@ -159,6 +159,18 @@ test("a server error is retried and then succeeds", async () => {
   assert.equal(fake.calls.length, 2);
 });
 
+test("a transient API error is retried after its Retry-After; reads do not send maxlag", async () => {
+  const waits = [];
+  const fake = fakeWikimedia({ entities: { Q1: item("Q1", "a.jpg") },
+    hook: (_, call) => call === 1 ? json({ error: { code: "ratelimited" } }, { headers: { "content-type": "application/json", "retry-after": "3" } }) : null });
+  const wikimedia = client(fake, { sleep: async ms => { waits.push(ms); } });
+  assert.equal((await wikimedia.entities(["Q1"])).size, 1);
+  assert.equal(fake.calls.length, 2);
+  assert.ok(waits.includes(3000));
+  // Wikidata counts the query-service lag in maxlag, which stays above 5 s for hours and would stall read-only sync.
+  assert.ok(fake.calls.every(call => !new URL(call.url).searchParams.has("maxlag")));
+});
+
 test("a long Retry-After pauses every call and fails fast", async () => {
   let time = 1_000_000;
   const fake = fakeWikimedia({ hook: () => new Response("slow down", { status: 429, headers: { "retry-after": "120" } }) });

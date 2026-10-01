@@ -92,4 +92,5 @@ try {
 } finally {
   store.close();
 }
-process.exit(exitCode);
+// Not process.exit(): on Windows it aborts while fetch sockets are still closing (libuv assertion, exit code 127).
+process.exitCode = exitCode;
