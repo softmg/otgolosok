@@ -251,6 +251,8 @@ for (const width of [390, 1440]) {
   test(`список выбора расположен у активного поля ${width}`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/?walk=create");
+    // The loading notice shares the dock with the sheet and moves it when it goes away.
+    await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
     const start = page.getByRole("button", { name: "Откуда", exact: true });
     await start.focus();
     await page.keyboard.press("Enter");
