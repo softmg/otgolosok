@@ -1,9 +1,10 @@
 import { expect, test, type Page } from "./support/test";
 import { mockMapCatalog } from "./support/map-catalog";
+import { MOSCOW_CENTER } from "../src/features/explore/map-jobs";
 
 async function openLongStory(page: Page) {
   const text = "Корпус имеет сложную, отдалённо Т-образную форму, а главный фасад построен как трёхчастная композиция. ".repeat(5);
-  await mockMapCatalog(page, [{ id: "long-story", title: "Длинная история", address: "Москва, Дербеневская, 1", lat: 55.7249, lon: 37.6507, paragraphs: [text, text, text], audioUrl: "/api/story-audio/long-story.mp3", durationSec: 120 }]);
+  await mockMapCatalog(page, [{ id: "long-story", title: "Длинная история", address: "Москва, Дербеневская, 1", lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon, paragraphs: [text, text, text], audioUrl: "/api/story-audio/long-story.mp3", durationSec: 120 }]);
   await page.goto("/");
   await page.locator('[title="Длинная история"]').click();
   const story = page.getByRole("region", { name: "Текст истории", exact: true });
@@ -42,7 +43,7 @@ test("карта автоматически восстанавливается �
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.route("**/service-status", route => route.fulfill({ status: maintenance ? 503 : 200, json: { maintenance } }));
-  await mockMapCatalog(page, [{ id: "recovered-place", title: "Восстановленное место", address: "Москва", lat: 55.7249, lon: 37.6507 }], {
+  await mockMapCatalog(page, [{ id: "recovered-place", title: "Восстановленное место", address: "Москва", lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon }], {
     intercept: (_path, route) => maintenance ? route.fulfill({ status: 503, json: { error: { code: "SERVICE_MAINTENANCE" } } }).then(() => true) : false,
   });
   const unavailableCatalog = page.waitForResponse(response => response.url().includes("/api/content/map-cells") && response.status() === 503);
@@ -141,7 +142,7 @@ test("создаёт A→Б на карте и восстанавливает е
 });
 
 test("дом передаёт старт, возврат включён по умолчанию, Back закрывает панель", async ({ page }) => {
-  await mockMapCatalog(page, [{ id: "test-house", title: "Дом для прогулки", address: "Москва, Дербеневская, 1", lat: 55.7249, lon: 37.6507 }]);
+  await mockMapCatalog(page, [{ id: "test-house", title: "Дом для прогулки", address: "Москва, Дербеневская, 1", lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon }]);
   await page.goto("/");
   await page.locator('[title="Дом для прогулки"]').click();
   await page.getByRole("link", { name: "Создать прогулку отсюда" }).click();
@@ -447,7 +448,7 @@ for (const endpoint of ["Откуда", "Куда"]) {
 test("клик карты после создания от дома задаёт финиш, а явный выбор меняет старт", async ({ page }) => {
   const start = "Москва, Дербеневская, 1";
   const finish = "Москва, Арбат, 10";
-  await mockMapCatalog(page, [{ id: "start-house", title: "Стартовый дом", address: start, lat: 55.7249, lon: 37.6507 }]);
+  await mockMapCatalog(page, [{ id: "start-house", title: "Стартовый дом", address: start, lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon }]);
   await page.route("**/api/story-place?*", route => route.fulfill({ json: { address: finish, location: { lat: 55.75, lon: 37.6 } } }));
   await page.goto("/");
   await page.locator('[title="Стартовый дом"]').click();
@@ -463,7 +464,7 @@ test("клик карты после создания от дома задаёт
 });
 
 test("достопримечательности остаются компактными точками при создании прогулки", async ({ page }) => {
-  await mockMapCatalog(page, [{ id: "landmark", title: "Тестовая достопримечательность", address: "Москва, Арбат, 10", lat: 55.7249, lon: 37.6507 }]);
+  await mockMapCatalog(page, [{ id: "landmark", title: "Тестовая достопримечательность", address: "Москва, Арбат, 10", lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon }]);
   await page.goto("/");
   const pin = page.locator('[title="Тестовая достопримечательность"]');
   await expect(pin).toBeVisible();

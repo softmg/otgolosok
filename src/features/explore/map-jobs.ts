@@ -6,6 +6,8 @@ const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 export type MapJob = { id: string; address: string; location: Coordinates };
 /** Центр Москвы (Кремль): сюда возвращаем карту, если пользователь вне каталога. */
 export const MOSCOW_CENTER: Coordinates = { lat: 55.752, lon: 37.6175 };
+/** Стандартный вид карты: Кремль и центр в пределах Бульварного кольца, крупно для пешей прогулки. */
+export const MOSCOW_ZOOM = 14;
 export function isMoscowPoint(point: Coordinates) {
   return Number.isFinite(point.lat) && Number.isFinite(point.lon) && point.lat >= 55.48 && point.lat <= 55.98 && point.lon >= 37.3 && point.lon <= 37.95;
 }

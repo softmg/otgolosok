@@ -165,7 +165,7 @@ it("reindexes a catalog marker after its source coordinates change", async () =>
   await vi.waitFor(() => expect(counts()).toEqual([2]));
   await render([
     places[0],
-    { ...places[1], location: { lat: 55.7249, lon: 37.6537 } },
+    { ...places[1], location: { lat: 55.7249, lon: 37.6707 } },
   ]);
   expect(counts()).toEqual([]);
   expect(

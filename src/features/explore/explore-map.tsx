@@ -14,6 +14,7 @@ import type { MapStatus } from "../shell/map-status-notice";
 import { cx } from "../ui/cx";
 import { catalogArea, type CatalogArea } from "./catalog-bounds";
 import { createMapClusters, loadMapLibrary } from "./map-clusters";
+import { MOSCOW_CENTER, MOSCOW_ZOOM } from "./map-jobs";
 import { createMapView, type MapFocus, type MapView } from "./map-view";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -207,8 +208,10 @@ export function ExploreMap({
           minZoom: MAP_MIN_ZOOM,
           maxZoom: 19,
         }).setView(
-          saved ? [saved.center.lat, saved.center.lon] : [55.7249, 37.6507],
-          saved?.zoom ?? 16,
+          saved
+            ? [saved.center.lat, saved.center.lon]
+            : [MOSCOW_CENTER.lat, MOSCOW_CENTER.lon],
+          saved?.zoom ?? MOSCOW_ZOOM,
         );
         if (viewState) {
           saveView = () => {

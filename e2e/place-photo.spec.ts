@@ -1,13 +1,14 @@
 import { expect, test, type Page } from "./support/test";
 import { mockMapCatalog } from "./support/map-catalog";
 import photos from "../content/place-images.json" with { type: "json" };
+import { MOSCOW_CENTER } from "../src/features/explore/map-jobs";
 
 const photo = photos["osm:way:35814561"];
 const title = "Кинотеатр «Художественный»";
 
 async function openPlace(page: Page, id = "osm:way:35814561") {
   await page.route("**/api/**", route => route.fulfill({ json: { user: null, items: [], walks: [] } }));
-  await mockMapCatalog(page, [{ id, title, address: "Москва, Арбатская площадь, 14", lat: 55.7249, lon: 37.6507,
+  await mockMapCatalog(page, [{ id, title, address: "Москва, Арбатская площадь, 14", lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon,
     paragraphs: ["История кинотеатра. ".repeat(120)], audioUrl: "/api/story-audio/example.mp3", durationSec: 68 }]);
   await page.goto("/");
   await page.getByTitle(title, { exact: true }).click();

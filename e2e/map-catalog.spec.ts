@@ -1,9 +1,10 @@
 import { expect, test, type Page } from "./support/test";
+import { MOSCOW_CENTER } from "../src/features/explore/map-jobs";
 import { mockMapCatalog, type CatalogFixture } from "./support/map-catalog";
 
 const places: CatalogFixture[] = Array.from({ length: 1438 }, (_, index) => ({
   id: `osm:node:${index + 1}`, title: `Каталог: ${index + 1}`, address: "Москва",
-  ...(index === 1437 ? { lat: 55.7249, lon: 37.6507 } : { lat: 55.726, lon: 37.649 + (index % 50) * 0.000005 }),
+  ...(index === 1437 ? { ...MOSCOW_CENTER } : { lat: MOSCOW_CENTER.lat + 0.0044, lon: MOSCOW_CENTER.lon - 0.0068 + (index % 50) * 0.000005 }),
   paragraphs: [`Рассказ о месте ${index + 1}.`],
 }));
 const MANIFEST = "/api/content/map-cells";
@@ -80,7 +81,7 @@ test("после сбоя ячейки повтор загружает её то
 
 for (const coincident of [false, true]) {
   test(coincident ? "совпадающие места раскрываются веером и доступны по отдельности" : "группа раскрывается с клавиатуры и снова объединяется при отдалении", async ({ page }, info) => {
-    const sample = places.slice(0, 2).map((place, index) => ({ ...place, lat: 55.7249, lon: coincident ? 37.6507 : 37.6505 + index * 0.0004 }));
+    const sample = places.slice(0, 2).map((place, index) => ({ ...place, lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon + (coincident ? 0 : index * 0.0004 - 0.0002) }));
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await mockMapCatalog(page, sample);

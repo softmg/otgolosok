@@ -10,7 +10,7 @@ import { stageLabels, terminalStages, type GenerationJob } from "../generator/ty
 import type { MapFocus, MapViewState } from "./explore-map";
 import { ExploreIcon } from "./icons";
 import { AppNavigation } from "../navigation/app-navigation";
-import { isMoscowPoint, MOSCOW_CENTER, readMapJobs, type MapJob } from "./map-jobs";
+import { isMoscowPoint, MOSCOW_CENTER, MOSCOW_ZOOM, readMapJobs, type MapJob } from "./map-jobs";
 import { nearbyRadiusForAccuracy, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
 import { selectExplorePanel } from "./panel-state";
 import { useMapCatalog } from "./use-map-catalog";
@@ -181,7 +181,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
       setGeoMessage(!inMoscow?"Вы сейчас за пределами нашего каталога.":radius?"":`Положение приблизительное${Number.isFinite(point.accuracyM)?`: точность около ${Math.round(point.accuracyM)} м`:""}. Выберите точку на карте, чтобы точно искать рядом.`);
     });
   }
-  function showMoscow(){setFocus({...MOSCOW_CENTER,zoom:12});setGeoMessage("");setGeoOutside(false);}
+  function showMoscow(){setFocus({...MOSCOW_CENTER,zoom:MOSCOW_ZOOM});setGeoMessage("");setGeoOutside(false);}
   function metadata(pin:StoryPin){return [pin.duration?`${Math.ceil(pin.duration/60)} мин · аудио`:pin.status,user?`${distanceLabel(distance(user,pin.location))} по прямой`:null].filter(Boolean).join(" · ");}
   const createHref=place?.address?`/create?${new URLSearchParams({address:place.address,lat:String(place.location.lat),lon:String(place.location.lon)})}`:"/create?new=1";
   const walkStart=place?.address?place:active;
