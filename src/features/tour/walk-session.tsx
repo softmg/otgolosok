@@ -12,7 +12,7 @@ import "./walk-session.css";
 const noop = () => {};
 
 export function WalkSession({ route, chapters, index, active, completed, user, positionFailed, resume,
-  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", canRate = false, hasReview = false, reviews = null }: {
+  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, reviews = null }: {
   route: Route; chapters: WalkChapter[]; index: number; active: boolean; completed: boolean;
   user: (Coordinates & { accuracyM: number }) | null; positionFailed: boolean; resume: boolean;
   titleRef: RefObject<HTMLHeadingElement | null>; startRef: RefObject<HTMLButtonElement | null>;
@@ -20,8 +20,6 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   player: ReactNode; story: ReactNode; settings: ReactNode; audioError: string;
   /** «★ 4,6 · 12 оценок» for the reading-phase meta line; empty hides it. */
   ratingLabel?: string;
-  /** The walk was started in this browser or the viewer already has a review. */
-  canRate?: boolean;
   /** The viewer already has a review of this walk, so the finish screen offers to edit it. */
   hasReview?: boolean;
   /** Renders the reviews block; null for walks that cannot be reviewed. */
@@ -118,7 +116,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
           {active ? <button type="button" aria-current={position === index ? "step" : undefined} onClick={() => select(position)}><span>{position + 1}</span>{item.title}</button> : <p><span>{position + 1}</span>{item.title}</p>}
         </li>)}</ol> : drawer === "story" ? story : drawer === "reviews" ? reviews?.(reviewIntent) : <>
           {settings}
-          {canRate && reviews ? <button type="button" className="walk-session-rate" onClick={() => openReviews("rate")}>Оценить прогулку</button> : null}
+          {reviews ? <button type="button" className="walk-session-rate" onClick={() => openReviews("rate")}>Оценить прогулку</button> : null}
         </>}
       </div> : null}
       {completed && reviews && finishReviewOpen ? <div className="walk-session-review" data-sheet-part="body">{reviews("rate")}</div> : null}

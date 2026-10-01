@@ -3,9 +3,7 @@ import { targetKey, type ReviewInput, type ReviewTarget } from "./model";
 // Storage may be missing or throw (private mode, quota, blocked site data):
 // every helper degrades to "nothing stored" instead of breaking the walk screen.
 const KEY = "otgolosok:review-key:v1";
-const STARTED = "otgolosok:walk-reviews:started:v1";
 const DRAFT = "otgolosok:walk-reviews:draft:v1:";
-export const STARTED_LIMIT = 200;
 
 function storage(): Storage | null {
   try { return typeof localStorage === "undefined" ? null : localStorage; } catch { return null; }
@@ -29,32 +27,6 @@ export function getReviewKey({ create }: { create: boolean }): string | null {
   } catch {
     return null;
   }
-}
-
-function startedList(store: Storage): string[] {
-  try {
-    const value = JSON.parse(store.getItem(STARTED) ?? "[]") as unknown;
-    return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-export function markWalkStarted(target: ReviewTarget) {
-  const store = storage();
-  if (!store) return false;
-  const key = targetKey(target);
-  try {
-    store.setItem(STARTED, JSON.stringify([...startedList(store).filter(item => item !== key), key].slice(-STARTED_LIMIT)));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export function wasWalkStarted(target: ReviewTarget) {
-  const store = storage();
-  return store ? startedList(store).includes(targetKey(target)) : false;
 }
 
 export function saveReviewDraft(target: ReviewTarget, draft: ReviewInput) {

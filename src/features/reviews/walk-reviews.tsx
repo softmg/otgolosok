@@ -17,7 +17,7 @@ function currentWalkHref() {
 }
 
 /** Summary, published texts and, on request, the author's own form. */
-export function WalkReviews({ reviews, intent, canRate }: { reviews: WalkReviewsModel; intent: ReviewIntent; canRate: boolean }) {
+export function WalkReviews({ reviews, intent }: { reviews: WalkReviewsModel; intent: ReviewIntent }) {
   const [formOpen, setFormOpen] = useState(intent === "rate");
   const { target, state, summary, mine, reviewer } = reviews;
   if (!target) return null;
@@ -28,12 +28,11 @@ export function WalkReviews({ reviews, intent, canRate }: { reviews: WalkReviews
     </div>;
   }
   if (state !== "ready") return <div className={styles.root}><p className={styles.message} role="status">Загружаем отзывы…</p></div>;
-  const showForm = formOpen && (canRate || Boolean(mine));
   return <div className={styles.root}>
     <p className={styles.summary}>{formatRatingSummary(summary) || "Оценок пока нет"}</p>
-    {showForm ? <ReviewForm target={target} reviewer={reviewer} mine={mine} save={reviews.save} remove={reviews.remove}
+    {formOpen ? <ReviewForm target={target} reviewer={reviewer} mine={mine} save={reviews.save} remove={reviews.remove}
       loginHref={`/login?returnTo=${encodeURIComponent(currentWalkHref())}`} />
-      : canRate || mine ? <button type="button" className={styles.secondary} onClick={() => setFormOpen(true)}>{mine ? "Изменить отзыв" : "Оставить отзыв"}</button> : null}
+      : <button type="button" className={styles.secondary} onClick={() => setFormOpen(true)}>{mine ? "Изменить отзыв" : "Оставить отзыв"}</button>}
     {reviews.reviews.length ? <ul className={styles.list} aria-label="Отзывы">
       {reviews.reviews.map(review => <li key={review.id} className={styles.item}>
         <p className={styles.itemHead}><strong>{review.author}</strong><Stars rating={review.rating} />

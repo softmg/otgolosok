@@ -309,7 +309,7 @@ test.describe("отзывы к каталожной прогулке", () => {
     await expect(page.locator(".walk-session-meta")).toContainText("★ 4,6 · 12 оценок");
     await page.getByRole("button", { name: "Отзывы", exact: true }).click();
     await expect(page.getByText("Очень понравилось.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Оставить отзыв" }), "до старта прогулки оценка недоступна").toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Оставить отзыв" }), "отзыв можно оставить и до старта прогулки").toBeVisible();
     await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
     await page.getByRole("button", { name: "Завершить", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Прогулка завершена" })).toBeVisible();

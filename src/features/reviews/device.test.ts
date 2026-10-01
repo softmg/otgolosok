@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearReviewDraft, getReviewKey, loadReviewDraft, markWalkStarted, saveReviewDraft, STARTED_LIMIT, wasWalkStarted } from "./device";
+import { clearReviewDraft, getReviewKey, loadReviewDraft, saveReviewDraft } from "./device";
 
 beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
@@ -18,21 +18,8 @@ describe("данные отзывов в браузере", () => {
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new DOMException("blocked", "SecurityError"); });
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new DOMException("full", "QuotaExceededError"); });
     expect(getReviewKey({ create: true })).toBeNull();
-    expect(markWalkStarted({ kind: "catalog", id: "a" })).toBe(false);
-    expect(wasWalkStarted({ kind: "catalog", id: "a" })).toBe(false);
     expect(loadReviewDraft({ kind: "catalog", id: "a" })).toBeNull();
     expect(() => saveReviewDraft({ kind: "catalog", id: "a" }, { rating: 5, text: "" })).not.toThrow();
-  });
-
-  it("помнит начатые прогулки и хранит только последние 200", () => {
-    for (let index = 0; index <= STARTED_LIMIT; index++) markWalkStarted({ kind: "catalog", id: `walk-${index}` });
-    expect(wasWalkStarted({ kind: "catalog", id: "walk-0" })).toBe(false);
-    expect(wasWalkStarted({ kind: "catalog", id: "walk-1" })).toBe(true);
-    expect(wasWalkStarted({ kind: "catalog", id: `walk-${STARTED_LIMIT}` })).toBe(true);
-    markWalkStarted({ kind: "catalog", id: "walk-1" });
-    markWalkStarted({ kind: "share", token: "new" });
-    expect(wasWalkStarted({ kind: "catalog", id: "walk-1" }), "повторный старт обновляет место в списке").toBe(true);
-    expect(JSON.parse(localStorage.getItem("otgolosok:walk-reviews:started:v1")!)).toHaveLength(STARTED_LIMIT);
   });
 
   it("хранит черновик отдельно для каждой прогулки и игнорирует мусор", () => {

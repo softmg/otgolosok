@@ -27,7 +27,6 @@ import { useWalkAudio } from "./use-walk-audio";
 import { ClassicWalkView, type PlayerState } from "./classic-walk-view";
 import { AroundScreen } from "../explore/around-screen";
 import { isWalkCreation } from "../explore/panel-state";
-import { markWalkStarted, wasWalkStarted } from "../reviews/device";
 import { formatRatingSummary, type ReviewTarget } from "../reviews/model";
 import { useWalkReviews } from "../reviews/use-walk-reviews";
 import { WalkReviews } from "../reviews/walk-reviews";
@@ -56,8 +55,6 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
   const offlineCopy = useOfflineCopy(view, offlineRef);
   const reviews = useWalkReviews(reviewTarget);
   // A UX filter against drive-by ratings, not a security control: the server does not check it.
-  const [started, setStarted] = useState(() => reviewTarget ? wasWalkStarted(reviewTarget) : false);
-  const canRate = Boolean(reviewTarget) && (started || Boolean(reviews.mine));
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const walkTitleRef = useRef<HTMLHeadingElement>(null);
   const sessionActiveRef = useRef(false);
@@ -169,7 +166,6 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
     if (phase !== "reading" || sessionActiveRef.current) return;
     setCompleted(false);
     sessionActiveRef.current = true;
-    if (reviewTarget) { markWalkStarted(reviewTarget); setStarted(true); }
 
     const session = sessionRef.current + 1;
     sessionRef.current = session;
@@ -279,8 +275,8 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
       {universal ? <WalkSession route={route} chapters={chapters} index={chapterIndex} active={isWalking} completed={completed}
         user={position.diagnostics.lastFix} positionFailed={positionFailed(position.diagnostics)} resume={Boolean(savedCheckpoint)} titleRef={walkTitleRef} startRef={startButtonRef}
         onStart={() => startTour()} onSelect={selectChapter} onStop={stopTour}
-        ratingLabel={formatRatingSummary(reviews.summary)} canRate={canRate}
-        hasReview={Boolean(reviews.mine)} reviews={reviewTarget ? intent => <WalkReviews reviews={reviews} intent={intent} canRate={canRate} /> : null}
+        ratingLabel={formatRatingSummary(reviews.summary)}
+        hasReview={Boolean(reviews.mine)} reviews={reviewTarget ? intent => <WalkReviews reviews={reviews} intent={intent} /> : null}
         audioError={audioStatus === "blocked" || audioStatus === "error" ? "Не удалось включить аудио. Нажмите «Повторить запуск звука»." : ""}
         player={walkAudioUrl ? <AudioPlayerControls compact position={playbackTime} duration={duration} canSeek={canSeek} playing={audioStatus === "playing"}
           label={audioButtonLabel} rate={settings.rate} onToggle={audio.toggle} onSeek={audio.seek} onRate={rate => updateSettings({ rate })} /> : null}

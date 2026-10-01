@@ -58,14 +58,14 @@ it.each(["session", "map"])("%s ставит маркеры в точки про
   expect(selected.map(chapter => chapter.location)).toEqual(originalLocations);
 });
 
-function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; canRate?: boolean; hasReview?: boolean; reviews?: ((intent: "read" | "rate") => string) | null }) {
+function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; hasReview?: boolean; reviews?: ((intent: "read" | "rate") => string) | null }) {
   const markup = renderToStaticMarkup(createElement(WalkSession, {
     route, chapters, index: 0, active: props.active ?? false, completed: props.completed ?? false,
     user: null, positionFailed: false, resume: false,
     titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
     onStart: () => {}, onSelect: () => {}, onStop: () => {},
     player: null, story: null, settings: null, audioError: "",
-    ratingLabel: props.ratingLabel, canRate: props.canRate, hasReview: props.hasReview, reviews: props.reviews,
+    ratingLabel: props.ratingLabel, hasReview: props.hasReview, reviews: props.reviews,
   }));
   return new DOMParser().parseFromString(markup, "text/html");
 }
@@ -94,7 +94,7 @@ it.each([
   [{ reviews: (intent: "read" | "rate") => intent }, "Оставить отзыв"],
   [{ reviews: (intent: "read" | "rate") => intent, hasReview: true }, "Изменить отзыв"],
 ])("после завершения главная кнопка — отзыв, «На карту» второстепенная: %o", (props, label) => {
-  const document = sessionDocument({ completed: true, canRate: true, ...props });
+  const document = sessionDocument({ completed: true, ...props });
   const actions = document.querySelector(".walk-session-actions")!;
   expect(actions.querySelector(".walk-session-primary")?.textContent).toBe(label);
   expect(actions.querySelector(".walk-session-secondary")?.textContent).toBe("На карту");
@@ -119,7 +119,7 @@ it("«Оставить отзыв» после завершения раскры
     user: null, positionFailed: false, resume: false,
     titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
     onStart: () => {}, onSelect: () => {}, onStop: () => {},
-    player: null, story: null, settings: null, audioError: "", canRate: true,
+    player: null, story: null, settings: null, audioError: "",
     reviews: (intent: "read" | "rate") => createElement("p", { "data-testid": "reviews" }, intent),
   })));
   await act(async () => [...container.querySelectorAll("button")].find(button => button.textContent === "Оставить отзыв")!.click());
@@ -133,19 +133,19 @@ it("«Оставить отзыв» после завершения раскры
   vi.unstubAllGlobals();
 });
 
-it.each([[true, true], [false, false]])("«Оценить прогулку» в настройках при canRate=%s открывает форму", async (canRate, shown) => {
+it.each([[true, true], [false, false]])("«Оценить прогулку» в настройках у прогулки с отзывами=%s открывает форму", async (reviewable, shown) => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
-  const reviews = vi.fn((intent: "read" | "rate") => createElement("p", { "data-testid": "reviews" }, intent));
+  const reviews = reviewable ? (intent: "read" | "rate") => createElement("p", { "data-testid": "reviews" }, intent) : null;
   await act(async () => root.render(createElement(WalkSession, {
     route, chapters, index: 0, active: true, completed: false,
     user: null, positionFailed: false, resume: false,
     titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
     onStart: () => {}, onSelect: () => {}, onStop: () => {},
-    player: null, story: null, settings: createElement("p", null, "настройки"), audioError: "", canRate, reviews,
+    player: null, story: null, settings: createElement("p", null, "настройки"), audioError: "", reviews,
   })));
   const find = (text: string) => [...container.querySelectorAll("button")].find(button => button.textContent === text);
   await act(async () => container.querySelector<HTMLButtonElement>("[aria-label='Настройки прогулки']")!.click());
