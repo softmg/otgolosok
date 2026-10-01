@@ -8,6 +8,13 @@ type Props = {
   /** Accessible name of the sheet; use `labelledBy` when a visible heading names it. */
   label?: string;
   labelledBy?: string;
+  /**
+   * Edge-to-edge media above the header, such as a place photo. It never scrolls away and yields height first
+   * when the sheet is short, so the body keeps room for its text; an empty slot takes no room.
+   */
+  media?: ReactNode;
+  /** One control pinned to the top right corner over the media or the body, such as close. It takes no room. */
+  corner?: ReactNode;
   header?: ReactNode;
   /** One row of actions. It never scrolls away. */
   footer?: ReactNode;
@@ -25,7 +32,7 @@ type Props = {
  * A panel of a map screen: fixed header, one scrolling body, fixed footer. It takes at most the
  * height its container gives it, so a long body scrolls inside instead of pushing anything away.
  */
-export function Sheet({ label, labelledBy, header, footer, children, bodyLabel, className, sheetRef, name, state }: Props) {
+export function Sheet({ label, labelledBy, media, corner, header, footer, children, bodyLabel, className, sheetRef, name, state }: Props) {
   const body = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const [scrollable, setScrollable] = useState(false);
@@ -43,6 +50,8 @@ export function Sheet({ label, labelledBy, header, footer, children, bodyLabel, 
   }, [hasBody]);
 
   return <section ref={sheetRef} className={cx(styles.sheet, className)} data-region="sheet" data-sheet={name} data-state={state} aria-label={labelledBy ? undefined : label} aria-labelledby={labelledBy}>
+    {media ? <div className={styles.media} data-sheet-part="media">{media}</div> : null}
+    {corner ? <div className={styles.corner} data-sheet-part="corner">{corner}</div> : null}
     {header ? <div className={styles.header} data-sheet-part="header">{header}</div> : null}
     {children ? <div ref={body} className={styles.body} data-sheet-part="body"
       role={bodyLabel ? "region" : undefined} aria-label={bodyLabel}

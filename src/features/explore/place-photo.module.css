@@ -1,29 +1,18 @@
-.heading {
-  display: flex;
-  gap: var(--space-sm);
-  align-items: flex-start;
-  margin-bottom: var(--space-sm);
-}
-
-.headingText {
-  flex: 1;
-  min-width: 0;
-}
-
-.preview,
+/* The banner fills the sheet media slot edge to edge; on a short sheet the slot shrinks it, keeping the text visible. */
+.banner,
 .placeholder {
-  flex: none;
-  width: clamp(var(--control-min), 22cqi, 5.5rem);
-  height: clamp(var(--control-min), 22cqi, 5.5rem);
-  border-radius: var(--radius-md);
+  display: block;
+  flex: 0 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: clamp(5rem, 42cqi, 12rem);
 }
 
-/* Static on purpose: no shimmer, so it is safe with reduced motion. */
 .placeholder {
   background: var(--control-soft);
 }
 
-.preview {
+.banner {
   padding: 0;
   overflow: hidden;
   background: var(--control-soft);
@@ -31,16 +20,25 @@
   cursor: zoom-in;
 }
 
-.preview img {
+.banner img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-:is(.preview, .close, .error button):focus-visible {
+.status {
+  margin: var(--space-xs) var(--sheet-pad, 1.25rem) 0;
+}
+
+:is(.close, .error button):focus-visible {
   outline: var(--focus-ring);
   outline-offset: 3px;
+}
+
+.banner:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -3px;
 }
 
 .viewer {

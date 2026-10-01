@@ -148,7 +148,9 @@ it("opens a catalog point with its header at once, then loads the text and the p
   const sheet = () => container.querySelector('[data-sheet="story"]');
   expect(sheet()?.textContent).toContain("История 1");
   expect(sheet()?.textContent).toContain("Москва, дом 1");
-  expect(sheet()?.textContent).toContain("2 мин · аудио");
+  // The card carries no label and no duration line: the title and the close button head it.
+  expect(sheet()?.textContent).not.toContain("История места");
+  expect(sheet()?.textContent).not.toContain("мин · аудио");
   expect(sheet()?.textContent).toContain("Загружаем рассказ…");
   expect(sheet()?.querySelector("audio")).toBeNull();
   await act(async () => finish());
