@@ -1,6 +1,6 @@
 # Plan: three walk access levels and a public "Top walks" ranking
 
-Status: plan, 2026-10-01.
+Status: implemented 2026-10-01 in branch `feat/promo-walks-stories-only`. Caveats: the manual check was replaced by a Playwright scenario on the real backend (see "Testing & verification"); the owner access dialog and the builder's "pending" save message were verified by unit tests / not at all in a browser (see the notes there).
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
@@ -64,7 +64,7 @@ No external services or paid APIs are involved.
   - `listing_updated_at TEXT` — when the listing status last changed. It orders the moderation queue and breaks ties in the ranking.
 - `visibility` gets the new value `'public'`. The DB value for link-only stays `'shared'`, so no data migration is needed. The API keeps the same strings: `"private" | "shared" | "public"`.
 - Add a partial index `user_walks_public_listing ON user_walks(listing_status, listing_updated_at DESC, id DESC) WHERE visibility='public'`.
-- New pure helper `moderatedTextHash(title, document)` (exported for tests). It returns the SHA-256 of a JSON array of `[title, document.title, document.description, start?.address, destination?.address, ...stops.map(s => [s.place.address, s.transition, s.nextHint])]`. Strings are `normalize("NFC")`'d; geometry, coordinates and storyRefs are excluded.
+- New pure helper `moderatedTextHash(title, document)` (exported for tests). *As built:* it lives in `backend/walk-listing.mjs` (with `LISTING_STATUSES`) to avoid an import cycle with `shared-walk-admin.mjs`, and `account-store.mjs` re-exports it. It returns the SHA-256 of a JSON array of `[title, document.title, document.description, start?.address, destination?.address, ...stops.map(s => [s.place.address, s.transition, s.nextHint])]`. Strings are `normalize("NFC")`'d; geometry, coordinates and storyRefs are excluded.
 - **One-time promo backfill:** in the same branch that adds `listing_status` (so it runs exactly once), inside a transaction, for every row with `user_id = PROMO_WALKS_USER_ID AND visibility = 'shared'` with a valid snapshot: set `visibility='public'`, `listing_status='approved'`, `listing_text_hash=moderatedTextHash(...)` and `listing_updated_at=now`. Leave `revision` and `updated_at` unchanged, because this is a system migration, not an owner edit. Rows whose snapshot fails to decode are skipped and stay `shared`.
 - `viewWalk` and `listItem`: `shareToken` is returned for `shared` **and** `public`. Add `listingStatus`, set only when `visibility === 'public'` (otherwise `null`), so the owner never sees a stale state of a non-public walk.
 - `getSharedWalk(token)`: `visibility IN ('shared','public')`.
@@ -84,7 +84,7 @@ No external services or paid APIs are involved.
 - `listSharedWalksAdmin` should include `visibility IN ('shared','public')`. Add two filters:
   - `access ∈ {all, shared, public}`, default `all`;
   - `listing ∈ {all, pending, approved, hidden}`, default `all`; it applies to public walks only.
-  Each row gains `visibility` and `listingStatus`. The response gains `pending`: the total count of `public` + `pending` walks, regardless of filters, as the reviews tab does. Replace the partial index `user_walks_shared_updated` with one whose predicate is `visibility IN ('shared','public')`: drop the old index and create the new one under a new name.
+  Each row gains `visibility` and `listingStatus`. The response gains `pending`: the total count of `public` + `pending` walks, regardless of filters, as the reviews tab does. Replace the partial index `user_walks_shared_updated` with one whose predicate is `visibility IN ('shared','public')`: drop the old index and create the new one under a new name (*as built:* `user_walks_linked_updated`).
 - New `moderateWalkListing(id, {action, revision})`, where `action ∈ {'approve','hide'}`:
   - only `public` walks qualify; otherwise `CONFLICT`;
   - a mismatched `revision` gives `CONFLICT` with the message «Прогулка изменилась — обновите список.», so an editor never approves texts they did not see;
@@ -129,7 +129,8 @@ No external services or paid APIs are involved.
 - `createTopWalks({accountStore, store, builtinRoutes})` → `list()`:
   1. Candidates are the catalog walks (`builtinRoutes` with steps whose `store.getPublishedWalk(id)` is non-null, rating from the review summary of `{kind:'catalog', id}`, `listedAt` = epoch) plus `listTopCandidates()`. Launches come from `launchTotals()`.
   2. Rank them, then decode details only for the ranked items, walking further down the list when a snapshot is damaged or has no route, so the top stays full. Public walks use `viewWalk` snapshots; catalog walks use `catalogWalkView(route).document`.
-  3. Each item is `{kind: 'catalog' | 'shared', id: <slug | share token>, title, walkingMinutes, distanceM, stopCount, rating: {average, count}}`, where `average` is rounded to one decimal like the review summary.
+  3. Each item is `{kind: 'catalog' | 'shared', id: <slug | share token>, title, walkingMinutes, distanceM, stopCount, rating: {average, count}}`, where `average` is rounded like the review summary (*as built:* the summary rounds to two decimals, so the top does too; the UI shows one).
+  *As built:* the account store also exposes `getTopDocuments(ids)` (decodes snapshots only for ranked ids), and `listTopCandidates()` returns `catalogRatings` alongside `walks` and `priorMean`, so catalog ratings come from one aggregate query rather than a summary call per route.
 - Route `GET /api/top-walks`: the query must be empty (otherwise 400), the response is `json(res, 200, {walks})`. It is computed per request, which is fine at the current scale. Do not add caching.
 
 ### 5. Owner UI — access dialog and history tabs
@@ -159,7 +160,8 @@ No external services or paid APIs are involved.
   - error: `role="alert"` with «Повторить»;
   - empty: «В топе пока пусто. Откройте свою прогулку всем — после проверки она появится здесь.».
 - Remove the «Попробуйте готовый маршрут» block. Drop `loadCatalogCards` from the library, and delete it if it has no other users (grep first).
-- `history.css` gets the tab, top-list and dialog styles, using the existing tokens (stylelint + prettier).
+- `history.css` gets the tab, top-list and dialog styles, using the existing tokens (stylelint + prettier). *As built:* the new styles live in CSS Modules (`walk-library.module.css`, `access-dialog.module.css`, `top-walks.module.css`) because the repo requires CSS Modules for new styles; `history.css` is legacy. The «Новая прогулка» button moved into the «Мои» panel toolbar.
+- *As built:* on a failed load of own walks (session or account API error) the default tab stays «Мои», so the error and «Повторить» stay visible instead of the page silently switching to «Топ».
 - Walk builder (`use-walk-draft.ts` `saveToAccount`): if the PATCH response has `visibility === "public"` and `listingStatus === "pending"`, the success message is «Прогулка сохранена. В топе она появится после проверки редакцией.».
 
 ### 6. Launch reporting on the client
@@ -169,12 +171,12 @@ No external services or paid APIs are involved.
   - sends CSRF headers for a signed-in user, otherwise `X-Review-Key` from `getReviewKey({create: true})`; with no key it sends nothing and returns;
   - reuses `resolveReviewer()` to decide session vs guest.
   Every failure is swallowed (`.catch(() => {})`) because counting must never break or delay a walk.
-- `TourExperience` gets a new optional prop `launchTarget` (`ReviewTarget | null`), passed from `walk-screen.tsx` only for `catalog`/`share`. In `startTour()`, **after** `audio.begin(...)` and the phase change, fire `void reportWalkLaunch(...)` once per mounted walk; a ref guards against re-sending on resume or restart in the same page session. Abort the request on unmount.
+- `TourExperience` gets a new optional prop `launchTarget` (`ReviewTarget | null`), passed from `walk-screen.tsx` only for `catalog`/`share`. In `startTour()`, **after** `audio.begin(...)` and the phase change, fire `void reportWalkLaunch(...)` once per mounted walk; a ref guards against re-sending on resume or restart in the same page session. Abort the request on unmount. *As built:* the guard and abort live in a `useLaunchReport(target)` hook in `launches.ts`, which `TourExperience` calls.
 
 ### 7. Admin UI — `src/features/admin/shared-walk-admin.tsx`
 
 - Rename the tab «По ссылке» to «Пользовательские». Show the pending counter in the tab title when it is above 0 («Пользовательские · 3»). Update the section description to cover link-only and public walks, including service-created ones.
-- Add the filters «Доступ» (Все / По ссылке / Всем) and «Топ» (Все / На проверке / В топе / Скрытые). The «Топ» filter defaults to «На проверке» when `pending > 0`, otherwise «Все». Each row shows its access and listing state as text.
+- Add the filters «Доступ» (Все / По ссылке / Всем) and «Топ» (Все / На проверке / В топе / Скрытые). The «Топ» filter defaults to «На проверке» when `pending > 0`, otherwise «Все». *As built:* the first load uses «Все», and when its `pending` is above 0 the list is reloaded with «На проверке» (the count is only known after the first response). Each row shows its access and listing state as text.
 - Public rows get the actions «Одобрить для топа» (shown for `pending`/`hidden`) and «Скрыть из топа» (shown for `pending`/`approved`). They send `POST …/listing {action, revision}` through the existing `run` + CSRF path and reload the page of results after success. A 409 shows «Прогулка изменилась — обновите список.».
 
 ### 8. Docs
@@ -241,10 +243,10 @@ Frontend (vitest + jsdom):
   - `?tab=top` is respected.
 - `top-walks` tests: validator rejects bad payloads; rank/title/href/rating/meta rendering; plural forms (1/2/5 истори-); empty, error and retry states.
 - `launches` tests: catalog/share only; headers for user vs guest; no request without a key; failures are swallowed.
-- `TourExperience`/walk-screen: one report per mounted walk across stop/restart, and none for `id`/`local`. Assert the request, not just that a mock was called.
+- `TourExperience`/walk-screen: one report per mounted walk across stop/restart, and none for `id`/`local`. Assert the request, not just that a mock was called. *As built:* tested through a `useLaunchReport` harness (a full `TourExperience` render is too heavy); the real button press is covered by the e2e below.
 - `shared-walk-admin.test.ts`: the filters, the actions per state, the pending counter in the tab title, and the 409 message.
 
-E2E (Playwright, stubbed APIs as in `e2e/walk-session.spec.ts`): open `/history`, switch to «Топ», open a walk from the top, press «Начать прогулку» and assert one `POST …/launches`. Extend `e2e/shared-walk-admin.spec.ts` for approve/hide.
+E2E (Playwright, stubbed APIs as in `e2e/walk-session.spec.ts`): open `/history`, switch to «Топ», open a walk from the top, press «Начать прогулку» and assert one `POST …/launches`. Extend `e2e/shared-walk-admin.spec.ts` for approve/hide. *As built:* one scenario in `e2e/shared-walk-admin.spec.ts` runs on the real backend with an in-memory store instead of stubs: a public walk opens the admin on «На проверке» with «Пользовательские · 1», the editor approves it, it appears in `/api/top-walks`, `/history?tab=top` → the walk → «Начать прогулку» returns `{counted:true}` and writes one launch, then «Скрыть из топа» removes it from the top while the link still answers 200.
 
 Commands before every commit: `pnpm lint`, `pnpm typecheck`, `pnpm test`, plus the relevant e2e specs. Before the final commit run the full `pnpm check`.
 
@@ -254,6 +256,8 @@ Manual end-to-end check on `pnpm build` + `node backend/server.mjs` (as in `walk
 3. Launch it from another browser (guest) and see it in the top.
 4. Edit its title and see it leave the top.
 5. Hide it and confirm the link still opens.
+
+*Verification done (2026-10-01):* full `pnpm check` passed in a separate worktree (798 vitest, 637 backend node tests, 20 Python tests, lint, typecheck, build). The full Playwright suite passed after one fix: `interface.spec.ts` "сбой сессии не выглядит как отсутствие прогулок" caught the default tab switching to «Топ» on a failed load (fixed, see section 5). Manual steps 1–3 and 5 are covered by the real-backend e2e above (the launch comes from an editor session of a non-owner, not a guest); step 4 is covered by the `updateWalk` re-moderation tests. Not checked in a browser: the owner «Доступ» dialog (vitest only) and the builder's "pending" save message in `use-walk-draft.ts` (no automated test; the hook is too heavy to render in isolation).
 
 ## Out of scope
 
