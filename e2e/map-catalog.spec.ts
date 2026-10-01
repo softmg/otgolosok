@@ -1,11 +1,14 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/test";
+import { MOSCOW_CENTER } from "../src/features/explore/map-jobs";
+import { mockMapCatalog, type CatalogFixture } from "./support/map-catalog";
 
-const places = Array.from({ length: 1438 }, (_, index) => ({
-  id: `osm:node:${index + 1}`, name: `Каталог: ${index + 1}`, address: "Москва",
-  location: index === 1437 ? { lat: 55.7249, lon: 37.6507 } : { lat: 55.726, lon: 37.649 + (index % 50) * 0.000005 },
-  story: { title: `Каталог: ${index + 1}`, paragraphs: [{ text: `Рассказ о месте ${index + 1}.` }] },
-  audio: null,
+const places: CatalogFixture[] = Array.from({ length: 1438 }, (_, index) => ({
+  id: `osm:node:${index + 1}`, title: `Каталог: ${index + 1}`, address: "Москва",
+  ...(index === 1437 ? { ...MOSCOW_CENTER } : { lat: MOSCOW_CENTER.lat + 0.0044, lon: MOSCOW_CENTER.lon - 0.0068 + (index % 50) * 0.000005 }),
+  paragraphs: [`Рассказ о месте ${index + 1}.`],
 }));
+const MANIFEST = "/api/content/map-cells";
+const MOSCOW_CELL = "/api/content/map-cells/55/37";
 
 async function representedPlaces(page: Page) {
   return page.locator(".leaflet-marker-pane").evaluate(pane =>
@@ -18,71 +21,58 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/**", route => route.fulfill({ json: { user: null } }));
 });
 
-test("карта показывает все 1438 мест выбранной области и открывает последнюю карточку", async ({ page }) => {
+test("карта показывает все 1438 мест одной ячейки двумя запросами и загружает текст по клику", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await page.route("**/api/content/places?*", route => {
-    const offset = Number(new URL(route.request().url()).searchParams.get("offset"));
-    return route.fulfill({ json: { places: places.slice(offset, offset + 100), total: places.length, hasMore: offset + 100 < places.length } });
-  });
+  const requests = await mockMapCatalog(page, places);
   await page.goto("/");
   await expect.poll(() => representedPlaces(page)).toBe(1438);
   expect(await page.locator(".leaflet-marker-icon").count()).toBeLessThan(30);
   await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
+  expect(requests).toEqual([MANIFEST, MOSCOW_CELL]);
   await page.getByTitle("Каталог: 1438", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Каталог: 1438", exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Текст истории", exact: true })).toContainText("Рассказ о месте 1438.");
+  expect(requests).toEqual([MANIFEST, MOSCOW_CELL, "/api/content/places/osm:node:1438"]);
   expect(errors).toEqual([]);
 });
 
-test("пустой каталог не добавляет пять встроенных точек", async ({ page }) => {
-  await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: [], total: 0, hasMore: false } }));
+test("пустой каталог не добавляет пять встроенных точек и не запрашивает ячейки", async ({ page }) => {
+  const requests = await mockMapCatalog(page, []);
   await page.goto("/");
-  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
   await expect(page.getByRole("region", { name: /^Карта историй/ })).toBeVisible();
+  await expect.poll(() => requests).toEqual([MANIFEST]);
+  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
   await expect(page.locator(".leaflet-marker-icon")).toHaveCount(0);
 });
 
 for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) for (const path of ["/", "/?walk=create"]) {
-  test(`статус виден до первого ответа и до конца загрузки ${viewport.width}×${viewport.height} ${path}`, async ({ page }, info) => {
+  test(`статус виден до ответа ячейки ${viewport.width}×${viewport.height} ${path}`, async ({ page }, info) => {
     await page.setViewportSize(viewport);
-    let firstPage!: () => void;
-    let lastPage!: () => void;
-    const first = new Promise<void>(resolve => { firstPage = resolve; });
-    const last = new Promise<void>(resolve => { lastPage = resolve; });
-    await page.route("**/api/content/places?*", async route => {
-      const offset = Number(new URL(route.request().url()).searchParams.get("offset"));
-      await (offset === 0 ? first : last);
-      await route.fulfill({ json: { places: places.slice(offset, Math.min(offset + 100, 101)), total: 101, hasMore: offset === 0 } });
-    });
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    await mockMapCatalog(page, places.slice(0, 101), { intercept: async requested => { if (requested === MOSCOW_CELL) await held; } });
     try {
       await page.goto(path);
       const status = page.locator('[data-region="catalog-status"] [role="status"]');
       await expect(status).toHaveText("Загружаем места…");
       await expect(status).toBeInViewport();
       await expect(page.getByRole("progressbar", { name: "Загрузка мест на карте" })).not.toHaveAttribute("value");
-      firstPage();
-      await expect(status).toHaveText("Загружаем места: 100 из 101…");
-      await expect(page.getByRole("progressbar")).toHaveAttribute("value", "100");
       await page.screenshot({ path: info.outputPath("catalog-loading.png") });
-      lastPage();
+      release();
       await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
       await expect.poll(() => representedPlaces(page)).toBe(101);
-    } finally { firstPage(); lastPage(); }
+    } finally { release(); }
   });
 }
 
-test("после сбоя второй страницы точки остаются, повтор догружает область", async ({ page }) => {
+test("после сбоя ячейки повтор загружает её точки", async ({ page }) => {
   let unavailable = true;
-  const sample = places.slice(0, 101);
-  await page.route("**/api/content/places?*", route => {
-    const offset = Number(new URL(route.request().url()).searchParams.get("offset"));
-    if (offset === 100 && unavailable) return route.fulfill({ status: 503, json: {} });
-    return route.fulfill({ json: { places: sample.slice(offset, offset + 100), total: sample.length, hasMore: offset + 100 < sample.length } });
+  await mockMapCatalog(page, places.slice(0, 101), {
+    intercept: (requested, route) => requested === MOSCOW_CELL && unavailable ? route.fulfill({ status: 503, json: {} }).then(() => true) : false,
   });
   await page.goto("/");
   await expect(page.getByRole("status").filter({ hasText: "Не все места загрузились." })).toBeVisible();
-  await expect.poll(() => representedPlaces(page)).toBe(100);
   unavailable = false;
   await page.getByRole("button", { name: "Повторить загрузку мест" }).click();
   await expect.poll(() => representedPlaces(page)).toBe(101);
@@ -91,12 +81,10 @@ test("после сбоя второй страницы точки остают�
 
 for (const coincident of [false, true]) {
   test(coincident ? "совпадающие места раскрываются веером и доступны по отдельности" : "группа раскрывается с клавиатуры и снова объединяется при отдалении", async ({ page }, info) => {
-    const sample = places.slice(0, 2).map((place, index) => ({ ...place,
-      location: { lat: 55.7249, lon: coincident ? 37.6507 : 37.6505 + index * 0.0004 },
-    }));
+    const sample = places.slice(0, 2).map((place, index) => ({ ...place, lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon + (coincident ? 0 : index * 0.0004 - 0.0002) }));
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
-    await page.route("**/api/content/places?*", route => route.fulfill({ json: { places: sample, total: 2, hasMore: false } }));
+    await mockMapCatalog(page, sample);
     await page.goto("/");
     const group = page.getByRole("button", { name: "Мест: 2. Нажмите, чтобы раскрыть группу" });
     await expect(group).toBeVisible();
@@ -122,84 +110,54 @@ for (const coincident of [false, true]) {
 }
 
 for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
-  test(`первая загрузка ограничена двумя шагами масштаба, новые области догружаются ${viewport.width}`, async ({ page }, info) => {
+  test(`отдаление до всего города не повторяет запросы внутри ячейки ${viewport.width}`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    const requests: URL[] = [];
-    let distant = places[1];
-    const sample = [places[1437]];
-    await page.route("**/api/content/places?*", route => {
-      const url = new URL(route.request().url());
-      requests.push(url);
-      const west = Number(url.searchParams.get("west")), east = Number(url.searchParams.get("east"));
-      const south = Number(url.searchParams.get("south")), north = Number(url.searchParams.get("north"));
-      if (requests.length === 1) {
-        distant = { ...places[1], location: { lat: 55.7249, lon: east + (east - west) * 0.15 } };
-        sample.push(distant);
-      }
-      const local = sample.filter(place => place.location.lon >= west && place.location.lon <= east && place.location.lat >= south && place.location.lat <= north);
-      return route.fulfill({ json: { places: local, total: local.length, hasMore: false } });
-    });
+    const requests = await mockMapCatalog(page, [places[1437], { ...places[1], lat: 55.9, lon: 37.3 }]);
     await page.goto("/");
     await expect(page.getByTitle("Каталог: 1438", { exact: true })).toBeVisible();
+    for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Отдалить", exact: true }).click();
+    // Viewport reports are debounced (160 ms): give the last one time to arrive before checking that nothing was requested.
+    await page.waitForTimeout(1_000);
     await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
-    expect(requests).toHaveLength(1);
-    const bounds = requests[0].searchParams;
-    const map = page.locator(".leaflet-container");
-    const box = await map.boundingBox();
-    const pixels = (Number(bounds.get("east")) - Number(bounds.get("west"))) / 360 * 256 * 2 ** 16;
-    expect(pixels).toBeCloseTo(box!.width * 4, 2);
-    expect(await page.getByTitle("Каталог: 2", { exact: true }).count()).toBe(0);
-    await page.getByRole("button", { name: "Отдалить", exact: true }).click();
-    await page.getByRole("button", { name: "Отдалить", exact: true }).click();
-    await expect.poll(() => requests.length).toBe(5);
-    await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
-    const initial = requests[0].searchParams;
-    for (const request of requests.slice(1)) {
-      const b = request.searchParams;
-      const overlap = Math.max(0, Math.min(Number(b.get("east")), Number(initial.get("east"))) - Math.max(Number(b.get("west")), Number(initial.get("west"))))
-        * Math.max(0, Math.min(Number(b.get("north")), Number(initial.get("north"))) - Math.max(Number(b.get("south")), Number(initial.get("south"))));
-      expect(overlap).toBe(0);
-    }
-    expect(Math.max(...requests.map(url => Number(url.searchParams.get("east"))))).toBeGreaterThan(distant.location.lon);
-    await page.getByRole("button", { name: "Отдалить", exact: true }).click();
-    await expect(page.getByTitle("Каталог: 2", { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Приблизить", exact: true }).click();
-    await page.getByRole("button", { name: "Приблизить", exact: true }).click();
-    await page.getByRole("button", { name: "Приблизить", exact: true }).click();
-    await expect(page.getByTitle("Каталог: 1438", { exact: true })).toBeVisible();
-    await page.screenshot({ path: info.outputPath("viewport-catalog.png") });
-    expect(requests).toHaveLength(5);
+    expect(requests).toEqual([MANIFEST, MOSCOW_CELL]);
     for (let cycle = 0; cycle < 2; cycle++) {
-      for (const name of ["Отдалить", "Отдалить", "Приблизить", "Приблизить"]) {
+      for (const name of ["Приблизить", "Приблизить", "Отдалить", "Отдалить"]) {
         await page.getByRole("button", { name, exact: true }).click();
         // Let the 160 ms viewport debounce fire before asserting absence of requests.
         await page.waitForTimeout(350);
         await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
-        expect(requests).toHaveLength(5);
+        expect(requests).toEqual([MANIFEST, MOSCOW_CELL]);
       }
     }
   });
 }
 
-test("перемещение догружает точки за исходной областью и сохраняет выбранную карточку", async ({ page }) => {
-  const requests: URL[] = [];
-  await page.route("**/api/content/places?*", route => {
-    requests.push(new URL(route.request().url()));
-    return route.fulfill({ json: { places: [places[1437]], total: 1, hasMore: false } });
-  });
+test("перемещение карты сохраняет выбранную карточку без новых запросов", async ({ page }) => {
+  const requests = await mockMapCatalog(page, [places[1437]]);
   await page.goto("/");
   await page.getByTitle("Каталог: 1438", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Каталог: 1438", exact: true })).toBeVisible();
-  const map = page.locator(".leaflet-container");
-  const box = (await map.boundingBox())!;
+  const box = (await page.locator(".leaflet-container").boundingBox())!;
   for (let i = 0; i < 5; i++) {
     await page.mouse.move(box.x + box.width * 0.85, box.y + 180);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width * 0.15, box.y + 180, { steps: 15 });
     await page.mouse.up();
   }
-  await expect.poll(() => requests.length).toBeGreaterThan(1);
-  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
-  expect(Number(requests.at(-1)!.searchParams.get("east"))).toBeGreaterThan(Number(requests[0].searchParams.get("east")));
   await expect(page.getByRole("heading", { name: "Каталог: 1438", exact: true })).toBeVisible();
+  expect(requests.filter(path => path.startsWith("/api/content/map-cells"))).toEqual([MANIFEST, MOSCOW_CELL]);
+});
+
+test("после перезагрузки без сети к индексу точки показываются из Cache Storage", async ({ page }) => {
+  let offline = false;
+  await mockMapCatalog(page, places.slice(0, 101), {
+    intercept: (requested, route) => offline && requested.startsWith("/api/content/map-cells") ? route.abort("internetdisconnected").then(() => true) : false,
+  });
+  await page.goto("/");
+  await expect.poll(() => representedPlaces(page)).toBe(101);
+  await expect.poll(() => page.evaluate(async () => (await (await caches.open("map-cells-v1")).keys()).length)).toBe(2);
+  offline = true;
+  await page.reload();
+  await expect.poll(() => representedPlaces(page)).toBe(101);
+  await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
 });

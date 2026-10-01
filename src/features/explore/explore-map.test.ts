@@ -25,6 +25,7 @@ vi.mock("./map-clusters", () => ({
   createMapClusters: () => ({
     addTo: vi.fn().mockReturnThis(),
     addLayers: vi.fn(),
+    dispose: vi.fn(),
   }),
 }));
 vi.mock("leaflet", () => {
@@ -155,7 +156,7 @@ async function mount(
 it("restores the actual center and zoom after leaving and returning to the map", async () => {
   const state: MapViewState = { current: null };
   const first = await mount(state);
-  expect(first.map.setView).toHaveBeenCalledWith([55.7249, 37.6507], 16);
+  expect(first.map.setView).toHaveBeenCalledWith([55.752, 37.6175], 14);
   first.map.setView([55.76, 37.61], 14);
   first.cleanup?.();
   const returned = await mount(state);
@@ -192,8 +193,8 @@ it("does not share the nearby viewport with maps that do not opt in", async () =
   };
   const other = await mount();
   expect(other.map.setView).toHaveBeenCalledExactlyOnceWith(
-    [55.7249, 37.6507],
-    16,
+    [55.752, 37.6175],
+    14,
   );
   other.cleanup?.();
   expect(state.current?.zoom).toBe(14);

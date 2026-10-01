@@ -10,11 +10,10 @@ import { stageLabels, terminalStages, type GenerationJob } from "../generator/ty
 import type { MapFocus, MapViewState } from "./explore-map";
 import { ExploreIcon } from "./icons";
 import { AppNavigation } from "../navigation/app-navigation";
-import { isMoscowPoint, MOSCOW_CENTER, readMapJobs, type MapJob } from "./map-jobs";
+import { isMoscowPoint, MOSCOW_CENTER, MOSCOW_ZOOM, readMapJobs, type MapJob } from "./map-jobs";
 import { nearbyRadiusForAccuracy, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
-import { selectExplorePanel } from "./panel-state";
-import { openDataAttribution } from "./source-attribution";
-import { usePublishedCatalog } from "./use-published-catalog";
+import { isWalkCreation, selectExplorePanel } from "./panel-state";
+import { useMapCatalog } from "./use-map-catalog";
 import { rememberGeoPromptDismissal, shouldShowGeoPrompt } from "./geo-prompt";
 import { MapShell } from "../shell/map-shell";
 import { MapControlButton } from "../shell/map-controls";
@@ -41,7 +40,7 @@ const walkChapterAt=(route:Route,index?:number)=>index===undefined?undefined:get
 export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef}: {route:Route;onStart:(chapter?:number)=>void;updateAvailable:boolean;openChapter?:number;startRef?:Ref<HTMLButtonElement>}) {
   const router = useRouter();
   const params = useSearchParams();
-  const creating = params.get("walk") === "create" || params.get("tab") === "walk";
+  const creating = isWalkCreation(params);
   const [creationMap, setCreationMap] = useState<CreationMap>({items:[], focus:null, picking:false});
   const [picked, setPicked] = useState<Coordinates | null>(null);
   const opener = useRef<HTMLElement | null>(null);
@@ -58,7 +57,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   const [prompt,setPrompt]=useState(false);
   const [mapHintVisible,setMapHintVisible]=useState(true);
   const [tracked]=useState<MapJob[]>(()=>typeof window==="undefined"?[]:readMapJobs()),[jobs,setJobs]=useState<Record<string,GenerationJob>>({});
-  const {places:catalog,total:catalogTotal,loaded:catalogLoaded,status:catalogStatus,nearbyStatus,maintenance:catalogMaintenance,retry:retryCatalog,onViewport}=usePublishedCatalog(nearbyCenter,nearbyRadius);
+  const {places:catalog,status:catalogStatus,nearbyStatus,maintenance:catalogMaintenance,retry:retryCatalog,onViewport}=useMapCatalog(nearbyCenter,nearbyRadius);
   const lookup=useRef<AbortController|null>(null),locating=useRef<(()=>void)|null>(null);
   const input=useRef<HTMLInputElement>(null);
 
@@ -112,10 +111,11 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     const own=tracked.map(item=>{
       const job=jobs[item.id];return {...item,jobId:item.id,title:job?.story?.title??item.address,duration:job?.audio?.durationSec,pending:job?!terminalStages.has(job.stage):false,status:job?stageLabels[job.stage]:"Открыть подготовку"};
     });
-    const places=catalog.map(place=>({id:place.id,placeId:place.id,title:place.story?.title??place.name,address:place.address??place.name,location:place.location,duration:place.audio?.durationSec,audioUrl:place.audio?.url,status:place.audio?"Готово к прослушиванию":"Текст готов",paragraphs:place.story?.paragraphs?.map(paragraph=>paragraph.text).filter(Boolean),attribution:openDataAttribution(place.story?.sources)}));
+    // The text, sources and audio of a catalog point load when its sheet opens (usePlaceStory).
+    const places=catalog.map(place=>({id:place.id,placeId:place.id,title:place.title,address:place.address,location:place.location,duration:place.durationSec??undefined,status:place.durationSec!=null?"Готово к прослушиванию":"Текст готов",clusterable:true}));
     return [...chapters,...own,...places.filter(place=>![...chapters,...own].some(existing=>existing.id===place.id))];
   },[route,openChapter,tracked,jobs,catalog]);
-  const recommendations=useMemo(()=>nearbyCenter?recommendNearbyStories(nearbyCenter,nearbyRadius,catalog.filter(place=>place.audio&&place.story).map(place=>({id:place.id,title:place.story!.title,address:place.address??place.name,location:place.location,durationSec:place.audio!.durationSec,sourceCount:place.story!.sources?.length??1,factCount:place.story!.facts?.length??1}))):[],[nearbyCenter,nearbyRadius,catalog]);
+  const recommendations=useMemo(()=>nearbyCenter?recommendNearbyStories(nearbyCenter,nearbyRadius,catalog.flatMap(place=>place.durationSec!=null?[{id:place.id,title:place.title,address:place.address,location:place.location,durationSec:place.durationSec,sourceCount:place.sources,factCount:place.facts}]:[])):[],[nearbyCenter,nearbyRadius,catalog]);
   const visible=useMemo(()=>[...pins].sort((a,b)=>user?distance(user,a.location)-distance(user,b.location):0),[pins,user]);
   const creationItems=useMemo(()=>[
     ...visible.filter(pin=>!creationMap.items.some(point=>distance(pin.location,point.location)<15)).map(pin=>({...pin,compact:true})),
@@ -181,7 +181,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
       setGeoMessage(!inMoscow?"Вы сейчас за пределами нашего каталога.":radius?"":`Положение приблизительное${Number.isFinite(point.accuracyM)?`: точность около ${Math.round(point.accuracyM)} м`:""}. Выберите точку на карте, чтобы точно искать рядом.`);
     });
   }
-  function showMoscow(){setFocus({...MOSCOW_CENTER,zoom:12});setGeoMessage("");setGeoOutside(false);}
+  function showMoscow(){setFocus({...MOSCOW_CENTER,zoom:MOSCOW_ZOOM});setGeoMessage("");setGeoOutside(false);}
   function metadata(pin:StoryPin){return [pin.duration?`${Math.ceil(pin.duration/60)} мин · аудио`:pin.status,user?`${distanceLabel(distance(user,pin.location))} по прямой`:null].filter(Boolean).join(" · ");}
   const createHref=place?.address?`/create?${new URLSearchParams({address:place.address,lat:String(place.location.lat),lon:String(place.location.lon)})}`:"/create?new=1";
   const walkStart=place?.address?place:active;
@@ -198,7 +198,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     : null;
   // An empty slot must stay null: the shell gives the dock room only when there is something to show.
   const noticeList = [
-    catalogStatus!=="ready"||catalogMaintenance?<div key="catalog" className={styles.catalogStatus} data-region="catalog-status"><span role="status" aria-atomic="true">{catalogMaintenance?"Сервис обновляется. Карта загрузится автоматически.":catalogStatus==="error"?"Не все места загрузились.":catalogTotal?`Загружаем места: ${catalogLoaded} из ${catalogTotal}…`:"Загружаем места…"}</span>{catalogStatus==="loading"&&!catalogMaintenance?<progress aria-label="Загрузка мест на карте" max={catalogTotal||1} value={catalogTotal?catalogLoaded:undefined}/>:null}{catalogStatus==="error"&&!catalogMaintenance?<button type="button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null,
+    catalogStatus!=="ready"||catalogMaintenance?<div key="catalog" className={styles.catalogStatus} data-region="catalog-status"><span role="status" aria-atomic="true">{catalogMaintenance?"Сервис обновляется. Карта загрузится автоматически.":catalogStatus==="error"?"Не все места загрузились.":"Загружаем места…"}</span>{catalogStatus==="loading"&&!catalogMaintenance?<progress aria-label="Загрузка мест на карте"/>:null}{catalogStatus==="error"&&!catalogMaintenance?<button type="button" onClick={retryCatalog}>Повторить загрузку мест</button>:null}</div>:null,
     !creating&&geoMessage&&!search?<GeoNotice key="geo" message={geoMessage} outside={geoOutside} denied={geo==="denied"} onMoscow={showMoscow} onRetry={locate} onClose={()=>{setGeoMessage("");setGeoOutside(false);}} />:null,
     !creating&&!sheet&&!search&&mapHintVisible?<MapHintNotice key="hint" onClose={()=>setMapHintVisible(false)} />:null,
     !creating&&updateAvailable?<a key="update" className={a.notice} href="/update.html">Доступна новая версия · обновить</a>:null,

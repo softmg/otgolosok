@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useEffectEvent, useState, useSyncExternalStore } from "react";
+import { watchForSafeUpdate } from "@/lib/offline/auto-update";
 
 const SHELL_UNAVAILABLE = "Офлайн-режим недоступен в этом браузере.";
 const subscribeNever = () => () => {};
 
 /**
  * Registers the Service Worker that keeps the app shell available offline and
- * reports whether a newer version is waiting. `shellStatus` is empty while the
+ * reports whether a newer version is waiting. A waiting version is applied on
+ * its own once `canApplyUpdate` allows it and the reload goes unnoticed; until
+ * then `updateAvailable` offers it manually. `shellStatus` is empty while the
  * offline shell works.
  */
-export function useOfflineShell(): { shellStatus: string; updateAvailable: boolean } {
+export function useOfflineShell(canApplyUpdate: () => boolean = () => true): { shellStatus: string; updateAvailable: boolean } {
   const [offlineStatus, setOfflineStatus] = useState("");
   const [updateAvailable, setUpdateAvailable] = useState(false);
   // The static HTML assumes support; the client snapshot reveals browsers without Service Worker.
   const serviceWorkerMissing = useSyncExternalStore(subscribeNever, () => process.env.NODE_ENV === "production" && !("serviceWorker" in navigator), () => false);
+  const canApply = useEffectEvent(canApplyUpdate);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
@@ -26,8 +30,15 @@ export function useOfflineShell(): { shellStatus: string; updateAvailable: boole
       updateViaCache: "none",
     }).then(async (registration) => {
       if (cancelled) return;
+      const autoUpdate = watchForSafeUpdate({
+        registration, serviceWorker: navigator.serviceWorker, document, window,
+        canApply: () => canApply(), reload: () => window.location.reload(),
+      });
+      cleanups.push(autoUpdate.dispose);
       const checkUpdate = () => {
-        if (!cancelled) setUpdateAvailable(Boolean(registration.waiting));
+        if (cancelled) return;
+        setUpdateAvailable(Boolean(registration.waiting));
+        autoUpdate.check();
       };
       const watchInstalling = () => {
         const worker = registration.installing;

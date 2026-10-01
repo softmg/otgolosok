@@ -8,6 +8,8 @@ import { createApp, workerLeaseSecret } from "./server.mjs";
 import { createAuth, sessionCsrfToken } from "./auth.mjs";
 import { createAccountStore } from "./account-store.mjs";
 import { ensurePromoWalksUser } from "./promo-walks.mjs";
+import { request as httpRequest } from "node:http";
+import { brotliDecompressSync, gunzipSync } from "node:zlib";
 
 async function testAccounts(t,users=["test-user"]) {
   const runtime=await createAuth({databasePath:":memory:",baseURL:"https://otgolosok.test",secret:"server-test-secret-longer-than-32-characters",production:false});
@@ -503,4 +505,79 @@ test("public catalog accepts only complete finite non-wrapping bounds", async t 
     "west=37&south=55&east=38&north=56&west=36",
     "west=37&south=55&east=38&north=56&lat=55.75&lon=37.61&radius=200",
   ]) assert.equal((await fetch(`${f.base}/api/content/places?${query}`)).status, 400, query);
+});
+
+/** Raw HTTP: fetch would decompress the body and add its own Accept-Encoding. */
+function raw(base,path,headers={},method="GET") {
+  return new Promise((resolve,reject)=>{
+    const req=httpRequest(base+path,{method,headers},res=>{const chunks=[];res.on("data",chunk=>chunks.push(chunk));res.on("end",()=>resolve({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks)}));});
+    req.on("error",reject);req.end();
+  });
+}
+
+async function mapFixture(t) {
+  const f=await fixture(t);
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),places:[
+    {placeId:"osm:node:8",osmType:"node",osmId:8,name:"Сад",location:{lat:55.75,lon:37.61},tags:{leisure:"garden"}},
+    {placeId:"osm:node:9",osmType:"node",osmId:9,name:"Парк",location:{lat:56.1,lon:37.2},tags:{leisure:"park"}},
+  ]});
+  f.store.createBatch({requestKey:"map-http",placeIds:["osm:node:8","osm:node:9"],limit:2});
+  for(let job=f.store.claimContentJob();job;job=f.store.claimContentJob())
+    f.store.completeContentJob(job.id,{story:{title:`История: ${job.place.name}`,paragraphs:[{text:"Проверенный текст",factIds:["f1"]}],facts:[{id:"f1"}],sources:[]},evidence:{},autoApprove:true});
+  return f;
+}
+
+test("map manifest and cells are cacheable, compressed and revalidated by ETag",async t=>{
+  const f=await mapFixture(t);
+  const manifest=await raw(f.base,"/api/content/map-cells");
+  assert.equal(manifest.status,200);
+  assert.equal(manifest.headers["cache-control"],"no-cache");assert.equal(manifest.headers.vary,"Accept-Encoding");
+  assert.equal(manifest.headers["content-type"],"application/json; charset=utf-8");assert.equal(manifest.headers["content-encoding"],undefined);
+  const value=JSON.parse(manifest.body.toString());
+  assert.deepEqual({...value,cells:value.cells.map(({lat,lon,count})=>({lat,lon,count}))},{version:1,cellSize:1,cells:[{lat:55,lon:37,count:1},{lat:56,lon:37,count:1}]});
+
+  const identity=await raw(f.base,"/api/content/map-cells/55/37");
+  assert.equal(identity.status,200);
+  // The manifest's per-cell etag is exactly the cell endpoint's ETag.
+  assert.equal(identity.headers.etag,`"${value.cells[0].etag}"`);
+  assert.equal(identity.headers["content-length"],String(identity.body.length));
+  const cell=JSON.parse(identity.body.toString());
+  assert.deepEqual(cell,{lat:55,lon:37,points:[{id:"osm:node:8",lat:55.75,lon:37.61,title:"История: Сад",address:"Сад",durationSec:null,facts:1,sources:0}]});
+
+  /** @type {Record<string, (value: Buffer) => Buffer>} */
+  const decoders={br:value=>brotliDecompressSync(value),gzip:value=>gunzipSync(value),identity:value=>value};
+  for(const [accept,encoding] of [["br","br"],["gzip, deflate, br","br"],["gzip","gzip"],["br;q=0, gzip","gzip"],["gzip;q=0, br;q=0","identity"],["*","br"],["identity","identity"]]) {
+    const decode=decoders[encoding];
+    const response=await raw(f.base,"/api/content/map-cells/55/37",{"Accept-Encoding":accept});
+    assert.equal(response.headers["content-encoding"],encoding==="identity"?undefined:encoding,accept);
+    assert.deepEqual(decode(response.body),identity.body,accept);
+    assert.equal(response.headers.etag,identity.headers.etag,accept);
+  }
+
+  for(const header of [identity.headers.etag,`W/${identity.headers.etag}`,`"other", ${identity.headers.etag}`,"*"]) {
+    const response=await raw(f.base,"/api/content/map-cells/55/37",{"If-None-Match":header});
+    assert.equal(response.status,304,header);assert.equal(response.body.length,0,header);
+    assert.equal(response.headers.etag,identity.headers.etag);assert.equal(response.headers["cache-control"],"no-cache");assert.equal(response.headers.vary,"Accept-Encoding");
+  }
+  assert.equal((await raw(f.base,"/api/content/map-cells/55/37",{"If-None-Match":'"other"'})).status,200);
+  const head=await raw(f.base,"/api/content/map-cells",{"Accept-Encoding":"br"},"HEAD");
+  assert.equal(head.status,200);assert.equal(head.headers["content-encoding"],"br");assert.equal(head.body.length,0);
+
+  assert.deepEqual(JSON.parse((await raw(f.base,"/api/content/map-cells/-1/0")).body.toString()),{lat:-1,lon:0,points:[]});
+  for(const path of ["/api/content/map-cells/-0/37","/api/content/map-cells/55/-0","/api/content/map-cells/055/37","/api/content/map-cells/1.5/37",
+    "/api/content/map-cells/90/37","/api/content/map-cells/55/-181","/api/content/map-cells/55/180","/api/content/map-cells/55","/api/content/map-cells/55/37/1",
+    "/api/content/map-cells/55/37?v=1","/api/content/map-cells?v=1"]) {
+    assert.equal((await raw(f.base,path)).status,400,path);
+  }
+});
+
+test("published place details are revalidated by ETag while a missing place stays uncached",async t=>{
+  const f=await mapFixture(t);
+  const response=await raw(f.base,"/api/content/places/osm:node:8",{"Accept-Encoding":"gzip"});
+  assert.equal(response.status,200);assert.equal(response.headers["cache-control"],"no-cache");assert.equal(response.headers["content-encoding"],"gzip");
+  const value=JSON.parse(gunzipSync(response.body).toString());
+  assert.equal(value.place.id,"osm:node:8");assert.equal(value.place.text.story.title,"История: Сад");
+  assert.equal((await raw(f.base,"/api/content/places/osm:node:8",{"If-None-Match":response.headers.etag})).status,304);
+  const missing=await raw(f.base,"/api/content/places/osm:node:404");
+  assert.equal(missing.status,404);assert.equal(missing.headers["cache-control"],"no-store");assert.equal(missing.headers.etag,undefined);
 });

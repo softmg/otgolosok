@@ -1,8 +1,10 @@
 import { expect, type Page } from "@playwright/test";
+import { mockMapCatalog } from "./map-catalog";
 import { draftToWalkDocument, routeToWalkView } from "../../src/features/walks/adapters";
 import routeData from "../../public/data/routes/paveletskaya.json" with { type: "json" };
 import type { Route } from "../../src/features/tour/types";
 import type { LayoutOptions } from "./layout";
+import { MOSCOW_CENTER } from "../../src/features/explore/map-jobs";
 
 export const walkId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 export const start = { address: "Москва, Арбат, 1", location: { lat: 55.75, lon: 37.6 } };
@@ -15,12 +17,12 @@ export const longStop = routeToWalkView({ ...catalog, walk: { ...catalog.walk!, 
 
 /** Mocks every API with an empty guest answer; specific routes registered later take precedence. */
 export async function mockGuestApi(page: Page) {
-  await page.route("**/api/**", route => route.fulfill({ json: { user: null, walks: [], nextCursor: null, items: [], places: [], total: 0, hasMore: false } }));
+  await page.route("**/api/**", route => route.fulfill({ json: { user: null, walks: [], nextCursor: null, items: [], version: 1, cellSize: 1, cells: [] } }));
 }
 
 export async function openLongStory(page: Page, { visible = true } = {}) {
   const text = "Корпус имеет сложную, отдалённо Т-образную форму, а главный фасад построен как трёхчастная композиция. ".repeat(5);
-  await page.route("**/api/content/places?*", route => route.fulfill({ json: { total: 1, hasMore: false, places: [{ id: "long-story", name: "Длинная история", address: "Москва, Дербеневская, 1", location: { lat: 55.7249, lon: 37.6507 }, story: { title: "Длинная история", paragraphs: [{ text }, { text }, { text }], sources: [], facts: [] }, audio: { url: "/api/story-audio/long-story.mp3", durationSec: 120 } }] } }));
+  await mockMapCatalog(page, [{ id: "long-story", title: "Длинная история", address: "Москва, Дербеневская, 1", lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon, paragraphs: [text, text, text], audioUrl: "/api/story-audio/long-story.mp3", durationSec: 120 }]);
   await page.goto("/");
   // On a short landscape screen the pin can sit under the geolocation card; this helper only opens the state.
   await page.locator('[title="Длинная история"]').dispatchEvent("click");

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/test";
 import { draftToWalkDocument, routeToWalkView } from "../src/features/walks/adapters";
 import routeData from "../public/data/routes/paveletskaya.json" with { type: "json" };
 import type { Route } from "../src/features/tour/types";

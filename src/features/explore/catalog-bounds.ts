@@ -4,33 +4,6 @@ import type { Coordinates } from "../tour/types";
 export type CatalogBounds = { west: number; south: number; east: number; north: number };
 export type CatalogArea = { required: CatalogBounds; buffered: CatalogBounds };
 
-export function containsBounds(outer: CatalogBounds, inner: CatalogBounds) {
-  const epsilon = 1e-9;
-  return outer.west <= inner.west + epsilon && outer.south <= inner.south + epsilon
-    && outer.east >= inner.east - epsilon && outer.north >= inner.north - epsilon;
-}
-
-/** Disjoint rectangles still missing from the union of completed requests. */
-export function uncoveredBounds(bounds: CatalogBounds, covered: readonly CatalogBounds[]): CatalogBounds[] {
-  let missing = [bounds];
-  for (const cached of covered) {
-    missing = missing.flatMap(part => {
-      if (containsBounds(cached, part)) return [];
-      const west = Math.max(part.west, cached.west), east = Math.min(part.east, cached.east);
-      const south = Math.max(part.south, cached.south), north = Math.min(part.north, cached.north);
-      if (west >= east || south >= north) return [part];
-      return [
-        { west: part.west, south: part.south, east: part.east, north: south },
-        { west: part.west, south: north, east: part.east, north: part.north },
-        { west: part.west, south, east: west, north },
-        { west: east, south, east: part.east, north },
-      ].filter(piece => piece.west < piece.east && piece.south < piece.north);
-    });
-    if (!missing.length) break;
-  }
-  return missing;
-}
-
 /** Project pixels at the target zoom: padding latitude directly is not Mercator-correct. */
 export function catalogArea(map: Pick<Leaflet.Map, "getCenter" | "getZoom" | "getMinZoom" | "getSize" | "project" | "unproject">): CatalogArea {
   const size = map.getSize();

@@ -3,7 +3,7 @@ import type { Coordinates } from "../tour/types";
 import { fitBox, NO_INSETS, sameInsets, type MapInsets } from "../shell/map-insets";
 
 export type MapFocus = Coordinates & { zoom?: number };
-type ViewMap = Pick<Leaflet.Map, "getSize" | "getZoom" | "setView" | "panBy" | "fitBounds" | "on" | "off">;
+type ViewMap = Pick<Leaflet.Map, "getSize" | "getZoom" | "getBoundsZoom" | "setView" | "panBy" | "fitBounds" | "on" | "off">;
 type Target = { kind: "focus"; focus: MapFocus } | { kind: "fit"; bounds: Leaflet.LatLngBoundsExpression };
 
 /** Room a stop pin needs around its point: it rises about 48 px above it. */
@@ -41,7 +41,11 @@ export function createMapView(map: ViewMap) {
         if (x || y) map.panBy([x, y], { animate: false });
       } else {
         const box = fitBox(size, { top: insets.top + PIN.top, right: insets.right + PIN.side, bottom: insets.bottom + PIN.side, left: insets.left + PIN.side }, MIN_BOX);
-        map.fitBounds(current.bounds, { paddingTopLeft: [box.left, box.top], paddingBottomRight: [box.right, box.bottom], maxZoom: ROUTE_MAX_ZOOM, animate: false });
+        const padding = { x: box.left + box.right, y: box.top + box.bottom } as Leaflet.Point;
+        // A route is fitted at a whole zoom level although gestures zoom in quarter steps: the margin left by
+        // rounding down keeps the line off the panels when a small screen widens the box past them (MIN_BOX).
+        const zoom = Math.min(ROUTE_MAX_ZOOM, Math.floor(map.getBoundsZoom(current.bounds, false, padding)));
+        map.fitBounds(current.bounds, { paddingTopLeft: [box.left, box.top], paddingBottomRight: [box.right, box.bottom], maxZoom: zoom, animate: false });
       }
     } finally { own--; }
   }

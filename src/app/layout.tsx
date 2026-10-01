@@ -6,7 +6,8 @@ import "@/styles/ui.css";
 import "@/styles/legacy.css";
 
 export const metadata: Metadata = {
-  icons: { icon: "/icon.svg" },
+  // iOS ignores SVG touch icons (scripts/build-app-icons.mjs).
+  icons: { icon: "/icon.svg", apple: "/icons/apple-touch-icon.png" },
   title: "Отголосок — город говорит рядом",
   description:
     "Аудиопрогулки по Москве, которые начинаются там, где случилась история.",

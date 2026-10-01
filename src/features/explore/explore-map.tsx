@@ -13,7 +13,8 @@ import { NO_INSETS, type MapInsets } from "../shell/map-insets";
 import type { MapStatus } from "../shell/map-status-notice";
 import { cx } from "../ui/cx";
 import { catalogArea, type CatalogArea } from "./catalog-bounds";
-import { createMapClusters, loadMapLibrary } from "./map-clusters";
+import { createMapClusters, loadMapLibrary, type MapClusters } from "./map-clusters";
+import { MOSCOW_CENTER, MOSCOW_ZOOM } from "./map-jobs";
 import { createMapView, type MapFocus, type MapView } from "./map-view";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -29,6 +30,12 @@ export const FALLBACK_TILE_URL =
  * Leaflet zooms are one above MapLibre's (512 px tiles): z10 here draws the style at z9.
  */
 export const MAP_MIN_ZOOM = 10;
+/**
+ * Fractional zoom for the wheel and pinch: with Leaflet's default snap of 1 every touchpad tick,
+ * however small, jumped a whole level after the wheel debounce. A mouse notch still moves about
+ * one level (wheelPxPerZoomLevel compensates for the finer snap), and the +/− buttons keep zoomDelta 1.
+ */
+export const MAP_ZOOM_OPTIONS = { zoomSnap: 0.25, zoomDelta: 1, wheelPxPerZoomLevel: 40 } as const;
 
 function supportsWebGL() {
   const canvas = document.createElement("canvas");
@@ -83,6 +90,8 @@ export type MapItem = {
   number?: number;
   pending?: boolean;
   compact?: boolean;
+  /** Only catalog points join clusters; chapters, own jobs and picked places stay individual pins. */
+  clusterable?: boolean;
 };
 export type { MapFocus };
 export type MapViewState = {
@@ -138,7 +147,7 @@ export function ExploreMap({
     view: MapView;
     colors: { route: string; user: string };
     markers: Leaflet.LayerGroup;
-    clusters: Leaflet.MarkerClusterGroup;
+    clusters: MapClusters;
     markerById: Map<
       string,
       {
@@ -202,11 +211,14 @@ export function ExploreMap({
           zoomAnimation: false,
           fadeAnimation: !reduced,
           markerZoomAnimation: false,
+          ...MAP_ZOOM_OPTIONS,
           minZoom: MAP_MIN_ZOOM,
           maxZoom: 19,
         }).setView(
-          saved ? [saved.center.lat, saved.center.lon] : [55.7249, 37.6507],
-          saved?.zoom ?? 16,
+          saved
+            ? [saved.center.lat, saved.center.lon]
+            : [MOSCOW_CENTER.lat, MOSCOW_CENTER.lon],
+          saved?.zoom ?? MOSCOW_ZOOM,
         );
         if (viewState) {
           saveView = () => {
@@ -318,6 +330,7 @@ export function ExploreMap({
       clearTimeout(viewportTimer);
       observer?.disconnect();
       runtime.current?.view.dispose();
+      runtime.current?.clusters.dispose();
       const map = runtime.current?.map;
       if (map) {
         saveView?.();
@@ -345,7 +358,7 @@ export function ExploreMap({
     const additions: Leaflet.Marker[] = [];
     for (const item of items) {
       const active = item.id === selectedId;
-      const clustered = !active && item.number === undefined && !item.pending;
+      const clustered = item.clusterable === true && !active;
       // Marker contents are fixed symbols/numbers, never upstream HTML.
       const label = item.number
         ? String(item.number)
