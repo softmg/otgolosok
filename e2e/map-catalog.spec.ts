@@ -120,6 +120,15 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await page.waitForTimeout(1_000);
     await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
     expect(requests).toEqual([MANIFEST, MOSCOW_CELL]);
+    for (let cycle = 0; cycle < 2; cycle++) {
+      for (const name of ["Приблизить", "Приблизить", "Отдалить", "Отдалить"]) {
+        await page.getByRole("button", { name, exact: true }).click();
+        // Let the 160 ms viewport debounce fire before asserting absence of requests.
+        await page.waitForTimeout(350);
+        await expect(page.locator('[data-region="catalog-status"]')).toHaveCount(0);
+        expect(requests).toEqual([MANIFEST, MOSCOW_CELL]);
+      }
+    }
   });
 }
 
