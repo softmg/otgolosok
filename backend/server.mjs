@@ -636,7 +636,7 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         let file=resolve(root,relative);
         if(!file.startsWith(root+sep)){json(res,404,{});return;}
         if(!extname(file)) file+=".html";
-        const types={".html":"text/html; charset=utf-8",".js":"application/javascript",".css":"text/css",".json":"application/json",".txt":"text/plain",".svg":"image/svg+xml",".woff2":"font/woff2",".ico":"image/x-icon",".mp3":"audio/mpeg",".webmanifest":"application/manifest+json"};
+        const types={".html":"text/html; charset=utf-8",".js":"application/javascript",".css":"text/css",".json":"application/json",".txt":"text/plain",".svg":"image/svg+xml",".woff2":"font/woff2",".ico":"image/x-icon",".png":"image/png",".mp3":"audio/mpeg",".webmanifest":"application/manifest+json"};
         await sendFile(req,res,file,types[extname(file)]??"application/octet-stream");return;
       }
       json(res,404,{error:{message:"Страница не найдена."}});

@@ -366,6 +366,9 @@ pnpm build && pnpm generator:dev   # http://127.0.0.1:4175
 - `content` — редакторское досье первой карточки и план генерации за 5–10 минут.
 - `public/sw.js` — Service Worker для офлайн-запуска, данных и аудио.
 - `scripts/build-service-worker.mjs` — формирует список файлов и версию кэша после статического экспорта.
+- `src/app/manifest.ts` — манифест для установки на домашний экран (Android, iOS, десктопный Chrome).
+- `scripts/build-app-icons.mjs` — PNG-иконки установленного приложения из `src/app/icon.svg`;
+  запускать `node scripts/build-app-icons.mjs` после смены логотипа.
 - `scripts/prod-db.mjs` — выгрузка базы генератора с прода, импорт и откат на рабочей машине.
 - `scripts/check-stress.mjs` — проверка разметки ударений для SpeechKit перед синтезом.
 

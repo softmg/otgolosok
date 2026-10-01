@@ -6,7 +6,7 @@ export function normalizeOutputPath(file) {
 
 export function selectPrecacheFiles(files) {
   return files.map(normalizeOutputPath).filter(file =>
-    precacheNames.has(file) || /^(?:_next\/static|data|audio)\/.+\.[^/]+$/.test(file),
+    precacheNames.has(file) || /^(?:_next\/static|data|audio|icons)\/.+\.[^/]+$/.test(file),
   ).sort();
 }
 
