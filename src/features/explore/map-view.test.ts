@@ -9,6 +9,8 @@ function fakeMap() {
   const map = {
     getSize: () => ({ x: 390, y: 844 }),
     getZoom: () => zoom,
+    /** Leaflet с zoomSnap 0.25 возвращает четверти уровня. */
+    getBoundsZoom: vi.fn(() => 15.75),
     setView: vi.fn((_: unknown, value: number) => { zoom = value; fire(); return map; }),
     panBy: vi.fn(() => { fire(); return map; }),
     fitBounds: vi.fn(() => { fire(); return map; }),
@@ -29,7 +31,19 @@ describe("вид карты", () => {
     const view = createMapView(map as never);
     view.setInsets(panels);
     view.fit(route);
-    expect(map.fitBounds).toHaveBeenLastCalledWith(route, { paddingTopLeft: [36, 178], paddingBottomRight: [36, 368], maxZoom: 17, animate: false });
+    expect(map.getBoundsZoom).toHaveBeenLastCalledWith(route, false, { x: 72, y: 546 });
+    expect(map.fitBounds).toHaveBeenLastCalledWith(route, { paddingTopLeft: [36, 178], paddingBottomRight: [36, 368], maxZoom: 15, animate: false });
+  });
+
+  it.each([
+    ["дробный масштаб округляется вниз до целого", 15.75, 15],
+    ["целый масштаб не меняется", 16, 16],
+    ["короткий маршрут ограничен максимальным масштабом", 18.5, 17],
+  ])("%s", (_name, boundsZoom, zoom) => {
+    const map = fakeMap();
+    map.getBoundsZoom.mockReturnValue(boundsZoom);
+    createMapView(map as never).fit(route);
+    expect(map.fitBounds).toHaveBeenLastCalledWith(route, expect.objectContaining({ maxZoom: zoom }));
   });
 
   it("переписывает маршрут, пока пользователь не трогал карту", () => {

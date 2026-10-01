@@ -30,6 +30,12 @@ export const FALLBACK_TILE_URL =
  * Leaflet zooms are one above MapLibre's (512 px tiles): z10 here draws the style at z9.
  */
 export const MAP_MIN_ZOOM = 10;
+/**
+ * Fractional zoom for the wheel and pinch: with Leaflet's default snap of 1 every touchpad tick,
+ * however small, jumped a whole level after the wheel debounce. A mouse notch still moves about
+ * one level (wheelPxPerZoomLevel compensates for the finer snap), and the +/− buttons keep zoomDelta 1.
+ */
+export const MAP_ZOOM_OPTIONS = { zoomSnap: 0.25, zoomDelta: 1, wheelPxPerZoomLevel: 40 } as const;
 
 function supportsWebGL() {
   const canvas = document.createElement("canvas");
@@ -205,6 +211,7 @@ export function ExploreMap({
           zoomAnimation: false,
           fadeAnimation: !reduced,
           markerZoomAnimation: false,
+          ...MAP_ZOOM_OPTIONS,
           minZoom: MAP_MIN_ZOOM,
           maxZoom: 19,
         }).setView(
