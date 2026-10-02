@@ -29,7 +29,8 @@
 .walk-session-icon{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;color:inherit;background:#203e380a;cursor:pointer}
 .walk-session-address{font-size:14px;line-height:1.5;margin:12px 0 0;color:#687770;overflow-wrap:anywhere}
 .walk-session-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px}
-.walk-session-tools:has(button){margin-top:12px}
+.walk-session-tools:has(button,a){margin-top:12px}
+.walk-session-tools a{display:flex;align-items:center;min-height:36px;color:inherit;font-size:14px;text-underline-offset:4px}
 .walk-session-tools button{display:flex;align-items:center;gap:6px;min-height:36px;padding:0;border:0;background:none;color:inherit;font:inherit;font-size:14px;cursor:pointer}
 .walk-session-tools svg{width:18px;height:18px}
 .walk-session-tools [aria-expanded=true]{text-decoration:underline;text-underline-offset:4px}
@@ -80,7 +81,7 @@
   .walk-session-map .leaflet-control-zoom a:first-child{border-right:1px solid #203e381a}
   .walk-session-locate{top:var(--walk-controls-top);right:calc(12px + 88px + 8px)}
 }
-@media(max-height:560px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button){margin-top:4px}}
+@media(max-height:560px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button,a){margin-top:4px}}
 
 /* Низкий горизонтальный экран: панель во всю ширину или по центру поднималась почти
    до верха и закрывала крестик, кнопки масштаба и линию маршрута. Как карточка на

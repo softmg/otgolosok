@@ -8,12 +8,13 @@ import { BrandMark } from "../brand/brand-mark";
 import type { Coordinates, Route } from "./types";
 import type { WalkChapter } from "./walk-plan";
 import { StopWalkDialog } from "./stop-walk-dialog";
+import type { OwnWalk } from "../walks/own-walk";
 import "./walk-session.css";
 
 const noop = () => {};
 
 export function WalkSession({ route, chapters, index, active, completed, user, positionFailed, resume,
-  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null, onRate = noop }: {
+  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null, onRate = noop, own = null }: {
   route: Route; chapters: WalkChapter[]; index: number; active: boolean; completed: boolean;
   user: (Coordinates & { accuracyM: number }) | null; positionFailed: boolean; resume: boolean;
   titleRef: RefObject<HTMLHeadingElement | null>; startRef: RefObject<HTMLButtonElement | null>;
@@ -29,6 +30,8 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   reviews?: ReactNode | null;
   /** Opens the rating form in its own window. */
   onRate?: () => void;
+  /** The viewer's own walk: before the start it leads back to the builder and shows the builder's notes. */
+  own?: OwnWalk | null;
 }) {
   const panelRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -109,6 +112,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
         </div> : null}
       </header>
       {!active && !completed ? <p className="walk-session-address">{route.walk?.start.address} → {route.walk?.finish.address}</p> : null}
+      {!active && !completed ? own?.notes.map(note => <p key={note} className="walk-session-muted">{note}</p>) : null}
       {active && chapter && chapter.title !== chapter.place ? <p className="walk-session-address">{chapter.place}</p> : null}
       {active && !drawer ? player : null}
       {active && audioError ? <p className="walk-session-notice" role="status">{audioError}</p> : null}
@@ -116,6 +120,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
       {active && chapter && !chapter.audio && !hasText ? <p className="walk-session-muted">Без истории</p> : null}
       {!completed ? <div className="walk-session-tools">
         {chapters.length > 0 ? <button type="button" aria-expanded={drawer === "stops"} onClick={() => setDrawer(drawer === "stops" ? null : "stops")}><ExploreIcon name="list" />Остановки · {chapters.length}</button> : null}
+        {!active && own ? <Link href={own.editHref} prefetch={false}>Изменить маршрут</Link> : null}
         {active && hasText ? <button type="button" aria-expanded={drawer === "story"} onClick={() => setDrawer(drawer === "story" ? null : "story")}>Читать историю</button> : null}
         {!active && reviews ? ratingCount === 0
           ? <button type="button" aria-haspopup="dialog" onClick={rate}>{hasReview ? "Изменить отзыв" : "Оставить отзыв"}</button>

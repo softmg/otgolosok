@@ -8,6 +8,7 @@ import { WalkSession } from "./walk-session";
 import { WalkMap } from "./walk-map";
 import { getWalkChapters } from "./walk-plan";
 import type { Route } from "./types";
+import type { OwnWalk } from "../walks/own-walk";
 
 const mapInput = vi.hoisted(() => ({ items: [] as Array<{ id: string; location: { lat: number; lon: number } }> }));
 vi.mock("../explore/explore-map", () => ({ ExploreMap: (props: typeof mapInput) => { mapInput.items = props.items; return null; } }));
@@ -58,14 +59,14 @@ it.each(["session", "map"])("%s ставит маркеры в точки про
   expect(selected.map(chapter => chapter.location)).toEqual(originalLocations);
 });
 
-function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; hasReview?: boolean; ratingCount?: number | null; reviews?: string | null }) {
+function sessionDocument(props: { active?: boolean; completed?: boolean; ratingLabel?: string; hasReview?: boolean; ratingCount?: number | null; reviews?: string | null; own?: OwnWalk | null }) {
   const markup = renderToStaticMarkup(createElement(WalkSession, {
     route, chapters, index: 0, active: props.active ?? false, completed: props.completed ?? false,
     user: null, positionFailed: false, resume: false,
     titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
     onStart: () => {}, onSelect: () => {}, onStop: () => {},
     player: null, story: null, settings: null, audioError: "",
-    ratingLabel: props.ratingLabel, hasReview: props.hasReview, ratingCount: props.ratingCount, reviews: props.reviews,
+    ratingLabel: props.ratingLabel, hasReview: props.hasReview, ratingCount: props.ratingCount, reviews: props.reviews, own: props.own,
   }));
   return new DOMParser().parseFromString(markup, "text/html");
 }
@@ -130,6 +131,20 @@ it.each([
   const actions = document.querySelector(".walk-session-actions")!;
   expect(actions.querySelector(".walk-session-primary")?.textContent).toBe(label);
   expect(actions.querySelector(".walk-session-secondary")?.textContent).toBe("На карту");
+});
+
+const own: OwnWalk = { editHref: "/?walk=create&local=walk-1&edit=1", notes: ["У 2 остановок пока нет истории."] };
+// Own walks lead back to the builder only before the start; other walks never do.
+it.each([
+  ["своя до старта", own, false, false, true],
+  ["своя во время прогулки", own, true, false, false],
+  ["своя после завершения", own, false, true, false],
+  ["чужая до старта", null, false, false, false],
+])("%s: «Изменить маршрут» и подсказки показаны — %s", (_, ownWalk, active, completed, shown) => {
+  const document = sessionDocument({ own: ownWalk, active, completed });
+  const edit = [...document.querySelectorAll("a")].find(link => link.textContent === "Изменить маршрут");
+  expect(edit?.getAttribute("href") ?? null).toBe(shown ? own.editHref : null);
+  expect(document.body.textContent?.includes(own.notes[0])).toBe(shown);
 });
 
 it("после завершения прогулки без отзывов главная кнопка — «На карту»", () => {
