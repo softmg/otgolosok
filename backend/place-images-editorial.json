@@ -258,5 +258,57 @@
     "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gautier-Dufayet_2290-13_Trubnaya_Square_towards_Tsvetnoy_Boulevard_1913.jpg",
     "retrievedAt": "2026-10-02",
     "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
+  },
+  "osm:way:129213001": {
+    "thumbnail": "/images/places/way-129213001-52db3c3bf30a.jpg",
+    "src": "/images/places/way-129213001-bc3debcf3b95.jpg",
+    "width": 960,
+    "height": 626,
+    "alt": "Дом Волконской и Филиппова на углу Гоголевского бульвара и Пречистенки",
+    "author": "Юрий Д.К.",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_-_2026_-_Prechistenka_Street,_Gogolevsky_Boulevard.jpg",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "retrievedAt": "2026-10-02",
+    "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
+  },
+  "osm:relation:2156517": {
+    "thumbnail": "/images/places/relation-2156517-12f88600215a.jpg",
+    "src": "/images/places/relation-2156517-e7710e8a026a.jpg",
+    "width": 960,
+    "height": 1280,
+    "alt": "Усадьба Цурикова-Нарышкиных, Гоголевский бульвар, 10",
+    "author": "Книжная пыль",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A3%D1%81%D0%B0%D0%B4%D1%8C%D0%B1%D0%B0_%D0%A6%D1%83%D1%80%D0%B8%D0%BA%D0%BE%D0%B2%D0%B0-%D0%9D%D0%B0%D1%80%D1%8B%D1%88%D0%BA%D0%B8%D0%BD%D1%8B%D1%85_%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D0%B5%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%B1-%D1%80_10.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-02",
+    "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
+  },
+  "osm:way:46966391": {
+    "thumbnail": "/images/places/way-46966391-84ee37613a8b.jpg",
+    "src": "/images/places/way-46966391-0a59893289b2.jpg",
+    "width": 960,
+    "height": 1707,
+    "alt": "Центральный дом журналиста, Никитский бульвар, 8А",
+    "author": "Fastboy",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A6%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%94%D0%BE%D0%BC_%D0%B6%D1%83%D1%80%D0%BD%D0%B0%D0%BB%D0%B8%D1%81%D1%82%D0%B0.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-02",
+    "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
+  },
+  "osm:node:2623288251": {
+    "thumbnail": "/images/places/node-2623288251-f965c41b53e3.jpg",
+    "src": "/images/places/node-2623288251-357466b9a5e8.jpg",
+    "width": 960,
+    "height": 636,
+    "alt": "Памятник Сергею Есенину на Тверском бульваре",
+    "author": "Лика Макеева",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BC%D1%8F%D1%82%D0%BD%D0%B8%D0%BA_%D0%95%D1%81%D0%B5%D0%BD%D0%B8%D0%BD%D1%83_%D0%B2_%D1%81%D1%82%D0%B0%D1%80%D0%BE%D0%B9_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-02",
+    "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
   }
 }
