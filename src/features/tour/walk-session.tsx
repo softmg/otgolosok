@@ -23,10 +23,13 @@ function StopPhoto({ placeId, title }: { placeId: string; title: string }) {
   return <PlacePhotoBanner photo={place.story?.photo} title={title} />;
 }
 
-/** Under the title on the way to a stop: how its story will start. Nothing for a stop without a recording. */
+/**
+ * After «К остановке N из M»: that the story will start by itself on arrival. Only for `place`:
+ * in `manual` the «Слушать историю» button already says what to do. The meta line costs no extra
+ * height, unlike a line of its own, which pushed the primary action out of a small panel.
+ */
 export function approachHint(advance: AdvanceMode, hasAudio: boolean) {
-  if (!hasAudio || advance === "sequence") return "";
-  return advance === "place" ? "История начнётся, когда вы подойдёте." : "Когда будете на месте, нажмите «Слушать историю».";
+  return hasAudio && advance === "place" ? "начнётся, когда подойдёте" : "";
 }
 
 export function WalkSession({ route, chapters, index, stage = "stop", advance = "manual", active, completed, user, positionFailed, resume,
@@ -139,7 +142,7 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
       {active && chapter?.place_id && !drawer ? <div className="walk-session-photo"><StopPhoto key={chapter.id} placeId={chapter.place_id} title={chapter.title} /></div> : null}
       <header className="walk-session-heading">
         <div>
-          <p className="walk-session-meta">{active ? chapter ? `${stage === "approach" ? "Идём к остановке" : "Остановка"} ${index + 1} из ${chapters.length}` : "До финиша" : `${route.duration_min} мин · ${distance.toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`}{!active && !completed && ratingLabel ? <> · {reviews
+          <p className="walk-session-meta">{active ? chapter ? stage === "approach" ? [`К остановке ${index + 1} из ${chapters.length}`, approachHint(advance, Boolean(chapter.audio))].filter(Boolean).join(" · ") : `Остановка ${index + 1} из ${chapters.length}` : "До финиша" : `${route.duration_min} мин · ${distance.toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`}{!active && !completed && ratingLabel ? <> · {reviews
             ? <button type="button" className="walk-session-rating" aria-expanded={drawer === "reviews"} onClick={toggleReviews}>{ratingLabel}</button>
             : ratingLabel}</> : null}</p>
           <h1 id="walk-session-title" ref={titleRef} tabIndex={-1}>{completed ? "Прогулка завершена" : active ? chapter?.title ?? route.walk?.finish.address ?? "Прогулка" : route.title.trim() || "Ваш маршрут"}</h1>
@@ -154,7 +157,6 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
       {!active && !completed ? <p className="walk-session-address">{route.walk?.start.address} → {route.walk?.finish.address}</p> : null}
       {!active && !completed ? own?.notes.map(note => <p key={note} className="walk-session-muted">{note}</p>) : null}
       {active && chapter && chapter.title !== chapter.place ? <p className="walk-session-address">{chapter.place}</p> : null}
-      {active && chapter && stage === "approach" && approachHint(advance, Boolean(chapter.audio)) ? <p className="walk-session-muted">{approachHint(advance, Boolean(chapter.audio))}</p> : null}
       {active && !drawer ? player : null}
       {active && audioError ? <p className="walk-session-notice" role="status">{audioError}</p> : null}
       {active && positionFailed ? <p className="walk-session-notice" role="status">Геопозиция недоступна. Остановки можно переключать вручную.</p> : null}

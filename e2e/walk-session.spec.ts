@@ -25,12 +25,20 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 
     await setup(page);
     await expect(page.getByRole("heading", { name: "Арбат", exact: true })).toBeVisible();
     const map = page.locator(".walk-session-map");
-    await expect(map.locator(".leaflet-overlay-pane path[data-route]")).toBeVisible();
+    await expect(map.locator(".leaflet-route-pane path[data-route]")).toBeVisible();
     await expect(page.locator(".hero, .debug-panel, .walk-plan")).toHaveCount(0);
     await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
     await expect(page.getByRole("heading", { name: stops[0].address, exact: true })).toBeVisible();
+    await expect(page.locator(".walk-session-meta")).toHaveText("К остановке 1 из 2");
     await expect(map).toBeVisible();
     await expect(page.getByText("История ещё готовится", { exact: true })).toHaveCount(0);
+    // Участок от старта до первой остановки — в своём слое со стрелками, остальной маршрут приглушён.
+    await expect(map.locator('[data-route-part="active"]')).toHaveCount(1);
+    await expect(map.locator("[data-route-arrow]").first()).toBeAttached();
+    await expect.poll(() => map.locator(".leaflet-route-pane").evaluate(pane => getComputedStyle(pane).opacity)).toBe("0.3");
+    await expect.poll(() => markerIsFree(page, '[data-marker="endpoint"]'), { message: "старт виден" }).toBe(true);
+    await expect.poll(() => markerIsFree(page, '[data-marker="pin"][title^="Остановка 1:"]'), { message: "первая остановка видна" }).toBe(true);
+    await page.screenshot({ path: info.outputPath("walk-approach.png") });
     await page.getByRole("button", { name: "Дальше", exact: true }).click();
     await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Предыдущая остановка" }).click();
@@ -90,7 +98,17 @@ test("аудио, текст и список остановок открываю
   await page.goto("/walk?catalog=paveletskaya");
   await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
   await expect(page.getByRole("region", { name: "Плеер истории" })).toBeVisible();
+  // По дороге к остановке ничего не играет. Первая остановка — у самого старта: идти до неё нечего, участок не подсвечен.
+  await expect(page.locator(".walk-session-meta")).toHaveText("К остановке 1 из 4");
+  expect(await page.locator("audio").evaluate(el => (el as HTMLAudioElement).paused)).toBe(true);
+  const activeLeg = page.locator('.walk-session-map [data-route-part="active"]');
+  await expect(activeLeg).toHaveCount(0);
+  // «Слушать историю» — это «я на месте»: история играет, подсвечен уже участок к следующей остановке.
+  await page.getByRole("button", { name: "Слушать историю", exact: true }).click();
   await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
+  await expect(page.locator(".walk-session-meta")).toHaveText("Остановка 1 из 4");
+  await expect(activeLeg).toHaveCount(1);
+  const secondLeg = await activeLeg.getAttribute("d");
   await page.getByRole("button", { name: "Пауза", exact: true }).click();
   await expect.poll(() => page.locator("audio").evaluate(el => (el as HTMLAudioElement).paused)).toBe(true);
   await page.getByRole("button", { name: "Читать историю" }).click();
@@ -103,7 +121,14 @@ test("аудио, текст и список остановок открываю
   await page.getByRole("button", { name: /Остановки ·/ }).click();
   await page.locator(".walk-session-stops button").nth(1).click();
   await expect(page.getByRole("heading", { name: "Название с оврагом внутри", exact: true })).toBeVisible();
+  await expect(page.locator(".walk-session-meta")).toHaveText("К остановке 2 из 4");
+  await page.getByRole("button", { name: "Слушать историю", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
   await expect.poll(() => page.locator("audio").evaluate(el => (el as HTMLAudioElement).playbackRate)).toBe(1.25);
+  await page.getByRole("button", { name: "Дальше", exact: true }).click();
+  await expect(page.locator(".walk-session-meta")).toHaveText("К остановке 3 из 4");
+  await expect.poll(() => page.locator("audio").evaluate(el => (el as HTMLAudioElement).paused)).toBe(true);
+  await expect.poll(() => activeLeg.getAttribute("d"), { message: "подсвечен участок к третьей остановке" }).not.toBe(secondLeg);
   await page.screenshot({ path: info.outputPath("audio-session.png") });
   await page.getByRole("link", { name: "Закрыть прогулку" }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -156,6 +181,7 @@ test("отказ аудио не блокирует переход к следу
   await page.route("**/audio/**", route => route.abort());
   await page.goto("/walk?catalog=paveletskaya");
   await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+  await page.getByRole("button", { name: "Слушать историю", exact: true }).click();
   await expect(page.getByRole("button", { name: "Повторить запуск звука", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Дальше", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Название с оврагом внутри", exact: true })).toBeVisible();
@@ -301,8 +327,13 @@ function edges(page: Page, selector: string) {
 
 // Прогулка открывается на первой остановке: её метка в видимой части карты, а не под шапкой, панелью, навигацией или за краем окна.
 function firstStopIsVisible(page: Page) {
-  return page.evaluate(() => {
-    const pin = document.querySelector('.walk-session-map [data-marker="pin"][title^="Остановка 1:"]');
+  return markerIsFree(page, '[data-marker="pin"][title^="Остановка 1:"]');
+}
+
+// Метка карты в свободной её части: целиком в окне и не под шапкой, панелью или навигацией.
+function markerIsFree(page: Page, selector: string) {
+  return page.evaluate(selector => {
+    const pin = document.querySelector(`.walk-session-map ${selector}`);
     if (!pin) return false;
     const stop = pin.getBoundingClientRect();
     const inside = stop.left >= 0 && stop.top >= 0 && stop.right <= innerWidth && stop.bottom <= innerHeight;
@@ -310,7 +341,7 @@ function firstStopIsVisible(page: Page) {
       const other = document.querySelector(selector)!.getBoundingClientRect();
       return stop.right <= other.left || stop.left >= other.right || stop.bottom <= other.top || stop.top >= other.bottom;
     });
-  });
+  }, selector);
 }
 
 // Проверка в трёх состояниях панели: маршрут до старта, остановка с плеером и открытый текст истории.
@@ -463,4 +494,42 @@ test("у гостевой прогулки нет отзывов", async ({ page
   await setup(page);
   await expect(page.getByRole("button", { name: "Начать прогулку", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Отзывы", exact: true })).toHaveCount(0);
+});
+
+test.describe("переключение остановок", () => {
+  const view = routeToWalkView(routeData as Route);
+  async function open(page: Page, advance: string, query = "") {
+    await page.addInitScript(advance => localStorage.setItem("otgolosok:walk-settings", JSON.stringify({ advance, rate: 1 })), advance);
+    await page.route("**/api/story-walks/paveletskaya/view", route => route.fulfill({ json: view }));
+    await page.goto(`/walk?catalog=paveletskaya${query}`);
+    await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+  }
+  const paused = (page: Page) => page.locator("audio").evaluate(el => (el as HTMLAudioElement).paused);
+
+  test("по месту история начинается сама, когда идущий подходит к остановке", async ({ page }) => {
+    await open(page, "place", "&replay=walk&speed=20");
+    await expect(page.locator(".walk-session-meta")).toHaveText("К остановке 1 из 4 · начнётся, когда подойдёте");
+    expect(await paused(page)).toBe(true);
+    await expect(page.locator(".walk-session-meta")).toHaveText("Остановка 1 из 4", { timeout: 20_000 });
+    await expect.poll(() => paused(page)).toBe(false);
+  });
+
+  test("подряд история играет сразу, без дороги к остановке", async ({ page }) => {
+    await open(page, "sequence");
+    await expect(page.locator(".walk-session-meta")).toHaveText("Остановка 1 из 4");
+    await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
+    await expect.poll(() => paused(page)).toBe(false);
+  });
+});
+
+test("крытый участок маршрута нарисован пунктиром", async ({ page }) => {
+  // В каталожном маршруте у Павелецкой — переход [29, 30].
+  await page.route("**/api/story-walks/paveletskaya/view", route => route.fulfill({ json: routeToWalkView(routeData as Route) }));
+  await page.goto("/walk?catalog=paveletskaya");
+  const covered = page.locator(".walk-session-map path[data-route-covered]");
+  await expect(covered).toHaveCount(1);
+  expect(await covered.evaluate(path => getComputedStyle(path).strokeDasharray)).toMatch(/\d/);
+  // До старта весь маршрут одинаково полупрозрачный, без подсветки.
+  await expect(page.locator('.walk-session-map [data-route-part="active"]')).toHaveCount(0);
+  await expect.poll(() => page.locator(".walk-session-map .leaflet-route-pane").evaluate(pane => getComputedStyle(pane).opacity)).toBe("0.8");
 });

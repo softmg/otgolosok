@@ -82,6 +82,12 @@
   opacity: 0.3;
 }
 
+/* Leaflet lifts the max-size limits of SVG in its own overlay pane only; the route renderers live here. */
+.routePane > svg {
+  max-width: none;
+  max-height: none;
+}
+
 /* Direction chevrons on the highlighted leg: light strokes on the green line, never a target. */
 .chevron {
   color: var(--surface-island);

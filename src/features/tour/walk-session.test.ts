@@ -194,13 +194,13 @@ it("итог оценок в описании — кнопка, открываю
 });
 
 it.each([
-  { stage: "approach" as const, advance: "place" as const, audio: true, meta: "Идём к остановке 2 из 4", hint: "История начнётся, когда вы подойдёте." },
-  { stage: "approach" as const, advance: "manual" as const, audio: true, meta: "Идём к остановке 2 из 4", hint: "Когда будете на месте, нажмите «Слушать историю»." },
-  { stage: "approach" as const, advance: "manual" as const, audio: false, meta: "Идём к остановке 2 из 4", hint: null },
-  { stage: "approach" as const, advance: "place" as const, audio: false, meta: "Идём к остановке 2 из 4", hint: null },
-  { stage: "stop" as const, advance: "place" as const, audio: true, meta: "Остановка 2 из 4", hint: null },
-  { stage: "stop" as const, advance: "manual" as const, audio: true, meta: "Остановка 2 из 4", hint: null },
-])("на пути к остановке и у неё: $stage, $advance, аудио $audio", ({ stage, advance, audio, meta, hint }) => {
+  { stage: "approach" as const, advance: "place" as const, audio: true, meta: "К остановке 2 из 4 · начнётся, когда подойдёте" },
+  { stage: "approach" as const, advance: "manual" as const, audio: true, meta: "К остановке 2 из 4" },
+  { stage: "approach" as const, advance: "sequence" as const, audio: true, meta: "К остановке 2 из 4" },
+  { stage: "approach" as const, advance: "place" as const, audio: false, meta: "К остановке 2 из 4" },
+  { stage: "stop" as const, advance: "place" as const, audio: true, meta: "Остановка 2 из 4" },
+  { stage: "stop" as const, advance: "manual" as const, audio: true, meta: "Остановка 2 из 4" },
+])("на пути к остановке и у неё: $stage, $advance, аудио $audio", ({ stage, advance, audio, meta }) => {
   const stops = chapters.map(chapter => ({ ...chapter, audio: audio ? chapter.audio : undefined }));
   expect(stops[1].audio === undefined).toBe(!audio);
   const markup = renderToStaticMarkup(createElement(WalkSession, {
@@ -212,6 +212,4 @@ it.each([
   }));
   const document = new DOMParser().parseFromString(markup, "text/html");
   expect(document.querySelector(".walk-session-meta")?.textContent).toBe(meta);
-  const hints = [...document.querySelectorAll(".walk-session-muted")].map(item => item.textContent);
-  expect(hints.filter(text => text !== "Без истории")).toEqual(hint ? [hint] : []);
 });
