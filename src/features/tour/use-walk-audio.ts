@@ -35,6 +35,10 @@ export type WalkAudioOptions = {
   onEnded: () => void;
 };
 
+// Marks the element as not playing the walk's audio yet (a silent unlock clip or a
+// stopped earlier story); never equal to a real source.
+const NO_WALK_SOURCE = "about:blank#no-walk-source";
+
 function applyPlaybackRate(audio: HTMLAudioElement, rate: number) {
   try { if (audio.playbackRate !== rate) audio.playbackRate = rate; }
   catch { /* Some engines reject a rate change while the source loads. */ }
@@ -91,10 +95,15 @@ export function useWalkAudio(options: WalkAudioOptions) {
     mediaRef.current?.setPlaybackState(status === "playing" ? "playing" : walking ? "paused" : "none");
   }, [status, walking]);
 
+  /** Events of a clip that is not the expected source (the unlock clip, a stopped story) must not touch the player. */
+  function ownsElement(audio: HTMLAudioElement) {
+    return !playbackSourceRef.current || audio.getAttribute("src") === playbackSourceRef.current;
+  }
+
   function sync(persist = false) {
     const audio = audioRef.current;
     if (!audio || !activeRef.current || restoringOffsetRef.current) return;
-    if (playbackSourceRef.current && audio.getAttribute("src") !== playbackSourceRef.current) return;
+    if (!ownsElement(audio)) return;
     if (audio.readyState < 1 || !Number.isFinite(audio.currentTime)) return;
     setPlaybackTime(audio.currentTime);
     if (Number.isFinite(audio.duration)) setMediaDuration(audio.duration);
@@ -224,17 +233,41 @@ export function useWalkAudio(options: WalkAudioOptions) {
     mediaRef.current = createMediaSessionController();
   }
 
+  /**
+   * Starts a universal walk without playing: the walker first goes to the stop.
+   * Call synchronously from the start click, so that unlocking the element there
+   * lets the story start by itself on arrival (iOS).
+   */
+  function prime(index: number) {
+    const audio = audioRef.current;
+    playbackRef.current += 1;
+    playbackSourceRef.current = NO_WALK_SOURCE;
+    restoringOffsetRef.current = false;
+    // Keep this call before the first await. A failed unlock changes nothing visible:
+    // the story then starts from the player's button, itself a new user gesture.
+    if (audio) void unlockAudioElement(audio);
+    setChapterCheckpoint(index);
+    setPlaybackTime(0);
+    setMediaDuration(0);
+    busyRef.current = false;
+    setStatus("ready");
+    mediaRef.current?.release();
+    mediaRef.current = createMediaSessionController();
+  }
+
   /** Switches to another chapter; starting here, inside the click, preserves mobile user activation. */
-  function switchTo(index: number, source: string | null) {
+  function switchTo(index: number, source: string | null, autoplay = true) {
     playbackRef.current += 1;
     if (audioRef.current) stopAudioElement(audioRef.current);
+    // Late events of the stopped story must not show its time or duration for this chapter.
+    playbackSourceRef.current = NO_WALK_SOURCE;
     busyRef.current = false;
     setStatus("ready");
     setChapterCheckpoint(index);
     setPlaybackTime(0);
     setMediaDuration(0);
     restoringOffsetRef.current = false;
-    if (source) void play(source);
+    if (source && autoplay) void play(source);
   }
 
   /** Stops playback and keeps (or, for a completed walk, clears) the resume checkpoint. Call while the walk is still active. */
@@ -259,19 +292,19 @@ export function useWalkAudio(options: WalkAudioOptions) {
       if (!audio) return;
       // A fresh source resets the rate in some engines; reapply on every load.
       applyPlaybackRate(audio, rate);
-      if (activeRef.current && Number.isFinite(audio.duration)) setMediaDuration(audio.duration);
+      if (activeRef.current && ownsElement(audio) && Number.isFinite(audio.duration)) setMediaDuration(audio.duration);
     },
     onSeeked: () => sync(true),
     onPlaying: () => {
-      if (activeRef.current && audioRef.current && !audioRef.current.paused) {
+      if (activeRef.current && audioRef.current && !audioRef.current.paused && ownsElement(audioRef.current)) {
         busyRef.current = true;
         setStatus("playing");
       }
     },
-    onEnded: () => { if (audioRef.current?.ended) finish(); },
-    onPause: () => { if (audioRef.current?.paused) finish(); },
+    onEnded: () => { if (audioRef.current?.ended && ownsElement(audioRef.current)) finish(); },
+    onPause: () => { if (audioRef.current?.paused && ownsElement(audioRef.current)) finish(); },
     onError: () => {
-      if (activeRef.current && walking && audioRef.current?.error) {
+      if (activeRef.current && walking && audioRef.current?.error && ownsElement(audioRef.current)) {
         playbackRef.current += 1;
         busyRef.current = false;
         setStatus("error");
@@ -279,7 +312,7 @@ export function useWalkAudio(options: WalkAudioOptions) {
     },
   };
 
-  return { audioRef, status, playbackTime, mediaDuration, busyRef, mediaRef, play, toggle, seek, begin, switchTo, end, handlers };
+  return { audioRef, status, playbackTime, mediaDuration, busyRef, mediaRef, play, toggle, seek, begin, prime, switchTo, end, handlers };
 }
 
 export type WalkAudio = ReturnType<typeof useWalkAudio>;

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
-import { ExploreMap, type MapFocus } from "../explore/explore-map";
+import { ExploreMap, type MapFitTarget, type MapFocus } from "../explore/explore-map";
 import { ExploreIcon } from "../explore/icons";
 import { PlacePhotoBanner } from "../explore/place-photo";
 import { usePlaceStory } from "../explore/place-story";
 import { BrandMark } from "../brand/brand-mark";
 import type { Coordinates, Route } from "./types";
-import type { WalkChapter } from "./walk-plan";
+import { highlightedLeg, type StopStage, type WalkChapter } from "./walk-plan";
+import { legFitPoints, legRange, routeLegCuts } from "./route-legs";
+import type { AdvanceMode } from "./walk-settings";
 import { StopWalkDialog } from "./stop-walk-dialog";
 import type { OwnWalk } from "../walks/own-walk";
 import "./walk-session.css";
@@ -21,9 +23,18 @@ function StopPhoto({ placeId, title }: { placeId: string; title: string }) {
   return <PlacePhotoBanner photo={place.story?.photo} title={title} />;
 }
 
-export function WalkSession({ route, chapters, index, active, completed, user, positionFailed, resume,
+/** Under the title on the way to a stop: how its story will start. Nothing for a stop without a recording. */
+export function approachHint(advance: AdvanceMode, hasAudio: boolean) {
+  if (!hasAudio || advance === "sequence") return "";
+  return advance === "place" ? "История начнётся, когда вы подойдёте." : "Когда будете на месте, нажмите «Слушать историю».";
+}
+
+export function WalkSession({ route, chapters, index, stage = "stop", advance = "manual", active, completed, user, positionFailed, resume,
   titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null, onRate = noop, own = null }: {
   route: Route; chapters: WalkChapter[]; index: number; active: boolean; completed: boolean;
+  /** On the way to stop `index` or arrived there (see StopStage). */
+  stage?: StopStage;
+  advance?: AdvanceMode;
   user: (Coordinates & { accuracyM: number }) | null; positionFailed: boolean; resume: boolean;
   titleRef: RefObject<HTMLHeadingElement | null>; startRef: RefObject<HTMLButtonElement | null>;
   onStart: () => void; onSelect: (index: number) => void; onStop: (completed?: boolean) => void;
@@ -60,6 +71,25 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
     ...chapters.map((item, i) => ({ id: item.id, title: `Остановка ${i + 1}: ${item.title}`, location: item.trigger_location ?? item.location, number: i + 1 })),
     ...(route.walk ? [{ id: "walk-finish", title: `Финиш: ${route.walk.finish.address}`, location: route.walk.finish.location, endpoint: true }] : []),
   ], [chapters, route.walk]);
+  // During the walk the leg to walk now stands out; the map fits it whenever it changes.
+  const stops = useMemo(() => chapters.map(item => item.trigger_location ?? item.location), [chapters]);
+  const cuts = useMemo(() => routeLegCuts(geometry, stops), [geometry, stops]);
+  const leg = highlightedLeg(index, stage, chapters.length);
+  const legPath = active ? legRange(cuts, geometry.length, leg) : null;
+  const legEnd = stops[leg] ?? route.walk?.finish.location ?? null;
+  const legKey = active && legEnd ? `${leg}:${legPath?.join("-") ?? "point"}` : null;
+  // Adjusted while rendering when the leg changes (not in an effect), so the fit lands with the highlight.
+  // The walker's position joins the fit when it is known; the first fix after a fit without it
+  // refines that fit once per walk, unless the walker has moved the map in the meantime.
+  const [legFit, setLegFit] = useState<{ key: string | null; target: MapFitTarget | null; waiting: boolean; refined: boolean }>({ key: null, target: null, waiting: false, refined: false });
+  if (legFit.key !== legKey) {
+    const view = legKey && legEnd ? legFitPoints(geometry, legPath, legEnd, user) : null;
+    setLegFit({ key: legKey, target: view ? { points: view.points, keepUserView: false } : null, waiting: Boolean(view && !view.withUser), refined: legKey ? legFit.refined : false });
+  } else if (legFit.waiting && user && legEnd) {
+    const view = legFitPoints(geometry, legPath, legEnd, user);
+    setLegFit({ ...legFit, waiting: false, refined: true,
+      target: view.withUser && !legFit.refined ? { points: view.points, keepUserView: true } : legFit.target });
+  }
   // Beside the panel the route also keeps clear of the map buttons above the navigation.
   // Below the header it leaves room for a stop pin, which rises about 48 px above its point.
   const padding = useMemo(() => cover.side === "right"
@@ -93,7 +123,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
   return <>
     <div className="walk-session-map">
       <ExploreMap items={items} selectedId={active ? chapter?.id : undefined} focus={focus} user={user}
-        geometry={geometry} fitGeometry={!focus} insets={padding} legacyChrome onPoint={noop} onSelect={id => {
+        geometry={geometry} fitGeometry={!focus} tunnels={route.walk?.path.tunnels} activeLeg={legPath} fitTarget={legFit.target} insets={padding} legacyChrome onPoint={noop} onSelect={id => {
           const position = chapters.findIndex(item => item.id === id);
           if (position >= 0) { if (active) select(position); else setDrawer("stops"); }
         }} mapLabel="Карта прогулки: пешеходный маршрут и остановки" />
@@ -109,7 +139,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
       {active && chapter?.place_id && !drawer ? <div className="walk-session-photo"><StopPhoto key={chapter.id} placeId={chapter.place_id} title={chapter.title} /></div> : null}
       <header className="walk-session-heading">
         <div>
-          <p className="walk-session-meta">{active ? chapter ? `Остановка ${index + 1} из ${chapters.length}` : "До финиша" : `${route.duration_min} мин · ${distance.toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`}{!active && !completed && ratingLabel ? <> · {reviews
+          <p className="walk-session-meta">{active ? chapter ? `${stage === "approach" ? "Идём к остановке" : "Остановка"} ${index + 1} из ${chapters.length}` : "До финиша" : `${route.duration_min} мин · ${distance.toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`}{!active && !completed && ratingLabel ? <> · {reviews
             ? <button type="button" className="walk-session-rating" aria-expanded={drawer === "reviews"} onClick={toggleReviews}>{ratingLabel}</button>
             : ratingLabel}</> : null}</p>
           <h1 id="walk-session-title" ref={titleRef} tabIndex={-1}>{completed ? "Прогулка завершена" : active ? chapter?.title ?? route.walk?.finish.address ?? "Прогулка" : route.title.trim() || "Ваш маршрут"}</h1>
@@ -124,6 +154,7 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
       {!active && !completed ? <p className="walk-session-address">{route.walk?.start.address} → {route.walk?.finish.address}</p> : null}
       {!active && !completed ? own?.notes.map(note => <p key={note} className="walk-session-muted">{note}</p>) : null}
       {active && chapter && chapter.title !== chapter.place ? <p className="walk-session-address">{chapter.place}</p> : null}
+      {active && chapter && stage === "approach" && approachHint(advance, Boolean(chapter.audio)) ? <p className="walk-session-muted">{approachHint(advance, Boolean(chapter.audio))}</p> : null}
       {active && !drawer ? player : null}
       {active && audioError ? <p className="walk-session-notice" role="status">{audioError}</p> : null}
       {active && positionFailed ? <p className="walk-session-notice" role="status">Геопозиция недоступна. Остановки можно переключать вручную.</p> : null}

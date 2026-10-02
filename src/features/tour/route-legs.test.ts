@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { legRange, routeLegCuts } from "./route-legs";
+import { legFitPoints, legRange, routeLegCuts } from "./route-legs";
 
 // About 31 m per step east along a parallel in Moscow; north steps are 11 m.
 const at = (step: number, north = 0) => ({ lat: 55.75 + north * 0.0001, lon: 37.6 + step * 0.0005 });
@@ -41,5 +41,18 @@ describe("legRange", () => {
 
   it("a route without a line has no legs", () => {
     expect(legRange([], 1, 0)).toBeNull();
+  });
+});
+
+describe("legFitPoints", () => {
+  const geometry = line(10);
+  it.each([
+    { name: "a leg without a position", range: [2, 4] as [number, number], user: null, points: [at(2), at(3), at(4)], withUser: false },
+    { name: "a leg with the walker beside it", range: [2, 4] as [number, number], user: { ...at(1, 3), accuracyM: 10 }, points: [at(2), at(3), at(4), at(1, 3)], withUser: true },
+    { name: "a leg with the walker 1.4 km north", range: [2, 4] as [number, number], user: at(3, 126), points: [at(2), at(3), at(4), at(3, 126)], withUser: true },
+    { name: "a leg with the walker 1.6 km north", range: [2, 4] as [number, number], user: at(3, 144), points: [at(2), at(3), at(4)], withUser: false },
+    { name: "a leg without length shows its stop", range: null, user: null, points: [at(7)], withUser: false },
+  ])("$name", ({ range, user, points, withUser }) => {
+    expect(legFitPoints(geometry, range, at(7), user)).toEqual({ points, withUser });
   });
 });

@@ -40,3 +40,23 @@ export function legRange(cuts: number[], geometryLength: number, leg: number): [
   const to = leg === cuts.length ? geometryLength - 1 : cuts[leg];
   return to > from ? [from, to] : null;
 }
+
+// Farther than this from the leg, the walker's position would zoom the map out of the street.
+const NEAR_LEG_M = 1500;
+
+/**
+ * What the map shows for a leg: its line, or the point it leads to when the leg has
+ * no length, plus the walker's position when they are near it.
+ */
+export function legFitPoints(geometry: Coordinates[], range: [number, number] | null, target: Coordinates, user: Coordinates | null): { points: Coordinates[]; withUser: boolean } {
+  const points = range ? geometry.slice(range[0], range[1] + 1) : [target];
+  if (!user) return { points, withUser: false };
+  const lats = points.map(point => point.lat), lons = points.map(point => point.lon);
+  const nearest = {
+    lat: Math.min(Math.max(user.lat, Math.min(...lats)), Math.max(...lats)),
+    lon: Math.min(Math.max(user.lon, Math.min(...lons)), Math.max(...lons)),
+  };
+  return distanceM(nearest, user) <= NEAR_LEG_M
+    ? { points: [...points, { lat: user.lat, lon: user.lon }], withUser: true }
+    : { points, withUser: false };
+}
