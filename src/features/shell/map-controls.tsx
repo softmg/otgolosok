@@ -17,10 +17,10 @@ export function MapControls({ zoom, children }: { zoom: ZoomControl; children?: 
     {children}
     <div className={styles.zoom} role="group" aria-label="Масштаб карты">
       <button type="button" className={styles.zoomButton} aria-label="Отдалить" disabled={!zoom.canZoomOut} onClick={zoom.zoomOut}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" /></svg>
       </button>
       <button type="button" className={styles.zoomButton} aria-label="Приблизить" disabled={!zoom.canZoomIn} onClick={zoom.zoomIn}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12" /></svg>
       </button>
     </div>
   </div>;

@@ -65,3 +65,8 @@
 .zoomButton:focus-visible {
   outline-offset: -3px;
 }
+
+/* A 2px stroke centred on the 24px grid lands on whole pixels; 1.8 smears into a font-like glyph. */
+.zoomButton svg {
+  stroke-width: 2;
+}
