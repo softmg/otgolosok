@@ -1,6 +1,6 @@
 # Plan: Guide the walker along the current leg (route styling, camera, arrival-gated audio, tunnels)
 
-Status: in progress since 2026-10-02.
+Status: implemented 2026-10-02 in branch `feat/promo-walks-stories-only`. Divergences are marked "Implemented:" below; the manual builder check at Pushkinskaya was replaced by the planner probe against local Valhalla (docs/agents/route-tunnels.md).
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
@@ -106,13 +106,13 @@ Planner:
   - Request per leg, sequentially: `{ shape: leg (array of {lat, lon}), costing: "pedestrian", shape_match: "walk_or_snap", filters: { attributes: ["edge.tunnel", "edge.begin_shape_index", "edge.end_shape_index", "shape"], action: "include" } }`. Reuse the streaming/size-capped reading of `request` (factor the body reader out of `request` if needed instead of copying it).
   - Map back **geometrically**, not by index: decode the response `shape` (polyline6); for each edge with `tunnel === true`, take the sub-polyline `shape[begin..end]`; a segment `(leg[i], leg[i+1])` is covered when both endpoints lie within 3 m of that sub-polyline. Restrict matching to the leg's own segments.
   - Convert to global indices using the same concatenation as `measureRoute` (leg 0 starts at 0; leg j starts at the previous leg's last index because of `slice(1)`), merge adjacent/touching runs, return sorted `[a, b]` pairs (≤ 500, else return `null`).
-- `compose.yaml`: `WALK_TRACE_URL: ${WALK_TRACE_URL:-http://valhalla:8002/trace_attributes}` next to `WALK_ROUTER_URL`. Document it wherever `WALK_ROUTER_URL` is documented (README.md, docs/production-deployment.md, content/walk-builder.md, backend/WALK_RESEARCH.md); `.env.example` only if it lists `WALK_ROUTER_URL`-style overrides.
-- Promo walks / research planner (`backend/walk-research.mjs:102`) use the same planner and get tunnels automatically; no code change expected there — verify.
+- `compose.yaml`: `WALK_TRACE_URL: ${WALK_TRACE_URL-http://valhalla:8002/trace_attributes}` (Implemented: `-`, not `:-` — with `:-` an empty value in `.env` falls back to the default, so the producer could not be switched off as step 9 promises) next to `WALK_ROUTER_URL`. Document it wherever `WALK_ROUTER_URL` is documented (README.md, docs/production-deployment.md, content/walk-builder.md, backend/WALK_RESEARCH.md); `.env.example` only if it lists `WALK_ROUTER_URL`-style overrides.
+- Promo walks / research planner (`backend/walk-research.mjs:102`) use the same planner and get tunnels automatically; no code change expected there — verify. Implemented: `backend/walk-plan-document.mjs` builds the document field by field and needed one line to copy `plan.tunnels`.
 
 ### 2. Frontend: legs of the route
 
 New pure module `src/features/tour/route-legs.ts`:
-- `routeLegCuts(geometry: Coordinates[], stops: Coordinates[]): number[]` — for each stop i, the geometry vertex index where the leg into stop i ends; non-decreasing. Use `stop.triggerLocation ?? stop.place.location` (in `Route` terms `trigger_location ?? location`). Search forward from the previous cut; among the remaining vertices take the minimum distance `m`, then pick the *earliest* vertex with distance ≤ `m + 15 m` (a loop walk can pass the same spot again later). A stop at the start building yields cut 0.
+- `routeLegCuts(geometry: Coordinates[], stops: Coordinates[]): number[]` — for each stop i, the geometry vertex index where the leg into stop i ends; non-decreasing. Use `stop.triggerLocation ?? stop.place.location` (in `Route` terms `trigger_location ?? location`). Search forward from the previous cut; among the remaining vertices take the minimum distance `m`, then pick the *earliest* vertex with distance ≤ `m + 15 m` (a loop walk can pass the same spot again later). A stop at the start building yields cut 0. Implemented: from that vertex the cut descends to the closest vertex of the same pass (while the next vertex is closer); without it a stop 100 m off the line cut the leg at the first vertex within the tolerance, well before the stop.
 - `legRange(cuts, geometryLength, leg)`: leg 0 = `[0, cuts[0]]`, leg i = `[cuts[i−1], cuts[i]]`, final leg (to the finish) = `[cuts[last], geometryLength − 1]`; returns `null` when the range has fewer than 2 vertices (stop at the start, finish equal to the last stop).
 - A walk without stops has one leg = the whole geometry.
 
@@ -143,21 +143,22 @@ New pure module `src/features/tour/route-legs.ts`:
 
 `src/features/tour/walk-session.tsx` (UI text in Russian):
 - New props `stage` and `advance` (or a ready-made hint string).
-- Meta line: `approach` → «Идём к остановке {index+1} из {N}»; `stop` → «Остановка {index+1} из {N}» (as today).
+- Meta line: `approach` → «Идём к остановке {index+1} из {N}»; `stop` → «Остановка {index+1} из {N}» (as today). Implemented: «К остановке {index+1} из {N}» — the longer text wrapped in the narrow column beside the panel buttons at 320 px.
 - Hint under the title while `approach` (muted style, `role="status"` not needed): `place` → «История начнётся, когда вы подойдёте.»; `manual` with audio → «Когда будете на месте, нажмите «Слушать историю».»; no audio → nothing new. The existing GPS-failure notice stays.
+  Implemented differently: a separate hint line pushed «Дальше»/«Завершить» out of the small panel in `e2e/layout-invariants.spec.ts` (footer invariant). Only `place` with audio gets a hint, appended to the meta line: «К остановке 1 из 4 · начнётся, когда подойдёте»; in `manual` the «Слушать историю» button already names the action.
 - Player stays visible in `approach` (its button label is already «Слушать историю» for status `ready`).
 - Footer labels unchanged («Дальше» / «Завершить» / previous arrow).
 
 ### 5. Frontend: map styling — transparency, faded rest, dashes, chevrons
 
 New pure module `src/features/explore/route-style.ts`:
-- Constants (single place, tuned by screenshots): `ROUTE_OPACITY = 0.8`, `ROUTE_DIM_OPACITY = 0.3`, dash pattern for covered runs (e.g. `"6 8"`, `lineCap: "butt"`), chevron spacing ≈ 70 px, chevron cap (e.g. 200).
+- Constants (single place, tuned by screenshots): `ROUTE_OPACITY = 0.8`, `ROUTE_DIM_OPACITY = 0.3` (Implemented: the two opacities live only in `explore-map.module.css` as pane classes, since they are applied by CSS; no TS constants), dash pattern for covered runs (e.g. `"6 8"`, `lineCap: "butt"`), chevron spacing ≈ 70 px, chevron cap (e.g. 200).
 - `routeRuns(length, tunnels, active)` → ordered runs `{ from, to, covered, active }` covering `0..length−1` exactly once (active range excluded from the faded part, so nothing is drawn twice).
 - `chevronMarks(points: {x, y}[], spacingPx)` → `{ x, y, angleDeg }[]` along the polyline in layer pixels; at least one mark at mid-length for a short leg; none for a degenerate leg.
 
 `src/features/explore/explore-map.tsx`:
 - New props: `tunnels?: Array<[number, number]>`, `activeLeg?: [number, number] | null`, `fitTarget?: { points: Coordinates[]; keepUserView: boolean } | null` (see step 6).
-- Create two panes once at map init: `route` (z-index ≈ 410) and `routeActive` (≈ 420), both below markers. Pane CSS opacity: `route` = `ROUTE_OPACITY`, or `ROUTE_DIM_OPACITY` when `activeLeg` is set; `routeActive` = `ROUTE_OPACITY`. Use classes in `explore-map.module.css` rather than inline styles.
+- Create two panes once at map init: `route` (z-index ≈ 410) and `routeActive` (≈ 420), both below markers. Pane CSS opacity: `route` = `ROUTE_OPACITY`, or `ROUTE_DIM_OPACITY` when `activeLeg` is set; `routeActive` = `ROUTE_OPACITY`. Use classes in `explore-map.module.css` rather than inline styles. Implemented: the panes also need `max-width/max-height: none` on their `svg`, like Leaflet's overlay pane gets in the app CSS, otherwise the global `svg` rule shrinks the line.
 - Draw each run as casing (solid) + green line; covered runs get the dash pattern on the green line only (the solid light casing keeps the gaps legible). Active runs go to `routeActive`, the rest to `route`.
 - Chevrons: non-interactive `divIcon` markers in the `routeActive` pane, inline SVG «›» in `--surface-island` colour, rotated by `angleDeg`, `aria-hidden`. Recompute on `zoomend` and when `activeLeg`/`geometry` change (layer pixels do not change on pan).
 - Keep test hooks: every green path keeps `data-route` (existing selectors), plus `data-route-part="active" | "rest"`; dashed paths `data-route-covered=""`; chevrons `data-route-arrow`. Existing e2e selectors `.leaflet-overlay-pane path[data-route]` must be updated because the paths move to custom panes — grep `data-route` in `e2e/` and `src/`.
@@ -207,12 +208,14 @@ Unit (Vitest / `node --test` for backend), table-driven where one rule has many 
 E2E (`e2e/walk-session.spec.ts`; update existing expectations that assume autoplay):
 - «Начать прогулку» → meta «Идём к остановке 1 из 2», audio element paused, `[data-route-part="active"]` present, start ring and stop 1 inside the free map area (assert positions, like the existing first-stop test), rest of the route in the dimmed pane.
 - Catalog walk: after start the player shows «Слушать историю»; clicking it → «Пауза» and the highlighted leg switches to the next one; «Дальше» → meta «Идём к остановке …», nothing plays. Update the test «аудио, текст и список остановок открываются внутри панели», which currently expects «Пауза» right after start.
-- `place` mode with `?replay=walk&speed=20` and a stubbed audio route: the first story starts by itself on arrival at stop 1, not at the start.
+- `place` mode with `?replay=walk&speed=20` and a stubbed audio route: the first story starts by itself on arrival at stop 1, not at the start. Implemented: the catalog walk's own static recordings are served (no stub needed, nothing paid); its stop 1 is ~20 m from the start, so the test asserts silence and the approach meta right after the start, then arrival.
 - `sequence` mode: plays immediately (regression guard).
-- Local document with `route.tunnels`: a `[data-route-covered]` path has a non-empty `stroke-dasharray`; builder map shows the line at ≈0.8 pane opacity.
+- Local document with `route.tunnels`: a `[data-route-covered]` path has a non-empty `stroke-dasharray`; builder map shows the line at ≈0.8 pane opacity. Implemented: checked on the catalog walk (its route carries `[[29,30]]`) before start, where the same pane class gives 0.8; the builder uses the same `ExploreMap` panes.
 - Screenshots at 390×844, 1440×900 and 568×400 for the walk in progress (highlight, chevrons, dim) — attach to the PR.
 
 Manual end-to-end with local Docker (`otgolosok-valhalla-1` on 127.0.0.1:8002): build a walk in the builder that crosses Tverskaya at Pushkinskaya (e.g. start near 55.7660, 37.6060, a stop across the street) → the underpass is dashed in the builder and in the walk. Do not call paid APIs from tests.
+
+Verification result (2026-10-02): `pnpm check` green (Vitest, backend `node --test` 713, pytest, lint, typecheck, build). Playwright, both projects: 499 passed; the 7 failures fail the same way on the base commit 663e15e without this work — six `layout-invariants` footer cases (chromium `прогулка / текст истории` 360×640 and 932×430, `список остановок` 320×568, `настройки` 360×640 and 932×430; webkit `список остановок` 320×568) and `shared-walk-admin` «публичная прогулка попадает в топ…». The first iteration (separate hint line, longer meta) added more footer failures; they are gone.
 
 Before each commit: `npm run check` (or the project's lint/type-check/test scripts) and backend tests for touched backend files.
 
