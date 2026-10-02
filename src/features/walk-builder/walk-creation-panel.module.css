@@ -200,52 +200,6 @@
   width: 100%;
 }
 
-/* Built route preview. */
-.summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-lg);
-  margin: var(--space-xs) 0 var(--space-md);
-}
-
-.summary strong {
-  font-size: var(--text-page);
-  letter-spacing: -0.04em;
-  white-space: nowrap;
-}
-
-.shortfall {
-  margin: 0 0 var(--space-md);
-  font-size: var(--text-secondary);
-  line-height: 1.45;
-}
-
-.routePoints {
-  overflow: hidden;
-  background: var(--raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-}
-
-.routePoints p {
-  margin: 0;
-  padding: 0.625rem 0.875rem;
-  font-size: var(--text-secondary);
-  line-height: 1.4;
-}
-
-.routePoints p + p {
-  border-top: 1px solid var(--line);
-}
-
-.routePoints small {
-  display: block;
-  margin-bottom: 0.1875rem;
-  font-size: var(--text-meta);
-  color: var(--map-muted);
-}
-
 .textButton {
   display: inline-flex;
   align-items: center;

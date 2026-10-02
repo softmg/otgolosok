@@ -122,7 +122,7 @@ export const SCREEN_STATES: ScreenState[] = [
     const route = { stops: creationDraft.stops, geometry: [creationDraft.start.location, ...creationDraft.stops.map(stop => stop.location), creationDraft.start.location], walkingMinutes: 30, distanceM: 2000, attribution: "OSM" };
     await page.addInitScript(value => localStorage.setItem("otgolosok:walk:v1", JSON.stringify(value)), { ...creationDraft, route });
     await page.goto("/?walk=create&resume=1");
-    await expect(page.getByRole("heading", { name: "Ваш маршрут", exact: true })).toBeVisible(); await mapReady(page);
+    await expect(page.getByRole("button", { name: "Открыть прогулку", exact: true })).toBeVisible(); await mapReady(page);
   } },
   { screen: "прогулка", state: "до старта", options: { map: true, focus: "first-stop" }, open: async page => {
     await openLongCatalogWalk(page); await mapReady(page);

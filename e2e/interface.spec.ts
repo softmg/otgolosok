@@ -125,22 +125,27 @@ test("создаёт A→Б на карте и восстанавливает е
   await page.getByRole("textbox", { name: "Куда", exact: true }).fill(destination.address);
   await page.getByRole("textbox").press("Enter");
   await page.getByRole("button", { name: "Построить прогулку" }).click();
-  await expect(page.getByRole("heading", { name: "Ваш маршрут" })).toBeVisible();
+  // The built walk opens right away: the builder no longer repeats the route before the walk page.
+  await expect(page).toHaveURL(/\/walk\?local=/);
+  await expect(page.locator('[data-sheet="creation"]')).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Начать прогулку", exact: true })).toBeVisible();
   // Start and finish are rings, not numbered stops.
   await expect(page.locator('.leaflet-marker-pane [data-marker="endpoint"]')).toHaveCount(2);
   await expect(page.locator('.leaflet-marker-pane [data-marker="pin"]')).toHaveCount(0);
-  await expect(page.locator('[data-creation="stops"]:empty')).toHaveCount(0);
-  await expect(page.getByText("Пешеходный маршрут построен. Исторических остановок по пути пока нет.")).toHaveCount(0);
+  await page.screenshot({ path: info.outputPath("built-walk.png") });
+  await page.getByRole("link", { name: "Изменить маршрут", exact: true }).click();
+  await expect(page.locator('[data-sheet="creation"]')).toContainText(destination.address);
+  await expect(page.locator('.leaflet-marker-pane [data-marker="endpoint"]')).toHaveCount(2);
+  await expect(page.locator('.leaflet-marker-pane [data-marker="pin"]')).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Сохранить в аккаунте" })).toHaveCount(0);
   await expect(page.locator('[data-sheet="creation"] [role=status]')).toHaveCount(0);
-  await page.screenshot({ path: info.outputPath("preview.png") });
-  await expect(page.getByRole("link", { name: "Начать прогулку", exact: true })).toBeVisible();
+  await page.screenshot({ path: info.outputPath("builder-with-route.png") });
+  await expect(page.getByRole("button", { name: "Открыть прогулку", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Закрыть создание прогулки" }).click();
   await page.getByRole("link", { name: "История", exact: true }).click();
   await page.getByRole("link", { name: "Редактировать" }).click();
-  await expect(page.getByRole("heading", { name: "Ваш маршрут" })).toBeVisible();
   await expect(page.locator('[data-sheet="creation"]')).toContainText(destination.address);
-  await page.getByRole("link", { name: "Начать прогулку", exact: true }).click();
+  await page.getByRole("button", { name: "Открыть прогулку", exact: true }).click();
   await expect(page.locator('[data-sheet="creation"]')).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Основная навигация" })).toHaveCount(1);
   await expect(page.getByRole("link", { name: "Открыть мою прогулку" })).toHaveCount(0);
@@ -247,7 +252,6 @@ test("правки точек аккаунтной прогулки сохран
   await page.route("**/api/me/walks/**", route => route.fulfill({ json: { walk: { id: "11111111-1111-4111-8111-111111111111", revision: 1, snapshot: draft } } }));
   await page.route("**/api/story-place?*", route => route.fulfill({ json: replacement }));
   await page.goto("/?walk=create&id=11111111-1111-4111-8111-111111111111&edit=1");
-  await page.getByRole("button", { name: "Изменить маршрут" }).click();
   await page.getByRole("button", { name: "Куда", exact: true }).click();
   await page.getByRole("button", { name: "Ввести адрес", exact: true }).click();
   await page.getByRole("textbox", { name: "Куда", exact: true }).fill(replacement.address);
@@ -502,7 +506,7 @@ test("прогулка из Александровского сада с чет�
   await page.addInitScript(value => localStorage.setItem("otgolosok:walk:v1", JSON.stringify(value)), draft);
   await page.goto("/?walk=create&resume=1");
   await expect(page.locator(".leaflet-overlay-pane path[data-route]")).toBeVisible();
-  await page.getByRole("link", { name: "Начать прогулку", exact: true }).click();
+  await page.getByRole("button", { name: "Открыть прогулку", exact: true }).click();
   await expect(page.getByRole("heading", { name: draft.title, exact: true })).toBeVisible();
   await expect(page.getByText("Некорректные данные прогулки.", { exact: true })).toHaveCount(0);
   const map = page.locator(".walk-session-map");
@@ -534,14 +538,19 @@ for (const [walkingMinutes, note] of [[18, true], [52, false]] as const) test(`�
   await page.getByRole("button", { name: "По времени" }).click();
   await page.getByRole("button", { name: "60 мин" }).click();
   await page.getByRole("button", { name: "Построить прогулку" }).click();
-  await expect(page.getByRole("heading", { name: "Ваш маршрут" })).toBeVisible();
+  // The walk page keeps the builder's notes: the shortfall and the stops still without a story.
+  await expect(page.getByRole("button", { name: "Начать прогулку", exact: true })).toBeVisible();
   const shortfall = page.getByText(`Рядом нашлось мест только на ${walkingMinutes} мин из 60.`, { exact: false });
   await expect(shortfall).toHaveCount(note ? 1 : 0);
-  // A loop shows one ring at the start; stop numbers match the stop list.
+  await expect(page.getByText(`У ${stops.length} остановок пока нет истории.`, { exact: true })).toBeVisible();
+  await expect(page.locator('.leaflet-marker-pane [data-marker="pin"]')).toHaveText(stops.map((_, i) => String(i + 1)));
+  await page.screenshot({ path: info.outputPath("time-walk.png") });
+  // In the builder a loop shows one ring at the start; stop numbers match the stop list.
+  await page.getByRole("link", { name: "Изменить маршрут", exact: true }).click();
   await expect(page.getByText(`Остановки · ${stops.length}`, { exact: true })).toBeVisible();
   await expect(page.locator('.leaflet-marker-pane [data-marker="endpoint"]')).toHaveCount(1);
   await expect(page.locator('.leaflet-marker-pane [data-marker="pin"]')).toHaveText(stops.map((_, i) => String(i + 1)));
-  await page.screenshot({ path: info.outputPath("time-preview.png") });
+  await page.screenshot({ path: info.outputPath("time-builder.png") });
 });
 
 test("старт вне пешеходной сети объясняет, что выбрать, без предложения исследования", async ({ page }) => {

@@ -38,8 +38,6 @@ export function useWalkDraft() {
   const [query, setQuery] = useState("");
   const [focus, setFocus] = useState<Coordinates | null>(null);
   const [selection, setSelection] = useState<"auto" | "manual">("auto");
-  // The planner chose the stops of the current route; not persisted, so a restored route never claims it.
-  const [autoRoute, setAutoRoute] = useState(false);
   const [reviewed, setReviewed] = useState(false);
   const [researchOffered, setResearchOffered] = useState(false);
   const [pollId, setPollId] = useState<string | null>(null);
@@ -47,6 +45,8 @@ export function useWalkDraft() {
   const [accountUser,setAccountUser]=useState<{id:string}|null>(null);
   const [serverWalk,setServerWalk]=useState<{id:string;revision:number}|null>(null);
   const localWalkId = useRef<string | null>(null);
+  // An account walk is edited in this browser; its walk page shows the server copy, so changes are saved before opening it.
+  const accountDirty = useRef(false);
   const localRevision = useRef<number | null>(null);
   const documentRef = useRef<ReturnType<typeof draftToWalkDocument> | null>(null);
   const accountOperationKey = useRef<string | null>(null);
@@ -102,8 +102,10 @@ export function useWalkDraft() {
           const pendingAccount = localStorage.getItem("otgolosok:walk:active-account") === walkId;
           const pendingRevision = Number(localStorage.getItem("otgolosok:walk:active-revision"));
           if (pendingAccount && hasSaved && pendingRevision !== data.walk.revision) throw new Error("Прогулка в аккаунте изменилась. Скачайте черновик перед обновлением страницы.");
+          accountDirty.current = pendingAccount && hasSaved;
           restored = pendingAccount && hasSaved ? restored : data.walk.snapshot?.version === 2 ? walkDocumentToDraft(data.walk.snapshot) : parseDraft(JSON.stringify(data.walk.snapshot));
-          documentRef.current = data.walk.snapshot;
+          // A legacy snapshot is not a walk document; saving builds a fresh one.
+          documentRef.current = data.walk.snapshot?.version === 2 ? data.walk.snapshot : null;
           setServerWalk({ id: data.walk.id, revision: data.walk.revision });
           localStorage.setItem("otgolosok:walk:active-account",data.walk.id);
           localStorage.setItem("otgolosok:walk:active-revision",String(data.walk.revision));
@@ -132,6 +134,7 @@ export function useWalkDraft() {
     if (!writable.current) return false;
     try {
       stored.current = saveDraft(localStorage, next, stored.current);
+      if (!localWalkId.current) accountDirty.current = true;
       if (localWalkId.current) {
         const document = draftToWalkDocument(next, localWalkId.current, documentRef.current);
         const item = saveLocalWalk(localStorage, document, localRevision.current);
@@ -149,7 +152,7 @@ export function useWalkDraft() {
     }
   }
   function edit(change: Parameters<typeof editDraft>[1]) {
-    setReviewed(false); setError(""); setMessage(""); setResearchOffered(false); setAutoRoute(false);
+    setReviewed(false); setError(""); setMessage(""); setResearchOffered(false);
     if (change.stops) setSelection("manual");
     else if (["start", "destination", "mode", "minutes"].some(key => Object.hasOwn(change, key))) setSelection("auto");
     persist(editDraft(current.current, change));
@@ -234,23 +237,26 @@ export function useWalkDraft() {
     }
     setCandidate(null); setQuery("");
   }
-  async function plan() {
-    if (!draft.start || action.current || candidate) return;
+  /** Builds the route; true when the draft now has it. */
+  async function plan(): Promise<boolean> {
+    if (!draft.start || action.current || candidate) return false;
     const snapshot = current.current;
     const controller = new AbortController(); action.current = controller; setBusy("Строим пешеходный маршрут…");
-    setReviewed(false); setError(""); setResearchOffered(false); setAutoRoute(false); persist({ ...snapshot, route: null, researchApplied: false });
+    setReviewed(false); setError(""); setResearchOffered(false); persist({ ...snapshot, route: null, researchApplied: false });
     try {
       const result = await request("/api/walk-plan", controller.signal, { start: snapshot.start, mode: snapshot.mode, minutes: snapshot.minutes, ...(snapshot.destination ? {destination:snapshot.destination} : {}), ...(selection === "manual" ? { stops: snapshot.stops } : {}) });
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) return false;
       if (!isPlan(result) || !validStops(snapshot.start, result.stops, snapshot.destination, snapshot.jobs) || result.walkingMinutes > snapshot.minutes || (selection === "manual" && JSON.stringify(result.stops) !== JSON.stringify(snapshot.stops))) throw new Error("Сервис вернул некорректный маршрут. Попробуйте построить заново.");
-      persist({ ...current.current, stops: result.stops, route: result }); setAutoRoute(selection === "auto"); setSelection("manual");
+      persist({ ...current.current, stops: result.stops, route: result }); setSelection("manual");
       setMessage("");
+      return true;
     } catch (caught) { if (!controller.signal.aborted) {
       const insufficient = shouldOfferResearch(selection, caught);
       setResearchOffered(insufficient);
       setError(insufficient ? "Рядом пока недостаточно готовых остановок для этой прогулки." : toUserMessage(caught, "Маршрут недоступен."));
     } }
     finally { if (!controller.signal.aborted) { action.current = null; setBusy(""); } }
+    return false;
   }
   const places = draft.stops;
   const nextPlace = places.find(p => !p.contentId && !draft.jobs.some(j => storyAddressKey(j.place.address) === storyAddressKey(p.address)));
@@ -299,8 +305,9 @@ export function useWalkDraft() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(current.current, null, 2)], { type: "application/json" }));
     const a = document.createElement("a"); a.href = url; a.download = "otgolosok-walk.json"; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  async function saveToAccount(){
-    if(!accountUser){router.push(`/login?returnTo=${encodeURIComponent(location.pathname+location.search)}`);return;}
+  /** Saves the walk to the account: "saved", "review" when a public walk went back to the editors, or null on failure. */
+  async function saveToAccount(): Promise<"saved" | "review" | null> {
+    if(!accountUser){router.push(`/login?returnTo=${encodeURIComponent(location.pathname+location.search)}`);return null;}
     setBusy("Сохраняем прогулку…");setError("");
     try {
       let awaitsReview = false;
@@ -329,10 +336,22 @@ export function useWalkDraft() {
         if(!new URLSearchParams(location.search).get("id"))history.replaceState(null,"",`/?walk=create&id=${data.walk.id}&edit=1`);
       }
       localWalkId.current = null;
+      accountDirty.current = false;
       setMessage(awaitsReview ? "Прогулка сохранена. В топе она появится после проверки редакцией." : "Прогулка сохранена в личном кабинете.");
-    } catch(caught) { setError(toUserMessage(caught, "Не удалось сохранить прогулку.")); }
+      return awaitsReview ? "review" : "saved";
+    } catch(caught) { setError(toUserMessage(caught, "Не удалось сохранить прогулку.")); return null; }
     finally {setBusy("");}
   }
   const openHref = serverWalk ? `/walk?id=${serverWalk.id}` : localIdForView ? `/walk?local=${localIdForView}` : null;
-  return {initialMode,draft,current,persist,edit,loaded,storageError,message,error,busy,action,candidate,setCandidate,target,setTarget,query,setQuery,focus,selection,setSelection,autoRoute,reviewed,setReviewed,researchOffered,pollId,setPollId,recoveryId,setRecoveryId,resolve,confirmPlace,plan,prepareNext,recoverJob,download,saveToAccount,serverWalk,openHref,nextPlace,activeJob,setBusy,setError};
+  /**
+   * Opens the walk page for the built route. An edited account walk is saved first.
+   * If saving fails, or a public walk went back to the editors, the builder stays open with that message.
+   */
+  async function openWalk() {
+    if (!current.current.route || !openHref || action.current) return;
+    if (serverWalk && accountDirty.current && await saveToAccount() !== "saved") return;
+    router.push(openHref);
+  }
+  async function build() { if (await plan()) await openWalk(); }
+  return {initialMode,draft,current,persist,edit,loaded,storageError,message,error,busy,action,candidate,setCandidate,target,setTarget,query,setQuery,focus,selection,setSelection,reviewed,setReviewed,researchOffered,pollId,setPollId,recoveryId,setRecoveryId,resolve,confirmPlace,plan,build,openWalk,prepareNext,recoverJob,download,saveToAccount,serverWalk,openHref,nextPlace,activeJob,setBusy,setError};
 }

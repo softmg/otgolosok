@@ -4,6 +4,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { WalkCreationPanel } from "./walk-creation-panel";
+import { DRAFT_KEY, emptyDraft } from "./model";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => {}, replace: () => {} }) }));
 
@@ -88,4 +89,24 @@ it("explains that device location services may be off when no fix arrives", asyn
   expect(container.textContent).not.toContain("геолокация включена");
   await act(async () => { channels.preciseError?.({ code: 3 } as GeolocationPositionError); });
   expect(container.textContent).toContain("Проверьте, что геолокация включена в настройках устройства. Выберите точку на карте или введите адрес.");
+});
+
+it("с построенным маршрутом показывает форму и «Открыть прогулку», а правка возвращает «Построить прогулку»", async () => {
+  const start = { address: "Москва, Арбат, 1", location: { lat: 55.75, lon: 37.6 } };
+  const stop = { address: "Москва, Арбат, 20", location: { lat: 55.752, lon: 37.6 } };
+  const route = { stops: [stop], geometry: [start.location, stop.location, start.location], walkingMinutes: 25, distanceM: 1800, attribution: "OSM" };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...emptyDraft(), start, stops: [stop], route }));
+  history.replaceState(null, "", "/?walk=create&resume=1");
+  try {
+    await act(async () => { root.render(createElement(WalkCreationPanel, { onClose: () => {}, onMap: () => {}, picked: null })); });
+    expect(container.querySelector("h1")?.textContent).toBe("Прогулка");
+    expect(button("Открыть прогулку")).toBeTruthy();
+    expect(button("Построить прогулку")).toBeUndefined();
+    expect(container.textContent).toContain("Остановки · 1");
+    await act(async () => { button("Куда")?.click(); });
+    await act(async () => { button("По времени")?.click(); });
+    await act(async () => { button("60 мин")?.click(); });
+    expect(button("Открыть прогулку")).toBeUndefined();
+    expect(button("Построить прогулку")).toBeTruthy();
+  } finally { history.replaceState(null, "", "/"); }
 });

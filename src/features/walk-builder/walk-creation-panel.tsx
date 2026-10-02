@@ -8,7 +8,7 @@ import { ExploreIcon } from "../explore/icons";
 import { useWalkDraft } from "./use-walk-draft";
 import { creationReducer } from "./creation-state";
 import { AddressInput } from "./address-input";
-import { routeShortfall, validStops, type Place } from "./model";
+import { validStops, type Place } from "./model";
 import { ResearchPanel } from "./research-panel";
 import { describeLocateError, locateOnce } from "@/lib/position/locate";
 import { Sheet } from "../shell/sheet";
@@ -68,9 +68,9 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
     setMode(next); w.edit({ destination: null, mode: next === "time" ? "loop" : "open" });
     w.setTarget("destination");
   }
-  async function build() { setPicker(null); await w.plan(); if (w.current.current.route) dispatch({ type: "step", step: "preview" }); }
-  const preview = Boolean(w.draft.route) && !state.picking;
-  const shortfall = w.draft.route && w.autoRoute && !w.draft.destination ? routeShortfall(w.draft.route, w.draft.minutes) : null;
+  // A built route opens on the walk page; the builder keeps only the form.
+  async function build() { setPicker(null); await w.build(); }
+  const built = Boolean(w.draft.route) && !state.picking;
 
   function selectAddress(place: Place, target = w.target) {
     if (target === "start") w.edit({ start: place });
@@ -99,35 +99,28 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
             {w.candidate && <div className={styles.candidate}><p>{w.candidate.address}</p><button className="ui-button" onClick={() => { w.confirmPlace(); setPicker(null); }}>Выбрать эту точку</button></div>}
             {picker === "time" && <><fieldset className={styles.time} disabled={busy}><legend>Время пешком</legend><div>{([30, 60, 90] as const).map(minutes => <button type="button" key={minutes} aria-pressed={w.draft.minutes === minutes} onClick={() => w.edit({ minutes })}>{minutes} мин</button>)}</div></fieldset><label className={styles.switch}><span>Вернуться к началу</span><input type="checkbox" checked={w.draft.mode === "loop"} onChange={e => w.edit({ mode: e.target.checked ? "loop" : "open" })} /></label></>}
           </div>;
-  const step = state.picking ? "picking" : preview ? "preview" : "form";
-  const footer = preview && w.openHref ? <Link className={`ui-button ${styles.footerAction}`} href={w.openHref}>Начать прогулку</Link>
-    : w.loaded && !preview && !state.picking && w.draft.start && (mode === "time" || w.draft.destination)
+  const step = state.picking ? "picking" : "form";
+  const footer = w.loaded && built && w.openHref ? <button className={`ui-button ${styles.footerAction}`} disabled={busy || !!w.storageError} onClick={() => void w.openWalk()}>Открыть прогулку</button>
+    : w.loaded && !built && !state.picking && w.draft.start && (mode === "time" || w.draft.destination)
       ? <button className={`ui-button ${styles.footerAction}`} disabled={busy || !w.draft.start || (mode === "destination" && !w.draft.destination) || !!w.candidate || !!w.storageError} onClick={() => void build()}>Построить прогулку</button>
       : null;
 
   return <Sheet name="creation" state={step} labelledBy="creation-title" sheetRef={panel} className={styles.panel}
-    header={<div className={styles.heading}><h1 id="creation-title" className={styles.title} ref={title} tabIndex={-1}>{state.picking ? "Куда идём?" : preview ? "Ваш маршрут" : "Прогулка"}</h1><button type="button" className={styles.close} onClick={onClose} aria-label="Закрыть создание прогулки"><ExploreIcon name="close" /></button></div>}
+    header={<div className={styles.heading}><h1 id="creation-title" className={styles.title} ref={title} tabIndex={-1}>{state.picking ? "Куда идём?" : "Прогулка"}</h1><button type="button" className={styles.close} onClick={onClose} aria-label="Закрыть создание прогулки"><ExploreIcon name="close" /></button></div>}
     footer={footer}>
       {!w.loaded ? <p role="status">Открываем черновик…</p> : <>
-        {!preview && !state.picking && <>
+        {!state.picking && <>
           <div className={styles.endpoints} data-creation="endpoints">
             {(["start", "destination"] as const).map(target => <div className={styles.endpoint} key={target}>{w.target === target && picker === "address" ? inlineAddress : <button data-endpoint={target} aria-label={target === "start" ? "Откуда" : "Куда"} aria-expanded={w.target === target && picker !== null} aria-controls="creation-picker" disabled={busy} onClick={() => { w.setTarget(target); w.setCandidate(null); w.setQuery(""); setPicker(w.target === target && picker ? null : "choices"); }}><span><small>{target === "start" ? "Откуда" : "Куда"}</small><strong>{target === "start" ? w.draft.start?.address ?? "Выберите начало" : mode === "time" ? `${w.draft.minutes} мин пешком${w.draft.mode === "loop" ? " · с возвращением" : ""}` : w.draft.destination?.address ?? "Выберите место или время"}</strong></span><svg className={styles.chevron} aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg></button>}{w.target === target && addressPicker}</div>)}
           </div>
-          {w.target === "stop" && <>{picker === "address" && inlineAddress}{addressPicker}</>}
         </>}
         {state.picking && <div className={styles.mapPick}><p>Нажмите на карту в нужном месте.</p><button className="ui-button quiet" onClick={() => dispatch({ type: "return" })}>Отменить</button></div>}
-        {preview && <>
-          <p className={styles.summary}><strong>{w.draft.route!.walkingMinutes} мин</strong><strong>{(w.draft.route!.distanceM / 1000).toFixed(1).replace(".", ",")} км</strong></p>
-          {shortfall !== null && <p className={`ui-muted ${styles.shortfall}`}>Рядом нашлось мест только на {shortfall} мин из {w.draft.minutes}. Выберите другое начало или добавьте остановки вручную.</p>}
-          <div className={styles.routePoints}><p><small>Откуда</small>{w.draft.start?.address}</p><p><small>Куда</small>{w.draft.destination?.address ?? (w.draft.mode === "loop" ? w.draft.start?.address : w.draft.stops.at(-1)?.address)}</p></div>
-          <button className={styles.textButton} disabled={busy} onClick={() => w.edit({})}>Изменить маршрут</button>
-          {w.draft.stops.length > 0 && <details className={styles.details}><summary>Остановки · {w.draft.stops.length}</summary><ol className={styles.stops} data-creation="stops">{w.draft.stops.map((stop, i) => <li key={`${stop.address}-${i}`}>{stop.address}</li>)}</ol>
+        {built && w.draft.stops.length > 0 && <details className={styles.details}><summary>Остановки · {w.draft.stops.length}</summary><ol className={styles.stops} data-creation="stops">{w.draft.stops.map((stop, i) => <li key={`${stop.address}-${i}`}>{stop.address}</li>)}</ol>
           {w.nextPlace && <label className={styles.consent}><input type="checkbox" checked={w.reviewed} onChange={e => w.setReviewed(e.target.checked)} />Подготовить историю выбранной остановки с помощью ИИ. Факты будут проверены по источникам.</label>}
           {w.nextPlace && <button className="ui-button secondary" disabled={busy || !w.reviewed || !!w.activeJob || !!w.draft.submitting || !!w.storageError} onClick={() => void w.prepareNext()}>Подготовить историю</button>}
           {w.draft.jobs.length > 0 && <div className={styles.jobs}>{w.draft.jobs.map(job => <Link key={job.id} href={`/create?job=${job.id}`}>История: {job.place.address} →</Link>)}</div>}
-          </details>}
-        </>}
-        <ResearchPanel draft={w.draft} current={w.current} persist={w.persist} offered={w.researchOffered} disabled={busy || !!w.storageError} chooseStartDisabled={busy} action={w.action} setBusy={w.setBusy} onApply={() => dispatch({ type: "step", step: "preview" })} onChooseStart={() => { w.setTarget("start"); w.edit({}); }} />
+        </details>}
+        <ResearchPanel draft={w.draft} current={w.current} persist={w.persist} offered={w.researchOffered} disabled={busy || !!w.storageError} chooseStartDisabled={busy} action={w.action} setBusy={w.setBusy} onApply={() => void w.openWalk()} onChooseStart={() => { w.setTarget("start"); w.edit({}); }} />
         {w.draft.submitting && <div className="ui-notice"><p>Результат отправки неизвестен. Введите ID истории из раздела запросов профиля.</p><label className="ui-field">ID истории<input value={w.recoveryId} onChange={e => w.setRecoveryId(e.target.value)} /></label><button className="ui-button secondary" onClick={() => void w.recoverJob()}>Восстановить</button></div>}
       </>}
       {w.storageError && <div role="alert" className="ui-notice">{w.storageError}<button className={styles.textButton} onClick={w.download}>Скачать черновик</button></div>}
