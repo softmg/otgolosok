@@ -102,7 +102,7 @@ test("a replay publishes a promo walk created when promo walks were link-only", 
 
 test("planner failures keep their status and retry hint", async t => {
   /** @type {Array<[string, number, string | null]>} */
-  const cases = [["WALK_NOT_FOUND", 404, null], ["WALK_BUSY", 429, "2"], ["WALK_RATE_LIMITED", 429, "2"], ["WALK_UNAVAILABLE", 503, null], ["PRIVATE", 503, null], ["BAD_REQUEST", 400, null]];
+  const cases = [["WALK_NOT_FOUND", 404, null], ["WALK_START_UNREACHABLE", 404, null], ["WALK_DESTINATION_UNREACHABLE", 404, null], ["WALK_BUSY", 429, "2"], ["WALK_RATE_LIMITED", 429, "2"], ["WALK_UNAVAILABLE", 503, null], ["PRIVATE", 503, null], ["BAD_REQUEST", 400, null]];
   for (const [code, status, retryAfter] of cases) {
     const { service, count } = await fixture(t, async () => { throw Object.assign(new Error("secret detail"), { code }); });
     for (const dryRun of [true, false]) {

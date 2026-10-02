@@ -23,12 +23,28 @@ export const MIN_BUDGET_SHARE = 0.75;
 // Valhalla's pedestrian default is about 5.1 km/h; streets add roughly a third to straight lines.
 const WALK_METERS_PER_MINUTE = 85;
 const STRAIGHT_TO_WALK = 1.3;
-const MAX_AUTO_ROUTE_ATTEMPTS = 8;
+// Valhalla snaps every location to its nearest pedestrian edge. A wide radius lets it
+// pick a different edge for each leg at the same stop, which breaks the walk into
+// pieces; the reachability floor keeps points off closed patches of paths.
+const SNAP_RADIUS_METERS = 0;
+const MIN_REACHABILITY_NODES = 500;
+// Valhalla error codes for "no path" and "no suitable edges near a location".
+const UNROUTABLE_CODES = [442, 171];
+// The start, the destination and user-chosen stops may lie inside a courtyard;
+// an automatic stop farther from the street than this is a poor candidate.
+const MAX_POINT_SNAP_METERS = 150;
+const MAX_AUTO_STOP_SNAP_METERS = 75;
+// A landmark this close to the start is the first stop without a walking leg.
+const START_STOP_METERS = 40;
+export const MAX_AUTO_ROUTER_CALLS = 12;
 const MAX_SPACING_STEPS = 16;
 const MIN_SPACING_STEP_METERS = 20;
 const RANK_WINDOW_METERS = 150;
 const contentId = value => typeof value === 'string' && /^osm:(node|way|relation):\d+$/.test(value);
 const readinessRank = {none:0,story:1,audio:2};
+// Same normalization as addressKey in domain.mjs, without hashing.
+const sameAddressKey = address => address.normalize('NFKC').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[.,]/g,' ').replace(/\s+/g,' ').trim();
+const publicStop = p => ({address:p.address,location:p.location,...(p.contentId?{contentId:p.contentId}:{})});
 
 // Approximate a point against a short Moscow walking polyline. Besides the
 // distance, progress keeps landmarks in walking order instead of creating
@@ -157,17 +173,21 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
     const start=place(input.start), manual=Object.hasOwn(input,'stops');
     if(manual&&(!Array.isArray(input.stops)||input.stops.length<(destination?0:1)||input.stops.length>MAX_WALK_STOPS))throw fail('WALK_INVALID');
     let stops=manual?input.stops.map(place):[];
+    // The first stop may be the start building itself; every other pair stays apart.
     const distinct=[start,...stops,...(destination?[destination]:[])];
-    if(distinct.some((p,i)=>distinct.slice(0,i).some(q=>distance(p.location,q.location)<5)))throw fail('WALK_INVALID');
+    if(distinct.some((p,i)=>distinct.slice(0,i).some((q,j)=>!(stops.length&&i===1&&j===0)&&distance(p.location,q.location)<5)))throw fail('WALK_INVALID');
     if(!routerUrl)throw fail('WALK_UNAVAILABLE');
     limitClient(client);
     await acquire();
     const controller=new AbortController();let timer,discovering=false;
     const unavailable=()=>fail(discovering?'WALK_DISCOVERY_UNAVAILABLE':'WALK_UNAVAILABLE');
     const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(unavailable());},timeoutMs);});
-    async function request(url,body,contentType) {
+    // A router answers "no path" with a 4xx JSON body; routerErrors turns those
+    // codes into WALK_UNROUTABLE, which measureRoute reports as a rejected route.
+    async function request(url,body,contentType,{routerErrors=false}={}) {
       const response=await fetchImpl(url,{method:'POST',body,redirect:'error',signal:controller.signal,headers:{'Content-Type':contentType,Accept:'application/json','User-Agent':'Otgolosok/0.1 (+https://otgolosok.online)'}});
-      if(!response?.ok||!response.body?.getReader){await response?.body?.cancel();throw fail('WALK_UNAVAILABLE');}
+      const clientError=routerErrors&&response?.status>=400&&response.status<500;
+      if((!response?.ok&&!clientError)||!response.body?.getReader){await response?.body?.cancel();throw fail('WALK_UNAVAILABLE');}
       const reader=response.body.getReader(),chunks=[];let size=0;
       const cancel=()=>{void reader.cancel().catch(()=>{});};
       controller.signal.addEventListener('abort',cancel,{once:true});
@@ -177,91 +197,135 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
           const {done,value}=await reader.read();if(done)break;
           size+=value.byteLength;if(size>1024*1024)throw fail('WALK_UNAVAILABLE');chunks.push(value);
         }
-        return JSON.parse(Buffer.concat(chunks).toString());
+        const data=JSON.parse(Buffer.concat(chunks).toString());
+        if(clientError)throw fail(UNROUTABLE_CODES.includes(data?.error_code)?'WALK_UNROUTABLE':'WALK_UNAVAILABLE');
+        return data;
       } finally {controller.signal.removeEventListener('abort',cancel);cancel();}
     }
-    // Unusable routes (snapped or disconnected legs) are null; a usable route
-    // reports its walking time and whether it fits the chosen budget.
-    async function measureRoute(routeStops) {
-        const points=[start,...routeStops,...(destination?[destination]:input.mode==='loop'?[start]:[])];
+    // A usable route reports its walking time and whether it fits the chosen budget.
+    // An unusable one is rejected with a reason and, when the router data points at
+    // one, the index of the stop to blame in routeStops. A first stop at the start
+    // building is not routed: it adds no walking leg.
+    async function measureRoute(routeStops,{autoStops=false}={}) {
+        const atStart=routeStops.length>0&&distance(routeStops[0].location,start.location)<=START_STOP_METERS;
+        const offset=atStart?1:0,routed=routeStops.slice(offset);
+        const closing=destination??(input.mode==='loop'?start:null);
+        const points=[start,...routed,...(closing?[closing]:[])];
+        const stopAt=j=>j>=1&&j<=routed.length?j-1+offset:null;
+        const rejected=(reason,stopIndex=null)=>({kind:'rejected',reason,stopIndex});
+        if(points.length<2)return rejected('zero_leg');
         const url=new URL(routerUrl);
         if(!['http:','https:'].includes(url.protocol)||url.username||url.password)throw fail('WALK_UNAVAILABLE');
-        const data=await request(url.toString(),JSON.stringify({locations:points.map(p=>({...p.location,type:'break',radius:100})),costing:'pedestrian',units:'kilometers',shape_format:'polyline6'}),'application/json');
-        if(data?.error_code===442)throw fail('WALK_NOT_FOUND');
+        const location=p=>({...p.location,type:'break',radius:SNAP_RADIUS_METERS,minimum_reachability:MIN_REACHABILITY_NODES});
+        let data;
+        try {data=await request(url.toString(),JSON.stringify({locations:points.map(location),costing:'pedestrian',units:'kilometers',shape_format:'polyline6'}),'application/json',{routerErrors:true});}
+        catch(error) {if(error?.code==='WALK_UNROUTABLE')return rejected('unroutable');throw error;}
         const trip=data?.trip;
         if(trip?.status!==0||trip.units!=='kilometers'||!Array.isArray(trip.legs)||trip.legs.length!==points.length-1)throw fail('WALK_UNAVAILABLE');
-        const geometry=[];let seconds=0,distanceM=0;
-        for(const [i,leg] of trip.legs.entries()) {
+        // Validate every leg first, so malformed data is never mistaken for a bad stop.
+        const shapes=trip.legs.map(leg=>{
           const s=leg?.summary;
           if(!s||!Number.isFinite(s.time)||s.time<0||!Number.isFinite(s.length)||s.length<0||s.time>86400||s.length>100)throw fail('WALK_UNAVAILABLE');
           // Distinct landmarks can snap onto the same pedestrian access point.
-          // This candidate adds no walkable leg; it is not a service outage.
           if(s.time===0||s.length===0)return null;
           const shape=decode(leg.shape);
-          if(distance(shape[0],points[i].location)>150||distance(shape.at(-1),points[i+1].location)>150)throw fail('WALK_UNAVAILABLE');
-          // Snapping a stop to different pedestrian edges can leave a real gap.
-          // Reject this candidate, never draw an invented connecting segment.
-          if(geometry.length&&distance(geometry.at(-1),shape[0])>10)return null;
           let measured=0;for(let j=1;j<shape.length;j++)measured+=distance(shape[j-1],shape[j]);
           if(Math.abs(measured-s.length*1000)>Math.max(100,s.length*1000*0.25))throw fail('WALK_UNAVAILABLE');
+          return shape;
+        });
+        // The start and the destination cannot be swapped for other points: say which one is off the street.
+        const first=shapes[0],last=shapes.at(-1);
+        if(first&&distance(first[0],start.location)>MAX_POINT_SNAP_METERS||input.mode==='loop'&&last&&distance(last.at(-1),start.location)>MAX_POINT_SNAP_METERS)throw fail('WALK_START_UNREACHABLE');
+        if(destination&&last&&distance(last.at(-1),destination.location)>MAX_POINT_SNAP_METERS)throw fail('WALK_DESTINATION_UNREACHABLE');
+        const geometry=[];let seconds=0,distanceM=0;
+        for(const [i,shape] of shapes.entries()) {
+          if(!shape)return rejected('zero_leg',stopAt(i+1)??stopAt(i));
+          if(stopAt(i+1)!==null&&distance(shape.at(-1),points[i+1].location)>(autoStops?MAX_AUTO_STOP_SNAP_METERS:MAX_POINT_SNAP_METERS))return rejected('far_stop',stopAt(i+1));
+          // Snapping a stop to different pedestrian edges can leave a real gap.
+          // Reject this stop, never draw an invented connecting segment.
+          if(geometry.length&&distance(geometry.at(-1),shape[0])>10)return rejected('gap',stopAt(i));
+          const s=trip.legs[i].summary;
           seconds+=s.time;distanceM+=s.length*1000;geometry.push(...(geometry.length?shape.slice(1):shape));
           if(geometry.length>12000)throw fail('WALK_UNAVAILABLE');
         }
         const direct=points.slice(1).reduce((sum,p,i)=>sum+distance(points[i].location,p.location),0);
         const fits=seconds<=input.minutes*60&&distanceM<=input.minutes*90&&distanceM<=Math.max(1200,direct*4);
-        const publicStops=routeStops.map(p=>({address:p.address,location:p.location,...(p.contentId?{contentId:p.contentId}:{})}));
-        return {seconds,fits,route:{stops:publicStops,geometry,distanceM:Math.round(distanceM),walkingMinutes:Math.ceil(seconds/60),attribution:'© OpenStreetMap contributors; pedestrian routing by Valhalla. Map information is not verified historical evidence.'}};
+        return {kind:'route',seconds,fits,route:{stops:routeStops.map(publicStop),geometry,distanceM:Math.round(distanceM),walkingMinutes:Math.ceil(seconds/60),attribution:'© OpenStreetMap contributors; pedestrian routing by Valhalla. Map information is not verified historical evidence.'}};
     }
-    async function routeStops(routeStops) {
-      const measured=await measureRoute(routeStops);
-      return measured?.fits?measured.route:null;
+    async function routeStops(routeStops,options) {
+      const measured=await measureRoute(routeStops,options);
+      return measured.kind==='route'&&measured.fits?measured.route:null;
     }
     // The nearest landmarks cluster into a short walk in dense areas, so spacing
-    // between stops is searched until the walk reaches the time floor. Every
-    // router call is bounded; the longest fitting walk is kept for sparse areas.
-    async function fillBudget(candidates,stopLimit) {
+    // between stops is searched until the walk reaches the time floor. A stop that
+    // makes a route unusable is excluded and the search goes on without it. Every
+    // router call counts against one budget; the longest fitting walk is kept for
+    // sparse areas. The start landmark, if any, leads every measured walk.
+    async function fillBudget(candidates,stopLimit,landmark) {
       const loop=input.mode==='loop',budget=input.minutes*60,floor=MIN_BUDGET_SHARE*budget;
-      let straightBudgetM=input.minutes*WALK_METERS_PER_MINUTE/STRAIGHT_TO_WALK;
-      const chainFor=spacingM=>selectChain({start,candidates,stopLimit,spacingM,loop,straightBudgetM});
+      let straightBudgetM=input.minutes*WALK_METERS_PER_MINUTE/STRAIGHT_TO_WALK,calls=0;
+      const excluded=new Set(),measured=new Map();
+      const chainFor=(spacingM,limitM=straightBudgetM)=>selectChain({start,candidates:candidates.filter(c=>!excluded.has(c)),stopLimit,spacingM,loop,straightBudgetM:limitM});
       const straightLength=chain=>[start,...chain,...(loop?[start]:[])].slice(1).reduce((sum,p,i,points)=>sum+distance((i?points[i-1]:start).location,p.location),0);
-      let nearest=chainFor(0);
-      // The straight-line estimate may be too strict for sparse areas; let the router decide.
-      if(nearest.length<2)nearest=selectChain({start,candidates,stopLimit,spacingM:0,loop,straightBudgetM:Infinity});
-      const measured=new Map([[JSON.stringify(nearest.map(p=>p.address)),await measureRoute(nearest)]]);
-      let best=[...measured.values()][0];
-      if(best?.fits&&best.seconds>=floor)return best.route;
-      if(!best?.fits) {
-        // Spreading stops only lengthens a walk that is already too long or unusable.
-        for(let stops=nearest.slice(0,-1);stops.length>=2;stops=stops.slice(0,-1)) {
+      const retry=result=>result.kind==='rejected'&&result.stopIndex!==null;
+      // Null once the router budget is spent. A blamed stop is excluded from later chains.
+      async function measure(chain) {
+        const key=JSON.stringify(chain.map(p=>p.address));
+        if(!measured.has(key)) {
+          if(calls>=MAX_AUTO_ROUTER_CALLS)return null;
+          calls++;
+          const result=await measureRoute(landmark?[landmark,...chain]:chain,{autoStops:true});
+          if(retry(result))excluded.add(chain[result.stopIndex-(landmark?1:0)]);
+          measured.set(key,result);
+        }
+        return measured.get(key);
+      }
+      let chain,result;
+      while(true) {
+        controller.signal.throwIfAborted();
+        chain=chainFor(0);
+        // The straight-line estimate may be too strict for sparse areas; let the router decide.
+        if(chain.length<2)chain=chainFor(0,Infinity);
+        if(chain.length<2)throw fail('WALK_NOT_FOUND');
+        result=await measure(chain);
+        if(!result)throw fail('WALK_NOT_FOUND');
+        if(!retry(result))break;
+      }
+      if(result.kind==='route'&&result.fits&&result.seconds>=floor)return result.route;
+      if(result.kind!=='route'||!result.fits) {
+        // Spreading stops only lengthens a walk that is already too long.
+        for(let stops=chain.slice(0,-1);stops.length>=2;) {
           controller.signal.throwIfAborted();
-          const route=await routeStops(stops);
-          if(route)return route;
+          const trimmed=await measure(stops);
+          if(!trimmed)break;
+          if(trimmed.kind==='route'&&trimmed.fits)return trimmed.route;
+          stops=retry(trimmed)?stops.filter(p=>!excluded.has(p)):stops.slice(0,-1);
         }
         throw fail('WALK_NOT_FOUND');
       }
-      let lo=0,hi=straightBudgetM/2,spacingM=straightBudgetM/(stopLimit+(loop?1:0));
+      let best=result,lo=0,hi=straightBudgetM/2,spacingM=straightBudgetM/(stopLimit+(loop?1:0));
       for(let step=0;step<MAX_SPACING_STEPS&&hi-lo>=MIN_SPACING_STEP_METERS;step++) {
         controller.signal.throwIfAborted();
-        const chain=chainFor(spacingM),key=JSON.stringify(chain.map(p=>p.address));
-        let result=null;
+        const chain=chainFor(spacingM);
+        let route=null;
         if(chain.length>=2) {
-          if(!measured.has(key)) {
-            if(measured.size>=MAX_AUTO_ROUTE_ATTEMPTS)break;
-            measured.set(key,await measureRoute(chain));
-          }
-          result=measured.get(key);
+          const measuredChain=await measure(chain);
+          if(!measuredChain)break;
+          // The same spacing without the excluded stop may still work.
+          if(retry(measuredChain))continue;
+          if(measuredChain.kind==='route')route=measuredChain;
         }
-        if(result) {
+        if(route) {
           // Streets wind more or less than assumed: learn the ratio from the router
           // so the next chains end just below the budget.
-          const calibrated=straightLength(chain)*budget/result.seconds*0.97;
-          if(result.seconds>budget) {straightBudgetM=Math.min(straightBudgetM*0.97,calibrated);continue;}
+          const calibrated=straightLength(chain)*budget/route.seconds*0.97;
+          if(route.seconds>budget) {straightBudgetM=Math.min(straightBudgetM*0.97,calibrated);continue;}
           straightBudgetM=Math.max(straightBudgetM,calibrated);
         }
-        // Too few stops, an unusable snap or a detour-heavy walk need tighter spacing.
-        if(!result?.fits)hi=spacingM;
-        else if(result.seconds>=floor)return result.route;
-        else {if(result.seconds>best.seconds)best=result;lo=spacingM;}
+        // Too few stops, an unroutable chain or a detour-heavy walk need tighter spacing.
+        if(!route?.fits)hi=spacingM;
+        else if(route.seconds>=floor)return route.route;
+        else {if(route.seconds>best.seconds)best=route;lo=spacingM;}
         spacingM=(lo+hi)/2;
       }
       return best.route;
@@ -291,14 +355,18 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
           if(!Array.isArray(supplied)||supplied.length>500||supplied.some(item=>!item||!contentId(item.id)||!clean(item.address,240)||!inBox(item.location)||!Object.hasOwn(readinessRank,item.readiness)))throw unavailable();
         }
         const suppliedById=new Map(supplied.map(item=>[item.id,item]));
-        const candidates=[];
+        // Landmarks near the start compete for the first stop at the start itself.
+        // One closer than 5 m can only be that stop: as a routed stop it would
+        // coincide with the start.
+        const candidates=[],nearStart=[];
         const addCandidate=item=>{
-          const p=item.location;
+          const p=item.location,fromStart=distance(start.location,p);
           if(storiesOnly&&!item.contentId)return;
-          if(distance(start.location,p)>radius||distance(start.location,p)<5)return;
-          if(destination&&(distance(p,destination.location)<5||distance(start.location,p)+distance(p,destination.location)>input.minutes*90))return;
-          if(candidates.some(candidate=>(item.catalogId&&candidate.catalogId===item.catalogId)||candidate.address===item.address||distance(candidate.location,p)<5))return;
-          candidates.push(item);
+          if(fromStart>radius)return;
+          if(destination&&(distance(p,destination.location)<5||fromStart+distance(p,destination.location)>input.minutes*90))return;
+          if([...candidates,...nearStart].some(candidate=>(item.catalogId&&candidate.catalogId===item.catalogId)||candidate.address===item.address||distance(candidate.location,p)<5))return;
+          if(fromStart<=START_STOP_METERS)nearStart.push(item);
+          if(fromStart>=5)candidates.push(item);
         };
         for(const e of elements) {
           const t=e?.tags,p=e?.center??e;
@@ -312,9 +380,16 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
         }
         for(const item of supplied)addCandidate({address:clean(item.address,240),location:{lat:item.location.lat,lon:item.location.lon},catalogId:item.id,
           contentRank:readinessRank[item.readiness],catalogRank:1,...(item.readiness!=='none'?{contentId:item.id}:{})});
+        // The catalog point of the start building itself wins, then ready content.
+        const startKey=sameAddressKey(start.address);
+        const landmark=nearStart.map(item=>({item,same:sameAddressKey(item.address)===startKey,fromStart:distance(start.location,item.location)}))
+          .sort((a,b)=>Number(b.same)-Number(a.same)||b.item.contentRank-a.item.contentRank||b.item.catalogRank-a.item.catalogRank||a.fromStart-b.fromStart)[0]?.item??null;
+        if(landmark&&candidates.includes(landmark))candidates.splice(candidates.indexOf(landmark),1);
         if(destination) {
           discovering=false;
-          let result=directRoute,current=start,attempts=0;
+          if(landmark)stops.push(landmark);
+          // The landmark is not routed, so the direct route already is its walk.
+          let result=landmark?{...directRoute,stops:[publicStop(landmark)]}:directRoute,current=start,attempts=0;
           // Landmarks that the direct walking line already passes should win
           // over detours. Keep them ordered along the line.
           const alongRoute=candidates.map(candidate=>({candidate,...routeProximity(candidate.location,directRoute.geometry)}))
@@ -324,7 +399,7 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
           for(const item of alongRoute) {
             if(stops.length>=stopLimit||attempts>=16)break;
             candidates.splice(candidates.indexOf(item.candidate),1);attempts++;
-            const next=await routeStops([...stops,item.candidate]);
+            const next=await routeStops([...stops,item.candidate],{autoStops:true});
             if(next){stops.push(item.candidate);current=item.candidate;result=next;}
           }
           // Try alternatives instead of discarding every stop after one costly detour.
@@ -332,14 +407,14 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
           for(;candidates.length&&stops.length<stopLimit&&attempts<16;attempts++) {
             candidates.sort((a,b)=>b.contentRank-a.contentRank||b.catalogRank-a.catalogRank||(distance(current.location,a.location)+distance(a.location,destination.location))-(distance(current.location,b.location)+distance(b.location,destination.location)));
             const candidate=candidates.shift();
-            const next=await routeStops([...stops,candidate]);
+            const next=await routeStops([...stops,candidate],{autoStops:true});
             if(next){stops.push(candidate);current=candidate;result=next;}
           }
           return result;
         }
         if(candidates.length<2)throw fail('WALK_STOPS_NOT_FOUND');
         discovering=false;
-        return await fillBudget(candidates,stopLimit);
+        return await fillBudget(candidates,stopLimit-(landmark?1:0),landmark);
       }
       while(true) {
         controller.signal.throwIfAborted();
@@ -351,7 +426,7 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
     }
 
     try {return await Promise.race([run(),deadline]);}
-    catch(error) {if(['WALK_NOT_FOUND','WALK_STOPS_NOT_FOUND','WALK_DISCOVERY_UNAVAILABLE'].includes(error?.code))throw error;throw unavailable();}
+    catch(error) {if(['WALK_NOT_FOUND','WALK_STOPS_NOT_FOUND','WALK_DISCOVERY_UNAVAILABLE','WALK_START_UNREACHABLE','WALK_DESTINATION_UNREACHABLE'].includes(error?.code))throw error;throw unavailable();}
     finally {clearTimeout(timer);controller.abort();release();}
   };
 }

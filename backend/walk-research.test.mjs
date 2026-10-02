@@ -352,3 +352,13 @@ test('terminal research failures are reused across neighborhoods without provide
     assert.equal(f.calls.route, 0); assert.equal(f.calls.audio, 0);
   }
 });
+
+for (const [code, message] of [['WALK_START_UNREACHABLE', 'Сюда не дойти пешком. Выберите начало на улице рядом.'], ['WALK_DESTINATION_UNREACHABLE', 'Сюда не дойти пешком. Выберите финиш на улице рядом.']]) test(`${code} is terminal: other stop subsets cannot reach the same endpoint`, async t => {
+  const f = fixture(t);
+  let attempts = 0;
+  f.options.planResearchWalk = async () => { attempts++; throw failure(code); };
+  f.create(); const job = await f.run();
+  assert.equal(attempts, 1);
+  assert.deepEqual(job.error, { code, message }); assert.equal(publicWalkResearch(job).canRetry, false);
+  assert.equal(f.calls.audio, 0); assert.equal(f.calls.draft, 0);
+});

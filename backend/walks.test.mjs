@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWalkPlanner, selectChain } from './walks.mjs';
+import { createWalkPlanner, MAX_AUTO_ROUTER_CALLS, selectChain } from './walks.mjs';
 import discoveryCatalog from './walk-discovery-catalog.json' with { type: 'json' };
 
 const start={address:'Москва, Арбат, 1',location:{lat:55.75,lon:37.60}};
@@ -32,7 +32,8 @@ function fixture(handler) {
   const calls=[];
   const plan=createWalkPlanner({routerUrl:'https://router.test/route',overpassUrl:'https://osm.test/',discoveryElements:null,minIntervalMs:0,fetchImpl:async(url,options)=>{
     calls.push({url:String(url),options});
-    return Response.json(await handler(String(url),options,calls));
+    const value=await handler(String(url),options,calls);
+    return value instanceof Response?value:Response.json(value);
   }});
   return {plan,calls};
 }
@@ -52,7 +53,7 @@ for(const mode of ['loop','open'])test(`manual ${mode} preserves stop order and 
 
 test('strict input validation makes no upstream calls',async()=>{
   const {plan,calls}=fixture(()=>{throw new Error('must not fetch');});
-  for(const value of [null,[],{},input({mode:'drive'}),input({minutes:'30'}),input({minutes:31}),input({extra:true}),input({stops:[]}),input({stops:undefined}),input({stops:Array.from({length:41},(_,i)=>stop(i+1))}),input({stops:[start]}),input({stops:[stop(1),stop(1)]}),input({start:{...start,address:'<script>'}}),input({start:{...start,address:'a'.repeat(241)}}),input({start:{...start,location:{lat:'55.75',lon:37.6}}}),input({start:{...start,location:{lat:56,lon:37.6}}}),input({start:{...start,location:{lat:55.75,lon:NaN}}}),input({start:{...start,location:{...start.location,z:1}}})]) {
+  for(const value of [null,[],{},input({mode:'drive'}),input({minutes:'30'}),input({minutes:31}),input({extra:true}),input({stops:[]}),input({stops:undefined}),input({stops:Array.from({length:41},(_,i)=>stop(i+1))}),input({stops:[stop(1),start]}),input({stops:[stop(1),stop(1)]}),input({start:{...start,address:'<script>'}}),input({start:{...start,address:'a'.repeat(241)}}),input({start:{...start,location:{lat:'55.75',lon:37.6}}}),input({start:{...start,location:{lat:56,lon:37.6}}}),input({start:{...start,location:{lat:55.75,lon:NaN}}}),input({start:{...start,location:{...start.location,z:1}}})]) {
     await assert.rejects(plan(value),{code:'WALK_INVALID'});
   }
   assert.equal(calls.length,0);
@@ -147,7 +148,7 @@ test('rejects malformed router payloads and geometry',async()=>{
 });
 
 test('rejects malformed, oversized, and failing upstream responses',async()=>{
-  for(const fetchImpl of [async()=>new Response('private',{status:500}),async()=>new Response('{'),async()=>new Response('x'.repeat(1024*1024+1)),async()=>{throw new Error('secret');}]) {
+  for(const fetchImpl of [async()=>new Response('private',{status:500}),async()=>new Response(JSON.stringify({error_code:154,error:'Path distance exceeds the max distance limit'}),{status:400}),async()=>new Response('{',{status:400}),async()=>new Response('{'),async()=>new Response('x'.repeat(1024*1024+1)),async()=>{throw new Error('secret');}]) {
     const plan=createWalkPlanner({routerUrl:'https://router.test/route',fetchImpl});
     await assert.rejects(plan(input()),{code:'WALK_UNAVAILABLE',message:'WALK_UNAVAILABLE'});
   }
@@ -469,13 +470,16 @@ const metres=(a,b)=>{
   const rad=Math.PI/180,h=Math.sin((b.lat-a.lat)*rad/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin((b.lon-a.lon)*rad/2)**2;
   return 12742000*Math.asin(Math.sqrt(Math.min(1,h)));
 };
-function walkRoute(request,detour=1.3) {
+// mutate may move shape points in place, e.g. to open a junction gap.
+function walkRoute(request,detour=1.3,mutate=null) {
   const points=request.locations;
-  return {trip:{status:0,units:'kilometers',legs:points.slice(1).map((p,i)=>{
+  const legs=points.slice(1).map((p,i)=>{
     const straight=metres(points[i],p),length=straight*detour;
     const bend={lat:(points[i].lat+p.lat)/2+straight/2*Math.sqrt(detour**2-1)/111195,lon:(points[i].lon+p.lon)/2};
-    return {summary:{time:length/1.4,length:length/1000},shape:encode([points[i],bend,p])};
-  })}};
+    return {summary:{time:length/1.4,length:length/1000},shape:[points[i],bend,p]};
+  });
+  mutate?.(legs.map(leg=>leg.shape),points);
+  return {trip:{status:0,units:'kilometers',legs:legs.map(leg=>({...leg,shape:encode(leg.shape)}))}};
 }
 // Notable addressed buildings every ~150 m around the start, as in central Moscow.
 const grid=(half=12,stepM=150)=>{
@@ -487,10 +491,14 @@ const grid=(half=12,stepM=150)=>{
   }
   return elements;
 };
-const gridPlanner=({elements=grid(),detour=1.3,...extra}={})=>{
+const gridPlanner=({elements=grid(),detour=1.3,respond=request=>walkRoute(request,detour),...extra}={})=>{
   const calls=[];
   const plan=createWalkPlanner({routerUrl:'https://router.test/route',discoveryElements:elements,minIntervalMs:0,...extra,
-    fetchImpl:async(url,o)=>{calls.push(JSON.parse(o.body));return Response.json(walkRoute(calls.at(-1),detour));}});
+    fetchImpl:async(url,o)=>{
+      calls.push(JSON.parse(o.body));
+      const value=respond(calls.at(-1));
+      return value instanceof Response?value:Response.json(value);
+    }});
   return {plan,calls};
 };
 
@@ -501,7 +509,7 @@ for(const detour of [1.3,1.6])for(const mode of ['loop','open'])for(const minute
   assert.ok(result.walkingMinutes<=minutes);
   assert.ok(result.stops.length>=2&&result.stops.length<={30:5,60:8,90:10}[minutes]);
   if(mode==='loop')assert.deepEqual(result.geometry.at(-1),start.location);
-  assert.ok(calls.length<=8);
+  assert.ok(calls.length<=MAX_AUTO_ROUTER_CALLS);
 });
 
 const east=(m,extra={})=>({address:`Москва, Восточная улица, ${m}`,location:{lat:start.location.lat,lon:start.location.lon+m/62600},contentRank:0,catalogRank:0,...extra});
@@ -561,7 +569,7 @@ test('the spacing search makes a bounded number of router calls',async()=>{
     }});
   const result=await plan({start,mode:'loop',minutes:90});
   assert.ok(result.walkingMinutes<68);
-  assert.ok(calls>1&&calls<=8,`${calls} router calls`);
+  assert.ok(calls>1&&calls<=MAX_AUTO_ROUTER_CALLS,`${calls} router calls`);
 });
 
 test('an unusable spaced walk does not abort the search',async()=>{
@@ -574,4 +582,194 @@ test('an unusable spaced walk does not abort the search',async()=>{
   const result=await plan({start,mode:'loop',minutes:60});
   assert.ok(calls>2);
   assert.ok(result.walkingMinutes>=45&&result.walkingMinutes<=60);
+});
+
+// Valhalla answers "no path" with HTTP 400 and a JSON body.
+const noPath=()=>new Response(JSON.stringify({error_code:442,error:'No path could be found for input'}),{status:400});
+const moved=(p,northM,eastM)=>({lat:p.lat+northM/111195,lon:p.lon+eastM/(111195*Math.cos(p.lat*Math.PI/180))});
+const at=(points,place)=>points.findIndex((p,i)=>i>0&&p.lat===place.location.lat&&p.lon===place.location.lon);
+// Constant-time legs built from shapes, so a test can bend one while lengths stay consistent.
+// A null shape is a zero-length leg.
+/** @param {any} request @param {(shapes: any[], points: any[]) => void} [mutate] */
+function shapedRoute(request,mutate=()=>{}) {
+  const points=request.locations.map(({lat,lon})=>({lat,lon}));
+  const shapes=points.slice(1).map((p,i)=>[points[i],{lat:(p.lat+points[i].lat)/2,lon:p.lon},p]);
+  mutate(shapes,points);
+  return {trip:{status:0,units:'kilometers',legs:shapes.map(shape=>{
+    if(!shape)return {summary:{time:0,length:0},shape:encode([points[0],points[0]])};
+    let length=0;for(let j=1;j<shape.length;j++)length+=metres(shape[j-1],shape[j]);
+    return {summary:{time:100,length:length/1000},shape:encode(shape)};
+  })}};
+}
+
+test('a router "no path" answer for a manual walk is not an outage',async()=>{
+  const {plan}=fixture(()=>noPath());
+  await assert.rejects(plan(input()),{code:'WALK_NOT_FOUND'});
+  await assert.rejects(plan({start,mode:'open',minutes:30,destination:stop(4)}),{code:'WALK_NOT_FOUND'});
+});
+
+test('every router location snaps to its nearest well-connected pedestrian edge',async()=>{
+  const {plan,calls}=gridPlanner();
+  await plan({start,mode:'loop',minutes:60});
+  assert.ok(calls.length>0);
+  for(const call of calls)for(const location of call.locations)
+    assert.deepEqual({type:location.type,radius:location.radius,minimum_reachability:location.minimum_reachability},{type:'break',radius:0,minimum_reachability:500});
+});
+
+test('a landmark that breaks the walk at a junction is excluded, not trimmed around',async()=>{
+  let blamed=null;
+  const {plan,calls}=gridPlanner({respond:request=>walkRoute(request,1.3,(shapes,points)=>{
+    blamed??=points[2];
+    const k=points.findIndex((p,i)=>i>0&&i<points.length-1&&p.lat===blamed.lat&&p.lon===blamed.lon);
+    if(k>0)shapes[k][0]=moved(shapes[k][0],35,0);
+  })});
+  const result=await plan({start,mode:'loop',minutes:30});
+  assert.ok(result.walkingMinutes>=0.75*30,`${result.walkingMinutes} min`);
+  assert.ok(result.stops.length>=3);
+  assert.ok(result.stops.every(p=>p.location.lat!==blamed.lat||p.location.lon!==blamed.lon));
+  assert.ok(calls.length<=MAX_AUTO_ROUTER_CALLS);
+});
+
+test('an automatic landmark snapped far from its building is skipped, not a router outage',async()=>{
+  const {plan}=fixture((url,o)=>url.includes('osm')?candidates():shapedRoute(JSON.parse(o.body),(shapes,points)=>{
+    const k=at(points,stop(2));
+    if(k>0)shapes[k-1][2]=moved(shapes[k-1][2],0,100);
+  }));
+  const result=await plan({start,mode:'loop',minutes:30});
+  assert.ok(result.stops.length>=2);
+  assert.ok(result.stops.every(p=>p.address!==stop(2).address));
+});
+
+// Rows: what goes wrong at which stop. Automatic walks drop that stop; a walk the user
+// put together is reported as not found instead of silently losing a stop.
+for(const mode of ['loop','open'])for(const [position,target] of /** @type {Array<[string, ReturnType<typeof stop>]>} */ ([['first',stop(1)],['middle',stop(2)],['last',stop(4)]]))for(const [defect,mutate] of /** @type {Array<[string, (shapes: any[], k: number) => void]>} */ ([
+  ['a zero-length leg',(shapes,k)=>{shapes[k-1]=null;}],
+  ['a junction gap',(shapes,k)=>{shapes[k][0]=moved(shapes[k][0],35,0);}],
+  ['a far arrival',(shapes,k)=>{shapes[k-1][2]=moved(shapes[k-1][2],0,200);}],
+])) {
+  // An open walk without a destination has no junction after its last stop.
+  if(defect==='a junction gap'&&position==='last'&&mode==='open')continue;
+  const respond=request=>shapedRoute(request,(shapes,points)=>{const k=at(points,target);if(k>0)mutate(shapes,k);});
+  test(`${defect} at the ${position} stop of an automatic ${mode} walk excludes that stop`,async()=>{
+    const {plan}=fixture((url,o)=>url.includes('osm')?candidates():respond(JSON.parse(o.body)));
+    const result=await plan({start,mode,minutes:30});
+    assert.ok(result.stops.length>=2);
+    assert.ok(result.stops.every(p=>p.address!==target.address),JSON.stringify(result.stops));
+  });
+  test(`${defect} at the ${position} stop of a manual ${mode} walk is not found`,async()=>{
+    const {plan}=fixture((url,o)=>respond(JSON.parse(o.body)));
+    await assert.rejects(plan(input({mode,stops:[stop(1),stop(2),stop(4)]})),{code:'WALK_NOT_FOUND'});
+  });
+}
+
+test('a start off the pedestrian network is reported as such, for automatic and manual walks',async()=>{
+  const respond=request=>shapedRoute(request,shapes=>{shapes[0][0]=moved(shapes[0][0],-200,0);});
+  const {plan}=fixture((url,o)=>url.includes('osm')?candidates():respond(JSON.parse(o.body)));
+  await assert.rejects(plan({start,mode:'loop',minutes:30}),{code:'WALK_START_UNREACHABLE'});
+  await assert.rejects(plan(input({mode:'open'})),{code:'WALK_START_UNREACHABLE'});
+  // A loop also returns to the start.
+  const closing=fixture((url,o)=>shapedRoute(JSON.parse(o.body),shapes=>{shapes.at(-1)[2]=moved(shapes.at(-1)[2],0,200);}));
+  await assert.rejects(closing.plan(input()),{code:'WALK_START_UNREACHABLE'});
+});
+
+test('a destination off the pedestrian network is reported before discovery',async()=>{
+  const {plan,calls}=fixture((url,o)=>url.includes('osm')?candidates():shapedRoute(JSON.parse(o.body),shapes=>{shapes.at(-1)[2]=moved(shapes.at(-1)[2],0,200);}));
+  await assert.rejects(plan({start,mode:'open',minutes:30,destination:stop(4)}),{code:'WALK_DESTINATION_UNREACHABLE'});
+  assert.equal(calls.length,1);
+  assert.match(calls[0].url,/router/);
+  await assert.rejects(plan(input({mode:'open',destination:stop(4)})),{code:'WALK_DESTINATION_UNREACHABLE'});
+});
+
+test('no path through an optional landmark skips it and keeps the earlier stops',async()=>{
+  const {plan}=fixture((url,o)=>{
+    if(url.includes('osm'))return candidates();
+    const request=JSON.parse(o.body);
+    return at(request.locations,stop(3))>0?noPath():route(request);
+  });
+  const result=await plan({start,mode:'open',minutes:30,destination:stop(5)});
+  assert.deepEqual(result.stops,[stop(1),stop(2),stop(4)]);
+  assert.deepEqual(result.geometry.at(-1),stop(5).location);
+});
+
+test('no path for an automatic walk without destination keeps searching within the budget',async()=>{
+  const {plan,calls}=fixture((url,o)=>{
+    if(url.includes('osm'))return candidates();
+    const request=JSON.parse(o.body);
+    return request.locations.length>=6?noPath():route(request);
+  });
+  const result=await plan({start,mode:'loop',minutes:30});
+  assert.deepEqual(result.stops,[1,2,3].map(stop));
+  const always=fixture(url=>url.includes('osm')?candidates():noPath());
+  await assert.rejects(always.plan({start,mode:'loop',minutes:30}),{code:'WALK_NOT_FOUND'});
+  assert.ok(calls.length>1&&always.calls.length-1<=MAX_AUTO_ROUTER_CALLS);
+});
+
+test('an always-unusable router stops after the router-call budget',async()=>{
+  const {plan,calls}=gridPlanner({respond:request=>{
+    const data=walkRoute(request);
+    data.trip.legs[0].summary={time:0,length:0};
+    return data;
+  }});
+  await assert.rejects(plan({start,mode:'loop',minutes:90}),{code:'WALK_NOT_FOUND'});
+  assert.equal(calls.length,MAX_AUTO_ROUTER_CALLS);
+});
+
+// The geocoded start and the catalog point of the same building are a few metres apart.
+const startBuilding=(metresAway,extra={})=>({type:'way',id:900,center:moved(start.location,metresAway,0),
+  tags:{building:'yes','addr:street':'Арбат','addr:housenumber':'1',historic:'building',...extra}});
+const requestHas=(call,place)=>JSON.parse(call.options.body).locations.some(p=>Math.abs(p.lat-place.location.lat)<1e-9&&Math.abs(p.lon-place.location.lon)<1e-9);
+
+for(const metresAway of [16,3])test(`the start building ${metresAway} m away becomes stop 1 without a walking leg`,async()=>{
+  const data=candidates();data.elements.push(startBuilding(metresAway));
+  const {plan,calls}=fixture((url,o)=>url.includes('osm')?data:route(JSON.parse(o.body)));
+  const result=await plan({start,mode:'loop',minutes:30});
+  const landmark=result.stops[0];
+  assert.equal(landmark.address,'Москва, Арбат, 1');
+  assert.ok(metres(landmark.location,start.location)<metresAway+1);
+  assert.equal(result.stops.filter(p=>p.address==='Москва, Арбат, 1').length,1);
+  assert.ok(result.stops.length>=3&&result.stops.length<=5);
+  const routerCalls=calls.filter(call=>call.url.includes('router'));
+  assert.ok(routerCalls.every(call=>!requestHas(call,landmark)));
+  assert.deepEqual(result.geometry[0],start.location);
+  // Rebuilding the pinned walk sends the same router request.
+  const rebuilt=fixture((url,o)=>route(JSON.parse(o.body)));
+  assert.deepEqual(await rebuilt.plan({start,mode:'loop',minutes:30,stops:result.stops}),result);
+  assert.ok(routerCalls.some(call=>call.options.body===rebuilt.calls[0].options.body));
+});
+
+test('the start building wins over a nearer landmark with another address',async()=>{
+  const data={elements:[...candidates().elements,startBuilding(30),{...startBuilding(10),id:901,tags:{...startBuilding(10).tags,'addr:housenumber':'1А'}}]};
+  const {plan}=fixture((url,o)=>url.includes('osm')?data:route(JSON.parse(o.body)));
+  const result=await plan({start,mode:'loop',minutes:30});
+  assert.equal(result.stops[0].address,'Москва, Арбат, 1');
+  // The other nearby landmark stays an ordinary stop.
+  assert.ok(result.stops.slice(1).some(p=>p.address==='Москва, Арбат, 1А'));
+});
+
+test('a destination walk with only the start building returns it with one router call',async()=>{
+  const {plan,calls}=fixture((url,o)=>url.includes('osm')?{elements:[startBuilding(16)]}:route(JSON.parse(o.body)));
+  const result=await plan({start,mode:'open',minutes:30,destination:stop(4)});
+  assert.deepEqual(result.stops.map(p=>p.address),['Москва, Арбат, 1']);
+  assert.deepEqual(result.geometry.at(-1),stop(4).location);
+  assert.equal(calls.filter(call=>call.url.includes('router')).length,1);
+});
+
+test('stories-only walks never take a start building without a published story',async()=>{
+  const supplied=[{id:'osm:node:1',address:'Москва, Арбат, 1',location:moved(start.location,16,0),readiness:'none'},
+    ...[4,5,6].map(n=>({id:`osm:node:${n}`,address:stop(n).address,location:stop(n).location,readiness:'story'}))];
+  const plan=createWalkPlanner({routerUrl:'https://router.test/route',discoveryElements:[],candidateProvider:()=>supplied,minIntervalMs:0,
+    fetchImpl:async(url,o)=>Response.json(route(JSON.parse(o.body)))});
+  assert.equal((await plan({start,mode:'loop',minutes:30})).stops[0].address,'Москва, Арбат, 1');
+  const stories=await plan({start,mode:'loop',minutes:30},{storiesOnly:true});
+  assert.ok(stories.stops.every(p=>p.contentId),JSON.stringify(stories.stops));
+});
+
+test('a manual walk may start at its first stop, but no other stop may coincide with the start',async()=>{
+  const {plan,calls}=fixture((url,o)=>route(JSON.parse(o.body)));
+  const here={address:'Москва, Арбат, 1',location:moved(start.location,3,0)};
+  const result=await plan(input({stops:[here,stop(1),stop(2)]}));
+  assert.deepEqual(result.stops,[here,stop(1),stop(2)]);
+  assert.equal(calls.length,1);assert.ok(!requestHas(calls[0],here));
+  await assert.rejects(plan(input({stops:[stop(1),here]})),{code:'WALK_INVALID'});
+  await assert.rejects(plan(input({mode:'open',stops:[here],destination:{address:'Москва, Арбат, 50',location:moved(start.location,0,3)}})),{code:'WALK_INVALID'});
 });

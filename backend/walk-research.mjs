@@ -31,7 +31,7 @@ export function walkResearchKey(request) {
   return `walk-research:v1:${sha256(JSON.stringify([r.start.location.lat, r.start.location.lon, r.mode, r.minutes, ...(r.destination?[r.destination.location.lat,r.destination.location.lon]:[])]))}`;
 }
 
-export const canRetryWalk = job => job.stage === 'failed' && job.attempts < 3 && !['WALK_NOT_FOUND', 'STORY_UNAVAILABLE'].includes(job.error?.code);
+export const canRetryWalk = job => job.stage === 'failed' && job.attempts < 3 && !['WALK_NOT_FOUND', 'WALK_START_UNREACHABLE', 'WALK_DESTINATION_UNREACHABLE', 'STORY_UNAVAILABLE'].includes(job.error?.code);
 
 export function publicWalkResearch(job) {
   const candidates = job.data.candidates ?? [];
@@ -188,6 +188,8 @@ export async function runWalkResearchJob(initial, options, runAddressJob) {
     const code = signal.aborted ? 'INTERRUPTED' : error.code ?? 'PREPARATION_FAILED';
     const messages = { INSUFFICIENT_EVIDENCE: 'Рядом не хватило домов с подтверждённой историей. Попробуйте другой старт.',
       WALK_NOT_FOUND: 'Не удалось соединить подтверждённые остановки пешеходным маршрутом. Попробуйте другой старт или длительность.',
+      WALK_START_UNREACHABLE: 'Сюда не дойти пешком. Выберите начало на улице рядом.',
+      WALK_DESTINATION_UNREACHABLE: 'Сюда не дойти пешком. Выберите финиш на улице рядом.',
       STORY_UNAVAILABLE: 'Одна из историй недоступна для публикации. Попробуйте другую прогулку.' };
     update({}, code === 'INSUFFICIENT_EVIDENCE' ? 'insufficient_evidence' : 'failed',
       { code, message: messages[code] ?? 'Подготовка временно прервалась. Сохранённые этапы можно продолжить.' });
