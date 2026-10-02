@@ -10,4 +10,8 @@ test("catalogue adapter preserves the four published chapters and recordings", (
   assert.deepEqual(view.chapters.map(chapter => chapter.audio?.url), route.walk.steps.map(step => step.audio.url));
   assert.equal(view.document.route.geometry.length, route.walk.path.coordinates.length);
   assert.ok(view.chapters.every(chapter => chapter.story?.sources.length));
+  // Annotated once against Valhalla trace_attributes (docs/agents/route-tunnels.md).
+  assert.deepEqual(view.document.route.tunnels, [[29, 30]]);
+  const plain = structuredClone(route); delete plain.walk.path.tunnels;
+  assert.equal("tunnels" in catalogWalkView(plain).document.route, false);
 });

@@ -697,7 +697,13 @@ export const builtinRoutes = [
         "provider": "Valhalla / OpenStreetMap",
         "source_url": "https://valhalla.openstreetmap.de/",
         "checked_at": "2026-09-07",
-        "costing": "pedestrian"
+        "costing": "pedestrian",
+        "tunnels": [
+          [
+            29,
+            30
+          ]
+        ]
       },
       "steps": [
         {
