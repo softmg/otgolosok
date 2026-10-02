@@ -1,17 +1,21 @@
 import { afterEach, expect, it, vi } from "vitest";
-import type { MapFocus, MapViewState } from "./explore-map";
+import type { ExploreMapProps, MapFocus, MapViewState } from "./explore-map";
 
 const mock = vi.hoisted(() => ({
   effects: [] as Array<() => void | (() => void)>,
   mapOptions: [] as unknown[],
   basemaps: [] as unknown[],
   tileLayers: [] as string[],
+  panes: [] as Array<{ name: string; zIndex: string; classes: Set<string> }>,
+  polylines: [] as Array<{ points: number[][]; options: Record<string, unknown>; attributes: Map<string, string>; group?: unknown }>,
+  arrows: [] as Array<{ options: Record<string, unknown>; html: string; group?: unknown }>,
   maps: [] as Array<{
     setView: ReturnType<
       typeof vi.fn<([lat, lng]: number[], zoom: number) => unknown>
     >;
     panBy: ReturnType<typeof vi.fn>;
     fire: (event: string) => void;
+    fitBounds: ReturnType<typeof vi.fn>;
   }>,
 }));
 vi.mock("react", () => ({
@@ -29,11 +33,20 @@ vi.mock("./map-clusters", () => ({
   }),
 }));
 vi.mock("leaflet", () => {
-  const layer = () => ({
-    addTo: vi.fn().mockReturnThis(),
-    on: vi.fn().mockReturnThis(),
-    clearLayers: vi.fn(),
-    getContainer: () => null,
+  const layer = () => {
+    const group = {
+      addTo: vi.fn().mockReturnThis(),
+      on: vi.fn().mockReturnThis(),
+      clearLayers: vi.fn(() => {
+        mock.polylines = mock.polylines.filter((item) => item.group !== group);
+        mock.arrows = mock.arrows.filter((item) => item.group !== group);
+      }),
+      getContainer: () => null,
+    };
+    return group;
+  };
+  const element = (attributes: Map<string, string>) => ({
+    setAttribute: (name: string, value: string) => attributes.set(name, value),
   });
   return {
     map: (_element: unknown, options: unknown) => {
@@ -72,6 +85,26 @@ vi.mock("leaflet", () => {
         invalidateSize: vi.fn(),
         panBy: vi.fn(),
         fitBounds: vi.fn(),
+        getBoundsZoom: () => 16,
+        createPane: (name: string) => {
+          const pane = { name, zIndex: "", classes: new Set<string>() };
+          mock.panes.push(pane);
+          return {
+            style: {
+              set zIndex(value: string) {
+                pane.zIndex = value;
+              },
+            },
+            classList: {
+              add: (value: string) => pane.classes.add(value),
+              toggle: (value: string, on: boolean) =>
+                on ? pane.classes.add(value) : pane.classes.delete(value),
+            },
+          };
+        },
+        // One degree is 10 000 px, enough for a few chevrons on a short test leg.
+        latLngToLayerPoint: ([lat, lng]: number[]) => ({ x: lng * 10000, y: -lat * 10000 }),
+        layerPointToLatLng: ([x, y]: number[]) => [-y / 10000, x / 10000],
         getSize: () => ({ x: 390, y: 844 }),
         getMinZoom: () => 3,
         getMaxZoom: () => 19,
@@ -85,6 +118,20 @@ vi.mock("leaflet", () => {
     },
     layerGroup: layer,
     control: { zoom: layer, scale: layer },
+    latLngBounds: (points: unknown) => points,
+    divIcon: (options: { html: string }) => options,
+    polyline: (points: number[][], options: Record<string, unknown>) => {
+      const entry: (typeof mock.polylines)[number] = { points, options, attributes: new Map() };
+      mock.polylines.push(entry);
+      const line = { addTo: (group: unknown) => { entry.group = group; return line; }, getElement: () => element(entry.attributes) };
+      return line;
+    },
+    marker: (_point: unknown, options: Record<string, unknown> & { icon: { html: string } }) => {
+      const entry: (typeof mock.arrows)[number] = { options, html: options.icon.html };
+      mock.arrows.push(entry);
+      const marker = { addTo: (group: unknown) => { entry.group = group; return marker; }, getElement: () => element(new Map()) };
+      return marker;
+    },
   };
 });
 vi.mock("@maplibre/maplibre-gl-leaflet", () => {
@@ -114,6 +161,9 @@ afterEach(() => {
   mock.maps = [];
   mock.basemaps = [];
   mock.tileLayers = [];
+  mock.panes = [];
+  mock.polylines = [];
+  mock.arrows = [];
   vi.unstubAllGlobals();
 });
 
@@ -121,6 +171,7 @@ async function mount(
   viewState?: MapViewState,
   focus: MapFocus | null = null,
   canvas: { context: unknown } = { context: { getExtension: () => null } },
+  props: Partial<ExploreMapProps> = {},
 ) {
   vi.stubGlobal("matchMedia", () => ({ matches: true }));
   vi.stubGlobal("document", {
@@ -142,6 +193,7 @@ async function mount(
     onSelect: vi.fn(),
     onPoint: vi.fn(),
     viewState,
+    ...props,
   });
   // Effects in declaration order: handlers, status, map creation, then the view effects.
   const effects = [...mock.effects];
@@ -276,5 +328,56 @@ it("does not zoom out past the scale where the basemap still has greenery", asyn
   ]);
   // Measured on VersaTiles: below z10 OSM greenery is down to a few large forests, the rest is grey.
   expect(MAP_MIN_ZOOM).toBeGreaterThanOrEqual(10);
+  cleanup?.();
+});
+
+// About 55 m per vertex north: ten vertices, a tunnel over 2..4, the leg 5..8.
+const line = Array.from({ length: 10 }, (_, index) => ({ lat: 55.75 + index * 0.0005, lon: 37.6 }));
+const routeProps = (activeLeg: [number, number] | null = null): Partial<ExploreMapProps> => ({ geometry: line, fitGeometry: false, tunnels: [[2, 4]], activeLeg });
+
+it("draws the route in its own panes below the markers, created once per map", async () => {
+  const { cleanup } = await mount(undefined, null, undefined, routeProps());
+  expect(mock.panes.map((pane) => [pane.name, pane.zIndex])).toEqual([["route", "410"], ["routeActive", "420"]]);
+  expect(mock.polylines.every((line) => line.options.pane === "route")).toBe(true);
+  cleanup?.();
+});
+
+it("dashes the green line over a tunnel and keeps its casing solid", async () => {
+  const { cleanup } = await mount(undefined, null, undefined, routeProps());
+  const green = mock.polylines.filter((line) => line.attributes.has("data-route"));
+  expect(green.map((line) => [line.points.length, line.options.dashArray ?? null, line.attributes.has("data-route-covered")])).toEqual([
+    [3, null, false], [3, "6 8", true], [6, null, false],
+  ]);
+  const casing = mock.polylines.filter((line) => !line.attributes.has("data-route"));
+  expect(casing).toHaveLength(3);
+  expect(casing.every((line) => line.options.dashArray === undefined)).toBe(true);
+  cleanup?.();
+});
+
+it("fades everything but the leg to walk and marks its direction", async () => {
+  const plain = await mount(undefined, null, undefined, routeProps());
+  const dim = (pane: (typeof mock.panes)[number]) => [...pane.classes].some((name) => /dim/i.test(name));
+  expect(mock.panes.map(dim)).toEqual([false, false]);
+  expect(mock.arrows).toEqual([]);
+  plain.cleanup?.();
+
+  mock.panes = [];
+  mock.polylines = [];
+  const walking = await mount(undefined, null, undefined, routeProps([5, 8]));
+  expect(mock.panes.map(dim)).toEqual([true, false]);
+  const parts = mock.polylines.filter((line) => line.attributes.has("data-route")).map((line) => [line.attributes.get("data-route-part"), line.options.pane, line.points.length]);
+  expect(parts).toEqual([["rest", "route", 3], ["rest", "route", 3], ["rest", "route", 2], ["rest", "route", 2], ["active", "routeActive", 4]]);
+  // 15 px of a 0.0015° leg at 10 000 px per degree: one chevron at its middle, pointing north (up the screen).
+  expect(mock.arrows).toHaveLength(1);
+  expect(mock.arrows[0].options).toMatchObject({ pane: "routeActive", interactive: false, keyboard: false });
+  expect(mock.arrows[0].html).toContain('rotate(-90.0)');
+  walking.cleanup?.();
+});
+
+it("fits the map to a leg without letting a redrawn route undo it", async () => {
+  const points = line.slice(5, 9);
+  const { map, cleanup } = await mount(undefined, null, undefined, { ...routeProps([5, 8]), fitTarget: { points, keepUserView: false } });
+  expect(map.fitBounds).toHaveBeenCalledTimes(1);
+  expect(map.fitBounds.mock.calls[0][0]).toEqual(points.map((p) => [p.lat, p.lon]));
   cleanup?.();
 });

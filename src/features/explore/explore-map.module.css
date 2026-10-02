@@ -70,6 +70,36 @@
   box-shadow: 0 1px 4px color-mix(in srgb, var(--map-green) 25%, transparent);
 }
 
+/*
+ * Route panes: the opacity of a pane fades the casing and the green line as one picture.
+ * The line is slightly see-through everywhere; during a walk everything but the leg to walk fades out.
+ */
+.routePane {
+  opacity: 0.8;
+}
+
+.routePane.routeDim {
+  opacity: 0.3;
+}
+
+/* Direction chevrons on the highlighted leg: light strokes on the green line, never a target. */
+.chevron {
+  color: var(--surface-island);
+  pointer-events: none;
+  background: transparent;
+  border: 0;
+}
+
+.chevron > svg {
+  display: block;
+  overflow: visible;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .userPosition {
   background: transparent;
   border: 0;

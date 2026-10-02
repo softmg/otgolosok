@@ -106,4 +106,23 @@ describe("вид карты", () => {
     view.setInsets(panels);
     expect(map.fitBounds).toHaveBeenCalledTimes(1);
   });
+
+  it("уточнение вида не отменяет ручной сдвиг карты, а без него применяется", () => {
+    const map = fakeMap();
+    const view = createMapView(map as never);
+    view.fit(route);
+    view.fit(route, { keepUserView: true });
+    expect(map.fitBounds).toHaveBeenCalledTimes(2);
+    map.userGesture();
+    view.fit([[55.7, 37.5], [55.71, 37.51]], { keepUserView: true });
+    view.focus({ lat: 55.7, lon: 37.5 }, { keepUserView: true });
+    expect(map.fitBounds).toHaveBeenCalledTimes(2);
+    expect(map.setView).not.toHaveBeenCalled();
+    // The ignored request does not hand the view back: panels still leave it alone.
+    view.setInsets(panels);
+    expect(map.fitBounds).toHaveBeenCalledTimes(2);
+    // A plain request, as for a new leg, takes the view over again.
+    view.fit(route);
+    expect(map.fitBounds).toHaveBeenCalledTimes(3);
+  });
 });

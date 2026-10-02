@@ -50,9 +50,17 @@ export function createMapView(map: ViewMap) {
     } finally { own--; }
   }
 
+  /** keepUserView: a refinement of the current view, ignored once the user has moved the map. */
+  function request(next: Target, keepUserView: boolean) {
+    if (keepUserView && userMoved) return;
+    target = next;
+    userMoved = false;
+    apply();
+  }
+
   return {
-    focus(focus: MapFocus) { target = { kind: "focus", focus }; userMoved = false; apply(); },
-    fit(bounds: Leaflet.LatLngBoundsExpression) { target = { kind: "fit", bounds }; userMoved = false; apply(); },
+    focus(focus: MapFocus, { keepUserView = false } = {}) { request({ kind: "focus", focus }, keepUserView); },
+    fit(bounds: Leaflet.LatLngBoundsExpression, { keepUserView = false } = {}) { request({ kind: "fit", bounds }, keepUserView); },
     /** A removed route must not be re-fitted when panels move later. */
     clearFit() { if (target?.kind === "fit") target = null; },
     setInsets(next: MapInsets) {

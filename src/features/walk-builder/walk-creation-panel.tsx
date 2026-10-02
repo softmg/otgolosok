@@ -14,7 +14,7 @@ import { describeLocateError, locateOnce } from "@/lib/position/locate";
 import { Sheet } from "../shell/sheet";
 import styles from "./walk-creation-panel.module.css";
 
-export type CreationMap = { items: MapItem[]; geometry?: Coordinates[]; focus: Coordinates | null; picking: boolean };
+export type CreationMap = { items: MapItem[]; geometry?: Coordinates[]; tunnels?: Array<[number, number]>; focus: Coordinates | null; picking: boolean };
 export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => void; onMap: (value: CreationMap) => void; picked: Coordinates | null }) {
   const w = useWalkDraft();
   const [state, dispatch] = useReducer(creationReducer, { step: "location", picking: false });
@@ -50,7 +50,7 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
       ...stops.map((p, i) => ({ id: `creation-stop-${i}`, title: `Остановка ${i + 1}: ${p.address}`, location: p.location, number: i + 1 })),
       ...(destination ? [{ id: "creation-finish", title: `Финиш: ${destination.address}`, location: destination.location, endpoint: true }] : []),
     ];
-    onMap({ items, geometry: w.draft.route?.geometry, focus: w.focus, picking: state.picking });
+    onMap({ items, geometry: w.draft.route?.geometry, tunnels: w.draft.route?.tunnels, focus: w.focus, picking: state.picking });
   }, [w.draft.start, w.draft.stops, w.draft.destination, w.draft.route, w.focus, state.picking, onMap]);
 
   // Адрес ищем один раз — по итоговой, самой точной точке.

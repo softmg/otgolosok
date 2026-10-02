@@ -17,6 +17,7 @@ import { createMapClusters, loadMapLibrary, type MapClusters } from "./map-clust
 import { MOSCOW_CENTER, MOSCOW_ZOOM } from "./map-jobs";
 import { markerLook, type MarkerKind, type MarkerLook } from "./map-marker-look";
 import { createMapView, type MapFocus, type MapView } from "./map-view";
+import { chevronMarks, ROUTE_COVERED_DASH, routeRuns } from "./route-style";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -102,6 +103,8 @@ export type MapViewState = {
   current: { center: Coordinates; zoom: number; focus: MapFocus | null } | null;
 };
 export type MapHandle = { zoomIn(): void; zoomOut(): void };
+/** Points the map should show; keepUserView makes it a refinement that yields to a manual pan or zoom. */
+export type MapFitTarget = { points: Coordinates[]; keepUserView: boolean };
 export type ZoomLimits = { canZoomIn: boolean; canZoomOut: boolean };
 export type ExploreMapProps = {
   items: MapItem[];
@@ -113,6 +116,12 @@ export type ExploreMapProps = {
   geometry?: Coordinates[];
   /** False keeps the view on the focus: the route line is drawn without fitting the map to it. */
   fitGeometry?: boolean;
+  /** Covered stretches of the route as [a, b] vertex ranges of geometry: drawn dashed. */
+  tunnels?: ReadonlyArray<readonly [number, number]>;
+  /** The leg to walk now as a vertex range: it stays bright with direction chevrons, the rest fades. */
+  activeLeg?: readonly [number, number] | null;
+  /** A new object fits the map to its points (a single point is focused). */
+  fitTarget?: MapFitTarget | null;
   mapLabel?: string;
   viewState?: MapViewState;
   /** The part of the map no panel covers: focus and route are kept inside it. */
@@ -136,6 +145,33 @@ const MARKER_CLASS: Record<MarkerKind, string> = {
   background: styles.background,
 };
 
+const CHEVRON_SIZE = 12;
+
+/** Direction chevrons along the highlighted leg, in its pane, in the casing colour (see .chevron). */
+function drawChevrons(rt: {
+  L: typeof Leaflet;
+  map: Leaflet.Map;
+  chevrons: Leaflet.LayerGroup;
+  activePath: Leaflet.LatLngExpression[] | null;
+}) {
+  rt.chevrons.clearLayers();
+  if (!rt.activePath) return;
+  const pixels = rt.activePath.map((point) => rt.map.latLngToLayerPoint(point));
+  for (const mark of chevronMarks(pixels)) {
+    const icon = rt.L.divIcon({
+      className: styles.chevron,
+      // A presentation attribute, not a style: the angle is a number we computed.
+      html: `<svg viewBox="-6 -6 12 12" width="${CHEVRON_SIZE}" height="${CHEVRON_SIZE}" aria-hidden="true"><path transform="rotate(${mark.angleDeg.toFixed(1)})" d="M-2 -3.5 1.5 0 -2 3.5"/></svg>`,
+      iconSize: [CHEVRON_SIZE, CHEVRON_SIZE],
+      iconAnchor: [CHEVRON_SIZE / 2, CHEVRON_SIZE / 2],
+    });
+    rt.L.marker(rt.map.layerPointToLatLng([mark.x, mark.y]), { icon, pane: "routeActive", interactive: false, keyboard: false })
+      .addTo(rt.chevrons)
+      .getElement()
+      ?.setAttribute("data-route-arrow", "");
+  }
+}
+
 /** The map canvas only: controls, notices and attribution belong to the screen around it (MapShell). */
 export function ExploreMap({
   items,
@@ -146,6 +182,9 @@ export function ExploreMap({
   onPoint,
   geometry,
   fitGeometry = true,
+  tunnels,
+  activeLeg = null,
+  fitTarget = null,
   mapLabel,
   viewState,
   insets = NO_INSETS,
@@ -175,7 +214,13 @@ export function ExploreMap({
     >;
     position: Leaflet.LayerGroup;
     route: Leaflet.LayerGroup;
+    chevrons: Leaflet.LayerGroup;
+    routePane: HTMLElement;
+    /** The highlighted leg, redrawn with its chevrons after every zoom. */
+    activePath: Leaflet.LatLngExpression[] | null;
   } | null>(null);
+  // Whether the current view target is the whole route (fitGeometry), not a leg or a focus.
+  const routeFitted = useRef(false);
   const handlers = useRef({ onSelect, onPoint, onZoomLimits, onViewport, selectedId });
   const appliedFocus = useRef<Coordinates | null>(null);
   const [ready, setReady] = useState(false);
@@ -307,6 +352,14 @@ export function ExploreMap({
         const token = (name: string) => style.getPropertyValue(name).trim();
         const view = createMapView(map);
         const routeColor = token("--route-line");
+        // The route sits above the basemap and under the markers, in two panes: CSS opacity of a
+        // pane fades its casing and line as one picture, so the casing never shows through the line.
+        const routePane = map.createPane("route");
+        routePane.style.zIndex = "410";
+        routePane.classList.add(styles.routePane);
+        const activePane = map.createPane("routeActive");
+        activePane.style.zIndex = "420";
+        activePane.classList.add(styles.routePane);
         runtime.current = {
           L,
           map,
@@ -320,7 +373,12 @@ export function ExploreMap({
           markerById: new Map(),
           position: L.layerGroup().addTo(map),
           route: L.layerGroup().addTo(map),
+          chevrons: L.layerGroup().addTo(map),
+          routePane,
+          activePath: null,
         };
+        // Chevrons are spaced in screen pixels; panning keeps layer pixels, zooming does not.
+        map.on("zoomend", () => { if (runtime.current) drawChevrons(runtime.current); });
         const reportViewport = () => {
           clearTimeout(viewportTimer);
           viewportTimer = setTimeout(() => {
@@ -455,23 +513,61 @@ export function ExploreMap({
     rt.view.focus(focus);
   }, [focus, ready]);
 
+  const activeFrom = activeLeg?.[0] ?? -1;
+  const activeTo = activeLeg?.[1] ?? -1;
   useEffect(() => {
     const rt = runtime.current;
     if (!rt || !ready) return;
     rt.route.clearLayers();
-    if (!geometry || geometry.length < 2) {
-      rt.view.clearFit();
+    const active = activeFrom >= 0 && activeTo > activeFrom ? [activeFrom, activeTo] as const : null;
+    rt.routePane.classList.toggle(styles.routeDim, active !== null);
+    const runs = geometry ? routeRuns(geometry.length, tunnels, active) : [];
+    const points = (geometry ?? []).map((p) => [p.lat, p.lon] as [number, number]);
+    rt.activePath = active ? points.slice(active[0], active[1] + 1) : null;
+    drawChevrons(rt);
+    if (!runs.length) {
+      if (routeFitted.current) rt.view.clearFit();
+      routeFitted.current = false;
       return;
     }
-    const points = geometry.map((p) => [p.lat, p.lon] as [number, number]);
     const stroke = { lineCap: "round", lineJoin: "round", interactive: false } as const;
-    // A light casing under the green line: the same light rim as the markers, legible over any basemap.
-    rt.L.polyline(points, { ...stroke, color: rt.colors.casing, weight: 9, opacity: 0.9 }).addTo(rt.route);
-    const line = rt.L.polyline(points, { ...stroke, color: rt.colors.route, weight: 5, opacity: 0.95 }).addTo(rt.route);
-    line.getElement()?.setAttribute("data-route", "");
-    if (fitGeometry) rt.view.fit(line.getBounds());
-    else rt.view.clearFit();
-  }, [geometry, fitGeometry, ready]);
+    for (const part of ["rest", "active"] as const) {
+      const own = runs.filter((run) => run.active === (part === "active"));
+      const pane = part === "active" ? "routeActive" : "route";
+      // A light casing under the green line: the same light rim as the markers, legible over any basemap.
+      // All casings of a pane go first, so a casing never covers the line where two runs meet.
+      for (const run of own)
+        rt.L.polyline(points.slice(run.from, run.to + 1), { ...stroke, pane, color: rt.colors.casing, weight: 9, opacity: 1 }).addTo(rt.route);
+      for (const run of own) {
+        const line = rt.L.polyline(points.slice(run.from, run.to + 1), {
+          ...stroke, pane, color: rt.colors.route, weight: 5, opacity: 1,
+          // Underpasses and arches are not visible from above: dashes on the solid casing.
+          ...(run.covered ? { dashArray: ROUTE_COVERED_DASH, lineCap: "butt" as const } : {}),
+        }).addTo(rt.route);
+        const element = line.getElement();
+        element?.setAttribute("data-route", "");
+        element?.setAttribute("data-route-part", part);
+        if (run.covered) element?.setAttribute("data-route-covered", "");
+      }
+    }
+    if (fitGeometry) {
+      rt.view.fit(rt.L.latLngBounds(points));
+      routeFitted.current = true;
+    } else if (routeFitted.current) {
+      rt.view.clearFit();
+      routeFitted.current = false;
+    }
+  }, [geometry, tunnels, activeFrom, activeTo, fitGeometry, ready]);
+
+  useEffect(() => {
+    const rt = runtime.current;
+    if (!rt || !ready || !fitTarget?.points.length) return;
+    // From now on the view belongs to this target; redrawing the route must not clear it.
+    routeFitted.current = false;
+    const { points, keepUserView } = fitTarget;
+    if (points.length === 1) rt.view.focus({ ...points[0] }, { keepUserView });
+    else rt.view.fit(rt.L.latLngBounds(points.map((p) => [p.lat, p.lon] as [number, number])), { keepUserView });
+  }, [fitTarget, ready]);
 
   useEffect(() => {
     runtime.current?.view.setInsets(insets);

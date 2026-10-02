@@ -206,7 +206,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
 
   return <>
     <MapShell
-      map={{onViewport,viewState:nearbyMapView,items:creating?creationItems:mapItems,geometry:creating?creationMap.geometry:undefined,selectedId:selected??(place?"picked-place":undefined),focus:creating?creationMap.focus:focus,user,
+      map={{onViewport,viewState:nearbyMapView,items:creating?creationItems:mapItems,geometry:creating?creationMap.geometry:undefined,tunnels:creating?creationMap.tunnels:undefined,selectedId:selected??(place?"picked-place":undefined),focus:creating?creationMap.focus:focus,user,
         onSelect:id=>{const pin=pins.find(value=>value.id===id);if(pin){if(creating)setPicked(pin.location);else select(pin);}},
         onPoint:point=>creating?setPicked(point):void findPlace(point)}}
       header={<AroundHeader search={search&&!creating} query={query} busy={placeBusy} inputRef={input} onToggle={()=>search?setSearch(false):openSearch()} onQuery={setQuery} onSubmit={submitSearch} />}
