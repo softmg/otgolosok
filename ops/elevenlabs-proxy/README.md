@@ -3,8 +3,11 @@
 ElevenLabs не обслуживает запросы с production-VPS (редирект на страницу об ограничениях по странам, см.
 `docs/agents/elevenlabs-region-block.md`). Этот Cloudflare Worker пересылает `/v1/*` в `https://api.elevenlabs.io`.
 
-- Запрос не с адресов `ALLOWED_IPS` (production-VPS `93.189.230.19` и VPN-выход разработчика `95.173.207.163`) или без заголовка
-  `X-Proxy-Token`, равного секрету `PROXY_TOKEN`, получает 403. При смене IP сервера обновите `ALLOWED_IPS`. Пересылаются только
+- Запрос не с адресов из секрета `ALLOWED_SOURCE_IPS` (production-VPS и VPN-выход разработчика) или без заголовка
+  `X-Proxy-Token`, равного секрету `PROXY_TOKEN`, получает 403. Без секрета `ALLOWED_SOURCE_IPS` воркер отклоняет все
+  запросы. Адреса не публикуются в репозитории: актуальный список хранится в локальном `.env.ops`
+  (`ELEVENLABS_PROXY_ALLOWED_IPS`). При смене IP сервера обновите секрет:
+  `printf '%s' "ip1,ip2" | npx wrangler secret put ALLOWED_SOURCE_IPS`. Пересылаются только
   `xi-api-key`, `Content-Type` и `Accept`, ответы не кэшируются.
 - Адрес: `https://elevenlabs-proxy.otgolosok.online` (Custom Domain воркера в зоне `otgolosok.online`).
 - Выкладка: `npx wrangler deploy` из этого каталога (аккаунт Cloudflare `support@softmg.ru`).

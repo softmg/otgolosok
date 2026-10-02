@@ -15,7 +15,7 @@ Baseline on the review date (Windows, Node 24.18.0 — below the declared `>=24.
 - Branch `feat/auth-account-osm-pipeline` was 32 commits behind `origin/main` (and 23 ahead, almost all video work). `origin/main` contains relevant fixes: `cbc3e42` (CSP + security headers, `docker/security-headers.conf`), `2e7a6b0` (worker lease / default secret in external TTS API), TTS recovery commits, `88f68c1` (domain `otgolosok.online`).
 - Other agent sessions were concurrently committing video work (`src/video/`, `scripts/*video*`, `video/`) in the same checkout. Phases touching those areas are placed last.
 
-Production topology (from `docs/production-deployment.md` on `origin/main`): Traefik routes `PathPrefix(/api/)` of `otgolosok.online` directly to the generator backend; production nginx serves only the static export. `docker/nginx.conf` applies only to the local/dev Compose stack.
+Production topology (from `docs/production-runbook.md` on `origin/main`): Traefik routes `PathPrefix(/api/)` of `otgolosok.online` directly to the generator backend; production nginx serves only the static export. `docker/nginx.conf` applies only to the local/dev Compose stack.
 
 No paid external API is called by anything in this plan.
 
@@ -32,7 +32,7 @@ No paid external API is called by anything in this plan.
 9. Move video (Remotion) into its own pnpm workspace package. Backend dependencies are **not** split into a separate package.
 10. Enable `checkJs` for the **whole backend** at once (`backend/**/*.mjs`), wired into `pnpm typecheck`.
 11. `backend/admin-make.test.mjs`: skip with an explicit reason when `make` or `/bin/sh` is unavailable (Windows). Makefiles stay POSIX-only.
-12. Hard-coded production host (`services@93.189.230.19`) and personal paths in Makefile/scripts/docs **stay as is**.
+12. Hard-coded production host (`$VPS (см. .env.ops)`) and personal paths in Makefile/scripts/docs **stay as is**.
 13. Python: add `pyproject.toml` with ruff, pyright and pytest run through `uv`; a `test:py` script is part of `pnpm check`.
 14. (Added at implementation start) Everything that makes `pnpm check` fail on the developer machine (Windows) must be fixed within this plan, including pre-existing failures unrelated to the review findings (e.g. Windows `EPERM` temp-dir cleanup in tests that came from `origin/main`).
 

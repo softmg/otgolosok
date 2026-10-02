@@ -48,7 +48,7 @@ Docker напрямую, без SSH и без локального checkout. И�
 ## Деплой 21 сентября 2026 года
 
 Коммит `7d406f0` отправлен в `origin/main` и развёрнут через
-`make deploy-otgolosok-generator VPS=services@93.189.230.19` из проекта services.
+`make deploy-otgolosok-generator VPS=$VPS (см. .env.ops)` из проекта services.
 Backend здоров, счётчик перезапусков равен нулю; Valhalla сохранила прежний
 контейнер. `/api/story-service` вернул 200 с `enabled:true`, страница входа — 200,
 редакторский API без сессии — 401. SHA-256 `/app/editor-account.mjs` совпал с

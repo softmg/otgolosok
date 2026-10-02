@@ -60,7 +60,7 @@
 
 Сначала выкладывается backend, затем frontend. Новый frontend требует новых эндпоинтов, а старый продолжает работать с прежним списком. Индекс `place_texts_place_idx` создаётся при открытии хранилища.
 
-В `docker/nginx.conf` добавлены `location /api/content/map-cells` и `location ~ "^/api/content/places/osm:"` без переопределения `Cache-Control`. Ответы адресуются по содержимому и не содержат личных данных: ячейка — квадрат 1°, а не положение пользователя. Ingress production (Traefik → backend) менять не нужно. Проверка после выкладки описана в [журнале выкладок](../production-deployment.md).
+В `docker/nginx.conf` добавлены `location /api/content/map-cells` и `location ~ "^/api/content/places/osm:"` без переопределения `Cache-Control`. Ответы адресуются по содержимому и не содержат личных данных: ячейка — квадрат 1°, а не положение пользователя. Ingress production (Traefik → backend) менять не нужно. Проверка после выкладки описана в [журнале выкладок](../production-runbook.md).
 
 ## Замеры (1 октября 2026)
 

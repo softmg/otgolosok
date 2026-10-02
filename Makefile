@@ -5,7 +5,9 @@ SHELL := /bin/sh
 PNPM ?= pnpm
 DOCKER_COMPOSE ?= docker compose
 NODE ?= node
-VPS ?= services@93.189.230.19
+# The production SSH address is not published: set VPS=user@host in the gitignored .env.ops.
+-include .env.ops
+export VPS
 GENERATOR_CONTAINER ?= otgolosok-generator-generator-1
 
 # Quote arguments for the local shell and, for SSH, again for the remote shell.
@@ -74,6 +76,7 @@ admin-create: ## Создать редактора локально; EMAIL=ва�
 	@$(NODE) scripts/set-editor.mjs $(call shell_quote,$(EMAIL)) $(if $(AUTH_DB_PATH),$(call shell_quote,$(AUTH_DB_PATH)))
 
 admin-create-prod: ## Создать редактора на проде через SSH; EMAIL=ваш@email.ru
+	@test -n $(call shell_quote,$(VPS)) || { printf '%s\n' 'Укажите VPS=user@host в .env.ops' >&2; exit 1; }
 	@test -n $(call shell_quote,$(EMAIL)) || { printf '%s\n' 'Укажите EMAIL: make admin-create-prod EMAIL=ваш@email.ru' >&2; exit 1; }
 	@ssh -t -- $(call shell_quote,$(VPS)) $(call shell_quote,docker exec -it -- $(call shell_quote,$(GENERATOR_CONTAINER)) node /app/editor-account.mjs $(call shell_quote,$(EMAIL)) /data/auth.sqlite)
 

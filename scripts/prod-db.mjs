@@ -17,7 +17,8 @@ import { basename, dirname, join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const VPS = process.env.VPS ?? "services@93.189.230.19";
+// The production SSH address is not published; `make` reads it from the gitignored .env.ops.
+const VPS = process.env.VPS ?? "";
 const REMOTE_DIR = process.env.REMOTE_DIR ?? "/srv/sites/otgolosok.softmg.tech";
 const CONTAINER = process.env.GENERATOR_CONTAINER ?? "otgolosok-generator-generator-1";
 // Defaults live inside the gitignored data directory so a production dump can
@@ -124,6 +125,7 @@ function report(file, dataDir) {
 }
 
 function dump() {
+  if (!/^[\w.-]+@[\w.-]+$/.test(VPS)) fail("Укажите VPS=user@host в .env.ops или в переменной окружения.");
   process.stdout.write(`Снимаем базу в контейнере ${CONTAINER} на ${VPS}\n`);
   const summary = ssh(`docker exec -i ${CONTAINER} node --input-type=module`, { input: SNAPSHOT_SCRIPT }).trim();
   process.stdout.write(`  снимок: ${summary}\n`);

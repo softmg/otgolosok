@@ -198,7 +198,7 @@ Add a block after the worker API block and before the generic POST/Origin block:
   - request/response shape;
   - the dry run;
   - idempotency semantics.
-- **`docs/production-deployment.md`:**
+- **`docs/production-runbook.md`:**
   - add `PROMO_WALKS_TOKEN` to `.generator.env` (a new random value of 64 hex characters, e.g. `openssl rand -hex 32`);
   - redeploy with the standard generator target;
   - state that user `promo-walks` must never be deleted: `ON DELETE CASCADE` removes every promo walk and breaks every published Shorts link.

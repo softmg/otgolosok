@@ -318,7 +318,7 @@ Worker, `startPlaceImageWorker({service, intervalMs = 60_000, logs}) → {wake, 
 
 - Add `location /api/place-images/` that keeps the backend's immutable `Cache-Control`, same body as `/api/story-audio/`.
 - Add `location ~ "^/images/places/[a-z0-9-]+\.jpg$"` with `Cache-Control: public, max-age=31536000, immutable`, security headers and `try_files $uri =404`. This fixes the current `no-store` on hashed editorial photos.
-- Check the production Traefik / static setup (services project, `docs/production-deployment.md`). Report to the user if production serves `/images/places/` with `no-store` too; do not change the other project unasked.
+- Check the production Traefik / static setup (services project, `docs/production-runbook.md`). Report to the user if production serves `/images/places/` with `no-store` too; do not change the other project unasked.
 
 ### 7. Frontend
 
@@ -350,7 +350,7 @@ Worker, `startPlaceImageWorker({service, intervalMs = 60_000, logs}) → {wake, 
   - that the editorial JSON is the only override.
   
   Update its line in `docs/agents/README.md`.
-- `docs/production-deployment.md` (Russian): the env flag, the `/data/place-images` volume path, the first backfill command (`docker exec <backend> node sync-place-images.mjs --dry-run`, then without `--dry-run`) and the periodic prune.
+- `docs/production-runbook.md` (Russian): the env flag, the `/data/place-images` volume path, the first backfill command (`docker exec <backend> node sync-place-images.mjs --dry-run`, then without `--dry-run`) and the periodic prune.
 
 ### 9. Production rollout (only when the user asks to deploy)
 

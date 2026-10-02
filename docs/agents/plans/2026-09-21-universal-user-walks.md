@@ -155,7 +155,7 @@ Status: implemented 2026-09-21 in branch `feat/auth-account-osm-pipeline`.
 
 ### 7. Документация и совместимость
 
-Обновить на русском `README.md`, `content/walk-builder.md`, необходимые разделы `docs/production-deployment.md`. Создать `docs/agents/walks.md` и добавить в `docs/agents/README.md` два предложения о модели, миграции и офлайн-ограничениях. Не добавлять gotchas в AGENTS.md без отдельного согласования.
+Обновить на русском `README.md`, `content/walk-builder.md`, необходимые разделы `docs/production-runbook.md`. Создать `docs/agents/walks.md` и добавить в `docs/agents/README.md` два предложения о модели, миграции и офлайн-ограничениях. Не добавлять gotchas в AGENTS.md без отдельного согласования.
 
 Проверить `docker/nginx.conf`, реальную конфигурацию проксирования и backend Docker build: новые URL должны попадать в существующие `/api/me/*` и `/api/story-*`, `/walk?...` должен работать при прямом открытии и перезагрузке. Новая shared-обёртка не должна попасть под старый regex одиночного ID. Новых сервисов и портов не требуется.
 

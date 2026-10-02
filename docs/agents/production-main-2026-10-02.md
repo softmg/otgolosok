@@ -18,4 +18,4 @@
 
 На настоящем production-сайте без подмены API в новых Chromium-контекстах 390×844 и 1440×1000 загрузились карта и карточка «Кожевники» с текстом из 830 символов. Ошибок JavaScript и HTTP-ответов с кодом ≥400 в этих сценариях нет. Проверены HTTP 200 для `/`, `/admin`, `/history`, `/walk`, `/create`, `/account`, `/api/story-service` и обоих endpoints индекса карты; защищённые `/api/story-admin/jobs` и `/api/me/walks` без сессии вернули 401.
 
-Резервные копии, SHA-256 опубликованной статики и версия service worker записаны в [журнале выкладок](../production-deployment.md).
+Резервные копии, SHA-256 опубликованной статики и версия service worker записаны в [журнале выкладок](../production-runbook.md).

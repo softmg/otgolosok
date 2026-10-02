@@ -110,7 +110,7 @@ backend отвечает 409 `STORAGE_LIMIT` с объяснением на ру
 make admin-create-prod EMAIL=editor@example.com
 ```
 
-Команда подключается по SSH к `services@93.189.230.19` и запускает CLI внутри
+Команда подключается по SSH к `$VPS (см. .env.ops)` и запускает CLI внутри
 production-контейнера с базой `/data/auth.sqlite`. При необходимости задайте
 `VPS=пользователь@хост` и `GENERATOR_CONTAINER=имя-контейнера`.
 Для локальной базы можно передать `AUTH_DB_PATH=путь/к/auth.sqlite`.
@@ -312,7 +312,7 @@ Production: https://otgolosok.online. Статическая сборка пуб
 проект `services`, Nginx и Traefik с HTTPS:
 
 ```bash
-make -C /Users/fenix007/projects/utils/services deploy-otgolosok-prod VPS=services@93.189.230.19
+make -C /Users/fenix007/projects/utils/services deploy-otgolosok-prod VPS=$VPS (см. .env.ops)
 ```
 
 Команда запускает проверки и сборку, затем загружает `out/` в
@@ -322,7 +322,7 @@ make -C /Users/fenix007/projects/utils/services deploy-otgolosok-prod VPS=servic
 Backend генератора выкладывается отдельно, из проекта `services`:
 
 ```bash
-make -C /Users/fenix007/projects/utils/services deploy-otgolosok-generator VPS=services@93.189.230.19
+make -C /Users/fenix007/projects/utils/services deploy-otgolosok-generator VPS=$VPS (см. .env.ops)
 ```
 
 ### База генератора на рабочей машине

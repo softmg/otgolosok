@@ -3,8 +3,13 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SOURCE="${ROOT}/ops/production/traefik"
-VPS="${VPS:-services@93.189.230.19}"
-SITE_IP="${SITE_IP:-93.189.230.19}"
+# The production SSH address is not published: VPS=user@host comes from the environment or
+# the gitignored .env.ops. The site is checked on the same host unless SITE_IP says otherwise.
+if [[ -z "${VPS:-}" && -f "${ROOT}/.env.ops" ]]; then
+  VPS="$(sed -n 's/^VPS[[:space:]]*=[[:space:]]*//p' "${ROOT}/.env.ops" | tail -n 1)"
+fi
+VPS="${VPS:-}"
+SITE_IP="${SITE_IP:-${VPS#*@}}"
 
 [[ "${VPS}" =~ ^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+$ ]] || { echo 'Некорректный адрес VPS' >&2; exit 2; }
 [[ "${SITE_IP}" =~ ^[0-9.]+$ ]] || { echo 'Некорректный IPv4-адрес сайта' >&2; exit 2; }
