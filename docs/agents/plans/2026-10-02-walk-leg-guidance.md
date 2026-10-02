@@ -215,7 +215,7 @@ E2E (`e2e/walk-session.spec.ts`; update existing expectations that assume autopl
 
 Manual end-to-end with local Docker (`otgolosok-valhalla-1` on 127.0.0.1:8002): build a walk in the builder that crosses Tverskaya at Pushkinskaya (e.g. start near 55.7660, 37.6060, a stop across the street) → the underpass is dashed in the builder and in the walk. Do not call paid APIs from tests.
 
-Verification result (2026-10-02): `pnpm check` green (Vitest, backend `node --test` 713, pytest, lint, typecheck, build). Playwright, both projects: 499 passed; the 7 failures fail the same way on the base commit 663e15e without this work — six `layout-invariants` footer cases (chromium `прогулка / текст истории` 360×640 and 932×430, `список остановок` 320×568, `настройки` 360×640 and 932×430; webkit `список остановок` 320×568) and `shared-walk-admin` «публичная прогулка попадает в топ…». The first iteration (separate hint line, longer meta) added more footer failures; they are gone.
+Verification result (2026-10-02, after rebasing onto 7ec32d6): `pnpm check` green (Vitest, backend `node --test`, pytest, lint, typecheck, build). Playwright, chromium + webkit: 510 passed, 1 failed — `shared-walk-admin` «публичная прогулка попадает в топ…» (error «Откройте подготовку истории на сайте.»), which fails the same way on the base commit 663e15e without this work. Before the rebase, six `layout-invariants` footer cases failed on the base as well; 770df08 (panel as a flex column) fixed them. A first iteration with a separate hint line and the longer «Идём к остановке» meta added more footer failures; see step 4.
 
 Before each commit: `npm run check` (or the project's lint/type-check/test scripts) and backend tests for touched backend files.
 
