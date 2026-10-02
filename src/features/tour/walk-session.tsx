@@ -6,6 +6,7 @@ import { ExploreMap, type MapFitTarget, type MapFocus } from "../explore/explore
 import { ExploreIcon } from "../explore/icons";
 import { PlacePhotoBanner } from "../explore/place-photo";
 import { usePlaceStory } from "../explore/place-story";
+import { GeoHelp } from "../explore/around-sheets";
 import { BrandMark } from "../brand/brand-mark";
 import type { Coordinates, Route } from "./types";
 import { highlightedLeg, type StopStage, type WalkChapter } from "./walk-plan";
@@ -33,7 +34,8 @@ export function approachHint(advance: AdvanceMode, hasAudio: boolean) {
 }
 
 export function WalkSession({ route, chapters, index, stage = "stop", advance = "manual", active, completed, user, positionFailed, resume,
-  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null, onRate = noop, own = null }: {
+  titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null, onRate = noop, own = null,
+  positionDenied = false, onRetryPosition = noop }: {
   route: Route; chapters: WalkChapter[]; index: number; active: boolean; completed: boolean;
   /** On the way to stop `index` or arrived there (see StopStage). */
   stage?: StopStage;
@@ -54,6 +56,10 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
   onRate?: () => void;
   /** The viewer's own walk: before the start it leads back to the builder and shows the builder's notes. */
   own?: OwnWalk | null;
+  /** The site has no access to geolocation: asking again will not show a prompt, the walker allows it in the browser. */
+  positionDenied?: boolean;
+  /** Asks the browser for the position again; called from a tap, so it may show the permission prompt. */
+  onRetryPosition?: () => void;
 }) {
   const panelRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -65,7 +71,7 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
     const first = chapters[0];
     return first ? { ...(first.trigger_location ?? first.location) } : null;
   });
-  const [drawer, setDrawer] = useState<"stops" | "story" | "settings" | "reviews" | null>(null);
+  const [drawer, setDrawer] = useState<"stops" | "story" | "settings" | "reviews" | "position" | null>(null);
   const [confirmStop, setConfirmStop] = useState(false);
   const chapter = chapters[index];
   const geometry = useMemo(() => (route.walk?.path.coordinates ?? []).map(([lon, lat]) => ({ lat, lon })), [route.walk?.path]);
@@ -116,6 +122,9 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
     addEventListener("resize", measure);
     return () => { observer.disconnect(); removeEventListener("resize", measure); };
   }, []);
+  // The position help closes by itself once a fix arrives after a retry.
+  if (drawer === "position" && (user || !active)) setDrawer(null);
+  function retryPosition() { setDrawer("position"); onRetryPosition(); }
   function select(position: number) { setDrawer(null); onSelect(position); }
   function toggleReviews() { setDrawer(drawer === "reviews" ? null : "reviews"); }
   function rate() { setDrawer(null); onRate(); }
@@ -159,10 +168,10 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
       {active && chapter && chapter.title !== chapter.place ? <p className="walk-session-address">{chapter.place}</p> : null}
       {active && !drawer ? player : null}
       {active && audioError ? <p className="walk-session-notice" role="status">{audioError}</p> : null}
-      {active && positionFailed ? <p className="walk-session-notice" role="status">Геопозиция недоступна. Остановки можно переключать вручную.</p> : null}
       {active && chapter && !chapter.audio && !hasText ? <p className="walk-session-muted">Без истории</p> : null}
       {!completed ? <div className="walk-session-tools">
         {chapters.length > 0 ? <button type="button" aria-expanded={drawer === "stops"} onClick={() => setDrawer(drawer === "stops" ? null : "stops")}><ExploreIcon name="list" />Остановки · {chapters.length}</button> : null}
+        {active && (positionFailed || drawer === "position") ? <button type="button" className="walk-session-position" aria-expanded={drawer === "position"} onClick={retryPosition}><ExploreIcon name="locate" />Геопозиции нет</button> : null}
         {!active && own ? <Link href={own.editHref} prefetch={false}>Изменить маршрут</Link> : null}
         {active && hasText ? <button type="button" aria-expanded={drawer === "story"} onClick={() => setDrawer(drawer === "story" ? null : "story")}>Читать историю</button> : null}
         {!active && reviews ? ratingCount === 0
@@ -172,7 +181,10 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
       {drawer && !completed ? <div className="walk-session-drawer" data-sheet-part="body" key={`${drawer}-${index}`}>
         {drawer === "stops" ? <ol className="walk-session-stops">{chapters.map((item, position) => <li key={item.id}>
           {active ? <button type="button" aria-current={position === index ? "step" : undefined} onClick={() => select(position)}><span>{position + 1}</span>{item.title}</button> : <p><span>{position + 1}</span>{item.title}</p>}
-        </li>)}</ol> : drawer === "story" ? story : drawer === "reviews" ? reviews : <>
+        </li>)}</ol> : drawer === "position" ? <div role="status">
+          <p className="walk-session-muted">{!positionFailed ? "Определяем положение…" : positionDenied ? "Сайту запрещён доступ к геопозиции. Разрешите его в браузере — до тех пор остановки переключаются вручную." : "Не удалось определить положение. Проверьте, включена ли геолокация на устройстве, — до тех пор остановки переключаются вручную."}</p>
+          {positionFailed ? <GeoHelp open={positionDenied} onRetry={onRetryPosition} /> : null}
+        </div> : drawer === "story" ? story : drawer === "reviews" ? reviews : <>
           {settings}
           {reviews ? <button type="button" className="walk-session-rate" aria-haspopup="dialog" onClick={rate}>Оценить прогулку</button> : null}
         </>}

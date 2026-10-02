@@ -149,8 +149,9 @@ export function GeoNotice({ message, outside, denied, onMoscow, onRetry, onClose
   </div>;
 }
 
-function GeoHelp({ onRetry }: { onRetry: () => void }): ReactNode {
-  return <details className={styles.help}>
+/** How to allow geolocation for the site; `open` shows the steps without the extra tap. */
+export function GeoHelp({ onRetry, open = false }: { onRetry: () => void; open?: boolean }): ReactNode {
+  return <details className={styles.help} open={open}>
     <summary>Как разрешить геолокацию</summary>
     <p><strong>На iPhone и iPad</strong></p>
     <ol>

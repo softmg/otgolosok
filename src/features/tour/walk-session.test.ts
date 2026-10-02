@@ -213,3 +213,53 @@ it.each([
   const document = new DOMParser().parseFromString(markup, "text/html");
   expect(document.querySelector(".walk-session-meta")?.textContent).toBe(meta);
 });
+
+async function mountPosition(denied: boolean) {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
+  const onRetryPosition = vi.fn();
+  const render = (positionFailed: boolean, user: { lat: number; lon: number; accuracyM: number } | null) => act(async () => root.render(createElement(WalkSession, {
+    route, chapters, index: 0, active: true, completed: false,
+    user, positionFailed, positionDenied: denied && positionFailed, onRetryPosition, resume: false,
+    titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
+    onStart: () => {}, onSelect: () => {}, onStop: () => {},
+    player: null, story: null, settings: null, audioError: "",
+  })));
+  await render(true, null);
+  const button = () => [...container.querySelectorAll<HTMLButtonElement>(".walk-session-tools button")].find(item => item.textContent === "Геопозиции нет");
+  const drawer = () => container.querySelector(".walk-session-drawer");
+  const unmount = async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals(); };
+  return { container, render, button, drawer, onRetryPosition, unmount };
+}
+
+it.each([
+  [true, "Сайту запрещён доступ к геопозиции", true],
+  [false, "Не удалось определить положение", false],
+])("«Геопозиции нет» стоит рядом с «Остановками» и по нажатию снова запрашивает доступ (запрещён=%s)", async (denied, message, helpOpen) => {
+  const session = await mountPosition(denied);
+  const tools = [...session.container.querySelectorAll(".walk-session-tools button")].map(item => item.textContent);
+  expect(tools.slice(0, 2)).toEqual([`Остановки · ${chapters.length}`, "Геопозиции нет"]);
+  expect(session.container.textContent).not.toContain("Геопозиция недоступна");
+
+  await act(async () => session.button()!.click());
+  expect(session.onRetryPosition).toHaveBeenCalledTimes(1);
+  expect(session.button()?.getAttribute("aria-expanded")).toBe("true");
+  expect(session.drawer()?.textContent).toContain(message);
+  expect(session.drawer()?.querySelector("details")?.open).toBe(helpOpen);
+
+  // «Проверить снова» внутри подсказки тоже запрашивает положение заново.
+  await act(async () => [...session.drawer()!.querySelectorAll("button")].find(item => item.textContent === "Проверить снова")!.click());
+  expect(session.onRetryPosition).toHaveBeenCalledTimes(2);
+
+  // Пока браузер ищет положение, панель остаётся открытой и говорит об этом.
+  await session.render(false, null);
+  expect(session.drawer()?.textContent).toBe("Определяем положение…");
+  // Пришли координаты — подсказка и кнопка исчезают сами.
+  await session.render(false, { lat: 55.75, lon: 37.6, accuracyM: 10 });
+  expect(session.drawer()).toBeNull();
+  expect(session.button()).toBeUndefined();
+  await session.unmount();
+});

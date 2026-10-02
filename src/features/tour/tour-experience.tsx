@@ -326,7 +326,8 @@ function AvailableTour({ route: initialRoute, universal = false, view, offlineRe
 
       {universal && reviewTarget ? <ReviewDialog reviews={reviews} open={rateOpen} onClose={() => setRateOpen(false)} walkTitle={route.title.trim() || "Ваш маршрут"} /> : null}
       {universal ? <WalkSession route={route} chapters={chapters} index={chapterIndex} stage={stage} advance={settings.advance} active={isWalking} completed={completed}
-        user={position.diagnostics.lastFix} positionFailed={positionFailed(position.diagnostics)} resume={Boolean(savedCheckpoint)} titleRef={walkTitleRef} startRef={startButtonRef}
+        user={position.diagnostics.lastFix} positionFailed={positionFailed(position.diagnostics)}
+        positionDenied={position.diagnostics.sourceStatus === "permission-denied"} onRetryPosition={position.retry} resume={Boolean(savedCheckpoint)} titleRef={walkTitleRef} startRef={startButtonRef}
         onStart={() => startTour()} onSelect={selectChapter} onStop={stopTour} own={own}
         ratingLabel={formatRatingSummary(reviews.summary)}
         hasReview={Boolean(reviews.mine)} ratingCount={reviews.summary?.count ?? null} reviews={reviewTarget ? <WalkReviews reviews={reviews} onRate={() => setRateOpen(true)} /> : null} onRate={() => setRateOpen(true)}

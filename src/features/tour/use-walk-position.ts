@@ -51,6 +51,7 @@ export function useWalkPosition() {
   const stopSourceRef = useRef<StopPositionSource | null>(null);
   const triggerStateRef = useRef<TriggerState>(createTriggerState());
   const generationRef = useRef(0);
+  const optionsRef = useRef<TrackingOptions | null>(null);
 
   useEffect(() => () => {
     generationRef.current += 1;
@@ -61,6 +62,8 @@ export function useWalkPosition() {
   function start(options: TrackingOptions) {
     const generation = generationRef.current + 1;
     generationRef.current = generation;
+    stopSourceRef.current?.();
+    optionsRef.current = options;
     const replay = options.replayMode === "clean" || options.replayMode === "walk";
     triggerStateRef.current = createTriggerState();
     setDiagnostics({ ...initialDiagnostics, source: replay ? "replay" : "browser", trigger: triggerStateRef.current });
@@ -104,8 +107,17 @@ export function useWalkPosition() {
     generationRef.current += 1;
     stopSourceRef.current?.();
     stopSourceRef.current = null;
+    optionsRef.current = null;
     triggerStateRef.current = createTriggerState();
     setDiagnostics(initialDiagnostics);
+  }
+
+  /**
+   * Asks the browser for the position again. Called from a tap, so a browser that has not been
+   * answered yet shows its permission prompt; a denied site stays denied until the walker allows it.
+   */
+  function retry() {
+    if (optionsRef.current) start(optionsRef.current);
   }
 
   /** The walk now listens for another stop, so earlier candidate fixes no longer apply. */
@@ -114,7 +126,7 @@ export function useWalkPosition() {
     setDiagnostics((current) => ({ ...current, trigger: triggerStateRef.current, distanceM: null }));
   }
 
-  return { diagnostics, start, stop, resetTrigger };
+  return { diagnostics, start, stop, resetTrigger, retry };
 }
 
 export function positionFailed(diagnostics: Diagnostics) {
