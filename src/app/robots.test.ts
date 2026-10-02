@@ -11,7 +11,7 @@ describe("robots.txt", () => {
   it("открывает публичные страницы для индексации", () => {
     expect(rules).toContain("User-agent: *");
     expect(disallowed).not.toContain("/");
-    for (const page of ["/", "/walk", "/history", "/create"]) {
+    for (const page of ["/", "/walk", "/history"]) {
       expect(disallowed.some((prefix) => prefix && page.startsWith(prefix))).toBe(false);
     }
   });

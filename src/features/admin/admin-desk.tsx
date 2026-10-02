@@ -415,7 +415,7 @@ export function AdminDesk() {
                     {job.stage === "failed" && !job.data.story && <p className="admin-callout">У задания ещё нет утверждённого текста, поэтому переозвучить его нельзя. Продолжите подготовку: сервис вернётся к незавершённому этапу и использует выбранный голос.</p>}
                     <button className="admin-primary" disabled={Boolean(busy) || (narrationMode === "approve" ? !approvalAllowed : !voiceReady)} onClick={submitNarration}>{narrationMode === "approve" ? "Утвердить и озвучить" : narrationMode === "regenerate" ? "Перегенерировать историю" : narrationMode === "revoice" ? "Переозвучить" : narrationMode === "retry" ? "Продолжить подготовку" : "Озвучивание недоступно"}</button>
                     {!job.canApprove && editable && <p className="admin-meta">Сохраните корректный текст, чтобы сервер разрешил утверждение.</p>}
-                    {(job.stage === "ready" || (job.data.editorDraft && job.stage !== "review_required")) && <p className="admin-result"><a href={`/create?job=${job.id}`} target="_blank" rel="noopener noreferrer">{job.stage === "ready" ? "Открыть готовую историю" : "Открыть публичную страницу задания"} (новая вкладка)</a></p>}
+                    {(job.stage === "ready" || (job.data.editorDraft && job.stage !== "review_required")) && <p className="admin-result"><a href={`/?job=${job.id}`} target="_blank" rel="noopener noreferrer">{job.stage === "ready" ? "Открыть готовую историю" : "Открыть публичную страницу задания"} (новая вкладка)</a></p>}
                   </section>
                 </article>
               )}

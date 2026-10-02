@@ -28,21 +28,23 @@ export function LocationPromptSheet({ geo, onLocate, onDismiss }: { geo: GeoStat
 }
 
 /** A selected story: its label and close stay put, the text scrolls, the main action is always visible. */
-export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk }: {
+export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk, retrying = false, retryError = "", onRetry }: {
   story: StoryPin; walkHref: string | null; startRef?: Ref<HTMLButtonElement>;
   onStart: (chapter?: number) => void; onClose: () => void; onWalk: () => void;
+  retrying?: boolean; retryError?: string; onRetry?: () => void;
 }) {
   // A catalog point carries only its header; the text, sources and audio load when the sheet opens.
   const catalog = story.placeId !== undefined && story.chapter === undefined && story.jobId === undefined;
   const loaded = usePlaceStory(catalog ? story.placeId : undefined);
   const content: Pick<StoryPin, "paragraphs" | "attribution" | "audioUrl"> = catalog ? loaded.story ?? {} : story;
+  const progress = story.progress;
   const action = story.chapter !== undefined
     ? <button type="button" className={a.primary} ref={startRef} onClick={() => onStart(story.chapter)}>Слушать эту часть <ExploreIcon name="headphones" /></button>
-    : story.jobId
-      ? <Link className={a.primary} href={`/create?job=${story.jobId}`} prefetch={false}>{story.duration ? "Открыть и слушать" : "Открыть подготовку"}<ExploreIcon name={story.duration ? "headphones" : "arrow"} /></Link>
+    : progress?.canRetry && onRetry
+      ? <button type="button" className={a.primary} disabled={retrying} onClick={onRetry}>{retrying ? "Запускаем…" : progress.retryLabel}<ExploreIcon name="arrow" /></button>
       : null;
   const pendingText = catalog && loaded.status !== "ready";
-  const label = story.pending ? "Готовим для вас" : story.chapter !== undefined ? `По дороге · часть ${story.chapter + 1}` : null;
+  const label = story.pending ? "Готовим для вас" : story.chapter !== undefined ? `По дороге · часть ${story.chapter + 1}` : progress ? progress.label : null;
   const heading = <><h2 id="selected-place-title" className={a.title}>{story.title}</h2>{story.title !== story.address ? <p className={styles.address}>{story.address}</p> : null}</>;
   const close = (className?: string) => <button type="button" className={cx(a.iconButton, className)} aria-label="Закрыть карточку" onClick={onClose}><ExploreIcon name="close" /></button>;
   return <Sheet name="story" labelledBy="selected-place-title" bodyLabel={content.paragraphs?.length ? "Текст истории" : undefined}
@@ -59,8 +61,15 @@ export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk
       {pendingText && loaded.status === "loading" ? <p className={a.text} role="status">Загружаем рассказ…</p> : null}
       {pendingText && loaded.status === "error" ? <div role="alert"><p className={a.text}>Не удалось загрузить рассказ.</p><button type="button" className={a.secondary} onClick={loaded.retry}>Повторить</button></div> : null}
       {pendingText && loaded.status === "missing" ? <p className={a.text} role="status">Эта история больше недоступна.</p> : null}
+      {progress?.pending ? <p className={a.text} role="status">{progress.label}. Можно закрыть карточку: подготовка продолжится, а история останется на карте.</p> : null}
+      {progress?.error ? <p className={a.text} role="status">{progress.error}</p> : null}
+      {retryError ? <p className={a.text} role="alert">{retryError}</p> : null}
+      {progress?.note ? <p className={styles.source}>{progress.note}</p> : null}
       {content.paragraphs?.length ? <div className={styles.story}>{content.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div> : null}
       {content.attribution ? <p className={styles.source}>Источник: <a href={content.attribution.url} target="_blank" rel="noopener noreferrer">{content.attribution.label}</a></p> : null}
+      {story.sources?.length ? <details className={`${styles.help} ${styles.sources}`}><summary>Источники</summary>
+        <ol>{story.sources.map(source => <li key={source.id}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a><span>{source.publisher}</span></li>)}</ol>
+      </details> : null}
       {!action && story.placeId && !pendingText && !content.paragraphs?.length ? <p className={a.text}>Проверенный текст доступен в карточке места{content.audioUrl ? "; запись можно слушать здесь." : "; озвучивание ещё не готово."}</p> : null}
       {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} /> : null}
     </>
@@ -68,13 +77,15 @@ export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk
 }
 
 /** A point the user tapped or searched: offer to prepare its story or to start a walk from it. */
-export function PlaceSheet({ address, busy, error, createHref, walkHref, onClose, onWalk }: {
-  address: string | null; busy: boolean; error: string; createHref: string; walkHref: string | null; onClose: () => void; onWalk: () => void;
+export function PlaceSheet({ address, busy, error, preparing = false, prepareError = "", walkHref, onPrepare, onClose, onWalk }: {
+  address: string | null; busy: boolean; error: string; preparing?: boolean; prepareError?: string; walkHref: string | null;
+  onPrepare: () => void; onClose: () => void; onWalk: () => void;
 }) {
   // A point with no house nearby has no story to prepare; it can still be the start of a walk.
   const unknown = !busy && !error && !address && walkHref !== null;
   const note = error ? <p className={a.text} role="status">{error}</p>
     : busy ? <p className={a.text} role="status">Смотрим, какой дом находится рядом с выбранной точкой.</p>
+    : prepareError ? <p className={a.text} role="alert">{prepareError}</p>
     : null;
   return <Sheet name="place" labelledBy="new-place-title"
     header={<div className={a.headerRow}>
@@ -82,8 +93,8 @@ export function PlaceSheet({ address, busy, error, createHref, walkHref, onClose
       <button type="button" className={a.iconButton} aria-label="Закрыть выбранное место" onClick={onClose}><ExploreIcon name="close" /></button>
     </div>}
     // Both actions stay in the footer: the card has no text to scroll past them.
-    footer={busy ? null : unknown && walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} primary /> : <>
-      <Link className={a.primary} href={createHref} prefetch={false}>{address ? "История этого дома" : "Ввести адрес вручную"}<ExploreIcon name="plus" /></Link>
+    footer={busy || (!address && !walkHref) ? null : !address && walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} primary /> : <>
+      <button type="button" className={a.primary} disabled={preparing} onClick={onPrepare}>{preparing ? "Отправляем адрес…" : "История этого дома"}<ExploreIcon name="plus" /></button>
       {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} footer /> : null}
     </>}>
     {note}

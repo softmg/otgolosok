@@ -5,6 +5,9 @@ describe("precache manifest", () => {
   it("сохраняет оболочку истории для открытия без сети", () => {
     expect(selectPrecacheFiles(["history.html"]).map(precacheUrl)).toEqual(["/history"]);
   });
+  it("не кэширует удалённую страницу /create", () => {
+    expect(selectPrecacheFiles(["create.html", "index.html"]).map(precacheUrl)).toEqual(["/"]);
+  });
   it("сохраняет иконки, чтобы установленное приложение открывалось без сети", () => {
     expect(selectPrecacheFiles(["icons\\icon-192.png", "icons/maskable-512.png", "favicon.png"]).map(precacheUrl))
       .toEqual(["/icons/icon-192.png", "/icons/maskable-512.png"]);

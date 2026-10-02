@@ -8,7 +8,7 @@ export function favoriteSummary(item, { userId, accountStore, store, routes }) {
   }
   if (item.type === 'story') {
     const job = store.get(item.id);
-    if (job && (job.kind ?? 'address') === 'address' && job.relevance !== 'irrelevant') return {...item, title:job.data?.story?.title || job.address, href:`/create?job=${encodeURIComponent(job.id)}`};
+    if (job && (job.kind ?? 'address') === 'address' && job.relevance !== 'irrelevant') return {...item, title:job.data?.story?.title || job.address, href:`/?job=${encodeURIComponent(job.id)}`};
   }
   return {...item, title:'Материал недоступен', href:null};
 }

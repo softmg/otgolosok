@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isMoscowPoint, MOSCOW_CENTER, parseMapJobs, placeFromQuery, rememberMapJob, readMapJobs } from "./map-jobs";
+import { isMoscowPoint, MOSCOW_CENTER, parseMapJobs, placeFromQuery, rememberMapJob, rememberMapPlace, readMapJobs } from "./map-jobs";
 import type { GenerationJob } from "../generator/types";
 
 const id="11111111-1111-4111-a111-111111111111";
@@ -23,6 +23,16 @@ describe("map bookmarks",()=>{
     expect(readMapJobs()).toEqual([{id,...place}]);
     rememberMapJob({id,address:"Москва, Арбат, 10"} as GenerationJob,place);
     expect(readMapJobs()).toHaveLength(1);
+  });
+  it("bookmarks a geocoded job link first and refuses a point outside Moscow",()=>{
+    const memory=new Map<string,string>();
+    vi.stubGlobal("localStorage",{getItem:(key:string)=>memory.get(key)??null,setItem:(key:string,value:string)=>memory.set(key,value)});
+    const other={id:"22222222-2222-4222-a222-222222222222",...place};
+    rememberMapPlace(other);
+    expect(rememberMapPlace({id,address:"Арбат, 10",location:place.location})).toEqual({id,address:"Арбат, 10",location:place.location});
+    expect(readMapJobs().map(item=>item.id)).toEqual([id,other.id]);
+    expect(rememberMapPlace({id,address:"Тверь",location:{lat:56.86,lon:35.9}})).toBeNull();
+    expect(readMapJobs()).toHaveLength(2);
   });
   it("keeps generation usable when browser storage is unavailable",()=>{
     vi.stubGlobal("localStorage",{getItem:()=>{throw new Error("denied");},setItem:()=>{throw new Error("denied");}});

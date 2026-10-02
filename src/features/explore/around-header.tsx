@@ -23,7 +23,6 @@ export function AroundHeader({ search, query, busy, inputRef, onToggle, onQuery,
         <input id="map-address" ref={inputRef} value={query} onChange={event => onQuery(event.target.value)} minLength={3} maxLength={180} required placeholder="Улица и номер дома в Москве" autoComplete="off" />
         <button type="submit" disabled={busy || query.trim().length < 3} aria-label="Найти дом"><ExploreIcon name="arrow" /></button>
       </div>
-      <Link href={`/create?${new URLSearchParams(query.trim() ? { address: query.trim() } : { new: "1" })}`} prefetch={false}>Ввести адрес для истории вручную →</Link>
     </form> : null}
   </>;
 }

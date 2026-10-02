@@ -5,12 +5,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { WalkCreationPanel, type CreationMap } from "../walk-builder/walk-creation-panel";
 import type { Coordinates, Route } from "../tour/types";
 import { getWalkChapters } from "../tour/walk-plan";
-import { jobUrl } from "../generator/offline";
+import { createStoryJob, isJobId, readStoryJob, retryStoryJob } from "../generator/api";
 import { stageLabels, terminalStages, type GenerationJob } from "../generator/types";
 import type { MapFocus, MapViewState } from "./explore-map";
 import { ExploreIcon } from "./icons";
 import { AppNavigation } from "../navigation/app-navigation";
-import { isMoscowPoint, MOSCOW_CENTER, MOSCOW_ZOOM, readMapJobs, type MapJob } from "./map-jobs";
+import { isMoscowPoint, MOSCOW_CENTER, MOSCOW_ZOOM, readMapJobs, rememberMapJob, rememberMapPlace, type MapJob } from "./map-jobs";
 import { nearbyRadiusForAccuracy, recommendNearbyStories, type NearbyRadius } from "./nearby-stories";
 import { isWalkCreation, selectExplorePanel } from "./panel-state";
 import { useMapCatalog } from "./use-map-catalog";
@@ -20,6 +20,7 @@ import { MapControlButton } from "../shell/map-controls";
 import { AroundHeader } from "./around-header";
 import { GeoNotice, LocationPromptSheet, MapHintNotice, NearbySheet, PlaceSheet, StorySheet } from "./around-sheets";
 import type { StoryPin } from "./story-pin";
+import { openDataAttribution } from "./source-attribution";
 import a from "./around.module.css";
 import styles from "./around-screen.module.css";
 import { toUserMessage } from "@/lib/errors/user-message";
@@ -33,6 +34,16 @@ function distance(a:Coordinates,b:Coordinates){
   return 12742000*Math.asin(Math.min(1,Math.sqrt(Math.sin(dlat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dlon/2)**2)));
 }
 const walkChapterAt=(route:Route,index?:number)=>index===undefined?undefined:getWalkChapters(route)[index];
+/** The card of a story the user ordered: its text and recording once ready, otherwise how far preparation got. */
+export function jobPin(item:MapJob,job:GenerationJob|undefined):StoryPin{
+  const story=job?.story,pending=job?!terminalStages.has(job.stage):false,label=job?stageLabels[job.stage]:"Загружаем состояние истории";
+  const note=!story?undefined:story.verification==="editorial"?"Рассказ проверен и подтверждён редактором."
+    :`Подготовлено автоматически: факты сопоставлены с источниками, редактор ещё не проверял рассказ.${job?.audio?" Озвучено синтетическим голосом.":pending?" Запись появится после озвучки.":""}`;
+  return {...item,jobId:item.id,title:story?.title??item.address,duration:job?.audio?.durationSec,pending,status:label,
+    paragraphs:story?.paragraphs.map(paragraph=>paragraph.text),audioUrl:job?.audio?.url,
+    attribution:openDataAttribution(story?.sources),sources:story?.sources,
+    progress:{label,pending:!job||pending,note,error:job?.error?.message,canRetry:job?.canRetry??false,retryLabel:story?"Повторить озвучку":"Повторить подготовку"}};
+}
 
 // openChapter — часть, на которой остановили прогулку: карта открывается с её карточкой,
 // а startRef получает кнопку «Слушать эту часть», чтобы вернуть на неё фокус.
@@ -55,7 +66,10 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   const [geo,setGeo]=useState<"idle"|"loading"|"ready"|"error"|"denied">("idle"),[geoMessage,setGeoMessage]=useState(""),[geoOutside,setGeoOutside]=useState(false);
   const [prompt,setPrompt]=useState(false);
   const [mapHintVisible,setMapHintVisible]=useState(true);
-  const [tracked]=useState<MapJob[]>(()=>typeof window==="undefined"?[]:readMapJobs()),[jobs,setJobs]=useState<Record<string,GenerationJob>>({});
+  const [tracked,setTracked]=useState<MapJob[]>(()=>typeof window==="undefined"?[]:readMapJobs()),[jobs,setJobs]=useState<Record<string,GenerationJob>>({});
+  const [preparing,setPreparing]=useState(false),[prepareError,setPrepareError]=useState("");
+  const [retrying,setRetrying]=useState(false),[retryError,setRetryError]=useState("");
+  const prepareRequest=useRef<AbortController|null>(null);
   const {places:catalog,status:catalogStatus,nearbyStatus,maintenance:catalogMaintenance,retry:retryCatalog,onViewport}=useMapCatalog(nearbyCenter,nearbyRadius);
   const lookup=useRef<AbortController|null>(null),locating=useRef<(()=>void)|null>(null);
   const input=useRef<HTMLInputElement>(null);
@@ -88,28 +102,55 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
       try {
         const values=await Promise.all(tracked.map(async item=>{
           if(settled.has(item.id))return null;
-          const request=new AbortController(),relay=()=>request.abort(),timer=setTimeout(relay,12000);
-          controller.signal.addEventListener("abort",relay,{once:true});
-          try{const response=await fetch(jobUrl(item.id),{signal:request.signal});
-            const value=await response.json();
-            if(!response.ok||value.id!==item.id||!(value.stage in stageLabels))return null;
+          try{const value=await readStoryJob(item.id,controller.signal);
+            if(value.id!==item.id)return null;
             if(terminalStages.has(value.stage))settled.add(item.id);
-            return value as GenerationJob;
-          }catch{return null;}finally{clearTimeout(timer);controller.signal.removeEventListener("abort",relay);}
+            return value;
+          }catch{return null;}
         }));
         if(!disposed)setJobs(current=>({...current,...Object.fromEntries(values.filter(value=>value!==null).map(value=>[value.id,value]))}));
       }finally{running=false;}
     };
-    void refresh();const timer=setInterval(()=>void refresh(),15000);
+    // Preparation takes a few minutes and its card shows each stage, so unfinished jobs are checked often.
+    void refresh();const timer=setInterval(()=>void refresh(),5000);
     document.addEventListener("visibilitychange",refresh);
     return ()=>{disposed=true;controller.abort();clearInterval(timer);document.removeEventListener("visibilitychange",refresh);};
   },[tracked]);
 
+  // /?job=<id> opens a story the user ordered (links from the profile, the editorial desk and the walk builder).
+  // The job knows only its address, so a story not yet bookmarked on this device is placed by geocoding it.
+  // Removing the parameter re-runs this effect, so the request is cancelled only on unmount or by the next link.
+  const jobLink=useRef<AbortController|null>(null);
+  useEffect(()=>()=>jobLink.current?.abort(),[]);
+  useEffect(()=>{
+    const id=params.get("job");
+    if(id===null)return;
+    jobLink.current?.abort();const controller=new AbortController();jobLink.current=controller;
+    const rest=new URLSearchParams(params.toString());rest.delete("job");
+    router.replace(rest.size?`${pathname}?${rest}`:pathname,{scroll:false});
+    void (async()=>{
+      try{
+        if(!isJobId(id))throw new Error("Ссылка на историю повреждена.");
+        const job=await readStoryJob(id,controller.signal);
+        let record=readMapJobs().find(item=>item.id===id)??null;
+        if(!record){
+          const response=await fetch(`/api/story-place?${new URLSearchParams({q:job.address})}`,{signal:controller.signal});
+          const result=await response.json().catch(()=>null);
+          if(!response.ok||!result?.location)throw new Error(result?.error?.message??"Не удалось найти дом этой истории на карте.");
+          record=rememberMapPlace({id,address:job.address,location:result.location});
+          if(!record)throw new Error("Дом этой истории находится вне Москвы.");
+        }
+        const found=record;
+        setTracked(current=>[found,...current.filter(item=>item.id!==id)]);
+        setJobs(current=>({...current,[id]:job}));
+        setPlace(null);setPrompt(false);setSearch(false);setSelected(id);setFocus({...found.location});
+      }catch(error){if(!controller.signal.aborted)setGeoMessage(toUserMessage(error,"Не удалось открыть историю."));}
+    })();
+  },[params,pathname,router]);
+
   const pins=useMemo<StoryPin[]>(()=>{
     const chapters=getWalkChapters(route).flatMap((chapter,index)=>index===openChapter?[{id:chapter.id,title:chapter.title,address:chapter.place,location:chapter.location,duration:chapter.audio?.duration_sec,chapter:index,number:index+1}]:[]);
-    const own=tracked.map(item=>{
-      const job=jobs[item.id];return {...item,jobId:item.id,title:job?.story?.title??item.address,duration:job?.audio?.durationSec,pending:job?!terminalStages.has(job.stage):false,status:job?stageLabels[job.stage]:"Открыть подготовку"};
-    });
+    const own=tracked.map(item=>jobPin(item,jobs[item.id]));
     // The text, sources and audio of a catalog point load when its sheet opens (usePlaceStory).
     const places=catalog.map(place=>({id:place.id,placeId:place.id,title:place.title,address:place.address,location:place.location,duration:place.durationSec??undefined,status:place.durationSec!=null?"Готово к прослушиванию":"Текст готов",hasPhoto:place.photo,clusterable:true}));
     return [...chapters,...own,...places.filter(place=>![...chapters,...own].some(existing=>existing.id===place.id))];
@@ -125,7 +166,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   const mapItems=useMemo(()=>place?[...visible,{id:"picked-place",title:place.address??"Выбранное место",location:place.location,pending:true}]:visible,[visible,place]);
 
   function select(pin:StoryPin){
-    lookup.current?.abort();setPlaceBusy(false);setPlaceError("");setPlace(null);setSelected(pin.id);setFocus({...pin.location});setPrompt(false);setSearch(false);
+    lookup.current?.abort();setPlaceBusy(false);setPlaceError("");setPlace(null);setRetryError("");setSelected(pin.id);setFocus({...pin.location});setPrompt(false);setSearch(false);
   }
   function selectRecommendation(id:string){
     const direct=pins.find(pin=>pin.id===id);
@@ -135,6 +176,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   function dismissGeoPrompt(){rememberGeoPromptDismissal(localStorage);setPrompt(false);}
   async function findPlace(value:Coordinates|string){
     lookup.current?.abort();const controller=new AbortController();lookup.current=controller;
+    prepareRequest.current?.abort();setPreparing(false);setPrepareError("");
     setPrompt(false);setSelected(undefined);setPlace(null);setPlaceError("");setPlaceBusy(true);setSearch(false);
     if(typeof value!=="string"){
       setFocus({...value});setNearbyCenter(value);
@@ -149,7 +191,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
       if(lookup.current!==controller||controller.signal.aborted)return;
       setPlace(result);setFocus(result.location);setNearbyCenter(result.location);setSearch(false);
     }catch(error){
-      if(lookup.current===controller&&(!controller.signal.aborted||controller.signal.reason==="timeout"))setPlaceError(controller.signal.aborted?"Поиск занял слишком много времени. Введите адрес вручную.":toUserMessage(error,"Не удалось определить адрес."));
+      if(lookup.current===controller&&(!controller.signal.aborted||controller.signal.reason==="timeout"))setPlaceError(controller.signal.aborted?"Поиск занял слишком много времени. Повторите поиск или выберите дом на карте.":toUserMessage(error,"Не удалось определить адрес."));
     }finally{clearTimeout(timer);if(lookup.current===controller)setPlaceBusy(false);}
   }
   function submitSearch(event:FormEvent){event.preventDefault();if(query.trim().length>=3)void findPlace(query.trim());}
@@ -181,18 +223,50 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     });
   }
   function showMoscow(){setFocus({...MOSCOW_CENTER,zoom:MOSCOW_ZOOM});setGeoMessage("");setGeoOutside(false);}
-  const createHref=place?.address?`/create?${new URLSearchParams({address:place.address,lat:String(place.location.lat),lon:String(place.location.lon)})}`:"/create?new=1";
+  // The story is prepared for the house the user picked; its card replaces the place card and shows the progress.
+  async function prepareStory(){
+    const target=place;
+    if(!target?.address||preparing)return;
+    prepareRequest.current?.abort();const controller=new AbortController();prepareRequest.current=controller;
+    setPreparing(true);setPrepareError("");
+    try{
+      const job=await createStoryJob(target.address,controller.signal);
+      if(controller.signal.aborted)return;
+      rememberMapJob(job,{address:target.address,location:target.location});
+      const record={id:job.id,address:job.address,location:target.location};
+      setTracked(current=>[record,...current.filter(item=>item.id!==job.id)]);
+      setJobs(current=>({...current,[job.id]:job}));
+      lookup.current?.abort();setPlace(null);setNearbyCenter(null);setRetryError("");setSelected(job.id);
+    }catch(error){
+      if(controller.signal.aborted)return;
+      if((error as {status?:number}).status===401){router.push(`/login?returnTo=${encodeURIComponent(location.pathname+location.search)}`);return;}
+      setPrepareError(toUserMessage(error,"Не удалось начать подготовку истории."));
+    }finally{if(prepareRequest.current===controller){prepareRequest.current=null;setPreparing(false);}}
+  }
+  async function retryStory(){
+    const job=active?.jobId?jobs[active.jobId]:undefined;
+    if(!job||retrying)return;
+    setRetrying(true);setRetryError("");
+    try{
+      const value=await retryStoryJob(job);
+      setJobs(current=>({...current,[value.id]:value}));
+      // A new list restarts polling, which has already stopped watching this finished job.
+      setTracked(current=>[...current]);
+    }catch(error){setRetryError(toUserMessage(error,"Не удалось повторить."));}
+    finally{setRetrying(false);}
+  }
   // A point without a house number still starts a walk: the builder needs a readable label, so it gets a neutral one.
   const walkStart=place?{address:place.address??"Точка на карте",location:place.location}:active;
   const walkHref=walkStart?.address?`/?${new URLSearchParams({walk:"create",address:walkStart.address,lat:String(walkStart.location.lat),lon:String(walkStart.location.lon)})}`:"/?walk=create";
-  function closePlace(){lookup.current?.abort();setPlace(null);setPlaceBusy(false);setPlaceError("");setNearbyCenter(null);}
+  function closePlace(){lookup.current?.abort();prepareRequest.current?.abort();setPlace(null);setPlaceBusy(false);setPlaceError("");setPreparing(false);setPrepareError("");setNearbyCenter(null);}
 
   const sheet = creating
     ? <WalkCreationPanel key={params.get("id") ?? params.get("local") ?? "create"} onClose={closeCreation} onMap={setCreationMap} picked={picked} />
     : search ? null
     : prompt&&!active&&!place&&!placeBusy&&!placeError ? <LocationPromptSheet geo={geo} onLocate={locate} onDismiss={dismissGeoPrompt} />
-    : active ? <StorySheet story={active} walkHref={active.address&&!placeBusy?walkHref:null} startRef={startRef} onStart={onStart} onClose={()=>setSelected(undefined)} onWalk={rememberOpener} />
-    : explorePanel==="place" ? <PlaceSheet address={place?.address??null} busy={placeBusy} error={placeError} createHref={createHref} walkHref={place?walkHref:null} onClose={closePlace} onWalk={rememberOpener} />
+    : active ? <StorySheet story={active} walkHref={active.address&&!placeBusy?walkHref:null} startRef={startRef} onStart={onStart} onClose={()=>{setSelected(undefined);setRetryError("");}} onWalk={rememberOpener}
+        retrying={retrying} retryError={retryError} onRetry={active.jobId?()=>void retryStory():undefined} />
+    : explorePanel==="place" ? <PlaceSheet address={place?.address??null} busy={placeBusy} error={placeError} preparing={preparing} prepareError={prepareError} walkHref={place?walkHref:null} onPrepare={()=>void prepareStory()} onClose={closePlace} onWalk={rememberOpener} />
     : explorePanel==="nearby" ? <NearbySheet status={nearbyStatus} radius={nearbyRadius} recommendations={recommendations} onRadius={setNearbyRadius} onSelect={selectRecommendation} onClose={()=>{setNearbyCenter(null);setPlace(null);setPrompt(false);}} />
     : null;
   // An empty slot must stay null: the shell gives the dock room only when there is something to show.

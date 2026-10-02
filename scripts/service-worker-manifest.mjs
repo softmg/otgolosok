@@ -1,4 +1,4 @@
-const precacheNames = new Set(["index.html", "create.html", "login.html", "account.html", "walk.html", "history.html", "icon.svg", "manifest.webmanifest"]);
+const precacheNames = new Set(["index.html", "login.html", "account.html", "walk.html", "history.html", "icon.svg", "manifest.webmanifest"]);
 
 export function normalizeOutputPath(file) {
   return file.replaceAll("\\", "/");
@@ -12,6 +12,6 @@ export function selectPrecacheFiles(files) {
 
 export function precacheUrl(file) {
   if (file === "index.html") return "/";
-  if (["create.html", "login.html", "account.html", "walk.html", "history.html"].includes(file)) return `/${file.slice(0, -5)}`;
+  if (["login.html", "account.html", "walk.html", "history.html"].includes(file)) return `/${file.slice(0, -5)}`;
   return `/${file}`;
 }

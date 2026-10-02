@@ -28,11 +28,16 @@ export function readMapJobs() {
 const addressKey = (address: string) => address.toLocaleLowerCase("ru").replace(/ё/g,"е").replace(/^москва[,. ]*/, "").replace(/[,.]/g," ").replace(/\s+/g," ").trim();
 export function rememberMapJob(job: GenerationJob, place: {address: string; location: Coordinates} | null) {
   // Editing the address must not attach the new building to the previous map point.
-  if (!place || !isMoscowPoint(place.location) || addressKey(job.address) !== addressKey(place.address)) return;
+  if (!place || addressKey(job.address) !== addressKey(place.address)) return;
+  rememberMapPlace({id:job.id,address:job.address,location:place.location});
+}
+/** Bookmarks a job at a point the map already trusts (a picked house or a geocoded link); returns the stored record. */
+export function rememberMapPlace(record: MapJob): MapJob | null {
+  if (!isMoscowPoint(record.location)) return null;
   try {
-    const records = [{id:job.id,address:job.address,location:place.location},...readMapJobs().filter(item=>item.id!==job.id)].slice(0,12);
-    localStorage.setItem(KEY,JSON.stringify(records));
+    localStorage.setItem(KEY,JSON.stringify([record,...readMapJobs().filter(item=>item.id!==record.id)].slice(0,12)));
   } catch { /* The generated story remains usable without a map bookmark. */ }
+  return record;
 }
 export function placeFromQuery(params: URLSearchParams) {
   const address = params.get("address");

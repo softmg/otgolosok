@@ -9,7 +9,7 @@ describe("единый логотип", () => {
     expect(brand).toContain("Отголосок<span");
     for (const path of [
       "../explore/around-header.tsx", "../navigation/app-header.tsx",
-      "../generator/story-generator.tsx", "../tour/tour-experience.tsx",
+      "../tour/tour-experience.tsx",
       "../admin/admin-desk.tsx",
     ]) {
       const source = read(path);

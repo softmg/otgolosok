@@ -46,7 +46,6 @@ describe("нижняя навигация приложения", () => {
     ["/", "nearby"],
     ["/walk", "walk"],
     ["/walk/", "walk"],
-    ["/create", null],
     ["/account", "account"],
     ["/history", "history"],
   ] as const)("выделяет раздел %s", (pathname, expected) => {

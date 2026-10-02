@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const script = readFileSync(new URL("../../../public/sw.js", import.meta.url), "utf8");
 const origin = "https://otgolosok.test";
-const assets = ["/", "/create", "/walk", "/_next/static/app.js", "/_next/static/app.css", "/_next/static/font.woff2", "/audio/story.wav"];
+const assets = ["/", "/walk", "/_next/static/app.js", "/_next/static/app.css", "/_next/static/font.woff2", "/audio/story.wav"];
 
 function setup() {
   const handlers: Record<string, (event: unknown) => void> = {};
@@ -201,11 +201,10 @@ describe("offline service worker", () => {
     expect(await response?.text()).toBe(body);
   });
 
-  it("opens the generator and a saved result offline, but checks live job status online",async()=>{
+  it("opens a saved result offline, but checks live job status online",async()=>{
     const {storyEntries,request,fetch}=setup();
     const path="/api/story-jobs/00000000-0000-4000-8000-000000000001";
     storyEntries.set(path,new Response('saved ready story'));
-    expect(await (await request("/create.html?job=1"))?.text()).toBe("/create");
     expect(await (await request(path))?.text()).toBe("saved ready story");
     fetch.mockResolvedValueOnce(new Response("live status"));
     expect(await (await request(path))?.text()).toBe("live status");
