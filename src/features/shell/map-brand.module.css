@@ -1,0 +1,27 @@
+.brand {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: var(--control-min);
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The header is as tall as the map controls beside it, so the mark is smaller than elsewhere;
+   two classes outweigh the global .brand-mark size whatever order the styles load in. */
+.brand .mark {
+  font-size: var(--text-section);
+}
+
+/* On the narrowest phones the zoom pair and «Моё местоположение» leave the mark about 120 px. */
+@container shell (width < 360px) {
+  .brand .mark {
+    font-size: var(--text-body);
+  }
+}
+
+.brand:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -3px;
+}

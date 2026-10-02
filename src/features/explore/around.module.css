@@ -33,7 +33,7 @@
 
 .text {
   margin: 0 0 var(--space-sm);
-  font-size: var(--text-body);
+  font-size: var(--text-sheet-body);
   line-height: var(--leading-body);
   color: var(--map-muted);
 }

@@ -43,6 +43,8 @@ test("история выбранного дома готовится прямо
   current = ready;
   await expect(sheet.locator("#selected-place-title")).toHaveText("Дом на Арбате", { timeout: 10_000 });
   await expect(sheet).toContainText("Дом построили в 1902 году");
+  // Источники — в развёрнутой карточке.
+  await sheet.getByRole("button", { name: "Читать историю полностью" }).click();
   await sheet.getByText("Источники", { exact: true }).click();
   await expect(sheet.getByRole("link", { name: "Архивная справка" })).toBeVisible();
   await expect(page.locator("a[href^='/create']")).toHaveCount(0);

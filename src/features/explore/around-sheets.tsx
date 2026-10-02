@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode, Ref } from "react";
+import type { MouseEvent, ReactNode, Ref } from "react";
 import { Sheet } from "../shell/sheet";
+import { SheetHandle } from "../shell/sheet-handle";
 import { cx } from "../ui/cx";
 import { ExploreIcon } from "./icons";
 import { nearbyRadii, type NearbyRadius, type NearbyRecommendation } from "./nearby-stories";
 import { StoryAudioPlayer } from "../tour/story-audio-player";
 import { PlacePhotoBanner } from "./place-photo";
 import { usePlaceStory } from "./place-story";
-import type { StoryPin } from "./story-pin";
+import { isExpandableStory, type StoryPin } from "./story-pin";
 import a from "./around.module.css";
 import styles from "./around-sheets.module.css";
 
@@ -27,17 +28,25 @@ export function LocationPromptSheet({ geo, onLocate, onDismiss }: { geo: GeoStat
     </button>} />;
 }
 
-/** A selected story: its label and close stay put, the text scrolls, the main action is always visible. */
-export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk, retrying = false, retryError = "", onRetry }: {
+/**
+ * A selected story. A catalog place or a story with text is expandable: collapsed it is a peek (photo, title, a
+ * teaser, the player and the action) that never scrolls; expanded it is the whole story, read as a page. Other
+ * stories (walk parts, stories being prepared) keep the plain card: label and close stay put, the text scrolls.
+ * In both states the footer is the same element, so the player keeps playing.
+ */
+export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk, retrying = false, retryError = "", onRetry, expanded = false, onExpand, onCollapse }: {
   story: StoryPin; walkHref: string | null; startRef?: Ref<HTMLButtonElement>;
   onStart: (chapter?: number) => void; onClose: () => void; onWalk: () => void;
   retrying?: boolean; retryError?: string; onRetry?: () => void;
+  expanded?: boolean; onExpand?: () => void; onCollapse?: () => void;
 }) {
   // A catalog point carries only its header; the text, sources and audio load when the sheet opens.
   const catalog = story.placeId !== undefined && story.chapter === undefined && story.jobId === undefined;
   const loaded = usePlaceStory(catalog ? story.placeId : undefined);
   const content: Pick<StoryPin, "paragraphs" | "attribution" | "audioUrl"> = catalog ? loaded.story ?? {} : story;
   const progress = story.progress;
+  const expand = isExpandableStory(story) && onExpand && onCollapse ? { onExpand, onCollapse } : null;
+  const peek = expand !== null && !expanded;
   const action = story.chapter !== undefined
     ? <button type="button" className={a.primary} ref={startRef} onClick={() => onStart(story.chapter)}>Слушать эту часть <ExploreIcon name="headphones" /></button>
     : progress?.canRetry && onRetry
@@ -45,33 +54,49 @@ export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk
       : null;
   const pendingText = catalog && loaded.status !== "ready";
   const label = story.pending ? "Готовим для вас" : story.chapter !== undefined ? `По дороге · часть ${story.chapter + 1}` : progress ? progress.label : null;
-  const heading = <><h2 id="selected-place-title" className={a.title}>{story.title}</h2>{story.title !== story.address ? <p className={styles.address}>{story.address}</p> : null}</>;
+  const labelText = label ? <span className={a.label}>{label}</span> : null;
+  const title = <h2 id="selected-place-title" className={a.title}>{story.title}</h2>;
+  // The peek names the place only; the address waits in the expanded card.
+  const heading = peek ? title : <>{title}{story.title !== story.address ? <p className={styles.address}>{story.address}</p> : null}</>;
   const close = (className?: string) => <button type="button" className={cx(a.iconButton, className)} aria-label="Закрыть карточку" onClick={onClose}><ExploreIcon name="close" /></button>;
-  return <Sheet name="story" labelledBy="selected-place-title" bodyLabel={content.paragraphs?.length ? "Текст истории" : undefined}
+  // In the peek the title, the teaser and the photo open the story; controls inside them (retry) keep their own job.
+  const expandOnClick = peek ? (event: MouseEvent) => { if (!(event.target as Element).closest("a, button, summary")) expand.onExpand(); } : undefined;
+  // An expandable card keeps its close in the corner in both states. Walk parts and stories in progress keep their
+  // label row with the close; a plain place card has no label, its close sits in the corner over the photo.
+  const header = expand
+    ? peek ? <div className={cx(styles.titleRow, styles.expandArea)} onClick={expandOnClick}>{labelText ? <div>{labelText}</div> : null}{heading}</div> : labelText
+    : label ? <div className={a.headerRow}>{labelText}{close()}</div> : null;
+  const paragraphs = content.paragraphs?.length ? peek ? content.paragraphs.slice(0, 1) : content.paragraphs : null;
+  return <Sheet id="story-sheet" name="story" labelledBy="selected-place-title" bodyLabel={content.paragraphs?.length ? "Текст истории" : undefined}
+    expanded={expand !== null && expanded}
+    handle={expand ? <SheetHandle expanded={expanded} onExpand={expand.onExpand} onCollapse={expand.onCollapse} controls="story-sheet"
+      expandLabel="Читать историю полностью" collapseLabel="Свернуть историю" /> : null}
     // Only catalog places have photos; the index flag holds the banner until the detail arrives.
-    media={catalog ? <PlacePhotoBanner key={story.id} photo={loaded.story?.photo} pending={story.hasPhoto === true && loaded.status === "loading"} title={story.title} /> : null}
-    // Walk parts and stories in progress keep their label row. A place card has none: its close button sits in the
-    // corner over the photo, and the title scrolls with the text so a short screen still shows the story.
-    header={label ? <div className={a.headerRow}><span className={a.label}>{label}</span>{close()}</div> : null}
-    corner={label ? null : close(styles.cornerClose)}
-    // The player stays with the action: scrolling the text never takes it away. It is the walk's player too.
+    media={catalog ? <PlacePhotoBanner key={story.id} photo={loaded.story?.photo} pending={story.hasPhoto === true && loaded.status === "loading"} title={story.title}
+      // In the peek the photo is part of the preview and expands the story like its title and text.
+      onPreview={peek ? expand.onExpand : undefined} /> : null}
+    header={header}
+    corner={expand || !label ? close(styles.cornerClose) : null}
+    // The player stays with the action: the text never takes it away. It is the walk's player too.
     footer={content.audioUrl || action ? <>{content.audioUrl ? <StoryAudioPlayer key={content.audioUrl} className={styles.audio} src={content.audioUrl} /> : null}{action}</> : null}>
     <>
-      {label ? heading : <div className={styles.titleRow}>{heading}</div>}
+      {peek ? null : <div className={cx(styles.heading, (expand || !label) && styles.titleRow)}>{heading}</div>}
       {pendingText && loaded.status === "loading" ? <p className={a.text} role="status">Загружаем рассказ…</p> : null}
       {pendingText && loaded.status === "error" ? <div role="alert"><p className={a.text}>Не удалось загрузить рассказ.</p><button type="button" className={a.secondary} onClick={loaded.retry}>Повторить</button></div> : null}
       {pendingText && loaded.status === "missing" ? <p className={a.text} role="status">Эта история больше недоступна.</p> : null}
       {progress?.pending ? <p className={a.text} role="status">{progress.label}. Можно закрыть карточку: подготовка продолжится, а история останется на карте.</p> : null}
       {progress?.error ? <p className={a.text} role="status">{progress.error}</p> : null}
       {retryError ? <p className={a.text} role="alert">{retryError}</p> : null}
-      {progress?.note ? <p className={styles.source}>{progress.note}</p> : null}
-      {content.paragraphs?.length ? <div className={styles.story}>{content.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div> : null}
-      {content.attribution ? <p className={styles.source}>Источник: <a href={content.attribution.url} target="_blank" rel="noopener noreferrer">{content.attribution.label}</a></p> : null}
-      {story.sources?.length ? <details className={`${styles.help} ${styles.sources}`}><summary>Источники</summary>
-        <ol>{story.sources.map(source => <li key={source.id}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a><span>{source.publisher}</span></li>)}</ol>
-      </details> : null}
-      {!action && story.placeId && !pendingText && !content.paragraphs?.length ? <p className={a.text}>Проверенный текст доступен в карточке места{content.audioUrl ? "; запись можно слушать здесь." : "; озвучивание ещё не готово."}</p> : null}
-      {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} /> : null}
+      {progress?.note && !peek ? <p className={styles.source}>{progress.note}</p> : null}
+      {paragraphs ? <div className={cx(styles.story, peek && styles.teaser, peek && styles.expandArea)} onClick={expandOnClick}>{paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div> : null}
+      {peek ? null : <>
+        {content.attribution ? <p className={styles.source}>Источник: <a href={content.attribution.url} target="_blank" rel="noopener noreferrer">{content.attribution.label}</a></p> : null}
+        {story.sources?.length ? <details className={`${styles.help} ${styles.sources}`}><summary>Источники</summary>
+          <ol>{story.sources.map(source => <li key={source.id}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a><span>{source.publisher}</span></li>)}</ol>
+        </details> : null}
+        {!action && story.placeId && !pendingText && !content.paragraphs?.length ? <p className={a.text}>Проверенный текст доступен в карточке места{content.audioUrl ? "; запись можно слушать здесь." : "; озвучивание ещё не готово."}</p> : null}
+        {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} /> : null}
+      </>}
     </>
   </Sheet>;
 }

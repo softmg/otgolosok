@@ -12,12 +12,17 @@
 }
 
 .story {
-  margin: var(--space-sm) 0;
+  margin: 0 0 var(--space-sm);
+}
+
+/* The sheet gap already sets the story off from the header; only a note right above it needs a margin. */
+.source + .story {
+  margin-top: var(--space-sm);
 }
 
 .story p {
   margin: 0 0 0.625rem;
-  font-size: var(--text-body);
+  font-size: var(--text-sheet-body);
   line-height: var(--leading-body);
   color: var(--map-green);
 }
@@ -178,6 +183,11 @@
   margin-bottom: 0;
 }
 
+/* The title and address inside the body are set off from the text by the same gap as the sheet's parts. */
+.heading:not(:last-child) {
+  margin-bottom: var(--sheet-gap, 0.75rem);
+}
+
 /* Leaves room for the corner close button beside the first line of the title. */
 .titleRow {
   padding-right: calc(
@@ -186,8 +196,28 @@
   );
 }
 
+/* Over a photo the close sits in the photo's corner, so the title takes the full width. */
+:global([data-sheet-part="media"]:not(:empty)) ~ * .titleRow {
+  padding-right: 0;
+}
+
 /* Readable over a photo as well as over the plain card. */
 .cornerClose {
   background: var(--surface-island);
   box-shadow: var(--shadow-island);
+}
+
+/* The peek of an expandable story: the first paragraph, at most three lines. */
+.story.teaser p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+/* The title and the teaser of the peek open the story. */
+.expandArea {
+  cursor: pointer;
 }

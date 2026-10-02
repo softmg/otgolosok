@@ -1,0 +1,36 @@
+/* A wide hit area hanging from the sheet's top edge, the pill near that edge; the browser must not pan or
+   scroll while the finger drags it. */
+.handle {
+  display: flex;
+  justify-content: center;
+  width: 6rem;
+  height: var(--control-min);
+  margin: 0;
+  padding: 0.5rem 0 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.handle::before {
+  content: "";
+  display: block;
+  width: 2.25rem;
+  height: 0.25rem;
+  background: var(--handle-color, var(--map-muted));
+  border-radius: var(--radius-pill);
+  box-shadow: var(--handle-shadow, none);
+  opacity: 0.55;
+}
+
+.handle:hover::before {
+  opacity: 0.8;
+}
+
+.handle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -3px;
+}

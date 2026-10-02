@@ -18,7 +18,7 @@ test("сохранённая прогулка каталога открывае�
     return online ? route.fulfill({ json: view }) : route.abort("internetdisconnected");
   });
   await page.goto("/walk?catalog=arbat");
-  const settings = () => page.getByRole("button", { name: "Настройки прогулки" }).click();
+  const settings = () => page.getByRole("button", { name: /^Остановки ·/ }).click();
   await settings();
   await expect(page.getByText("Офлайн-копия ещё не сохранена").first()).toBeVisible();
   await page.getByRole("button", { name: "Сохранить прогулку без сети" }).first().click();

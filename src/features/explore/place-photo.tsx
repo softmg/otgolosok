@@ -1,20 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, type CSSProperties } from "react";
 import { ExploreIcon } from "./icons";
 import type { PlacePhoto } from "./place-story";
 import styles from "./place-photo.module.css";
 
 export type { PlacePhoto };
 
+/** The tallest width-to-height ratio of the photo in the expanded story card: a little taller than a square. */
+export const TALLEST_RATIO = 4 / 5;
+
 /**
  * The wide photo on top of a place card, as in map apps; a tap opens the full image with its credit.
  * The caller keys it by place so loading failures cannot leak into the next card. `pending` holds an
  * empty banner while the photo of a place known to have one is loading, so the card never jumps.
  * Renders nothing without a photo or after the banner image fails.
+ * With `onPreview` the banner is only a picture: a tap calls it (the story card expands) instead of opening the
+ * viewer, and it is no separate control, since keyboard users have the card's own handle.
  */
-export function PlacePhotoBanner({ photo, pending = false, title }: { photo?: PlacePhoto; pending?: boolean; title: string }) {
+export function PlacePhotoBanner({ photo, pending = false, title, onPreview }: { photo?: PlacePhoto; pending?: boolean; title: string; onPreview?: () => void }) {
   const [bannerFailed, setBannerFailed] = useState(false);
   const [open, setOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
@@ -28,6 +33,11 @@ export function PlacePhotoBanner({ photo, pending = false, title }: { photo?: Pl
   // Static on purpose: no shimmer, so it is safe with reduced motion.
   if (!photo && pending) return <span aria-hidden="true" className={styles.placeholder} data-photo-placeholder />;
   if (!photo || bannerFailed) return null;
+  const image = <Image unoptimized src={photo.src} width={photo.width} height={photo.height} alt={photo.alt}
+    loading="eager" onError={() => setBannerFailed(true)} />;
+  // The expanded story shows the photo whole, but a tall one no taller than 4:5: the text must stay in sight.
+  const ratio = { "--photo-ratio": Math.max(photo.width / photo.height, TALLEST_RATIO) } as CSSProperties;
+  if (onPreview) return <span className={`${styles.banner} ${styles.preview}`} style={ratio} onClick={onPreview} data-photo-banner>{image}</span>;
 
   function showPhoto() {
     try {
@@ -42,11 +52,10 @@ export function PlacePhotoBanner({ photo, pending = false, title }: { photo?: Pl
   }
 
   return <>
-    <button ref={trigger} type="button" className={styles.banner} onClick={showPhoto} data-photo-banner
+    <button ref={trigger} type="button" className={styles.banner} style={ratio} onClick={showPhoto} data-photo-banner
       aria-label={`Открыть фото: ${title}`} aria-haspopup="dialog">
       {/* The full copy: the 250 px preview would be blurry stretched across the card, and the viewer then opens from cache. */}
-      <Image unoptimized src={photo.src} width={photo.width} height={photo.height} alt={photo.alt}
-        loading="eager" onError={() => setBannerFailed(true)} />
+      {image}
     </button>
     {openFailed ? <p className={styles.status} role="status">Не удалось открыть фотографию. Попробуйте ещё раз.</p> : null}
     <dialog ref={dialog} className={styles.viewer} aria-labelledby={dialogTitle}

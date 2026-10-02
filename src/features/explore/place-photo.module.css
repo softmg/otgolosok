@@ -20,6 +20,11 @@
   cursor: zoom-in;
 }
 
+/* A tap on the peek's photo expands the story; the viewer opens from the expanded card. */
+.preview {
+  cursor: pointer;
+}
+
 .banner img {
   display: block;
   width: 100%;
@@ -135,4 +140,11 @@
 :is(.credit a):focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
+}
+
+/* In the expanded story the photo is whole, in its own proportions; a tall one is cropped to 4:5 around its middle
+   (--photo-ratio, see PlacePhotoBanner). */
+[data-expanded] .banner {
+  height: auto;
+  aspect-ratio: var(--photo-ratio);
 }

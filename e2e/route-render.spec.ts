@@ -15,7 +15,7 @@ test("линия маршрута не обрывается, пока карту
   }, { id, document });
   await page.route("**/api/**", route => route.fulfill({ json: { user: null } }));
   await page.goto(`/walk?local=${id}`);
-  const map = page.locator(".walk-session-map");
+  const map = page.locator('[data-region="map"]');
   await expect(map.locator(".leaflet-route-pane path[data-route]")).toBeVisible();
 
   // Leaflet redraws a line only when the map stops: mid-drag the screen shows what was drawn before it.

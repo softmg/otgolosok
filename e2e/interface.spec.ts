@@ -59,13 +59,14 @@ test("карта автоматически восстанавливается �
   expect(errors).toEqual([]);
 });
 
-test("знак одинакового размера на карте и странице входа", async ({ page }) => {
+// Шапка карты высотой с кнопки карты, поэтому знак в ней меньше, чем на остальных страницах.
+test("знак на карте меньше, чем на странице входа", async ({ page }) => {
   const sizes: string[] = [];
   for (const path of ["/", "/login"]) {
     await page.goto(path);
     sizes.push(await page.locator(".brand-mark").first().evaluate(el => getComputedStyle(el).fontSize));
   }
-  expect(sizes).toEqual(["28px", "28px"]);
+  expect(sizes).toEqual(["22px", "28px"]);
 });
 
 test("история загружает следующую страницу аккаунтных прогулок", async ({ page }, info) => {
@@ -149,15 +150,9 @@ test("создаёт A→Б на карте и восстанавливает е
   await expect(page.locator('[data-sheet="creation"]')).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Основная навигация" })).toHaveCount(1);
   await expect(page.getByRole("link", { name: "Открыть мою прогулку" })).toHaveCount(0);
-  const frame = page.locator(".walk-session-map");
+  const frame = page.locator('[data-region="map"]');
   await expect(frame).toBeVisible();
-  const geometry = await frame.evaluate(el => {
-    const frame = el.getBoundingClientRect();
-    const map = el.querySelector(".explore-map-layer")!.getBoundingClientRect();
-    return { height: frame.height, contained: map.top >= frame.top && map.bottom <= frame.bottom && map.left >= frame.left && map.right <= frame.right };
-  });
-  expect(geometry.height).toBeGreaterThan(200);
-  expect(geometry.contained).toBe(true);
+  expect(await frame.evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThan(200);
   const overlay = frame.locator(".leaflet-route-pane svg");
   await expect(overlay).toBeVisible();
   await expect.poll(() => overlay.evaluate(el => Math.abs(el.getBoundingClientRect().width - Number(el.getAttribute("width"))))).toBeLessThan(2);
@@ -169,6 +164,8 @@ test("дом передаёт старт, возврат включён по у�
   await mockMapCatalog(page, [{ id: "test-house", title: "Дом для прогулки", address: "Москва, Дербеневская, 1", lat: MOSCOW_CENTER.lat, lon: MOSCOW_CENTER.lon }]);
   await page.goto("/");
   await page.locator('[title="Дом для прогулки"]').click();
+  // «Создать прогулку отсюда» — в развёрнутой карточке истории.
+  await page.getByRole("button", { name: "Читать историю полностью" }).click();
   await page.getByRole("link", { name: "Создать прогулку отсюда" }).click();
   await expect(page.locator('[data-creation="endpoints"]')).toContainText("Москва, Дербеневская, 1");
   await page.getByRole("button", { name: "Куда", exact: true }).click();
@@ -367,42 +364,16 @@ test("карточка выбранного дома не оставляет п�
   await expect(title).toHaveCount(0);
 });
 
-test("длинная история прокручивается внутри карточки, закрытие и плеер остаются на месте", async ({ page }, info) => {
-  const story = await openLongStory(page);
-  const card = page.locator('[data-sheet="story"]');
-  const close = page.getByRole("button", { name: "Закрыть карточку", exact: true });
-  const audio = card.getByRole("region", { name: "Плеер истории" });
-  const state = () => story.evaluate(el => {
-    const style = getComputedStyle(el);
-    return { fadeTop: style.getPropertyValue("--fade-top"), fadeBottom: style.getPropertyValue("--fade-bottom"), rest: el.scrollHeight - el.clientHeight - el.scrollTop };
-  });
-  const before = { close: await close.boundingBox(), audio: await audio.boundingBox(), card: await card.boundingBox() };
-  expect(await card.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
-  expect(before.audio!.y + before.audio!.height).toBeLessThanOrEqual(before.card!.y + before.card!.height);
-  await expect.poll(state).toMatchObject({ fadeTop: "0px", fadeBottom: "28px" });
-  expect((await state()).rest).toBeGreaterThan(100);
-
-  await close.focus();
-  await page.keyboard.press("Tab");
-  await expect(story).toBeFocused();
-  await page.keyboard.press("End");
-  await expect.poll(async () => (await state()).rest).toBeLessThanOrEqual(1);
-  await expect.poll(state).toMatchObject({ fadeTop: "28px", fadeBottom: "0px" });
-  expect(await close.boundingBox()).toEqual(before.close);
-  expect(await audio.boundingBox()).toEqual(before.audio);
-  await page.screenshot({ path: info.outputPath("story-card-scrolled.png") });
-});
-
 const shortPortraits: [number, number, { top: number; bottom: number }?][] = [[375, 667], [360, 640], [390, 700], [375, 667, { top: 47, bottom: 34 }]];
 for (const [width, height, insets] of shortPortraits) {
   test(`длинная история не заходит на кнопки карты ${width}×${height}${insets ? ` с вырезами ${insets.top}/${insets.bottom}` : ""}`, async ({ page }, info) => {
     await page.setViewportSize({ width, height });
     // Вырезы сдвигают и кнопки, и нижнюю панель: зазор между ними сохраняется.
     if (insets) await (await page.context().newCDPSession(page)).send("Emulation.setSafeAreaInsetsOverride", { insets });
-    const story = await openLongStory(page);
-    // Текст прокручивается внутри, значит, карточка упёрлась в свою наибольшую высоту.
-    expect(await story.evaluate(el => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
+    await openLongStory(page);
+    // Свёрнутая карточка не прокручивается: длинный текст обрезан до начала, полностью он читается в развёрнутой.
     expect(await page.locator('[data-sheet="story"]').evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
+    expect(await page.locator('[data-sheet="story"] [data-sheet-part="body"]').evaluate(el => getComputedStyle(el).overflowY)).toBe("hidden");
     const sheet = (await page.locator('[data-sheet="story"]').boundingBox())!;
     for (const control of [page.getByRole("button", { name: "Моё местоположение", exact: true }), page.getByRole("group", { name: "Масштаб карты" })]) {
       const box = (await control.boundingBox())!;
@@ -472,6 +443,8 @@ test("клик карты после создания от дома задаёт
   await page.route("**/api/story-place?*", route => route.fulfill({ json: { address: finish, location: { lat: 55.75, lon: 37.6 } } }));
   await page.goto("/");
   await page.locator('[title="Стартовый дом"]').click();
+  // «Создать прогулку отсюда» — в развёрнутой карточке истории.
+  await page.getByRole("button", { name: "Читать историю полностью" }).click();
   await page.getByRole("link", { name: "Создать прогулку отсюда" }).click();
   await expect(page.getByRole("button", { name: "Откуда", exact: true })).toContainText(start);
   await page.locator(`[data-region="map"]`).click({ position: { x: 150, y: 200 } });
@@ -509,7 +482,7 @@ test("прогулка из Александровского сада с чет�
   await page.getByRole("button", { name: "Открыть прогулку", exact: true }).click();
   await expect(page.getByRole("heading", { name: draft.title, exact: true })).toBeVisible();
   await expect(page.getByText("Некорректные данные прогулки.", { exact: true })).toHaveCount(0);
-  const map = page.locator(".walk-session-map");
+  const map = page.locator('[data-region="map"]');
   await map.scrollIntoViewIfNeeded();
   await expect(map.locator(".leaflet-route-pane path[data-route]")).toBeVisible();
   const overlay = map.locator(".leaflet-route-pane svg");
@@ -619,3 +592,25 @@ test("кнопка «Моё местоположение» объясняет з
   await page.getByRole("button", { name: "Моё местоположение", exact: true }).click();
   await expect(page.getByText("Нет доступа к геолокации. Можно разрешить его в настройках или выбрать место на карте.")).toBeVisible();
 });
+
+for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 1280, height: 800 }]) {
+  test(`шапка карты в одну строку с кнопками карты на ${viewport.width}×${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await mockMapCatalog(page, []);
+    await page.goto("/");
+    const header = page.locator('[data-region="header"]');
+    await expect(header.getByRole("link")).toContainText("Отголосок");
+    await expect(page.getByRole("button", { name: "Найти адрес" })).toHaveCount(0);
+    const head = (await header.boundingBox())!;
+    for (const name of ["Моё местоположение", "Отдалить", "Приблизить"]) {
+      const control = (await page.getByRole("button", { name, exact: true }).boundingBox())!;
+      expect(Math.abs(control.y - head.y), name).toBeLessThanOrEqual(1);
+      expect(Math.abs(control.height - head.height), name).toBeLessThanOrEqual(1);
+      expect(control.x, `${name} правее шапки`).toBeGreaterThanOrEqual(head.x + head.width);
+    }
+    const link = (await header.getByRole("link").boundingBox())!;
+    expect(head.width - link.width, "остров шапки по ширине логотипа").toBeLessThanOrEqual(34);
+    const mark = header.locator(".brand-mark");
+    expect(await mark.evaluate(element => element.scrollWidth <= element.parentElement!.clientWidth), "логотип не обрезан").toBe(true);
+  });
+}

@@ -14,7 +14,7 @@
   );
   height: var(--nav-h);
   margin-inline: auto;
-  padding: 0.4375rem 0.625rem;
+  padding: 0.25rem 0.625rem;
   color: var(--map-green);
   background: var(--surface-island);
   border: 1px solid var(--border-island);

@@ -87,7 +87,7 @@ export function WalkScreen() {
   // Only walks saved on this device or in the viewer's account lead back to the builder.
   const own: OwnWalk | null = selectedKind === "local" ? { editHref: ownWalkEditHref("local", localId), notes: ownWalkNotes(current.view) }
     : selectedKind === "id" ? { editHref: ownWalkEditHref("id", accountId), notes: ownWalkNotes(current.view) } : null;
-  return <>{current.offlineNotice ? <p className="walk-offline-notice walk-offline-notice--map" data-region="notices" role="status">{current.offlineNotice}</p> : null}<TourExperience key={queryKey} walk={current.view} offline={current.offlineRef} reviewTarget={reviewTarget} launchTarget={launchesPath(reviewTarget) ? reviewTarget : null} own={own} /></>;
+  return <TourExperience key={queryKey} walk={current.view} offline={current.offlineRef} offlineNotice={current.offlineNotice} reviewTarget={reviewTarget} launchTarget={launchesPath(reviewTarget) ? reviewTarget : null} own={own} />;
 }
 
 function WalkError({ message }: { message: string }) {

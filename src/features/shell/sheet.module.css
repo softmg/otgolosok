@@ -37,18 +37,54 @@
   display: none;
 }
 
-/* Raised: the masked body is a stacking context that would otherwise paint over it. Over the body it stands
-   left of the scrollbar, which runs along the body's right edge 0.25rem from the sheet edge. */
+/* Controls over the sheet: a zero-height row at the top of the content box, so it takes no room. Raised: the masked
+   body is a stacking context that would otherwise paint over it. Sticky: an expanded sheet scrolls under it; the
+   offset counts from the sheet's content edge, so `top: 0` keeps the row where it rests. */
+.chrome {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-raise);
+  flex: none;
+  height: 0;
+  margin-bottom: calc(-1 * var(--sheet-gap, 0.75rem));
+}
+
+/* Over the body it stands left of the scrollbar, which runs along the body's right edge 0.25rem from the sheet edge. */
 .corner {
   position: absolute;
-  top: calc(var(--sheet-pad, 1.25rem) - 0.625rem);
-  right: calc(0.25rem + var(--sheet-scrollbar));
-  z-index: var(--z-raise);
+  top: -0.625rem;
+  right: calc(0.25rem + var(--sheet-scrollbar) - var(--sheet-pad, 1.25rem));
 }
 
 /* Over a photo nothing scrolls under it, so it takes the very corner. */
-.sheet:has(> .media:not(:empty)) > .corner {
-  right: calc(var(--sheet-pad, 1.25rem) - 0.625rem);
+.sheet:has(> .media:not(:empty)) > .chrome > .corner {
+  right: -0.625rem;
+}
+
+/* The grip starts at the sheet's top edge, centred. */
+.handle {
+  position: absolute;
+  top: calc(-1 * var(--sheet-top, var(--sheet-pad, 1.25rem)));
+  left: 50%;
+  translate: -50% 0;
+}
+
+/* Over a photo the grip gets a light halo. */
+.sheet:has(> .media:not(:empty)) > .chrome > .handle {
+  --handle-shadow: 0 0 0 2px var(--surface-island);
+}
+
+/* The one expandable sheet on a map screen slides between its two states (see use-expandable-sheet). */
+.sheet[data-expandable] {
+  view-transition-name: map-sheet;
+}
+
+/* Without a photo the grip gets its own strip above the content, one control tall: its hit area ends where the
+   title begins. */
+.sheet[data-expandable]:not(:has(> .media:not(:empty))) {
+  --sheet-top: var(--control-min);
+
+  padding-top: var(--sheet-top);
 }
 
 .header,
@@ -94,26 +130,31 @@
    once scrollbar-width/color are set, so Chrome and Safari reset them and draw one thumb. */
 @media (hover: hover) and (pointer: fine) {
   @supports selector(::-webkit-scrollbar) {
-    .body {
+    .body,
+    .sheet[data-expanded] {
       scrollbar-width: auto;
       scrollbar-color: auto;
     }
 
-    .body::-webkit-scrollbar {
+    .body::-webkit-scrollbar,
+    .sheet[data-expanded]::-webkit-scrollbar {
       width: var(--sheet-scrollbar);
     }
 
-    .body::-webkit-scrollbar-thumb {
+    .body::-webkit-scrollbar-thumb,
+    .sheet[data-expanded]::-webkit-scrollbar-thumb {
       border: 3px solid transparent;
       border-radius: 6px;
       background: var(--scrollbar-thumb) padding-box;
     }
 
-    .body::-webkit-scrollbar-thumb:hover {
+    .body::-webkit-scrollbar-thumb:hover,
+    .sheet[data-expanded]::-webkit-scrollbar-thumb:hover {
       background-color: var(--scrollbar-thumb-hover);
     }
 
-    .body::-webkit-scrollbar-thumb:active {
+    .body::-webkit-scrollbar-thumb:active,
+    .sheet[data-expanded]::-webkit-scrollbar-thumb:active {
       background-color: var(--scrollbar-thumb-active);
     }
   }
@@ -175,4 +216,71 @@
 .sheet:has(> .media:not(:empty)) > .body {
   flex-shrink: 1000;
   min-height: 6rem;
+}
+
+/*
+ * An expandable sheet, collapsed: a peek that never scrolls. The body is a teaser that gives way first, down to
+ * nothing, then the media shrinks; header and footer never do. The body stays a clipping scroll container, so the
+ * scroll-driven fade above still marks text cut at its bottom edge, and only then.
+ */
+.sheet[data-expandable]:not([data-expanded]) > .body {
+  flex-shrink: 1000;
+  min-height: 0;
+  margin-right: 0;
+  padding-right: 0;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
+/*
+ * Expanded: the sheet is the page. Everything keeps its full height and scrolls together; the footer sticks to the
+ * bottom edge as a full-width bar. The shell may take the sheet edge to edge through --sheet-radius, --sheet-border
+ * and --sheet-shadow; without them it stays an island.
+ */
+.sheet[data-expanded] {
+  padding-bottom: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  border: var(--sheet-border, 1px solid var(--border-island));
+  border-radius: var(--sheet-radius, var(--radius-island));
+  box-shadow: var(--sheet-shadow, var(--shadow-island));
+}
+
+.sheet[data-expanded] > .media {
+  flex: none;
+}
+
+/* Doubled attribute: outranks the media rule that keeps a few lines of a scrolling body. A short text leaves the
+   free room under itself: the body grows, so the footer stays at the bottom edge. */
+.sheet[data-expanded][data-expanded] > .body {
+  flex: 1 0 auto;
+  min-height: auto;
+  margin-right: 0;
+  padding-right: 0;
+  overflow: visible;
+  scrollbar-gutter: auto;
+  mask: none;
+  animation-name: none;
+}
+
+.sheet[data-expanded] > .footer {
+  position: sticky;
+  bottom: 0;
+  margin: 0 calc(-1 * var(--sheet-pad, 1.25rem));
+  padding: var(--sheet-gap, 0.75rem) var(--sheet-pad, 1.25rem)
+    var(--sheet-pad, 1.25rem);
+  background: var(--surface-island);
+  border-top: 1px solid var(--border-island);
+}
+
+/* Expanded without a footer the text still ends clear of the bottom edge. */
+.sheet[data-expanded]:not(:has(> .footer)) > .body {
+  padding-bottom: var(--sheet-pad, 1.25rem);
+}
+
+:global(::view-transition-group(map-sheet)) {
+  animation-duration: 250ms;
+  animation-timing-function: ease-out;
 }

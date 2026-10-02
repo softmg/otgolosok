@@ -1,25 +1,6 @@
-/* Transitional: the legacy Leaflet chrome of ExploreMap (legacyChrome) until this screen moves to MapShell. */
-.explore-map-layer{position:absolute;inset:0;z-index:0;isolation:isolate;background:#e9e9dd}
-.explore-map{width:100%;height:100%;background:#e9e9dd;font-family:var(--font-body),sans-serif}
-.explore-map .leaflet-control-zoom{border:0;box-shadow:0 2px 10px #203e3820;border-radius:22px;overflow:hidden}
-.explore-map .leaflet-control-zoom a{width:42px;height:44px;line-height:44px;background:#fffdf5;color:#203e38;border-color:#203e381a}
-.map-attribution{position:absolute;z-index:800;display:inline-flex;align-items:center;min-height:14px;padding:0 4px;border-radius:6px;font-size:11px;font-weight:600;line-height:1.2;color:#203e38;text-shadow:0 0 2px #fffaf0,0 0 4px #fffaf0,0 1px 8px #fffaf0;text-decoration:none}
-.map-attribution:hover{color:#b64b28}
-.map-attribution:focus-visible{outline:3px solid #246b90;outline-offset:3px;background:#fffaf0}
-.map-loading,.map-network-note{position:absolute;left:20px;right:75px;top:43%;z-index:800;padding:12px;border-radius:12px;background:#fffaf0ed;font-size:var(--text-secondary);line-height:1.5}
-.map-network-note{top:220px}
-.walk-session{--walk-header-top:calc(12px + env(safe-area-inset-top));--walk-controls-top:calc(var(--walk-header-top) + 74px);position:fixed;inset:0;isolation:isolate;overflow:hidden;color:var(--map-green,#203e38);background:var(--paper);font-family:var(--font-body),sans-serif}
-.walk-session-map{position:absolute;inset:0}
-.walk-session-map .leaflet-overlay-pane svg{max-width:none;max-height:none}
-.walk-session-map .leaflet-bottom.leaflet-right{top:var(--walk-controls-top);bottom:auto;right:12px}
-.walk-session-map .map-attribution{top:var(--walk-controls-top);bottom:auto;left:12px;right:auto}
-/* Шапка как на стартовой карте: логотип слева, поиск и закрытие прогулки справа. Высота 62 px:
-   от её низа на 12 px ниже начинаются кнопки карты (--walk-controls-top). */
-.walk-session-header{position:absolute;z-index:3;top:var(--walk-header-top);left:12px;right:12px;display:flex;align-items:center;gap:4px;box-sizing:border-box;height:62px;padding:8px 8px 8px 16px;border:1px solid #203e3818;border-radius:24px;background:#fffaf0f2;box-shadow:0 8px 30px #203e3824}
-.walk-session-brand{min-width:0;margin-right:auto;color:inherit;text-decoration:none;font-size:var(--text-control)}
-.walk-session-search,.walk-session-back{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:50%;color:inherit}
-.walk-session-locate{position:absolute;z-index:2;right:18px;top:calc(var(--walk-controls-top) + 84px);display:grid;place-items:center;width:44px;height:44px;border:1px solid #203e3818;border-radius:50%;background:#fffaf0;color:inherit;box-shadow:0 4px 16px #203e3814;cursor:pointer}
-.walk-session-panel{position:absolute;z-index:2;display:flex;flex-direction:column;bottom:calc(104px + 2 * env(safe-area-inset-bottom));left:12px;right:12px;max-height:calc(100dvh - 104px - var(--walk-controls-top) - 2 * env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding:20px;border:1px solid #203e3818;border-radius:24px;background:#fffaf0;box-shadow:0 8px 30px #203e3824}
+/* The map, its header and buttons, and where the card stands come from MapShell; this file only styles the card. */
+.walk-session{color:var(--map-green,#203e38);font-family:var(--font-body),sans-serif}
+.walk-session-panel{display:flex;flex-direction:column;min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain;padding:20px;pointer-events:auto;border:1px solid #203e3818;border-radius:24px;background:#fffaf0;box-shadow:0 8px 30px #203e3824}
 /* The panel is a column so that on a short screen its flexible parts shrink instead of the whole panel scrolling:
    the open drawer scrolls inside itself and the photo yields height, so the footer with the main action stays visible.
    The panel still scrolls as a last resort when the fixed parts alone do not fit. */
@@ -52,6 +33,8 @@
 .walk-session-previous svg{transform:rotate(180deg)}
 .walk-session-drawer{flex:0 1 auto;min-height:64px;margin-top:12px;border-top:1px solid #203e3818;padding-top:12px;max-height:26dvh;overflow-y:auto;overscroll-behavior:contain;font-size:15px;line-height:1.6}
 .walk-session-stops{margin:0;padding:0;list-style:none}
+.walk-session-endpoint{margin:0;padding:4px 8px;font-size:14px;line-height:1.4;color:#687770;overflow-wrap:anywhere}
+.walk-session-stops+.walk-session-endpoint,.walk-session-drawer .walk-session-offline{margin-top:4px}
 .walk-session-stops button,.walk-session-stops p{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:8px;border:0;border-radius:12px;background:none;text-align:left;color:inherit;font:inherit;margin:0}
 .walk-session-stops button{cursor:pointer}
 .walk-session-stops [aria-current=step]{background:#203e380c}
@@ -72,57 +55,11 @@
 .walk-session-rate{display:flex;align-items:center;min-height:44px;margin-top:8px;padding:0;border:0;background:none;color:inherit;font:inherit;font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
 .walk-session-stops span{flex:none;color:#b64b28;font-weight:700}
 .walk-session-notice{margin:10px 0 0;font-size:13px;line-height:1.4;color:#775130}
-.walk-session-settings{display:grid;gap:12px}
+.walk-session-settings,.walk-session-offline{display:grid;gap:12px}
 .walk-session-settings label{display:grid;gap:6px;font-size:14px}
 .walk-session-settings select{width:100%;min-height:44px;padding:8px;border:1px solid #203e3828;border-radius:12px;background:#fffefa;color:inherit;font:inherit}
-.walk-session-settings button{min-height:40px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.walk-session-settings button,.walk-session-offline button{min-height:40px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
 .walk-session :is(button,a,select,input):focus-visible{outline:3px solid #246b90;outline-offset:3px}
 .walk-session .story-text p{font-size:15px;line-height:1.65;margin-bottom:12px}
-@media(min-width:700px){.walk-session{--walk-header-top:calc(18px + env(safe-area-inset-top))}.walk-session-header{left:50%;right:auto;width:min(760px,calc(100% - 56px));transform:translateX(-50%)}.walk-session-panel{left:50%;right:auto;width:420px;transform:translateX(-50%);bottom:108px;max-height:calc(100dvh - 108px - var(--walk-controls-top))}}
-/* Низкий вертикальный телефон (320×568): столбик кнопок масштаба кончается на 88 px ниже
-   шапки, а панель до старта с названием прогулки в две строки поднимается выше и упирается
-   в него. Кнопки встают в ряд под шапкой у правого края, «Моё местоположение» — в тот же ряд
-   слева, и низ кнопок поднимается на 44 px. */
-@media(orientation:portrait) and (max-width:699px) and (max-height:600px){
-  .walk-session-map .leaflet-control-zoom{display:flex;margin:0}
-  .walk-session-map .leaflet-control-zoom a{width:44px;border-bottom:0}
-  .walk-session-map .leaflet-control-zoom a:first-child{border-right:1px solid #203e381a}
-  .walk-session-locate{top:var(--walk-controls-top);right:calc(12px + 88px + 8px)}
-}
-@media(max-height:560px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button,a){margin-top:4px}.walk-session-photo{margin:-12px -16px 10px}}
-
-/* Низкий горизонтальный экран: панель во всю ширину или по центру поднималась почти
-   до верха и закрывала крестик, кнопки масштаба и линию маршрута. Как карточка на
-   стартовой карте, она стоит колонкой справа над навигацией, кнопки карты — в ряд
-   слева над навигацией, подпись OSM — между панелью и навигацией. По --walk-panel-dock
-   walk-session.tsx вписывает маршрут слева от панели, а не над ней. Шапка стоит в левой
-   колонке шириной по содержимому (280 px): логотип и две кнопки. Панель шириной 420 px,
-   как на компьютере, но оставляет слева место шапке с полями: чем шире колонка, тем
-   реже переносится текст и тем меньше прокрутка панели. Шире 700 px блок min-width:700px
-   ставит шапку по центру сдвигом и отступом 18 px, поэтому здесь они отменяются. */
-@media(orientation:landscape) and (max-height:560px){
-  .walk-session{--walk-header-top:calc(12px + env(safe-area-inset-top))}
-  .walk-session-header{left:max(12px,env(safe-area-inset-left));right:auto;width:280px;transform:none}
-  .walk-session-panel{--walk-panel-dock:right;left:auto;right:max(12px,env(safe-area-inset-right));width:min(420px,calc(100% - 280px - 12px - max(12px,env(safe-area-inset-left)) - max(12px,env(safe-area-inset-right))));transform:none;bottom:calc(110px + 2 * env(safe-area-inset-bottom));max-height:calc(100dvh - 122px - env(safe-area-inset-top) - 2 * env(safe-area-inset-bottom))}
-  .walk-session-map .leaflet-bottom.leaflet-right{top:auto;right:auto;left:max(18px,env(safe-area-inset-left));bottom:calc(98px + 2 * env(safe-area-inset-bottom))}
-  .walk-session-map .leaflet-control-zoom{display:flex;margin:0}
-  .walk-session-map .leaflet-control-zoom a{width:44px;border-bottom:0}
-  .walk-session-map .leaflet-control-zoom a:first-child{border-right:1px solid #203e381a}
-  .walk-session-locate{top:auto;right:auto;left:calc(max(18px,env(safe-area-inset-left)) + 100px);bottom:calc(98px + 2 * env(safe-area-inset-bottom))}
-  .walk-session-map .map-attribution{top:auto;left:auto;right:max(12px,env(safe-area-inset-right));bottom:calc(94px + 2 * env(safe-area-inset-bottom))}
-}
-
-/* Во время прогулки нижней навигации нет (useHideNavigation в walk-session.tsx), и карте
-   достаётся весь экран: панель опускается к низу окна на то же поле, что у шапки сверху.
-   data-mode="walk" на .walk-session ставит tour-experience.tsx одновременно с active у
-   WalkSession; после остановки и завершения навигация и прежние отступы возвращаются. */
-.walk-session[data-mode=walk] .walk-session-panel{bottom:calc(12px + env(safe-area-inset-bottom));max-height:calc(100dvh - 12px - var(--walk-controls-top) - env(safe-area-inset-bottom))}
-@media(min-width:700px){.walk-session[data-mode=walk] .walk-session-panel{bottom:calc(18px + env(safe-area-inset-bottom));max-height:calc(100dvh - 18px - var(--walk-controls-top) - env(safe-area-inset-bottom))}}
-/* Низкий горизонтальный экран: панель-колонка справа и ряд кнопок карты слева встают
-   на 12 и 18 px от низа, как от боковых краёв. Подпись OSM стояла между панелью и
-   навигацией; теперь там панель, и подпись уходит под шапку, как на вертикальном экране. */
-@media(orientation:landscape) and (max-height:560px){
-  .walk-session[data-mode=walk] .walk-session-panel{bottom:calc(12px + env(safe-area-inset-bottom));max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
-  .walk-session[data-mode=walk] .walk-session-map .leaflet-bottom.leaflet-right,.walk-session[data-mode=walk] .walk-session-locate{bottom:calc(18px + env(safe-area-inset-bottom))}
-  .walk-session[data-mode=walk] .walk-session-map .map-attribution{top:var(--walk-controls-top);bottom:auto;left:max(12px,env(safe-area-inset-left));right:auto}
-}
+/* Short screens (up to 600 px, the 320×568 phone among them): a denser card, so the open drawer and the main action fit under the header row. */
+@media(max-height:600px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button,a){margin-top:4px}.walk-session-photo{margin:-12px -16px 10px}}

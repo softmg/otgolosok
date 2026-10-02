@@ -27,6 +27,9 @@
 
   /* Sheet headings; map screens make it smaller on short screens. */
   --text-sheet-title: var(--text-section);
+
+  /* Running text of map sheets: a sheet is a small card, the long-read body size is too large for it. */
+  --text-sheet-body: var(--text-control);
   --text-subtitle: 1.5rem;
   --text-page: 2rem;
   --leading-tight: 1.2;
@@ -61,7 +64,7 @@
   /* Layout of screens: gutters, the navigation island and the map shell. */
   --shell-gutter: 0.75rem;
   --shell-gap: 0.5rem;
-  --nav-h: 4.875rem;
+  --nav-h: 3.75rem;
   --nav-offset: max(var(--shell-gutter), var(--safe-bottom));
   --nav-clearance: calc(var(--nav-offset) + var(--nav-h) + var(--shell-gap));
   --sheet-w: 26.25rem;
@@ -105,4 +108,5 @@
   --user-position: var(--focus);
   --text-map-label: 0.6875rem;
   --text-map-pin: 1.1875rem;
+  --text-map-cluster: 0.9375rem;
 }

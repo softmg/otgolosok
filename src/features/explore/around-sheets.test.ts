@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { NearbySheet, PlaceSheet, StorySheet } from "./around-sheets";
 import { jobPin } from "./around-screen";
 import type { NearbyRecommendation } from "./nearby-stories";
+import { isExpandableStory } from "./story-pin";
 import type { GenerationJob } from "../generator/types";
 
 const story: NearbyRecommendation = {
@@ -126,5 +127,88 @@ it.each([
   expect(retry.textContent).toContain(label);
   await act(async () => retry.click());
   expect(onRetry).toHaveBeenCalledTimes(1);
+  await unmount();
+});
+
+const place = { ...point, title: "Дом на Арбате" };
+
+it.each([
+  { case: "место из каталога", pin: { ...place, placeId: "place-1" }, expandable: true },
+  { case: "готовая заказанная история с текстом", pin: { ...place, jobId: point.id, paragraphs: ["Текст."] }, expandable: true },
+  { case: "история ещё готовится", pin: { ...place, jobId: point.id, pending: true }, expandable: false },
+  { case: "часть прогулки", pin: { ...place, chapter: 0, paragraphs: ["Текст."] }, expandable: false },
+  { case: "часть прогулки по месту каталога", pin: { ...place, chapter: 1, placeId: "place-1" }, expandable: false },
+])("раскрывается ли карточка: $case", ({ pin, expandable }) => {
+  expect(isExpandableStory(pin)).toBe(expandable);
+});
+
+async function renderReading(pin: ReturnType<typeof jobPin>, expanded: boolean, onExpand = vi.fn(), onCollapse = vi.fn()) {
+  const container = document.createElement("div");
+  const root = createRoot(container);
+  await act(async () => root.render(createElement(StorySheet, {
+    story: pin, walkHref: "/?walk=create", onStart: () => {}, onClose: () => {}, onWalk: () => {}, expanded, onExpand, onCollapse,
+  })));
+  const handle = container.querySelector<HTMLButtonElement>("[data-sheet-part='handle'] button");
+  return { container, handle, unmount: () => act(async () => root.unmount()) };
+}
+
+const readyPin = () => jobPin(point, job({ stage: "ready", story: readyStory, audio: { url: "/api/story-audio/a.mp3", sha256: "a", bytes: 1, durationSec: 300, synthetic: true } }));
+const texts = (container: HTMLElement) => [...container.querySelectorAll("[data-sheet-part='body'] p")].map(p => p.textContent);
+
+it("свёрнутая история показывает только начало текста, а нажатие на него раскрывает её", async () => {
+  const onExpand = vi.fn();
+  const { container, handle, unmount } = await renderReading(readyPin(), false, onExpand);
+  expect(handle?.getAttribute("aria-expanded")).toBe("false");
+  expect(handle?.getAttribute("aria-label")).toBe("Читать историю полностью");
+  expect(texts(container)).toEqual(["Первый абзац."]);
+  expect(container.querySelector("[role='region'][aria-label='Текст истории']")).not.toBeNull();
+  expect(container.textContent).not.toContain("Создать прогулку отсюда");
+  expect(container.textContent).not.toContain("Источники");
+  expect(container.querySelector("[data-sheet-part='header'] #selected-place-title")).not.toBeNull();
+  // The peek names the place only; the address is for the expanded card.
+  expect(container.textContent).not.toContain(point.address);
+  expect(container.querySelector("[data-sheet-part='corner'] button[aria-label='Закрыть карточку']")).not.toBeNull();
+  expect(container.querySelector("[data-sheet-part='footer'] audio")).not.toBeNull();
+  await act(async () => container.querySelector<HTMLElement>("[data-sheet-part='body'] p")!.click());
+  await act(async () => container.querySelector<HTMLElement>("#selected-place-title")!.click());
+  expect(onExpand).toHaveBeenCalledTimes(2);
+  await unmount();
+});
+
+it("раскрытая история показывает весь текст, источники и ссылку на прогулку; ручка её сворачивает", async () => {
+  const onExpand = vi.fn(), onCollapse = vi.fn();
+  const { container, handle, unmount } = await renderReading(readyPin(), true, onExpand, onCollapse);
+  expect(handle?.getAttribute("aria-expanded")).toBe("true");
+  expect(handle?.getAttribute("aria-label")).toBe("Свернуть историю");
+  expect(texts(container)).toEqual(expect.arrayContaining(["Первый абзац.", "Второй абзац."]));
+  expect(container.textContent).toContain("Источники");
+  expect(container.textContent).toContain("Создать прогулку отсюда");
+  expect(container.querySelector("[data-sheet-part='body'] #selected-place-title")).not.toBeNull();
+  expect(container.querySelector("[data-sheet-part='body']")?.textContent).toContain(point.address);
+  await act(async () => container.querySelector<HTMLElement>("[data-sheet-part='body'] p")!.click());
+  expect(onExpand).not.toHaveBeenCalled();
+  await act(async () => handle!.click());
+  expect(onCollapse).toHaveBeenCalledTimes(1);
+  await unmount();
+});
+
+it("«Повторить» в свёрнутой карточке места загружает текст снова, а не раскрывает карточку", async () => {
+  const fetch = vi.fn(async () => new Response("{}", { status: 400 }));
+  vi.stubGlobal("fetch", fetch);
+  const onExpand = vi.fn();
+  const { container, unmount } = await renderReading({ ...place, id: "place:retry", placeId: "retry-place" }, false, onExpand);
+  await act(async () => { await vi.waitFor(() => expect(container.querySelector("[role='alert']")).not.toBeNull()); });
+  const calls = fetch.mock.calls.length;
+  await act(async () => container.querySelector<HTMLButtonElement>("[role='alert'] button")!.click());
+  expect(onExpand).not.toHaveBeenCalled();
+  expect(fetch.mock.calls.length).toBeGreaterThan(calls);
+  await unmount();
+});
+
+it("история, которая ещё готовится, остаётся обычной карточкой без ручки", async () => {
+  const { container, handle, unmount } = await renderReading(jobPin(point, job({ stage: "voicing" })), false);
+  expect(handle).toBeNull();
+  expect(container.querySelector("section")?.hasAttribute("data-expandable")).toBe(false);
+  expect(container.querySelector("[data-sheet-part='header'] button[aria-label='Закрыть карточку']")).not.toBeNull();
   await unmount();
 });

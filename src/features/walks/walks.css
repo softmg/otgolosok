@@ -93,7 +93,6 @@
   border-radius: .7rem;
 }
 
-.walk-offline-notice--map { position: fixed; z-index: 10; top: 12px; left: 76px; right: 100px; font-size: 13px; }
 
 @media (max-width: 640px) {
   .walk-library-header {

@@ -72,7 +72,7 @@ function sessionDocument(props: { active?: boolean; completed?: boolean; ratingL
 }
 const buttonTexts = (document: Document) => [...document.querySelectorAll("button")].map(button => button.textContent);
 
-async function mountSession(props: { active?: boolean; completed?: boolean; ratingLabel?: string; ratingCount?: number | null; reviewable?: boolean; improvable?: boolean }) {
+async function mountSession(props: { active?: boolean; completed?: boolean; ratingLabel?: string; ratingCount?: number | null; reviewable?: boolean; improvable?: boolean; walk?: Route["walk"]; offline?: boolean }) {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
   const container = document.createElement("div");
@@ -80,11 +80,12 @@ async function mountSession(props: { active?: boolean; completed?: boolean; rati
   const root = createRoot(container);
   const onRate = vi.fn(), onImprove = vi.fn();
   await act(async () => root.render(createElement(WalkSession, {
-    route, chapters, index: 0, active: props.active ?? false, completed: props.completed ?? false,
+    route: props.walk ? { ...route, walk: props.walk } : route, chapters, index: 0, active: props.active ?? false, completed: props.completed ?? false,
     user: null, positionFailed: false, resume: false,
     titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
     onStart: () => {}, onSelect: () => {}, onStop: () => {},
     player: null, story: null, settings: createElement("p", null, "настройки"), audioError: "",
+    offline: props.offline ? createElement("p", { "data-testid": "offline" }, "офлайн") : null,
     ratingLabel: props.ratingLabel, ratingCount: props.ratingCount,
     reviews: props.reviewable === false ? null : createElement("p", { "data-testid": "reviews" }, "список"), onRate,
     onImprove: props.improvable === false ? null : onImprove,
@@ -146,6 +147,45 @@ it.each([
   const edit = [...document.querySelectorAll("a")].find(link => link.textContent === "Изменить маршрут");
   expect(edit?.getAttribute("href") ?? null).toBe(shown ? own.editHref : null);
   expect(document.body.textContent?.includes(own.notes[0])).toBe(shown);
+});
+
+it.each([
+  [false, false],
+  [true, true],
+])("кнопка настроек есть только во время прогулки: active=%s → %s", (active, shown) => {
+  expect(Boolean(sessionDocument({ active }).querySelector("[aria-label='Настройки прогулки']"))).toBe(shown);
+});
+
+it("адреса старта и финиша не занимают карточку до старта", () => {
+  const text = sessionDocument({}).querySelector(".walk-session-panel")?.textContent ?? "";
+  expect(text).not.toContain(route.walk!.start.address);
+  expect(text).not.toContain(route.walk!.finish.address);
+});
+
+const start = { ...route.walk!.start, address: "Москва, Никитский бульвар, 8" };
+it.each([
+  ["разные адреса", { ...route.walk!.finish, address: "Москва, Тверская, 1" }, ["Старт: Москва, Никитский бульвар, 8", "Финиш: Москва, Тверская, 1"]],
+  ["кольцевой маршрут", { ...route.walk!.finish, address: start.address }, ["Старт и финиш: Москва, Никитский бульвар, 8"]],
+])("«Остановки» показывают старт и финиш маршрута, %s", async (_, finish, expected) => {
+  const session = await mountSession({ walk: { ...route.walk!, start, finish } });
+  await session.click(session.find(`Остановки · ${chapters.length}`)!);
+  expect([...session.container.querySelectorAll(".walk-session-endpoint")].map(line => line.textContent)).toEqual(expected);
+  await session.unmount();
+});
+
+it("во время прогулки «Остановки» — только список остановок, без адресов старта и финиша", async () => {
+  const session = await mountSession({ active: true });
+  await session.click(session.find(`Остановка 1 из ${chapters.length}`)!);
+  expect(session.container.querySelector(".walk-session-stops")).not.toBeNull();
+  expect(session.container.querySelector(".walk-session-endpoint")).toBeNull();
+  await session.unmount();
+});
+
+it.each([[false, true], [true, false]])("офлайн-копия в «Остановках» при active=%s показана — %s", async (active, shown) => {
+  const session = await mountSession({ active, offline: true });
+  await session.click(session.find(active ? `Остановка 1 из ${chapters.length}` : `Остановки · ${chapters.length}`)!);
+  expect(Boolean(session.container.querySelector("[data-testid=offline]"))).toBe(shown);
+  await session.unmount();
 });
 
 it("после завершения прогулки без отзывов главная кнопка — «На карту»", () => {
@@ -218,13 +258,13 @@ it("итог оценок в описании — кнопка, открываю
 });
 
 it.each([
-  { stage: "approach" as const, advance: "place" as const, audio: true, meta: "К остановке 2 из 4 · начнётся, когда подойдёте" },
-  { stage: "approach" as const, advance: "manual" as const, audio: true, meta: "К остановке 2 из 4" },
-  { stage: "approach" as const, advance: "sequence" as const, audio: true, meta: "К остановке 2 из 4" },
-  { stage: "approach" as const, advance: "place" as const, audio: false, meta: "К остановке 2 из 4" },
-  { stage: "stop" as const, advance: "place" as const, audio: true, meta: "Остановка 2 из 4" },
-  { stage: "stop" as const, advance: "manual" as const, audio: true, meta: "Остановка 2 из 4" },
-])("на пути к остановке и у неё: $stage, $advance, аудио $audio", ({ stage, advance, audio, meta }) => {
+  { stage: "approach" as const, advance: "place" as const, audio: true, meta: "Начнётся, когда подойдёте" },
+  { stage: "approach" as const, advance: "manual" as const, audio: true, meta: null },
+  { stage: "approach" as const, advance: "sequence" as const, audio: true, meta: null },
+  { stage: "approach" as const, advance: "place" as const, audio: false, meta: null },
+  { stage: "stop" as const, advance: "place" as const, audio: true, meta: null },
+  { stage: "stop" as const, advance: "manual" as const, audio: true, meta: null },
+])("номер остановки — на кнопке списка, над заголовком только подсказка: $stage, $advance, аудио $audio", ({ stage, advance, audio, meta }) => {
   const stops = chapters.map(chapter => ({ ...chapter, audio: audio ? chapter.audio : undefined }));
   expect(stops[1].audio === undefined).toBe(!audio);
   const markup = renderToStaticMarkup(createElement(WalkSession, {
@@ -235,7 +275,21 @@ it.each([
     player: null, story: null, settings: null, audioError: "",
   }));
   const document = new DOMParser().parseFromString(markup, "text/html");
-  expect(document.querySelector(".walk-session-meta")?.textContent).toBe(meta);
+  expect(document.querySelector(".walk-session-meta")?.textContent ?? null).toBe(meta);
+  expect(document.querySelector(".walk-session-tools button")?.textContent).toBe(`Остановка 2 из ${chapters.length}`);
+});
+
+it("на пути к финишу после последней остановки кнопка списка снова называет все остановки", () => {
+  const markup = renderToStaticMarkup(createElement(WalkSession, {
+    route, chapters, index: chapters.length, finishLeg: true, active: true, completed: false,
+    user: null, positionFailed: false, resume: false,
+    titleRef: createRef<HTMLHeadingElement>(), startRef: createRef<HTMLButtonElement>(),
+    onStart: () => {}, onSelect: () => {}, onStop: () => {},
+    player: null, story: null, settings: null, audioError: "",
+  }));
+  const document = new DOMParser().parseFromString(markup, "text/html");
+  expect(document.querySelector(".walk-session-meta")?.textContent).toBe("До финиша");
+  expect(document.querySelector(".walk-session-tools button")?.textContent).toBe(`Остановки · ${chapters.length}`);
 });
 
 async function mountPosition(denied: boolean) {
@@ -265,7 +319,7 @@ it.each([
 ])("«Геопозиции нет» стоит рядом с «Остановками» и по нажатию снова запрашивает доступ (запрещён=%s)", async (denied, message, helpOpen) => {
   const session = await mountPosition(denied);
   const tools = [...session.container.querySelectorAll(".walk-session-tools button")].map(item => item.textContent);
-  expect(tools.slice(0, 2)).toEqual([`Остановки · ${chapters.length}`, "Геопозиции нет"]);
+  expect(tools.slice(0, 2)).toEqual([`Остановка 1 из ${chapters.length}`, "Геопозиции нет"]);
   expect(session.container.textContent).not.toContain("Геопозиция недоступна");
 
   await act(async () => session.button()!.click());

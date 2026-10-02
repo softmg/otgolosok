@@ -60,3 +60,34 @@ it("прокручиваемое тело можно листать с клав�
   await act(async () => { resize(); });
   expect(body.hasAttribute("tabindex")).toBe(false);
 });
+
+it("кнопки поверх карточки стоят в одной строке сверху, а раскрываемость видна по атрибутам", async () => {
+  const draw = (expanded: boolean) => act(async () => {
+    root.render(createElement(Sheet, { id: "story", label: "История", corner: createElement("button", null, "×"),
+      handle: createElement("button", null, "Ручка"), expanded, header: "Заголовок", bodyLabel: "Текст истории" }, "Текст"));
+  });
+  await draw(false);
+  const sheet = container.querySelector("section")!;
+  expect(sheet.id).toBe("story");
+  expect([...sheet.children].map(part => part.getAttribute("data-sheet-part"))).toEqual(["chrome", "header", "body"]);
+  expect([...sheet.firstElementChild!.children].map(part => part.getAttribute("data-sheet-part"))).toEqual(["handle", "corner"]);
+  expect(sheet.hasAttribute("data-expandable")).toBe(true);
+  expect(sheet.hasAttribute("data-expanded")).toBe(false);
+  await draw(true);
+  expect(sheet.hasAttribute("data-expanded")).toBe(true);
+});
+
+it("тело раскрываемой карточки не встаёт в порядок Tab, даже если текст обрезан", async () => {
+  contentHeight = 500;
+  await act(async () => {
+    root.render(createElement(Sheet, { label: "История", handle: createElement("button", null, "Ручка"), bodyLabel: "Текст истории" }, "Текст"));
+  });
+  expect(container.querySelector('[data-sheet-part="body"]')!.hasAttribute("tabindex")).toBe(false);
+});
+
+it("без ручки карточка не раскрывается, даже если её просят", async () => {
+  await act(async () => { root.render(createElement(Sheet, { label: "История", expanded: true }, "Текст")); });
+  const sheet = container.querySelector("section")!;
+  expect(sheet.hasAttribute("data-expandable")).toBe(false);
+  expect(sheet.hasAttribute("data-expanded")).toBe(false);
+});

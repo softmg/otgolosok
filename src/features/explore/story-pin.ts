@@ -19,3 +19,13 @@ export type StoryPin = MapItem & {
   /** A catalog place with a photo: its card keeps the preview slot while the detail loads. */
   hasPhoto?: boolean;
 };
+
+/**
+ * Whether the story card can expand to a full-screen reading view: a catalog place (its text loads with the card)
+ * or a story that already has text. Walk parts and stories still being prepared keep the plain card.
+ */
+export function isExpandableStory(pin: StoryPin): boolean {
+  if (pin.chapter !== undefined) return false;
+  const catalog = pin.placeId !== undefined && pin.jobId === undefined;
+  return catalog || Boolean(pin.paragraphs?.length);
+}

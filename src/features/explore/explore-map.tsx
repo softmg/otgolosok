@@ -129,11 +129,6 @@ export type ExploreMapProps = {
   onViewport?: (area: CatalogArea) => void;
   onZoomLimits?: (limits: ZoomLimits) => void;
   onStatus?: (status: MapStatus) => void;
-  /**
-   * Transitional: screens not yet on MapShell get the Leaflet zoom control, the loading notes and
-   * the attribution drawn by the map itself, positioned by their legacy CSS. Removed with the last such screen.
-   */
-  legacyChrome?: boolean;
   ref?: Ref<MapHandle>;
 };
 
@@ -198,7 +193,6 @@ export function ExploreMap({
   onViewport,
   onZoomLimits,
   onStatus,
-  legacyChrome = false,
   ref,
 }: ExploreMapProps) {
   const container = useRef<HTMLDivElement>(null);
@@ -332,16 +326,6 @@ export function ExploreMap({
             .on("tileload", () => setTileError(false))
             .addTo(map);
         }
-        if (legacyChrome)
-          L.control
-            .zoom({
-              position: "bottomright",
-              zoomInTitle: "Приблизить",
-              zoomOutTitle: "Отдалить",
-            })
-            .addTo(map)
-            .getContainer()
-            ?.setAttribute("data-region", "controls");
         map.on("click", (event: Leaflet.LeafletMouseEvent) =>
           handlers.current.onPoint({
             lat: event.latlng.lat,
@@ -427,8 +411,6 @@ export function ExploreMap({
       }
       runtime.current = null;
     };
-    // legacyChrome is fixed per screen for the lifetime of a map.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewState]);
 
   // Markers are updated by id instead of being rebuilt: playback re-renders the
@@ -618,10 +600,10 @@ export function ExploreMap({
       ?.setAttribute("data-marker", "user");
   }, [user, ready]);
 
-  const canvas = (
+  return (
     <div
       ref={container}
-      className={cx(styles.map, legacyChrome && "explore-map")}
+      className={styles.map}
       data-region="map"
       role="region"
       aria-label={
@@ -629,33 +611,5 @@ export function ExploreMap({
         "Карта историй. Выберите отметку или нажмите на дом, чтобы подготовить историю."
       }
     />
-  );
-  if (!legacyChrome) return canvas;
-  return (
-    <div className="explore-map-layer">
-      {canvas}
-      {!ready ? (
-        <p className="map-loading" data-region="notices" role="status">
-          {mapError
-            ? "Карта не загрузилась. Откройте список историй."
-            : "Загружаем карту…"}
-        </p>
-      ) : null}
-      {tileError ? (
-        <p className="map-network-note" data-region="notices" role="status">
-          Карта требует интернета. Сохранённые истории доступны в разделе
-          «Сохранено».
-        </p>
-      ) : null}
-      <a
-        className="map-attribution"
-        data-region="attribution"
-        href="https://www.openstreetmap.org/copyright"
-        target="_blank"
-        rel="noreferrer"
-      >
-        © OpenStreetMap
-      </a>
-    </div>
   );
 }

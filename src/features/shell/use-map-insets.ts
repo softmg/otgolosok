@@ -6,12 +6,14 @@ import { insetsFromRects, NO_INSETS, sameInsets, type MapInsets } from "./map-in
 /**
  * The part of the map left free by the shell's islands, measured from the layout itself.
  * No breakpoints or CSS values are copied into JS: whatever the CSS lays out is what the map avoids.
+ * While `frozen` (a sheet covers the map) the last insets hold: new ones would re-centre the map under the
+ * sheet. Unfreezing measures once, so a resize in between is still picked up.
  */
-export function useMapInsets(map: RefObject<HTMLElement | null>, free: RefObject<HTMLElement | null>): MapInsets {
+export function useMapInsets(map: RefObject<HTMLElement | null>, free: RefObject<HTMLElement | null>, frozen = false): MapInsets {
   const [insets, setInsets] = useState<MapInsets>(NO_INSETS);
   useEffect(() => {
     const mapElement = map.current, freeElement = free.current;
-    if (!mapElement || !freeElement) return;
+    if (frozen || !mapElement || !freeElement) return;
     const measure = () => {
       const next = insetsFromRects(mapElement.getBoundingClientRect(), freeElement.getBoundingClientRect());
       setInsets(current => sameInsets(current, next) ? current : next);
@@ -23,6 +25,6 @@ export function useMapInsets(map: RefObject<HTMLElement | null>, free: RefObject
     // Turning the phone can move the free cell without resizing it.
     addEventListener("resize", measure);
     return () => { observer.disconnect(); removeEventListener("resize", measure); };
-  }, [map, free]);
+  }, [map, free, frozen]);
   return insets;
 }

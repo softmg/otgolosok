@@ -84,6 +84,13 @@ export const SCREEN_STATES: ScreenState[] = [
   { screen: "карта", state: "длинная история", options: { map: true, focus: "marker" }, open: async page => {
     await mockGuestApi(page); await openLongStory(page, { visible: false }); await mapReady(page);
   } },
+  // The expanded story covers the map on purpose: no map or marker checks.
+  { screen: "карта", state: "развёрнутая история", options: {}, open: async page => {
+    await mockGuestApi(page); await openLongStory(page, { visible: false }); await mapReady(page);
+    await page.getByRole("button", { name: "Читать историю полностью", exact: true }).click();
+    await expect(page.locator('[data-sheet="story"][data-expanded]')).toBeAttached();
+    await page.waitForFunction(() => !document.documentElement.matches(":active-view-transition"));
+  } },
   { screen: "карта", state: "выбранный дом", options: { map: true, focus: "marker" }, open: async page => {
     await mockGuestApi(page);
     await page.route("**/api/story-place?*", route => route.fulfill({ json: { address: "Москва, 1-й Дербеневский переулок, 5", location: { lat: 55.725, lon: 37.65 } } }));
@@ -101,11 +108,6 @@ export const SCREEN_STATES: ScreenState[] = [
     await page.goto("/"); await mapReady(page);
     await page.getByRole("button", { name: "Моё местоположение", exact: true }).click();
     await expect(page.getByRole("heading", { name: /^В радиусе/ })).toBeVisible({ timeout: 10_000 });
-  } },
-  { screen: "карта", state: "поиск", options: { map: true }, open: async page => {
-    await mockGuestApi(page); await page.goto("/"); await mapReady(page);
-    await page.getByRole("button", { name: "Найти адрес", exact: true }).click();
-    await expect(page.getByLabel("Какой дом вас интересует?")).toBeFocused();
   } },
   { screen: "создание", state: "форма", options: { map: true }, open: async page => {
     await mockGuestApi(page); await page.goto("/?walk=create");
@@ -137,7 +139,7 @@ export const SCREEN_STATES: ScreenState[] = [
   { screen: "прогулка", state: "список остановок", options: { map: true }, open: async page => {
     await openLocalWalk(page);
     await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
-    await page.getByRole("button", { name: /^Остановки ·/ }).click(); await mapReady(page);
+    await page.getByRole("button", { name: /^Остановка \d+ из/ }).click(); await mapReady(page);
   } },
   { screen: "прогулка", state: "настройки", options: { map: true }, open: async page => {
     await startLongWalk(page);
@@ -157,7 +159,7 @@ export const SCREEN_STATES: ScreenState[] = [
       return online ? route.fulfill({ json: longStop }) : route.abort("internetdisconnected");
     });
     await page.goto("/walk?catalog=paveletskaya");
-    await page.getByRole("button", { name: "Настройки прогулки" }).click();
+    await page.getByRole("button", { name: /^Остановки ·/ }).click();
     await page.getByRole("button", { name: "Сохранить прогулку без сети" }).first().click();
     await expect(page.getByText(/^Офлайн-копия сохранена/).first()).toBeVisible();
     online = false;
