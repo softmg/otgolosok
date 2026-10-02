@@ -1,5 +1,13 @@
 # Production deployment
 
+## Число запусков в админке — 2 октября 2026, 08:50 UTC
+
+- Ревизия `c7ac6a2` опубликована штатными целями `deploy-otgolosok-generator` и `deploy-otgolosok-prod`; рабочая копия была чистой, `origin/main` синхронизирован.
+- Полный `pnpm check` прошёл: 803 frontend-теста, 646 backend-тестов, 20 Python-тестов и 15 subtests, линтеры, типы и production-сборка.
+- Первая попытка backend упала на резервном копировании (`tar: generator-data: file changed as we read it`) и откатилась автоматически. Пока генератор был остановлен, сторонние SSH-сессии с того же адреса создали `auth.sqlite-wal` (08:40:52) и изменили `generator-data` (08:41:11). Неполная копия `generator-20261002T084001Z` осталась на сервере и занимает слот ротации.
+- Повтор прошёл: резервная копия `backups/generator-20261002T084620Z/generator.tar.gz`, backend healthy, контрольные суммы `server.mjs` и `walk-launches.mjs` совпали с локальными.
+- `/`, `/admin`, `/history`, `/api/top-walks` вернули 200, `/api/story-admin/walks` без входа — 401; опубликованный бандл содержит колонку «Запуски».
+
 ## Обновление main — 2 октября 2026, 08:17 UTC
 
 - Ревизия `4e5aa4c` синхронизирована с `origin/main` и опубликована штатными целями backend и frontend под серверной advisory-блокировкой `.deploy.lock`; рабочая копия перед выкладкой была чистой.
