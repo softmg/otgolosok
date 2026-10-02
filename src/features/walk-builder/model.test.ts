@@ -32,6 +32,8 @@ describe("walk draft", () => {
     expect(isPlan({ ...route, geometry: [] })).toBe(false);
     expect(isPlan({ ...route, distanceM: Infinity })).toBe(false);
     expect(isPlan({ ...route, walkingMinutes: -1 })).toBe(false);
+    expect(isPlan({ ...route, tunnels: [[0, 1]] })).toBe(true);
+    for (const tunnels of [[[0, 0]], [[0, route.geometry.length]], [[0, 1], [1, 1]], "0-1", null]) expect(isPlan({ ...route, tunnels })).toBe(false);
     expect(() => parseDraft(JSON.stringify({ ...emptyDraft(), start, stops: [stop], route: { ...route, walkingMinutes: 60 } }))).toThrow();
     expect(isPlace({ ...stop, contentId: "osm:way:42" })).toBe(true);
     expect(isPlace({ ...stop, contentId: "not-osm" })).toBe(false);

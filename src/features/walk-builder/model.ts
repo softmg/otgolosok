@@ -1,4 +1,4 @@
-import { MAX_WALK_STOPS } from "../../../backend/walk-document.mjs";
+import { MAX_WALK_STOPS, validTunnels } from "../../../backend/walk-document.mjs";
 import type { Coordinates } from "../tour/types";
 import { isMoscowPoint } from "../explore/map-jobs";
 import { stageLabels, type GenerationStage } from "../generator/types";
@@ -6,7 +6,7 @@ import { stageLabels, type GenerationStage } from "../generator/types";
 export const DRAFT_KEY = "otgolosok:walk:v1";
 export { MAX_WALK_STOPS };
 export type Place = { address: string; location: Coordinates; contentId?: string };
-export type Plan = { stops: Place[]; geometry: Coordinates[]; distanceM: number; walkingMinutes: number; attribution: string };
+export type Plan = { stops: Place[]; geometry: Coordinates[]; distanceM: number; walkingMinutes: number; attribution: string; tunnels?: Array<[number, number]> };
 // Mirrors MIN_BUDGET_SHARE in backend/walks.mjs: automatic walks aim for at least this share of the chosen time.
 export const MIN_BUDGET_SHARE = 0.75;
 /** Walking minutes of an automatic walk that fell short of the chosen time, otherwise null. */
@@ -62,7 +62,8 @@ export function isPlan(v: unknown): v is Plan {
   return record(v) && Array.isArray(v.stops) && v.stops.length >= 0 && v.stops.length <= MAX_WALK_STOPS && v.stops.every(isPlace) &&
     Array.isArray(v.geometry) && v.geometry.length >= 2 && v.geometry.length <= 12000 && v.geometry.every(p => record(p) && typeof p.lat === "number" && typeof p.lon === "number" && isMoscowPoint(p as Coordinates)) &&
     typeof v.distanceM === "number" && Number.isFinite(v.distanceM) && v.distanceM > 0 && v.distanceM <= 8100 &&
-    typeof v.walkingMinutes === "number" && Number.isFinite(v.walkingMinutes) && v.walkingMinutes > 0 && v.walkingMinutes <= 90 && typeof v.attribution === "string" && v.attribution.length > 0 && v.attribution.length <= 2000;
+    typeof v.walkingMinutes === "number" && Number.isFinite(v.walkingMinutes) && v.walkingMinutes > 0 && v.walkingMinutes <= 90 && typeof v.attribution === "string" && v.attribution.length > 0 && v.attribution.length <= 2000 &&
+    validTunnels(v.tunnels, v.geometry.length);
 }
 export const isJobId = (id: unknown): id is string => typeof id === "string" && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id);
 export const isStage = (stage: unknown): stage is GenerationStage => typeof stage === "string" && Object.hasOwn(stageLabels, stage);

@@ -112,4 +112,21 @@ describe("universal walk adapters", () => {
     expect(getWalkChapters(route, true).map(chapter => chapter.id)).toEqual(["kozhevniki", "derbenevskaya", "housing", "zindel"]);
     expect(route.walk?.path.coordinates.length).toBeGreaterThan(20);
   });
+
+  it("carries route tunnels from the builder to the walk and back, and omits them when absent", () => {
+    const id = "66666666-6666-4666-8666-666666666666";
+    const geometry = [start.location, firstStop.location, secondStop.location];
+    const built = (tunnels?: Array<[number, number]>) => ({ ...draft(), jobs: [], route: { stops: [firstStop, secondStop], geometry, distanceM: 300, walkingMinutes: 4, attribution: "OSM", ...(tunnels ? { tunnels } : {}) } });
+    const document = draftToWalkDocument(built([[1, 2]]), id);
+    expect(document.route?.tunnels).toEqual([[1, 2]]);
+    expect(walkDocumentToDraft(document).route?.tunnels).toEqual([[1, 2]]);
+    const view = { document, revision: 1, contentVersion: "tunnels-1", chapters: document.stops.map(stop => ({ id: stop.id, status: "unavailable" as const, story: null, audio: null })) };
+    const route = walkViewToRoute(view);
+    expect(route.walk?.path.tunnels).toEqual([[1, 2]]);
+    expect(routeToWalkView(route).document.route?.tunnels).toEqual([[1, 2]]);
+
+    const plain = draftToWalkDocument(built(), id);
+    expect(JSON.stringify(plain)).not.toContain("tunnels");
+    expect(walkViewToRoute({ ...view, document: plain }).walk?.path).not.toHaveProperty("tunnels");
+  });
 });

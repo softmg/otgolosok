@@ -29,3 +29,10 @@ test("planner results become valid walk documents", () => {
 test("a plan that breaks the document contract is rejected", () => {
   assert.throws(() => planToWalkDocument({ ...plan([]), distanceM: 9000 }, options("loop")), error => error instanceof Error && !("code" in error) && /walk document contract/.test(error.message));
 });
+
+test("planner tunnels are carried into the document, and their absence leaves no key", () => {
+  const stop = { address: "Мясницкая, 17", location: { lat: 55.764, lon: 37.636 } };
+  const document = planToWalkDocument({ ...plan([stop]), tunnels: [[0, 1]] }, options("loop"));
+  assert.deepEqual(document.route.tunnels, [[0, 1]]);
+  assert.equal("tunnels" in planToWalkDocument(plan([stop]), options("loop")).route, false);
+});

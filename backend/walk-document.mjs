@@ -10,7 +10,26 @@ const place = value => fields(value, ["address", "location"]) && string(value.ad
 const reference = value => value === null || (fields(value, ["kind", "id"]) && ((value.kind === "job" && uuid(value.id)) || (value.kind === "osm" && /^osm:(node|way|relation):\d+$/.test(value.id)) || (value.kind === "catalog" && /^[a-z0-9][a-z0-9-]{0,127}$/.test(value.id))));
 const stop = value => fields(value, ["id", "place", "storyRef", "transition", "nextHint", "triggerLocation"]) && (uuid(value.id) || /^[a-z0-9][a-z0-9-]{0,127}$/.test(value.id)) && place(value.place) && reference(value.storyRef) && string(value.transition, 1200, true) && string(value.nextHint, 1200, true) && (value.triggerLocation === undefined || point(value.triggerLocation));
 const geometry = value => Array.isArray(value) && value.length >= 2 && value.length <= 12000 && value.every(point);
-const route = value => value === null || (fields(value, ["geometry", "distanceM", "walkingMinutes", "attribution"]) && geometry(value.geometry) && Number.isFinite(value.distanceM) && value.distanceM > 0 && value.distanceM <= 8100 && Number.isFinite(value.walkingMinutes) && value.walkingMinutes > 0 && value.walkingMinutes <= 90 && string(value.attribution, 2000));
+export const MAX_ROUTE_TUNNELS = 500;
+/**
+ * Covered stretches of a route: every segment between vertices a..b of its geometry runs through a tunnel.
+ * Absent is valid; producers merge touching ranges, so pairs are sorted and separated by at least one segment.
+ * @param {unknown} value
+ * @param {number} geometryLength
+ */
+export function validTunnels(value, geometryLength) {
+  if (value === undefined) return true;
+  if (!Array.isArray(value) || value.length > MAX_ROUTE_TUNNELS) return false;
+  let previous = -1;
+  for (const pair of value) {
+    if (!Array.isArray(pair) || pair.length !== 2) return false;
+    const [a, b] = pair;
+    if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b) || a <= previous || a < 0 || b <= a || b > geometryLength - 1) return false;
+    previous = b;
+  }
+  return true;
+}
+const route = value => value === null || (fields(value, ["geometry", "distanceM", "walkingMinutes", "attribution", "tunnels"]) && geometry(value.geometry) && validTunnels(value.tunnels, value.geometry.length) && Number.isFinite(value.distanceM) && value.distanceM > 0 && value.distanceM <= 8100 && Number.isFinite(value.walkingMinutes) && value.walkingMinutes > 0 && value.walkingMinutes <= 90 && string(value.attribution, 2000));
 const storyUrl = value => typeof value === "string" && value.length <= 2000 && /^https:\/\/[^\s<>]+$/i.test(value);
 const story = value => value === null || (fields(value, ["title", "address", "paragraphs", "sources", "facts", "checkedAt"]) && string(value.title, 180) && string(value.address, 180) &&
   Array.isArray(value.paragraphs) && value.paragraphs.length > 0 && value.paragraphs.length <= 100 && value.paragraphs.every(item => fields(item, ["text", "factIds"]) && string(item.text, 6000) && Array.isArray(item.factIds) && item.factIds.length <= 100 && item.factIds.every(id => string(id, 128))) &&
@@ -21,7 +40,7 @@ const audio = value => value === null || (fields(value, ["url", "sha256", "durat
 
 /** @typedef {{lat:number,lon:number}} Coordinates */
 /** @typedef {{address:string,location:Coordinates}} WalkPlace */
-/** @typedef {{version:2,id:string,title:string,description:string,city:string,mode:'open'|'loop',minutes:number,start:WalkPlace|null,stops:Array<{id:string,place:WalkPlace,storyRef:null|{kind:'job'|'osm'|'catalog',id:string},transition:string,nextHint:string,triggerLocation?:Coordinates}>,route:null|{geometry:Coordinates[],distanceM:number,walkingMinutes:number,attribution:string},fieldChecked:boolean}} WalkDocument */
+/** @typedef {{version:2,id:string,title:string,description:string,city:string,mode:'open'|'loop',minutes:number,start:WalkPlace|null,stops:Array<{id:string,place:WalkPlace,storyRef:null|{kind:'job'|'osm'|'catalog',id:string},transition:string,nextHint:string,triggerLocation?:Coordinates}>,route:null|{geometry:Coordinates[],distanceM:number,walkingMinutes:number,attribution:string,tunnels?:Array<[number,number]>},fieldChecked:boolean}} WalkDocument */
 /** @typedef {{document:WalkDocument,revision:number,contentVersion:string,chapters:Array<{id:string,status:string,story:object|null,audio:object|null}>}} WalkView */
 
 export function validateWalkDocument(value) {
@@ -50,7 +69,7 @@ export function migrateLegacyDraft(value, walkId) {
   const stops = (includeStart ? locations : value.stops).map((item, index) => ({ id: hash(index), place: item, storyRef: link(item), transition: "", nextHint: "" }));
   const savedRoute = value.route;
   const converted = { version: 2, id: walkId, title: value.title || "Моя прогулка", description: "", city: "Москва", mode: value.mode, minutes: value.minutes, start: value.start, ...(value.destination ? {destination:value.destination} : {}), stops,
-    route: savedRoute ? { geometry: savedRoute.geometry, distanceM: savedRoute.distanceM, walkingMinutes: savedRoute.walkingMinutes, attribution: savedRoute.attribution } : null,
+    route: savedRoute ? { geometry: savedRoute.geometry, distanceM: savedRoute.distanceM, walkingMinutes: savedRoute.walkingMinutes, attribution: savedRoute.attribution, ...(savedRoute.tunnels === undefined ? {} : { tunnels: savedRoute.tunnels }) } : null,
     fieldChecked: false };
   return validateWalkDocument(converted);
 }

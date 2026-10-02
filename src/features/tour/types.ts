@@ -112,6 +112,8 @@ export type WalkPlan = {
     source_url: string;
     checked_at: string;
     costing: "pedestrian";
+    // Covered stretches as [a, b] index ranges of coordinates; absent for routes built before tunnel data.
+    tunnels?: Array<[number, number]>;
   };
   steps: WalkStep[];
 };

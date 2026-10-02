@@ -10,6 +10,11 @@ const defaultTrigger = {
   max_accuracy_m: 50,
 };
 
+// Stored JSON never gets "tunnels: undefined": an absent key means the route has no tunnel data.
+function copyTunnels(tunnels: Array<[number, number]> | undefined) {
+  return tunnels ? { tunnels: tunnels.map(([a, b]) => [a, b] as [number, number]) } : {};
+}
+
 function samePlace(left: { location: Coordinates }, right: { location: Coordinates }) {
   return left.location.lat === right.location.lat && left.location.lon === right.location.lon;
 }
@@ -62,6 +67,7 @@ export function draftToWalkDocument(draft: Draft, id: string, previous?: WalkDoc
       distanceM: draft.route.distanceM,
       walkingMinutes: draft.route.walkingMinutes,
       attribution: draft.route.attribution,
+      ...copyTunnels(draft.route.tunnels),
     } : null,
     fieldChecked: false,
   });
@@ -97,6 +103,7 @@ export function walkDocumentToDraft(document: WalkDocument, previousJobs: DraftS
       distanceM: document.route.distanceM,
       walkingMinutes: document.route.walkingMinutes,
       attribution: document.route.attribution,
+      ...copyTunnels(document.route.tunnels),
     } : null,
     jobs: jobDrafts(document, previousJobs),
     submitting: null,
@@ -235,7 +242,7 @@ export function walkViewToRoute(input: WalkView): Route {
       distance_m: route?.distanceM ?? 0,
       walking_min: route?.walkingMinutes ?? view.document.minutes,
       field_checked: view.document.fieldChecked,
-      path: { coordinates: route?.geometry.map(point => [point.lon, point.lat]) ?? [], provider: route?.attribution ?? "", source_url: "", checked_at: "", costing: "pedestrian" },
+      path: { coordinates: route?.geometry.map(point => [point.lon, point.lat]) ?? [], provider: route?.attribution ?? "", source_url: "", checked_at: "", costing: "pedestrian", ...copyTunnels(route?.tunnels) },
       steps: chapters.map(item => item.step),
     },
   };
@@ -288,7 +295,7 @@ export function routeToWalkView(route: Route): WalkView {
       minutes: [15, 30, 60, 90].includes(route.duration_min) ? route.duration_min : 30,
       start,
       stops,
-      route: geometry.length >= 2 && route.walk ? { geometry, distanceM: route.walk.distance_m, walkingMinutes: route.walk.walking_min, attribution: route.walk.path.provider } : null,
+      route: geometry.length >= 2 && route.walk ? { geometry, distanceM: route.walk.distance_m, walkingMinutes: route.walk.walking_min, attribution: route.walk.path.provider, ...copyTunnels(route.walk.path.tunnels) } : null,
       fieldChecked: route.walk?.field_checked ?? false,
     },
     revision: 0,

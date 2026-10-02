@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateWalkDocument, migrateLegacyDraft, validateWalkView } from "./walk-document.mjs";
+import { validateWalkDocument, migrateLegacyDraft, validateWalkView, validTunnels } from "./walk-document.mjs";
 
 const point = (lat, lon) => ({ lat, lon });
 const place = (address, lat, lon) => ({ address, location: point(lat, lon) });
@@ -95,4 +95,40 @@ for (const count of [11, 28, 40]) test(`legacy migration preserves ${count} orde
     assert.throws(() => migrateLegacyDraft({ ...legacy, stops: [...stops, stop] }, id), { code: "BAD_REQUEST" });
     assert.throws(() => migrateLegacyDraft({ ...legacy, jobs: [{ place: start, id: chapter }] }, id), { code: "BAD_REQUEST" });
   }
+});
+
+test("route tunnels are sorted, separated ranges of the geometry's vertices", () => {
+  const cases = [
+    { name: "absent", tunnels: undefined, valid: true },
+    { name: "empty", tunnels: [], valid: true },
+    { name: "one range", tunnels: [[1, 3]], valid: true },
+    { name: "whole route", tunnels: [[0, 9]], valid: true },
+    { name: "two separated ranges", tunnels: [[0, 2], [4, 6]], valid: true },
+    { name: "a equals b", tunnels: [[2, 2]], valid: false },
+    { name: "a after b", tunnels: [[3, 2]], valid: false },
+    { name: "negative start", tunnels: [[-1, 2]], valid: false },
+    { name: "end past the last vertex", tunnels: [[8, 10]], valid: false },
+    { name: "overlapping", tunnels: [[0, 4], [3, 6]], valid: false },
+    { name: "touching", tunnels: [[0, 3], [3, 6]], valid: false },
+    { name: "unsorted", tunnels: [[4, 6], [0, 2]], valid: false },
+    { name: "non-integer", tunnels: [[0.5, 2]], valid: false },
+    { name: "three numbers", tunnels: [[0, 1, 2]], valid: false },
+    { name: "not an array", tunnels: { 0: [0, 1] }, valid: false },
+    { name: "null", tunnels: null, valid: false },
+  ];
+  for (const item of cases) assert.equal(validTunnels(item.tunnels, 10), item.valid, item.name);
+  const many = Array.from({ length: 501 }, (_, index) => [index * 2, index * 2 + 1]);
+  assert.equal(validTunnels(many.slice(0, 500), 1100), true);
+  assert.equal(validTunnels(many, 1100), false);
+});
+
+test("a document keeps its route tunnels, and migration carries them over", () => {
+  const document = walk(); document.route.tunnels = [[0, 1]];
+  assert.deepEqual(validateWalkDocument(document), document);
+  const broken = walk(); broken.route.tunnels = [[0, 2]];
+  assert.throws(() => validateWalkDocument(broken), { code: "BAD_REQUEST" });
+  const legacy = { version: 1, title: "Тоннель", start, stops: [stop], mode: "open", minutes: 30,
+    route: { stops: [stop], geometry: [start.location, stop.location], distanceM: 200, walkingMinutes: 3, attribution: "OSM", tunnels: [[0, 1]] }, jobs: [] };
+  assert.deepEqual(migrateLegacyDraft(legacy, id).route.tunnels, [[0, 1]]);
+  assert.equal("tunnels" in migrateLegacyDraft({ ...legacy, route: { ...legacy.route, tunnels: undefined } }, id).route, false);
 });
