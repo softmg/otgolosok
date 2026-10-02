@@ -8,6 +8,13 @@ const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const start = { address: "Москва, Арбат, 1", location: { lat: 55.75, lon: 37.6 } };
 const stops = [3, 5].map((n, i) => ({ address: `Москва, Арбат, ${n}`, location: { lat: 55.751 + i * .001, lon: 37.601 } }));
 
+// Старт по дороге к остановке разблокирует звук прямо в клике тихим клипом data: на 0,15 с,
+// поэтому сразу после старта одно «paused» мигает. Запись истории никогда не бывает data:.
+const storyPlaying = (page: Page) => page.locator("audio").evaluate(el => {
+  const audio = el as HTMLAudioElement;
+  return !audio.paused && !audio.currentSrc.startsWith("data:");
+});
+
 async function setup(page: import("@playwright/test").Page, empty = false) {
   const selected = empty ? [] : stops;
   const document = draftToWalkDocument({ version: 1, title: "Арбат", start, destination: stops[1], mode: "open", minutes: 30,
@@ -105,7 +112,7 @@ test("аудио, текст и список остановок открываю
   await expect(page.getByRole("region", { name: "Плеер истории" })).toBeVisible();
   // По дороге к остановке ничего не играет. Первая остановка — у самого старта: идти до неё нечего, участок не подсвечен.
   await expect(page.locator(".walk-session-meta")).toHaveText("К остановке 1 из 4");
-  expect(await page.locator("audio").evaluate(el => (el as HTMLAudioElement).paused)).toBe(true);
+  expect(await storyPlaying(page)).toBe(false);
   const activeLeg = page.locator('.walk-session-map [data-route-part="active"]');
   await expect(activeLeg).toHaveCount(0);
   // «Слушать историю» — это «я на месте»: история играет, подсвечен уже участок к следующей остановке.
@@ -539,7 +546,7 @@ test.describe("переключение остановок", () => {
   test("по месту история начинается сама, когда идущий подходит к остановке", async ({ page }) => {
     await open(page, "place", "&replay=walk&speed=20");
     await expect(page.locator(".walk-session-meta")).toHaveText("К остановке 1 из 4 · начнётся, когда подойдёте");
-    expect(await paused(page)).toBe(true);
+    expect(await storyPlaying(page)).toBe(false);
     await expect(page.locator(".walk-session-meta")).toHaveText("Остановка 1 из 4", { timeout: 20_000 });
     await expect.poll(() => paused(page)).toBe(false);
   });
@@ -548,7 +555,7 @@ test.describe("переключение остановок", () => {
     await open(page, "sequence");
     await expect(page.locator(".walk-session-meta")).toHaveText("Остановка 1 из 4");
     await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
-    await expect.poll(() => paused(page)).toBe(false);
+    await expect.poll(() => storyPlaying(page)).toBe(true);
   });
 });
 
