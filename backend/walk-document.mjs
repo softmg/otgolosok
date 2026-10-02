@@ -8,7 +8,8 @@ const uuid = value => typeof value === "string" && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-
 const point = value => fields(value, ["lat", "lon"]) && Number.isFinite(value.lat) && Number.isFinite(value.lon) && value.lat >= 55.48 && value.lat <= 55.98 && value.lon >= 37.30 && value.lon <= 37.95;
 const place = value => fields(value, ["address", "location"]) && string(value.address, 180) && point(value.location);
 const reference = value => value === null || (fields(value, ["kind", "id"]) && ((value.kind === "job" && uuid(value.id)) || (value.kind === "osm" && /^osm:(node|way|relation):\d+$/.test(value.id)) || (value.kind === "catalog" && /^[a-z0-9][a-z0-9-]{0,127}$/.test(value.id))));
-const stop = value => fields(value, ["id", "place", "storyRef", "transition", "nextHint", "triggerLocation"]) && (uuid(value.id) || /^[a-z0-9][a-z0-9-]{0,127}$/.test(value.id)) && place(value.place) && reference(value.storyRef) && string(value.transition, 1200, true) && string(value.nextHint, 1200, true) && (value.triggerLocation === undefined || point(value.triggerLocation));
+// placeId: the map catalog place at the stop, independent of its story; the walk shows that place's photo.
+const stop = value => fields(value, ["id", "place", "storyRef", "placeId", "transition", "nextHint", "triggerLocation"]) && (uuid(value.id) || /^[a-z0-9][a-z0-9-]{0,127}$/.test(value.id)) && place(value.place) && reference(value.storyRef) && (value.placeId === undefined || (typeof value.placeId === "string" && /^osm:(node|way|relation):\d+$/.test(value.placeId))) && string(value.transition, 1200, true) && string(value.nextHint, 1200, true) && (value.triggerLocation === undefined || point(value.triggerLocation));
 const geometry = value => Array.isArray(value) && value.length >= 2 && value.length <= 12000 && value.every(point);
 export const MAX_ROUTE_TUNNELS = 500;
 /**
@@ -40,7 +41,7 @@ const audio = value => value === null || (fields(value, ["url", "sha256", "durat
 
 /** @typedef {{lat:number,lon:number}} Coordinates */
 /** @typedef {{address:string,location:Coordinates}} WalkPlace */
-/** @typedef {{version:2,id:string,title:string,description:string,city:string,mode:'open'|'loop',minutes:number,start:WalkPlace|null,stops:Array<{id:string,place:WalkPlace,storyRef:null|{kind:'job'|'osm'|'catalog',id:string},transition:string,nextHint:string,triggerLocation?:Coordinates}>,route:null|{geometry:Coordinates[],distanceM:number,walkingMinutes:number,attribution:string,tunnels?:Array<[number,number]>},fieldChecked:boolean}} WalkDocument */
+/** @typedef {{version:2,id:string,title:string,description:string,city:string,mode:'open'|'loop',minutes:number,start:WalkPlace|null,stops:Array<{id:string,place:WalkPlace,storyRef:null|{kind:'job'|'osm'|'catalog',id:string},placeId?:string,transition:string,nextHint:string,triggerLocation?:Coordinates}>,route:null|{geometry:Coordinates[],distanceM:number,walkingMinutes:number,attribution:string,tunnels?:Array<[number,number]>},fieldChecked:boolean}} WalkDocument */
 /** @typedef {{document:WalkDocument,revision:number,contentVersion:string,chapters:Array<{id:string,status:string,story:object|null,audio:object|null}>}} WalkView */
 
 export function validateWalkDocument(value) {

@@ -64,16 +64,25 @@ describe("universal walk adapters", () => {
   });
 
   it.each([
-    { name: "a resolved OSM story", contentId: "osm:way:42", story: true, placeId: "osm:way:42" },
-    { name: "an OSM story the server could not resolve", contentId: "osm:way:42", story: false, placeId: undefined },
-    { name: "a stop without a catalog story", contentId: undefined, story: true, placeId: undefined },
-  ])("links the place photo of $name", ({ contentId, story, placeId }) => {
-    const stop = contentId ? { ...firstStop, contentId } : firstStop;
+    { name: "a catalog place without a story", place: { placeId: "osm:node:7" }, story: false, placeId: "osm:node:7" },
+    { name: "a catalog place told by its own story", place: { contentId: "osm:way:42", placeId: "osm:way:42" }, story: true, placeId: "osm:way:42" },
+    { name: "a walk saved before stops named their place", place: { contentId: "osm:way:42" }, story: true, placeId: "osm:way:42" },
+    { name: "an OSM story the server could not resolve", place: { contentId: "osm:way:42" }, story: false, placeId: undefined },
+    { name: "a stop off the catalog", place: {}, story: true, placeId: undefined },
+  ])("links the place photo of $name", ({ place, story, placeId }) => {
+    const stop = { ...firstStop, ...place };
     const document = draftToWalkDocument({ ...draft([stop]), jobs: [] }, "55555555-5555-4555-8555-555555555555");
     const walkStory = { title: "Дом", address: firstStop.address, paragraphs: [{ text: "Рассказ.", factIds: [] }], sources: [], facts: [] };
     const route = walkViewToRoute({ document, revision: 1, contentVersion: "photo-1",
       chapters: document.stops.map(item => ({ id: item.id, status: story ? "text_ready" as const : "unavailable" as const, story: story ? walkStory : null, audio: null })) });
     expect(route.walk?.steps.at(-1)?.place_id).toBe(placeId);
+  });
+
+  it("keeps the catalog place of a stop through editor restore", () => {
+    const stop = { ...firstStop, placeId: "osm:node:7" };
+    const document = draftToWalkDocument({ ...draft([stop]), jobs: [] }, "66666666-6666-4666-8666-666666666666");
+    expect(document.stops[0].placeId).toBe("osm:node:7");
+    expect(walkDocumentToDraft(document).stops[0]).toEqual(stop);
   });
 
   it.each([11, 28, 40])("preserves %i stops through editor restore and playback", count => {

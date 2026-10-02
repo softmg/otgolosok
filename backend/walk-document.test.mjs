@@ -20,6 +20,14 @@ test("walk document preserves distinct chapters and real geometry", () => {
   assert.throws(() => validateWalkDocument(impossible), { code: "BAD_REQUEST" });
 });
 
+test("a stop names its catalog place only by an OSM id", () => {
+  for (const [placeId, valid] of [["osm:node:1", true], ["osm:way:35814561", true], ["osm:relation:225033", true], ["osm:area:1", false], ["way:1", false], ["", false], [42, false], [null, false]]) {
+    const document = walk(); document.stops[0].placeId = placeId;
+    if (valid) assert.deepEqual(validateWalkDocument(document), document, String(placeId));
+    else assert.throws(() => validateWalkDocument(document), { code: "BAD_REQUEST" }, String(placeId));
+  }
+});
+
 test("walk documents accept forty stops and reject a forty-first", () => {
   const document = walk();
   document.stops = Array.from({ length: 40 }, (_, index) => ({

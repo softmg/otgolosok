@@ -229,9 +229,10 @@ const editorial = editorialPhotos[photoPlace];
 const placePhoto = { thumbnail: editorial.thumbnail, src: editorial.src, width: editorial.width, height: editorial.height, alt: editorial.alt,
   author: editorial.author, sourceUrl: editorial.sourceUrl, license: editorial.license, licenseUrl: editorial.licenseUrl };
 
-async function openPhotoStop(page: Page, photo: typeof placePhoto | null = placePhoto) {
+/** `story`: the stop tells the place's published story; `place`: the stop only names the catalog place, as with a test placeholder. */
+async function openPhotoStop(page: Page, photo: typeof placePhoto | null = placePhoto, link: "story" | "place" = "story") {
   const document = draftToWalkDocument({ version: 1, title: "К кинотеатру", start, destination: null, mode: "loop", minutes: 30,
-    stops: [{ ...stops[0], contentId: photoPlace }], route: { stops, geometry: [start.location, stops[0].location, start.location], distanceM: 400, walkingMinutes: 6, attribution: "OSM" }, jobs: [], submitting: null }, id);
+    stops: [{ ...stops[0], ...(link === "story" ? { contentId: photoPlace } : {}), placeId: photoPlace }], route: { stops, geometry: [start.location, stops[0].location, start.location], distanceM: 400, walkingMinutes: 6, attribution: "OSM" }, jobs: [], submitting: null }, id);
   await page.addInitScript(({ id, document }) => {
     localStorage.setItem("otgolosok:walks:v2", JSON.stringify({ version: 2, legacyId: null, items: { [id]: { document, revision: 0 } } }));
   }, { id, document });
@@ -242,7 +243,7 @@ async function openPhotoStop(page: Page, photo: typeof placePhoto | null = place
     text: { story: { paragraphs: [{ text: "Рассказ о кинотеатре." }] }, audio: null }, ...(photo ? { photo } : {}) } } }));
   await page.goto(`/walk?local=${id}`);
   await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Кинотеатр «Художественный»", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: link === "story" ? "Кинотеатр «Художественный»" : stops[0].address, exact: true })).toBeVisible();
 }
 
 test("остановка у места из каталога показывает его фото, как карточка места", async ({ page }) => {
@@ -268,6 +269,12 @@ test("остановка у места из каталога показывае�
   await expect(trigger).toHaveCount(0);
   await page.getByRole("button", { name: "Читать историю", exact: true }).click();
   await expect(trigger).toBeVisible();
+});
+
+test("остановка у места из каталога без рассказа всё равно показывает его фото", async ({ page }) => {
+  await openPhotoStop(page, placePhoto, "place");
+  const trigger = page.getByRole("button", { name: `Открыть фото: ${stops[0].address}` });
+  await expect(trigger.locator("img")).toHaveJSProperty("naturalWidth", placePhoto.width);
 });
 
 test("остановка у места без фото не оставляет пустого места в панели", async ({ page }) => {

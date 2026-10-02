@@ -45,6 +45,7 @@ export function draftToWalkDocument(draft: Draft, id: string, previous?: WalkDoc
       id: old?.id ?? stopId(id, index),
       place: { address: place.address, location: { ...place.location } },
       storyRef: storyFor(place, draft.jobs),
+      ...(place.placeId ? { placeId: place.placeId } : {}),
       transition: old?.transition ?? "",
       nextHint: old?.nextHint ?? "",
       ...(old?.triggerLocation ? { triggerLocation: { ...old.triggerLocation } } : {}),
@@ -96,7 +97,7 @@ export function walkDocumentToDraft(document: WalkDocument, previousJobs: DraftS
     ...(document.destination ? { destination: document.destination } : {}),
     mode: document.mode,
     minutes: document.minutes === 15 ? 30 : document.minutes as 30 | 60 | 90,
-    stops: routeStops.map(stop => ({ ...stop.place, location: { ...stop.place.location }, ...(stop.storyRef?.kind === "osm" ? { contentId: stop.storyRef.id } : {}) })),
+    stops: routeStops.map(stop => ({ ...stop.place, location: { ...stop.place.location }, ...(stop.storyRef?.kind === "osm" ? { contentId: stop.storyRef.id } : {}), ...(stop.placeId ? { placeId: stop.placeId } : {}) })),
     route: document.route ? {
       stops: routeStops.map(stop => ({ ...stop.place, location: { ...stop.place.location } })),
       geometry: document.route.geometry.map(point => ({ ...point })),
@@ -175,10 +176,19 @@ function audioToLegacy(audio: WalkAudio | null): WalkStep["audio"] {
   };
 }
 
+/**
+ * The catalog place whose photo the stop shows. Walks saved before stops carried placeId still have
+ * the place of a resolved OSM story: the server resolves one only for the place at the stop.
+ */
+function photoPlace(stop: WalkView["document"]["stops"][number], story: WalkStory | null) {
+  return stop.placeId ?? (stop.storyRef?.kind === "osm" && story ? stop.storyRef.id : undefined);
+}
+
 function chapterToPoi(view: WalkView, index: number): { poi: Poi; step: WalkStep } {
   const stop = view.document.stops[index];
   const chapter = view.chapters[index];
   const content = walkStoryToHistorical(chapter.story, view.revision);
+  const placeId = photoPlace(stop, chapter.story);
   const poi: Poi = {
     id: stop.id,
     name: chapter.story?.title ?? stop.place.address,
@@ -201,8 +211,7 @@ function chapterToPoi(view: WalkView, index: number): { poi: Poi; step: WalkStep
     ...(stop.triggerLocation ? { trigger_location: stop.triggerLocation } : {}),
     trigger: defaultTrigger,
     status: chapter.status,
-    // The server resolves an OSM story only for the place at this stop, so its photo belongs here too.
-    ...(stop.storyRef?.kind === "osm" && chapter.story ? { place_id: stop.storyRef.id } : {}),
+    ...(placeId ? { place_id: placeId } : {}),
     ...(audioToLegacy(chapter.audio) ? { audio: audioToLegacy(chapter.audio) } : {}),
   };
   return { poi, step };

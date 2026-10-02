@@ -5,7 +5,8 @@ import { stageLabels, type GenerationStage } from "../generator/types";
 
 export const DRAFT_KEY = "otgolosok:walk:v1";
 export { MAX_WALK_STOPS };
-export type Place = { address: string; location: Coordinates; contentId?: string };
+/** contentId: the catalog place whose published story the stop tells; placeId: the catalog place at the stop, story or not. */
+export type Place = { address: string; location: Coordinates; contentId?: string; placeId?: string };
 export type Plan = { stops: Place[]; geometry: Coordinates[]; distanceM: number; walkingMinutes: number; attribution: string; tunnels?: Array<[number, number]> };
 // Mirrors MIN_BUDGET_SHARE in backend/walks.mjs: automatic walks aim for at least this share of the chosen time.
 export const MIN_BUDGET_SHARE = 0.75;
@@ -30,7 +31,7 @@ export type Draft = {
 export const emptyDraft = (): Draft => ({ version: 1, title: "Моя прогулка", start: null, mode: "loop", minutes: 30, stops: [], route: null, jobs: [], submitting: null });
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 export function isPlace(v: unknown): v is Place {
-  return record(v) && typeof v.address === "string" && v.address.trim().length >= 6 && v.address.length <= 180 && !/[\p{Cc}\p{Cf}<>]/u.test(v.address) && record(v.location) && typeof v.location.lat === "number" && typeof v.location.lon === "number" && isMoscowPoint(v.location as Coordinates) && (v.contentId === undefined || typeof v.contentId === "string" && /^osm:(node|way|relation):\d+$/.test(v.contentId));
+  return record(v) && typeof v.address === "string" && v.address.trim().length >= 6 && v.address.length <= 180 && !/[\p{Cc}\p{Cf}<>]/u.test(v.address) && record(v.location) && typeof v.location.lat === "number" && typeof v.location.lon === "number" && isMoscowPoint(v.location as Coordinates) && [v.contentId, v.placeId].every(id => id === undefined || typeof id === "string" && /^osm:(node|way|relation):\d+$/.test(id));
 }
 export const placeKey = (p: Place) => `${p.address.trim().toLocaleLowerCase("ru")}|${p.location.lat}|${p.location.lon}`;
 // Match normalizeAddress + the unhashed addressKey input in backend/domain.mjs.

@@ -10,7 +10,8 @@ const options = mode => ({ id, title: "Прогулка", description: "", mode,
 
 test("planner results become valid walk documents", () => {
   const cases = [
-    { name: "published place links an OSM story", stop: { address: "Мясницкая, 17", location: { lat: 55.764, lon: 37.636 }, contentId: "osm:way:42" }, storyRef: { kind: "osm", id: "osm:way:42" }, address: "Мясницкая, 17", mode: "loop" },
+    { name: "published place links an OSM story", stop: { address: "Мясницкая, 17", location: { lat: 55.764, lon: 37.636 }, contentId: "osm:way:42", placeId: "osm:way:42" }, storyRef: { kind: "osm", id: "osm:way:42" }, placeId: "osm:way:42", address: "Мясницкая, 17", mode: "loop" },
+    { name: "catalog place without a story keeps its place", stop: { address: "Москва, Алмазный фонд", location: { lat: 55.7496, lon: 37.6137 }, placeId: "osm:node:4988219028" }, storyRef: null, placeId: "osm:node:4988219028", address: "Москва, Алмазный фонд", mode: "loop" },
     { name: "place without content has no story", stop: { address: "Сретенский бульвар", location: { lat: 55.766, lon: 37.637 } }, storyRef: null, address: "Сретенский бульвар", mode: "open" },
     { name: "180-character address is kept", stop: { address: "а".repeat(180), location: { lat: 55.764, lon: 37.636 } }, storyRef: null, address: "а".repeat(180), mode: "loop" },
     { name: "240-character address is truncated", stop: { address: "б".repeat(240), location: { lat: 55.764, lon: 37.636 } }, storyRef: null, address: `${"б".repeat(179)}…`, mode: "loop" },
@@ -19,7 +20,7 @@ test("planner results become valid walk documents", () => {
     const document = planToWalkDocument(plan([item.stop]), options(item.mode));
     assert.deepEqual(validateWalkDocument(document), document, item.name);
     assert.equal(document.mode, item.mode, item.name);
-    assert.deepEqual(document.stops[0], { id: `${id}-stop-0`, place: { address: item.address, location: item.stop.location }, storyRef: item.storyRef, transition: "", nextHint: "" }, item.name);
+    assert.deepEqual(document.stops[0], { id: `${id}-stop-0`, place: { address: item.address, location: item.stop.location }, storyRef: item.storyRef, ...(item.placeId ? { placeId: item.placeId } : {}), transition: "", nextHint: "" }, item.name);
     assert.deepEqual(document.route, { geometry: plan([]).geometry, distanceM: 1800, walkingMinutes: 28, attribution: "© OpenStreetMap contributors" }, item.name);
     assert.deepEqual(document.start, start, item.name);
     assert.equal(document.fieldChecked, false, item.name);

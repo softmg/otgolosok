@@ -9,7 +9,7 @@ const address = value => {
 const place = value => ({ address: address(value.address), location: { lat: value.location.lat, lon: value.location.lon } });
 
 /**
- * @param {{stops:Array<{address:string,location:{lat:number,lon:number},contentId?:string}>,geometry:Array<{lat:number,lon:number}>,distanceM:number,walkingMinutes:number,attribution:string,tunnels?:Array<[number,number]>}} plan
+ * @param {{stops:Array<{address:string,location:{lat:number,lon:number},contentId?:string,placeId?:string}>,geometry:Array<{lat:number,lon:number}>,distanceM:number,walkingMinutes:number,attribution:string,tunnels?:Array<[number,number]>}} plan
  * @param {{id:string,title:string,description:string,mode:"loop"|"open",minutes:number,start:{address:string,location:{lat:number,lon:number}}}} options
  */
 export function planToWalkDocument(plan, { id, title, description, mode, minutes, start }) {
@@ -20,6 +20,7 @@ export function planToWalkDocument(plan, { id, title, description, mode, minutes
       id: `${id}-stop-${index}`.slice(0, 128),
       place: place(stop),
       storyRef: stop.contentId ? { kind: "osm", id: stop.contentId } : null,
+      ...(stop.placeId ? { placeId: stop.placeId } : {}),
       transition: "", nextHint: "",
     })),
     route: { geometry: plan.geometry.map(point => ({ lat: point.lat, lon: point.lon })), distanceM: plan.distanceM, walkingMinutes: plan.walkingMinutes, attribution: plan.attribution, ...(plan.tunnels ? { tunnels: plan.tunnels.map(([a, b]) => [a, b]) } : {}) },

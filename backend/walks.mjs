@@ -44,7 +44,8 @@ const contentId = value => typeof value === 'string' && /^osm:(node|way|relation
 const readinessRank = {none:0,story:1,audio:2};
 // Same normalization as addressKey in domain.mjs, without hashing.
 const sameAddressKey = address => address.normalize('NFKC').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[.,]/g,' ').replace(/\s+/g,' ').trim();
-const publicStop = p => ({address:p.address,location:p.location,...(p.contentId?{contentId:p.contentId}:{})});
+// placeId names the map catalog place at a stop whether or not it has a story yet, so its photo is shown either way.
+const publicStop = p => ({address:p.address,location:p.location,...(p.contentId?{contentId:p.contentId}:{}),...(p.placeId?{placeId:p.placeId}:{})});
 
 // Approximate a point against a short Moscow walking polyline. Besides the
 // distance, progress keeps landmarks in walking order instead of creating
@@ -91,8 +92,8 @@ export function selectChain({start,candidates,stopLimit,spacingM,loop,straightBu
 }
 
 function place(p) {
-  if (!keys(p,['address','location','contentId']) || !clean(p.address,240) || !keys(p.location,['lat','lon']) || !inBox(p.location) || (p.contentId!==undefined&&!contentId(p.contentId))) throw fail('WALK_INVALID');
-  return {address:clean(p.address,240),location:{lat:p.location.lat,lon:p.location.lon},...(p.contentId?{contentId:p.contentId}:{})};
+  if (!keys(p,['address','location','contentId','placeId']) || !clean(p.address,240) || !keys(p.location,['lat','lon']) || !inBox(p.location) || (p.contentId!==undefined&&!contentId(p.contentId)) || (p.placeId!==undefined&&!contentId(p.placeId))) throw fail('WALK_INVALID');
+  return {address:clean(p.address,240),location:{lat:p.location.lat,lon:p.location.lon},...(p.contentId?{contentId:p.contentId}:{}),...(p.placeId?{placeId:p.placeId}:{})};
 }
 
 // Valhalla's default shape is a latitude/longitude polyline with six decimals.
@@ -459,10 +460,10 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
           const catalogId=['node','way','relation'].includes(e.type)&&Number.isSafeInteger(e.id)?`osm:${e.type}:${e.id}`:null;
           const published=catalogId?suppliedById.get(catalogId):null;
           addCandidate({address:`Москва, ${street}, ${house}`,location:{lat:p.lat,lon:p.lon},catalogId,contentRank:published?readinessRank[published.readiness]:0,catalogRank:published?1:0,
-            ...(published&&published.readiness!=='none'?{contentId:published.id}:{})});
+            ...(published?{placeId:published.id}:{}),...(published&&published.readiness!=='none'?{contentId:published.id}:{})});
         }
         for(const item of supplied)addCandidate({address:clean(item.address,240),location:{lat:item.location.lat,lon:item.location.lon},catalogId:item.id,
-          contentRank:readinessRank[item.readiness],catalogRank:1,...(item.readiness!=='none'?{contentId:item.id}:{})});
+          contentRank:readinessRank[item.readiness],catalogRank:1,placeId:item.id,...(item.readiness!=='none'?{contentId:item.id}:{})});
         // The catalog point of the start building itself wins, then ready content.
         const startKey=sameAddressKey(start.address);
         const landmark=nearStart.map(item=>({item,same:sameAddressKey(item.address)===startKey,fromStart:distance(start.location,item.location)}))

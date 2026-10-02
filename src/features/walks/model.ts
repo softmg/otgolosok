@@ -1,7 +1,7 @@
 export type Coordinates = { lat: number; lon: number };
 export type Place = { address: string; location: Coordinates };
 export type StoryRef = { kind: "job" | "osm" | "catalog"; id: string } | null;
-export type WalkStop = { id: string; place: Place; storyRef: StoryRef; transition: string; nextHint: string; triggerLocation?: Coordinates };
+export type WalkStop = { id: string; place: Place; storyRef: StoryRef; placeId?: string; transition: string; nextHint: string; triggerLocation?: Coordinates };
 export type WalkDocument = {
   version: 2; id: string; title: string; description: string; city: "Москва"; mode: "open" | "loop";
   minutes: number; start: Place | null; destination?: Place | null; stops: WalkStop[];

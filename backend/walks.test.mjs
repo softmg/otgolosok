@@ -353,6 +353,8 @@ test('published audio and stories win the limited slots along a route', async ()
     fetchImpl:async(url,o)=>Response.json(route(JSON.parse(o.body)))});
   const result=await plan({start,mode:'open',minutes:30,destination:stop(8)});
   assert.deepEqual(result.stops.map(item=>item.contentId),[undefined,undefined,undefined,'osm:node:5','osm:node:6']);
+  // Every catalog place keeps its id for the photo, with or without a story.
+  assert.deepEqual(result.stops.map(item=>item.placeId),[1,2,3,5,6].map(n=>`osm:node:${n}`));
   assert.deepEqual(result.stops.map(item=>item.address),[1,2,3,5,6].map(n=>stop(n).address));
 });
 
