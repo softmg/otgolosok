@@ -2,6 +2,7 @@ import { expect, test, type Page } from "./support/test";
 import { draftToWalkDocument, routeToWalkView } from "../src/features/walks/adapters";
 import routeData from "../public/data/routes/paveletskaya.json" with { type: "json" };
 import type { Route } from "../src/features/tour/types";
+import editorialPhotos from "../backend/place-images-editorial.json" with { type: "json" };
 
 const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const start = { address: "Москва, Арбат, 1", location: { lat: 55.75, lon: 37.6 } };
@@ -195,6 +196,75 @@ test("гостевая прогулка показывает опубликов�
   expect(requests.length).toBeGreaterThan(0);
   for (const request of requests) expect(request).toEqual({ document, revision: 0 });
 });
+
+// Остановка у места из каталога с редакционным фото: сервер подставил его рассказ.
+const photoPlace = "osm:way:35814561";
+const editorial = editorialPhotos[photoPlace];
+const placePhoto = { thumbnail: editorial.thumbnail, src: editorial.src, width: editorial.width, height: editorial.height, alt: editorial.alt,
+  author: editorial.author, sourceUrl: editorial.sourceUrl, license: editorial.license, licenseUrl: editorial.licenseUrl };
+
+async function openPhotoStop(page: Page, photo: typeof placePhoto | null = placePhoto) {
+  const document = draftToWalkDocument({ version: 1, title: "К кинотеатру", start, destination: null, mode: "loop", minutes: 30,
+    stops: [{ ...stops[0], contentId: photoPlace }], route: { stops, geometry: [start.location, stops[0].location, start.location], distanceM: 400, walkingMinutes: 6, attribution: "OSM" }, jobs: [], submitting: null }, id);
+  await page.addInitScript(({ id, document }) => {
+    localStorage.setItem("otgolosok:walks:v2", JSON.stringify({ version: 2, legacyId: null, items: { [id]: { document, revision: 0 } } }));
+  }, { id, document });
+  await page.route("**/api/**", route => route.fulfill({ json: { user: null } }));
+  await page.route("**/api/story-walks/resolve", route => route.fulfill({ json: { document, revision: 0, contentVersion: "f".repeat(64), chapters: [{ id: document.stops[0].id, status: "text_ready",
+    story: { title: "Кинотеатр «Художественный»", address: stops[0].address, paragraphs: [{ text: "Рассказ о кинотеатре.", factIds: [] }], sources: [], facts: [] }, audio: null }] } }));
+  await page.route(`**/api/content/places/${photoPlace}`, route => route.fulfill({ json: { place: { id: photoPlace,
+    text: { story: { paragraphs: [{ text: "Рассказ о кинотеатре." }] }, audio: null }, ...(photo ? { photo } : {}) } } }));
+  await page.goto(`/walk?local=${id}`);
+  await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Кинотеатр «Художественный»", exact: true })).toBeVisible();
+}
+
+test("остановка у места из каталога показывает его фото, как карточка места", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openPhotoStop(page);
+  const trigger = page.getByRole("button", { name: "Открыть фото: Кинотеатр «Художественный»" });
+  await expect(trigger.locator("img")).toHaveJSProperty("naturalWidth", placePhoto.width);
+  // Фото во всю ширину панели над заголовком остановки.
+  expect(await trigger.evaluate(button => {
+    const photo = button.getBoundingClientRect(), panel = button.closest(".walk-session-panel")!.getBoundingClientRect();
+    const heading = document.getElementById("walk-session-title")!.getBoundingClientRect();
+    return Math.abs(photo.top - panel.top) <= 2 && panel.width - photo.width <= 3 && photo.bottom <= heading.top;
+  })).toBe(true);
+  await trigger.click();
+  const viewer = page.getByRole("dialog", { name: "Кинотеатр «Художественный»", exact: true });
+  await expect(viewer).toContainText(`Фото: ${editorial.author}.`);
+  await page.keyboard.press("Escape");
+  await expect(viewer).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  // Открытый текст забирает место у фото, как у плеера; закрытый возвращает его.
+  await page.getByRole("button", { name: "Читать историю", exact: true }).click();
+  await expect(page.getByText("Рассказ о кинотеатре.", { exact: true })).toBeVisible();
+  await expect(trigger).toHaveCount(0);
+  await page.getByRole("button", { name: "Читать историю", exact: true }).click();
+  await expect(trigger).toBeVisible();
+});
+
+test("остановка у места без фото не оставляет пустого места в панели", async ({ page }) => {
+  await openPhotoStop(page, null);
+  await expect(page.getByText("Без истории", { exact: true })).toHaveCount(0);
+  await expect(page.locator(".walk-session-photo [data-photo-banner]")).toHaveCount(0);
+  await expect(page.locator(".walk-session-photo")).toBeHidden();
+});
+
+for (const viewport of [{ width: 320, height: 568 }, { width: 844, height: 390 }, { width: 1440, height: 900 }]) {
+  test(`фото остановки, заголовок и «Завершить» помещаются в экран ${viewport.width}×${viewport.height}`, async ({ page }, info) => {
+    await page.setViewportSize(viewport);
+    await openPhotoStop(page);
+    const trigger = page.getByRole("button", { name: "Открыть фото: Кинотеатр «Художественный»" });
+    await expect(trigger.locator("img")).toHaveJSProperty("naturalWidth", placePhoto.width);
+    await expect(trigger).toBeInViewport();
+    // На низком экране фото уступает высоту первым, но остаётся удобной целью для пальца.
+    expect(await trigger.evaluate(button => button.parentElement!.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+    await expect(page.locator("#walk-session-title")).toBeInViewport();
+    await expect(page.getByRole("button", { name: "Завершить", exact: true })).toBeInViewport();
+    await page.screenshot({ path: info.outputPath("walk-photo.png") });
+  });
+}
 
 // Одна остановка с длинной историей и аудио: панель прогулки становится самой высокой.
 const catalog = routeData as Route;

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { ExploreMap, type MapFocus } from "../explore/explore-map";
 import { ExploreIcon } from "../explore/icons";
+import { PlacePhotoBanner } from "../explore/place-photo";
+import { usePlaceStory } from "../explore/place-story";
 import { BrandMark } from "../brand/brand-mark";
 import type { Coordinates, Route } from "./types";
 import type { WalkChapter } from "./walk-plan";
@@ -12,6 +14,12 @@ import type { OwnWalk } from "../walks/own-walk";
 import "./walk-session.css";
 
 const noop = () => {};
+
+/** The photo of the catalog place a stop tells about, as on its map card; nothing while it loads or without one. */
+function StopPhoto({ placeId, title }: { placeId: string; title: string }) {
+  const place = usePlaceStory(placeId);
+  return <PlacePhotoBanner photo={place.story?.photo} title={title} />;
+}
 
 export function WalkSession({ route, chapters, index, active, completed, user, positionFailed, resume,
   titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null, onRate = noop, own = null }: {
@@ -97,6 +105,8 @@ export function WalkSession({ route, chapters, index, active, completed, user, p
     </header>
     {active && user ? <button type="button" className="walk-session-locate" data-region="controls" aria-label="Моё местоположение" onClick={() => setFocus({ lat: user.lat, lon: user.lon, zoom: 16 })}><ExploreIcon name="locate" /></button> : null}
     <section ref={panelRef} className="walk-session-panel" data-region="sheet" aria-labelledby="walk-session-title">
+      {/* Like the player, the photo yields its room to an open drawer. */}
+      {active && chapter?.place_id && !drawer ? <div className="walk-session-photo"><StopPhoto key={chapter.id} placeId={chapter.place_id} title={chapter.title} /></div> : null}
       <header className="walk-session-heading">
         <div>
           <p className="walk-session-meta">{active ? chapter ? `Остановка ${index + 1} из ${chapters.length}` : "До финиша" : `${route.duration_min} мин · ${distance.toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`}{!active && !completed && ratingLabel ? <> · {reviews

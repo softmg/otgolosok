@@ -194,6 +194,8 @@ function chapterToPoi(view: WalkView, index: number): { poi: Poi; step: WalkStep
     ...(stop.triggerLocation ? { trigger_location: stop.triggerLocation } : {}),
     trigger: defaultTrigger,
     status: chapter.status,
+    // The server resolves an OSM story only for the place at this stop, so its photo belongs here too.
+    ...(stop.storyRef?.kind === "osm" && chapter.story ? { place_id: stop.storyRef.id } : {}),
     ...(audioToLegacy(chapter.audio) ? { audio: audioToLegacy(chapter.audio) } : {}),
   };
   return { poi, step };

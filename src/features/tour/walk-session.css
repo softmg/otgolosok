@@ -20,6 +20,11 @@
 .walk-session-search,.walk-session-back{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:50%;color:inherit}
 .walk-session-locate{position:absolute;z-index:2;right:18px;top:calc(var(--walk-controls-top) + 84px);display:grid;place-items:center;width:44px;height:44px;border:1px solid #203e3818;border-radius:50%;background:#fffaf0;color:inherit;box-shadow:0 4px 16px #203e3814;cursor:pointer}
 .walk-session-panel{position:absolute;z-index:2;bottom:calc(104px + 2 * env(safe-area-inset-bottom));left:12px;right:12px;max-height:calc(100dvh - 104px - var(--walk-controls-top) - 2 * env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding:20px;border:1px solid #203e3818;border-radius:24px;background:#fffaf0;box-shadow:0 8px 30px #203e3824}
+/* The stop photo spans the panel above the title, as on a place card; the panel's rounded corners clip it.
+   As in the card's media slot, it yields height first on a short screen, down to a tap target, so the title and actions stay visible. */
+.walk-session-panel:has(>.walk-session-photo){display:flex;flex-direction:column}
+.walk-session-photo{container-type:inline-size;display:flex;flex:0 1 auto;flex-direction:column;min-height:44px;overflow:hidden;margin:-20px -20px 16px}
+.walk-session-photo:empty{display:none}
 .walk-session-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .walk-session-heading>div{min-width:0}
 .walk-session-heading h1{font-family:inherit;font-size:22px;font-weight:700;line-height:1.25;letter-spacing:-.03em;margin:4px 0 0;overflow-wrap:anywhere}
@@ -81,7 +86,7 @@
   .walk-session-map .leaflet-control-zoom a:first-child{border-right:1px solid #203e381a}
   .walk-session-locate{top:var(--walk-controls-top);right:calc(12px + 88px + 8px)}
 }
-@media(max-height:560px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button,a){margin-top:4px}}
+@media(max-height:560px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-address{margin-top:6px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button,a){margin-top:4px}.walk-session-photo{margin:-12px -16px 10px}}
 
 /* Низкий горизонтальный экран: панель во всю ширину или по центру поднималась почти
    до верха и закрывала крестик, кнопки масштаба и линию маршрута. Как карточка на

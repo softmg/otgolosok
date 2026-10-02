@@ -63,6 +63,19 @@ describe("universal walk adapters", () => {
     expect(walkDocumentToDraft(document).stops[0]).toEqual(contentStop);
   });
 
+  it.each([
+    { name: "a resolved OSM story", contentId: "osm:way:42", story: true, placeId: "osm:way:42" },
+    { name: "an OSM story the server could not resolve", contentId: "osm:way:42", story: false, placeId: undefined },
+    { name: "a stop without a catalog story", contentId: undefined, story: true, placeId: undefined },
+  ])("links the place photo of $name", ({ contentId, story, placeId }) => {
+    const stop = contentId ? { ...firstStop, contentId } : firstStop;
+    const document = draftToWalkDocument({ ...draft([stop]), jobs: [] }, "55555555-5555-4555-8555-555555555555");
+    const walkStory = { title: "Дом", address: firstStop.address, paragraphs: [{ text: "Рассказ.", factIds: [] }], sources: [], facts: [] };
+    const route = walkViewToRoute({ document, revision: 1, contentVersion: "photo-1",
+      chapters: document.stops.map(item => ({ id: item.id, status: story ? "text_ready" as const : "unavailable" as const, story: story ? walkStory : null, audio: null })) });
+    expect(route.walk?.steps.at(-1)?.place_id).toBe(placeId);
+  });
+
   it.each([11, 28, 40])("preserves %i stops through editor restore and playback", count => {
     const stops = Array.from({ length: count }, (_, index) => ({ address: `Москва, Арбат, ${index + 3}`, location: { lat: 55.753 + index * 0.001, lon: 37.594 } }));
     const document = draftToWalkDocument({ ...draft(stops), jobs: [] }, "55555555-5555-4555-8555-555555555555");
