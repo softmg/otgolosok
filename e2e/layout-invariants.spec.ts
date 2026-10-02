@@ -9,9 +9,7 @@ import { SCREEN_STATES } from "./support/scenarios";
  */
 const KNOWN_LAYOUT_FAILURES: KnownFailure[] = [
   { screen: "карта", state: "выбранный дом", invariant: "focus", reason: "выбранное место центрируется без учёта шапки, кнопок и панели",
-    cases: ["320×568", "webkit 320×568"] },
-  { screen: "карта", state: "длинная история", invariant: "focus", reason: "выбранное место центрируется без учёта шапки, кнопок и панели",
-    cases: ["320×568", "webkit 320×568"] },
+    cases: ["webkit 320×568"] },
   { screen: "карта", state: "поиск", invariant: "free", reason: "панель и кнопки закрывают почти всю карту",
     cases: ["568×320"] },
   { screen: "прогулка", state: "до старта", invariant: "footer", reason: "панель прокручивается целиком, основное действие уходит из вида",

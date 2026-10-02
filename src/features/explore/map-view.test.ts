@@ -26,13 +26,13 @@ const route: [number, number][] = [[55.75, 37.6], [55.76, 37.61]];
 const panels = { top: 130, right: 12, bottom: 344, left: 12 };
 
 describe("вид карты", () => {
-  it("вписывает маршрут в свободную область с запасом на булавку", () => {
+  it("вписывает маршрут в свободную область с запасом на метку", () => {
     const map = fakeMap();
     const view = createMapView(map as never);
     view.setInsets(panels);
     view.fit(route);
-    expect(map.getBoundsZoom).toHaveBeenLastCalledWith(route, false, { x: 72, y: 546 });
-    expect(map.fitBounds).toHaveBeenLastCalledWith(route, { paddingTopLeft: [36, 178], paddingBottomRight: [36, 368], maxZoom: 15, animate: false });
+    expect(map.getBoundsZoom).toHaveBeenLastCalledWith(route, false, { x: 72, y: 522 });
+    expect(map.fitBounds).toHaveBeenLastCalledWith(route, { paddingTopLeft: [36, 154], paddingBottomRight: [36, 368], maxZoom: 15, animate: false });
   });
 
   it.each([

@@ -501,13 +501,13 @@ test("прогулка из Александровского сада с чет�
   const draft = { version: 1, title: "Из Александровского сада", start, mode: "loop", minutes: 60, stops, route: { stops, geometry: [start.location, ...stops.map(stop => stop.location), start.location], walkingMinutes: 30, distanceM: 2000, attribution: "OSM" }, jobs: [], submitting: null };
   await page.addInitScript(value => localStorage.setItem("otgolosok:walk:v1", JSON.stringify(value)), draft);
   await page.goto("/?walk=create&resume=1");
-  await expect(page.locator(".leaflet-overlay-pane path")).toBeVisible();
+  await expect(page.locator(".leaflet-overlay-pane path[data-route]")).toBeVisible();
   await page.getByRole("link", { name: "Начать прогулку", exact: true }).click();
   await expect(page.getByRole("heading", { name: draft.title, exact: true })).toBeVisible();
   await expect(page.getByText("Некорректные данные прогулки.", { exact: true })).toHaveCount(0);
   const map = page.locator(".walk-session-map");
   await map.scrollIntoViewIfNeeded();
-  await expect(map.locator(".leaflet-overlay-pane path")).toBeVisible();
+  await expect(map.locator(".leaflet-overlay-pane path[data-route]")).toBeVisible();
   const overlay = map.locator(".leaflet-overlay-pane svg");
   await expect.poll(() => overlay.evaluate(el => Math.abs(el.getBoundingClientRect().width - Number(el.getAttribute("width"))))).toBeLessThan(2);
   await page.screenshot({ path: info.outputPath("alexander-garden-track.png") });

@@ -11,46 +11,63 @@
   background: var(--surface-map);
 }
 
-.pin {
+/*
+ * Story markers: terracotta circles of one family. The transparent Leaflet box is the hit area,
+ * the inner span is the visible circle, centred in it. Compound states come after the
+ * single-class rules they override (stylelint no-descending-specificity).
+ */
+.place,
+.pending,
+.stop,
+.endpoint,
+.background {
+  display: grid;
+  place-items: center;
   background: transparent;
   border: 0;
-  filter: drop-shadow(
-    0 2px 3px color-mix(in srgb, var(--map-orange) 18%, transparent)
-  );
+  border-radius: 50%;
 }
 
-.pin > span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  color: transparent;
+.place > span,
+.pending > span,
+.stop > span,
+.endpoint > span,
+.background > span {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  background: var(--map-orange);
+  border: 3px solid var(--surface-island);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px
+    color-mix(in srgb, var(--map-orange) 30%, var(--map-green) 20%);
+}
+
+.pending > span {
   background: var(--surface-island);
-  border: 3px solid var(--map-orange);
-  border-radius: 50% 50% 50% 8px;
-  transform: rotate(-45deg);
+  border: 3px dashed var(--map-orange);
 }
 
-.pin > span > b {
+.stop > span {
+  width: 34px;
+  height: 34px;
   color: var(--map-orange);
   font-weight: 800;
   font-size: var(--text-map-pin);
   font-family: var(--font-body), sans-serif;
-  transform: rotate(45deg);
+  line-height: 1;
+  background: var(--surface-island);
+  border-color: var(--map-orange);
 }
 
-.pending > span {
-  border-style: dashed;
-}
-
-.selected > span {
-  background: var(--map-orange);
-  border-color: var(--surface-island);
-}
-
-.selected > span > b {
-  color: var(--surface-island);
+.endpoint > span {
+  width: 16px;
+  height: 16px;
+  background: var(--surface-island);
+  border: 4px solid var(--map-orange);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--map-green) 25%, transparent);
 }
 
 .userPosition {
@@ -70,38 +87,34 @@
     0 2px 8px color-mix(in srgb, var(--map-green) 40%, transparent);
 }
 
-.dot {
-  display: grid;
-  place-items: center;
-  background: transparent;
-  border: 0;
-}
-
-.dot > span {
-  display: block;
-  width: 24px;
-  height: 24px;
-  background: var(--map-orange);
-  border: 2px solid var(--raised);
-  border-radius: 50%;
-  box-shadow: 0 1px 4px color-mix(in srgb, var(--map-green) 25%, transparent);
-}
-
-.dot:hover > span,
-.dot:focus-visible > span {
+.place:hover > span,
+.place:focus-visible > span,
+.background:hover > span,
+.background:focus-visible > span {
   width: 28px;
   height: 28px;
 }
 
-.dot:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: 0;
-  border-radius: 50%;
+/* Selection never changes the shape or adds rings: a place grows, a stop inverts. */
+.place.selected > span,
+.pending.selected > span {
+  width: 32px;
+  height: 32px;
 }
 
-.pin:focus-visible {
+.stop.selected > span {
+  color: var(--surface-island);
+  background: var(--map-orange);
+  border-color: var(--surface-island);
+}
+
+.place:focus-visible,
+.pending:focus-visible,
+.stop:focus-visible,
+.endpoint:focus-visible,
+.background:focus-visible {
   outline: var(--focus-ring);
-  outline-offset: 2px;
+  outline-offset: 0;
 }
 
 .cluster {
@@ -112,15 +125,15 @@
   font-size: var(--text-map-pin);
   font-family: var(--font-body), sans-serif;
   line-height: 1;
-  background: var(--map-green);
-  border: 3px solid var(--raised);
+  background: var(--map-orange);
+  border: 3px solid var(--surface-island);
   border-radius: 50%;
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--map-green) 25%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--map-orange) 30%, transparent);
   cursor: pointer;
 }
 
 .cluster:hover {
-  background: color-mix(in srgb, var(--map-green) 88%, var(--on-dark));
+  background: color-mix(in srgb, var(--map-orange) 88%, var(--on-dark));
 }
 
 .cluster:focus-visible {

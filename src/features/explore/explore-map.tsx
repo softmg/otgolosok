@@ -15,6 +15,7 @@ import { cx } from "../ui/cx";
 import { catalogArea, type CatalogArea } from "./catalog-bounds";
 import { createMapClusters, loadMapLibrary, type MapClusters } from "./map-clusters";
 import { MOSCOW_CENTER, MOSCOW_ZOOM } from "./map-jobs";
+import { markerLook, type MarkerKind, type MarkerLook } from "./map-marker-look";
 import { createMapView, type MapFocus, type MapView } from "./map-view";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -89,7 +90,10 @@ export type MapItem = {
   location: Coordinates;
   number?: number;
   pending?: boolean;
+  /** A background catalog point in a mode where stories are secondary (walk creation): a small plain dot. */
   compact?: boolean;
+  /** Walk start or finish: a small hollow ring at the end of the line, not a story. */
+  endpoint?: boolean;
   /** Only catalog points join clusters; chapters, own jobs and picked places stay individual pins. */
   clusterable?: boolean;
 };
@@ -124,6 +128,14 @@ export type ExploreMapProps = {
   ref?: Ref<MapHandle>;
 };
 
+const MARKER_CLASS: Record<MarkerKind, string> = {
+  place: styles.place,
+  stop: styles.stop,
+  pending: styles.pending,
+  endpoint: styles.endpoint,
+  background: styles.background,
+};
+
 /** The map canvas only: controls, notices and attribution belong to the screen around it (MapShell). */
 export function ExploreMap({
   items,
@@ -148,7 +160,7 @@ export function ExploreMap({
     L: typeof Leaflet;
     map: Leaflet.Map;
     view: MapView;
-    colors: { route: string; user: string };
+    colors: { route: string; casing: string; user: string };
     markers: Leaflet.LayerGroup;
     clusters: MapClusters;
     markerById: Map<
@@ -156,6 +168,7 @@ export function ExploreMap({
       {
         marker: Leaflet.Marker;
         look: string;
+        dataMarker: MarkerLook["dataMarker"];
         clustered: boolean;
         location: Coordinates;
       }
@@ -298,7 +311,7 @@ export function ExploreMap({
           L,
           map,
           view,
-          colors: { route: routeColor, user: token("--user-position") },
+          colors: { route: routeColor, casing: token("--surface-island"), user: token("--user-position") },
           markers: L.layerGroup().addTo(map),
           clusters: createMapClusters(L, {
             className: styles.cluster,
@@ -362,19 +375,8 @@ export function ExploreMap({
     for (const item of items) {
       const active = item.id === selectedId;
       const clustered = item.clusterable === true && !active;
-      // Marker contents are fixed symbols/numbers, never upstream HTML.
-      const label = item.number
-        ? String(item.number)
-        : item.pending
-          ? "…"
-          : "♪";
-      const look = JSON.stringify([
-        item.title,
-        label,
-        item.compact ?? false,
-        item.pending ?? false,
-        active,
-      ]);
+      const variant = markerLook(item, active);
+      const look = JSON.stringify([item.title, variant.kind, variant.label, active]);
       const position: [number, number] = [item.location.lat, item.location.lon];
       const existing = rt.markerById.get(item.id);
       if (existing) {
@@ -387,45 +389,37 @@ export function ExploreMap({
         if (existing.look === look && existing.clustered === clustered)
           continue;
       }
-      const icon = item.compact
-        ? rt.L.divIcon({
-            className: styles.dot,
-            html: "<span></span>",
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-          })
-        : rt.L.divIcon({
-            className: cx(
-              styles.pin,
-              active && styles.selected,
-              item.pending && styles.pending,
-            ),
-            html: `<span><b>${label}</b></span>`,
-            iconSize: [44, 52],
-            iconAnchor: [22, 48],
-          });
+      const icon = rt.L.divIcon({
+        className: cx(MARKER_CLASS[variant.kind], active && styles.selected),
+        // Marker contents are a stop number or nothing, never upstream HTML.
+        html: `<span>${variant.label}</span>`,
+        iconSize: [variant.size, variant.size],
+        iconAnchor: [variant.size / 2, variant.size / 2],
+      });
       let marker = existing?.marker;
       if (marker) {
         // A div icon reuses its element, so focus and listeners survive the update.
         Object.assign(marker.options, { title: item.title, alt: item.title });
         marker
           .setIcon(icon)
-          .setZIndexOffset(active ? 1000 : item.compact ? -1000 : 0);
+          .setZIndexOffset(variant.zIndex);
       } else {
         marker = rt.L.marker(position, {
           icon,
           title: item.title,
           alt: item.title,
           keyboard: true,
-          zIndexOffset: active ? 1000 : item.compact ? -1000 : 0,
+          zIndexOffset: variant.zIndex,
           bubblingMouseEvents: false,
         });
         marker.on("click", () => handlers.current.onSelect(item.id));
         marker.on("add", () => {
           const element = marker?.getElement();
           const selected = handlers.current.selectedId === item.id;
+          // The variant may have changed since creation: read the current one.
+          const dataMarker = runtime.current?.markerById.get(item.id)?.dataMarker;
           element?.setAttribute("aria-pressed", String(selected));
-          element?.setAttribute("data-marker", item.compact ? "dot" : "pin");
+          if (dataMarker) element?.setAttribute("data-marker", dataMarker);
           element?.setAttribute("data-selected", String(selected));
         });
       }
@@ -439,11 +433,12 @@ export function ExploreMap({
       }
       const element = marker.getElement();
       element?.setAttribute("aria-pressed", String(active));
-      element?.setAttribute("data-marker", item.compact ? "dot" : "pin");
+      element?.setAttribute("data-marker", variant.dataMarker);
       element?.setAttribute("data-selected", String(active));
       rt.markerById.set(item.id, {
         marker,
         look,
+        dataMarker: variant.dataMarker,
         clustered,
         location: { ...item.location },
       });
@@ -468,10 +463,11 @@ export function ExploreMap({
       rt.view.clearFit();
       return;
     }
-    const line = rt.L.polyline(
-      geometry.map((p) => [p.lat, p.lon] as [number, number]),
-      { color: rt.colors.route, weight: 5, opacity: 0.9, interactive: false },
-    ).addTo(rt.route);
+    const points = geometry.map((p) => [p.lat, p.lon] as [number, number]);
+    const stroke = { lineCap: "round", lineJoin: "round", interactive: false } as const;
+    // A light casing under the green line: the same light rim as the markers, legible over any basemap.
+    rt.L.polyline(points, { ...stroke, color: rt.colors.casing, weight: 9, opacity: 0.9 }).addTo(rt.route);
+    const line = rt.L.polyline(points, { ...stroke, color: rt.colors.route, weight: 5, opacity: 0.95 }).addTo(rt.route);
     line.getElement()?.setAttribute("data-route", "");
     if (fitGeometry) rt.view.fit(line.getBounds());
     else rt.view.clearFit();

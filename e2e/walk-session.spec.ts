@@ -24,7 +24,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 
     await setup(page);
     await expect(page.getByRole("heading", { name: "Арбат", exact: true })).toBeVisible();
     const map = page.locator(".walk-session-map");
-    await expect(map.locator(".leaflet-overlay-pane path")).toBeVisible();
+    await expect(map.locator(".leaflet-overlay-pane path[data-route]")).toBeVisible();
     await expect(page.locator(".hero, .debug-panel, .walk-plan")).toHaveCount(0);
     await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
     await expect(page.getByRole("heading", { name: stops[0].address, exact: true })).toBeVisible();
@@ -63,6 +63,8 @@ test("прогулка по ссылке открывается на перво�
   await page.goto(`/walk?local=${id}`);
   await expect(page.getByRole("button", { name: "Начать прогулку", exact: true })).toBeVisible();
   await expect.poll(() => firstStopIsVisible(page)).toBe(true);
+  // Старт и финиш — кольца на концах линии, а не истории с номерами.
+  await expect(page.locator('.walk-session-map [data-marker="endpoint"]')).toHaveCount(2);
   const pins = page.locator('.walk-session-map [data-marker="pin"]');
   const centerX = (index: number) => pins.nth(index).evaluate(pin => { const box = pin.getBoundingClientRect(); return box.left + box.width / 2; });
   // Свободная часть карты на телефоне симметрична по горизонтали: первая остановка в её середине.

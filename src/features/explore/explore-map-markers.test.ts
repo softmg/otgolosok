@@ -23,12 +23,13 @@ const items = (): MapItem[] => [
   },
 ];
 
-async function render(value: MapItem[], selectedId?: string) {
+async function render(value: MapItem[], selectedId?: string, geometry?: MapItem["location"][]) {
   await act(async () => {
     root.render(
       createElement(ExploreMap, {
         items: value,
         selectedId,
+        geometry,
         focus: null,
         user: null,
         onSelect: () => {},
@@ -175,4 +176,27 @@ it("reindexes a catalog marker after its source coordinates change", async () =>
   ).toEqual(places.map((place) => place.title).sort());
   await render(places);
   expect(counts()).toEqual([2]);
+});
+
+it("draws places as plain circles, stops with numbers and walk ends as rings", async () => {
+  await render([
+    { id: "start", title: "Старт: Тверская", location: { lat: 55.749, lon: 37.599 }, endpoint: true },
+    ...items(),
+    { id: "place", title: "Каталог: дом", location: { lat: 55.752, lon: 37.602 } },
+    { id: "wait", title: "Готовим историю", location: { lat: 55.753, lon: 37.603 }, pending: true },
+  ]);
+  await vi.waitFor(() => expect(pins()).toHaveLength(4));
+  expect(pins().map((pin) => pin.textContent)).toEqual(["1", "2", "", ""]);
+  const ends = container.querySelectorAll<HTMLElement>('[data-marker="endpoint"]');
+  expect([...ends].map((end) => [end.title, end.textContent])).toEqual([["Старт: Тверская", ""]]);
+});
+
+it("draws the route as a green line over a light casing", async () => {
+  await render(items(), undefined, items().map((item) => item.location));
+  await vi.waitFor(() => expect(container.querySelectorAll("path")).toHaveLength(2));
+  const [casing, line] = container.querySelectorAll("path");
+  expect(line.hasAttribute("data-route")).toBe(true);
+  expect(casing.hasAttribute("data-route")).toBe(false);
+  expect(Number(casing.getAttribute("stroke-width"))).toBeGreaterThan(Number(line.getAttribute("stroke-width")));
+  expect(line.getAttribute("stroke-linecap")).toBe("round");
 });

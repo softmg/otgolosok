@@ -1,6 +1,6 @@
 # Plan: Unified style for map markers and the route line
 
-Status: plan, 2026-10-02.
+Status: implemented 2026-10-02 in branch `feat/promo-walks-stories-only`. Caveat: 6 pre-existing `layout-invariants` "footer … обрезано" failures in the walk panel (also failing on the base commit) are not addressed here.
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
@@ -21,8 +21,8 @@ The user finds the green/orange mix inconsistent and dislikes the music note. Go
 1. **Colour.** All story markers (clusters, single places, numbered stops, pending, start/finish, background dots) use terracotta `--map-orange`. The route line and cluster spider legs stay dark green (`--route-line` → `--map-green`) so markers read on top of the line.
 2. **Shape.** Every marker is a circle; the teardrop pin shape is removed entirely.
 3. **Single place.** A filled terracotta circle with a light rim (`--surface-island`), no glyph at all (the `♪` is removed, no replacement symbol).
-4. **Selected single place.** The same circle, larger, with a light rim plus an outer terracotta ring — no shape change on selection.
-5. **Numbered walk stops.** Circle with the number: light fill (`--surface-island`), terracotta border and terracotta number — visually distinct from clusters (terracotta fill, white count). The current/selected stop inverts: terracotta fill, white number, plus the same outer ring as a selected place.
+4. **Selected single place.** The same circle, larger, with the same light rim — no shape change on selection. (Revised during implementation at the user's request: the originally planned outer terracotta ring produced a double outline and was dropped.)
+5. **Numbered walk stops.** Circle with the number: light fill (`--surface-island`), terracotta border and terracotta number — visually distinct from clusters (terracotta fill, white count). The current/selected stop inverts: terracotta fill, light number, light rim (no outer ring — see decision 4).
 6. **Walk start/finish.** A distinct small hollow circle: light fill, thick terracotta ring, smaller than a single place — reads as an end of the line, not as a story.
 7. **Clusters.** Recoloured to terracotta fill, light rim, white count; size and behaviour unchanged.
 8. Implementer's call (not discussed, keep minimal): the route line gets a light casing (a wider `--surface-island` polyline under the green one) and round caps/joins, so it shares the "light rim" motif with markers and stays legible over the basemap. Pending ("story is being prepared") marker = light circle with a dashed terracotta border, no `…` glyph.
@@ -49,7 +49,7 @@ The user finds the green/orange mix inconsistent and dislikes the music note. Go
 
 In `explore-map.tsx`:
 - Extend `MapItem` with `endpoint?: boolean` — "walk start or finish: a small hollow ring, not a story". Keep `compact` with the narrowed meaning "background catalog point in a mode where it is secondary" (document it in the JSDoc).
-- Introduce a pure helper (exported for tests, e.g. in a new `src/features/explore/map-marker-look.ts`) `markerLook(item: MapItem, active: boolean): { kind: "place" | "stop" | "pending" | "endpoint" | "background"; label: string; className: string[]; size: number; dataMarker: "pin" | "dot" | "endpoint" }`. Rules: `endpoint` → endpoint; `compact` → background; `number` → stop (label = number); `pending` → pending (label = ""); otherwise place (label = ""). No `♪` and no `…` anywhere.
+- Introduce a pure helper (exported for tests, e.g. in a new `src/features/explore/map-marker-look.ts`) `markerLook(item: MapItem, active: boolean): { kind: "place" | "stop" | "pending" | "endpoint" | "background"; label: string; size: number; dataMarker: "pin" | "dot" | "endpoint"; zIndex: number }` (as built: no class list — CSS-module classes stay in the component, mapped from `kind` via `MARKER_CLASS`; z-index lives in the helper). Rules: `endpoint` → endpoint; `compact` → background; `number` → stop (label = number); `pending` → pending (label = ""); otherwise place (label = ""). No `♪` and no `…` anywhere.
 - The effect uses the helper for icon creation, `look` (must include `kind`), `data-marker`, and z-index (active 1000, background/endpoint −1000, others 0 — endpoints stay under stops).
 
 ### 1. Icons
@@ -63,9 +63,9 @@ Replace the teardrop divIcon with centre-anchored circle icons:
 
 Rewrite marker rules (class names may be renamed: `.place`, `.stop`, `.pending`, `.endpoint`, `.background`, `.selected`, `.cluster`); the transparent Leaflet box is the hit area, the inner `span` is the visible circle:
 - `.place > span`: 24 px, fill `--map-orange`, 3 px `--surface-island` border, soft shadow (`color-mix` of `--map-orange`/`--map-green`, as today). Hover/focus-visible: 28 px.
-- `.place.selected > span`: 32 px, same fill and light border + outer ring `box-shadow: 0 0 0 3px var(--map-orange)` + shadow.
+- `.place.selected > span`: 32 px, same fill and light border (no outer ring, see decision 4).
 - `.pending > span`: 24 px, fill `--surface-island`, 3 px dashed `--map-orange` border; selected: 32 px.
-- `.stop > span`: 34 px, fill `--surface-island`, 3 px solid `--map-orange` border, number in `--map-orange`, bold, `--text-map-pin`, `--font-body`. `.stop.selected > span`: fill `--map-orange`, number `--surface-island`, light border + outer terracotta ring.
+- `.stop > span`: 34 px, fill `--surface-island`, 3 px solid `--map-orange` border, number in `--map-orange`, bold, `--text-map-pin`, `--font-body`. `.stop.selected > span`: fill `--map-orange`, number `--surface-island`, light border.
 - `.endpoint > span`: 16 px, fill `--surface-island`, 4 px `--map-orange` border, small shadow.
 - `.background > span`: same as `.place` at 24 px (keeps `e2e/interface.spec.ts` 24–28 px assertion), no selection styles needed.
 - `.cluster`: background `--map-orange`, border 3 px `--surface-island`, text `--on-dark`; hover `color-mix(in srgb, var(--map-orange) 88%, var(--on-dark))`; shadow in terracotta. Size unchanged (48 px, set in `map-clusters.ts`).
@@ -89,7 +89,7 @@ In the geometry effect (~line 465): draw two polylines into `rt.route` — a cas
 ### 6. Docs
 
 - `DESIGN.md`: add a short "Метки на карте" section (Russian): terracotta for all story markers, green line with light casing, circle variants (место, выбранное место, остановка с номером, текущая остановка, готовится, старт/финиш, группа), no glyphs.
-- `docs/agents/map-clustering.md`: update the sentence about pins if it mentions shapes/colours (clusters are now terracotta).
+- `docs/agents/map-clustering.md`: checked — it does not mention marker shapes or colours, no change needed.
 
 ## Testing & verification
 
@@ -97,7 +97,7 @@ In the geometry effect (~line 465): draw two polylines into `rt.route` — a cas
 - `explore-map-markers.test.ts`: update to assert single catalog places render an empty label (no `♪`), stops render their number, start/finish get `data-marker="endpoint"`, toggling selection updates classes on the same element (focus preserved — existing tests). Remove/adjust assertions that depend on the teardrop markup.
 - `explore-map.test.ts` (or existing route test): route layer contains a casing and a `data-route` line.
 - `map-view.test.ts`: new `PIN` room.
-- e2e: run `e2e/interface.spec.ts`, `e2e/map-catalog.spec.ts`, `e2e/walk-session.spec.ts`; update selectors only where `data-marker` for start/finish changed. Add one assertion in `walk-session.spec.ts` that start/finish carry `data-marker="endpoint"`.
+- e2e: run `e2e/interface.spec.ts`, `e2e/map-catalog.spec.ts`, `e2e/walk-session.spec.ts`; update selectors only where `data-marker` for start/finish changed. Add one assertion in `walk-session.spec.ts` that start/finish carry `data-marker="endpoint"`. As built: route-line selectors `.leaflet-overlay-pane path` became `path[data-route]` (the casing is a second path); `layout-invariants.spec.ts` known `focus` failures for the selected place at 320×568 were removed where centred circles now pass (only `карта / выбранный дом` webkit 320×568 remains).
 - `pnpm check` must pass.
 - Browser verification (dev server via preview): home map at overview and street zoom (clusters + single places same terracotta, no notes), select a place (larger circle with ring), walk creation (background dots + numbered stops + green line with casing), walk session (current stop inverted, start/finish hollow rings), mobile width 375 px. Take screenshots for the report.
 
