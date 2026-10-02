@@ -22,6 +22,8 @@ services:
       APP_ORIGIN: ${APP_ORIGIN:-http://localhost:8080}
       USER_DAILY_GENERATION_LIMIT: ${USER_DAILY_GENERATION_LIMIT:-6}
       WALK_ROUTER_URL: http://valhalla:8002/route
+      # Tunnel lookup for the route line; an empty value in .env switches it off.
+      WALK_TRACE_URL: ${WALK_TRACE_URL-http://valhalla:8002/trace_attributes}
       WALK_OVERPASS_URL: ${WALK_OVERPASS_URL:-https://overpass-api.de/api/interpreter}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}

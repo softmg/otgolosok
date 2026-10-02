@@ -1,4 +1,4 @@
-import { MAX_WALK_STOPS } from "./walk-document.mjs";
+import { MAX_WALK_STOPS, MAX_ROUTE_TUNNELS } from "./walk-document.mjs";
 import discoveryCatalog from './walk-discovery-catalog.json' with { type: 'json' };
 
 const fail = (code) => Object.assign(new Error(code), {code});
@@ -118,6 +118,95 @@ function decode(shape) {
   return points;
 }
 
+const MAX_RESPONSE_BYTES=1024*1024;
+// Reads a JSON body up to MAX_RESPONSE_BYTES; aborting the signal cancels the stream.
+async function readJson(response,signal) {
+  const reader=response.body.getReader(),chunks=[];let size=0;
+  const cancel=()=>{void reader.cancel().catch(()=>{});};
+  signal.addEventListener('abort',cancel,{once:true});
+  try {
+    while(true) {
+      signal.throwIfAborted();
+      const {done,value}=await reader.read();if(done)break;
+      size+=value.byteLength;if(size>MAX_RESPONSE_BYTES)throw fail('WALK_UNAVAILABLE');chunks.push(value);
+    }
+    return JSON.parse(Buffer.concat(chunks).toString());
+  } finally {signal.removeEventListener('abort',cancel);cancel();}
+}
+
+// An http(s) URL without credentials, otherwise null.
+const routerEndpoint=value=>{
+  if(!value)return null;
+  try {const url=new URL(value);return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url.toString():null;}
+  catch {return null;}
+};
+
+// Tunnel data only changes how the line is drawn, and the planner shares one hard
+// budget between routing and this lookup. A failed lookup is not retried: the walk
+// is shown with a solid line, and the next route build asks again.
+export const TRACE_TIMEOUT_MS=1500;
+const TRACE_MIN_REMAINING_MS=2000;
+const TUNNEL_MATCH_METERS=3;
+// Distance in metres from a point to a short polyline, on a local plane.
+function polylineDistance(point,line) {
+  const scaleX=111320*Math.cos(point.lat*Math.PI/180),scaleY=111320;
+  const at=p=>({x:(p.lon-point.lon)*scaleX,y:(p.lat-point.lat)*scaleY});
+  let best=Math.hypot(at(line[0]).x,at(line[0]).y);
+  for(let i=1;i<line.length;i++) {
+    const a=at(line[i-1]),b=at(line[i]),dx=b.x-a.x,dy=b.y-a.y,length2=dx*dx+dy*dy;
+    const t=length2?Math.max(0,Math.min(1,-(a.x*dx+a.y*dy)/length2)):0;
+    best=Math.min(best,Math.hypot(a.x+dx*t,a.y+dy*t));
+  }
+  return best;
+}
+
+/**
+ * Covered stretches of a routed walk as [a, b] vertex ranges of the concatenated
+ * geometry (each leg after the first drops its first point, as in measureRoute).
+ * Valhalla's matched shape does not keep our vertices, so tunnel edges are mapped
+ * back geometrically. Best effort: any failure returns null, never a partial set.
+ * @param {Array<Array<{lat:number,lon:number}>>} legs
+ * @param {{fetchImpl:WalkFetch,traceUrl:string|undefined|null,signal?:AbortSignal,timeoutMs?:number}} options
+ * @returns {Promise<Array<[number,number]>|null>}
+ */
+export async function traceTunnels(legs,{fetchImpl,traceUrl,signal,timeoutMs=TRACE_TIMEOUT_MS}) {
+  const url=routerEndpoint(traceUrl);
+  if(!url||signal?.aborted)return null;
+  const controller=new AbortController(),abort=()=>controller.abort();
+  const timer=setTimeout(abort,timeoutMs);
+  signal?.addEventListener('abort',abort,{once:true});
+  try {
+    const covered=new Set();let offset=0;
+    for(const leg of legs) {
+      const body={shape:leg.map(p=>({lat:p.lat,lon:p.lon})),costing:'pedestrian',shape_match:'walk_or_snap',
+        filters:{attributes:['edge.tunnel','edge.begin_shape_index','edge.end_shape_index','shape'],action:'include'}};
+      const response=await fetchImpl(url,{method:'POST',body:JSON.stringify(body),redirect:'error',signal:controller.signal,headers:{'Content-Type':'application/json',Accept:'application/json','User-Agent':'Otgolosok/0.1 (+https://otgolosok.online)'}});
+      if(!response?.ok||!response.body?.getReader){await response?.body?.cancel();return null;}
+      const data=await readJson(response,controller.signal);
+      if(!Array.isArray(data?.edges)||data.edges.length>20000)return null;
+      const shape=decode(data.shape);
+      for(const edge of data.edges) {
+        if(edge?.tunnel!==true)continue;
+        const begin=edge.begin_shape_index,end=edge.end_shape_index;
+        if(!Number.isSafeInteger(begin)||!Number.isSafeInteger(end)||begin<0||end<begin||end>=shape.length)return null;
+        const part=shape.slice(begin,end+1);
+        for(let i=1;i<leg.length;i++)
+          if(polylineDistance(leg[i-1],part)<=TUNNEL_MATCH_METERS&&polylineDistance(leg[i],part)<=TUNNEL_MATCH_METERS)covered.add(offset+i-1);
+      }
+      offset+=Math.max(0,leg.length-1);
+    }
+    // Segment g joins vertices g and g+1; consecutive covered segments form one range.
+    /** @type {Array<[number,number]>} */
+    const ranges=[];
+    for(const segment of [...covered].sort((a,b)=>a-b)) {
+      const last=ranges.at(-1);
+      if(last&&last[1]===segment)last[1]=segment+1;else ranges.push([segment,segment+1]);
+    }
+    return ranges.length<=MAX_ROUTE_TUNNELS?ranges:null;
+  } catch {return null;}
+  finally {clearTimeout(timer);signal?.removeEventListener('abort',abort);controller.abort();}
+}
+
 /**
  * @typedef {{type?: string, id?: number, lat?: number, lon?: number, center?: {lat: number, lon: number},
  *   tags?: Record<string, string>}} OverpassElement
@@ -126,15 +215,16 @@ function decode(shape) {
  */
 
 /**
- * @param {{fetchImpl?: WalkFetch, now?: () => number, routerUrl?: string, overpassUrl?: string,
+ * @param {{fetchImpl?: WalkFetch, now?: () => number, routerUrl?: string, traceUrl?: string, overpassUrl?: string,
  *   discoveryElements?: OverpassElement[] | null, candidateProvider?: ((query: {lat: number, lon: number, radius: number, limit: number, published: boolean}) => any) | null,
  *   timeoutMs?: number, minIntervalMs?: number, maxWaiters?: number, maxWaitMs?: number}} [options]
  */
 export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
-  routerUrl=process.env.WALK_ROUTER_URL,
+  routerUrl=process.env.WALK_ROUTER_URL,traceUrl=process.env.WALK_TRACE_URL,
   overpassUrl=process.env.WALK_OVERPASS_URL ?? 'https://overpass-api.de/api/interpreter',
   discoveryElements=process.env.WALK_DISCOVERY_SOURCE==='overpass'?null:discoveryCatalog.elements,candidateProvider=null,
   timeoutMs=12000, minIntervalMs=2000, maxWaiters=8, maxWaitMs=10000}={}) {
+  const traceEndpoint=routerEndpoint(traceUrl);
   // One plan at a time, started at least minIntervalMs apart, keeps the router
   // and Overpass load bounded. Other requests wait in a short FIFO queue; one
   // client may start at most one plan per interval.
@@ -179,7 +269,8 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
     if(!routerUrl)throw fail('WALK_UNAVAILABLE');
     limitClient(client);
     await acquire();
-    const controller=new AbortController();let timer,discovering=false;
+    // Leg shapes of measured routes stay off the public route object.
+    const controller=new AbortController(),startedAt=now(),legsOf=new WeakMap();let timer,discovering=false;
     const unavailable=()=>fail(discovering?'WALK_DISCOVERY_UNAVAILABLE':'WALK_UNAVAILABLE');
     const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(unavailable());},timeoutMs);});
     // A router answers "no path" with a 4xx JSON body; routerErrors turns those
@@ -188,19 +279,9 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
       const response=await fetchImpl(url,{method:'POST',body,redirect:'error',signal:controller.signal,headers:{'Content-Type':contentType,Accept:'application/json','User-Agent':'Otgolosok/0.1 (+https://otgolosok.online)'}});
       const clientError=routerErrors&&response?.status>=400&&response.status<500;
       if((!response?.ok&&!clientError)||!response.body?.getReader){await response?.body?.cancel();throw fail('WALK_UNAVAILABLE');}
-      const reader=response.body.getReader(),chunks=[];let size=0;
-      const cancel=()=>{void reader.cancel().catch(()=>{});};
-      controller.signal.addEventListener('abort',cancel,{once:true});
-      try {
-        while(true) {
-          controller.signal.throwIfAborted();
-          const {done,value}=await reader.read();if(done)break;
-          size+=value.byteLength;if(size>1024*1024)throw fail('WALK_UNAVAILABLE');chunks.push(value);
-        }
-        const data=JSON.parse(Buffer.concat(chunks).toString());
-        if(clientError)throw fail(UNROUTABLE_CODES.includes(data?.error_code)?'WALK_UNROUTABLE':'WALK_UNAVAILABLE');
-        return data;
-      } finally {controller.signal.removeEventListener('abort',cancel);cancel();}
+      const data=await readJson(response,controller.signal);
+      if(clientError)throw fail(UNROUTABLE_CODES.includes(data?.error_code)?'WALK_UNROUTABLE':'WALK_UNAVAILABLE');
+      return data;
     }
     // A usable route reports its walking time and whether it fits the chosen budget.
     // An unusable one is rejected with a reason and, when the router data points at
@@ -250,7 +331,9 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
         }
         const direct=points.slice(1).reduce((sum,p,i)=>sum+distance(points[i].location,p.location),0);
         const fits=seconds<=input.minutes*60&&distanceM<=input.minutes*90&&distanceM<=Math.max(1200,direct*4);
-        return {kind:'route',seconds,fits,route:{stops:routeStops.map(publicStop),geometry,distanceM:Math.round(distanceM),walkingMinutes:Math.ceil(seconds/60),attribution:'© OpenStreetMap contributors; pedestrian routing by Valhalla. Map information is not verified historical evidence.'}};
+        const route={stops:routeStops.map(publicStop),geometry,distanceM:Math.round(distanceM),walkingMinutes:Math.ceil(seconds/60),attribution:'© OpenStreetMap contributors; pedestrian routing by Valhalla. Map information is not verified historical evidence.'};
+        legsOf.set(route,shapes);
+        return {kind:'route',seconds,fits,route};
     }
     async function routeStops(routeStops,options) {
       const measured=await measureRoute(routeStops,options);
@@ -390,6 +473,7 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
           if(landmark)stops.push(landmark);
           // The landmark is not routed, so the direct route already is its walk.
           let result=landmark?{...directRoute,stops:[publicStop(landmark)]}:directRoute,current=start,attempts=0;
+          if(landmark)legsOf.set(result,legsOf.get(directRoute));
           // Landmarks that the direct walking line already passes should win
           // over detours. Keep them ordered along the line.
           const alongRoute=candidates.map(candidate=>({candidate,...routeProximity(candidate.location,directRoute.geometry)}))
@@ -425,7 +509,16 @@ export function createWalkPlanner({fetchImpl=fetch, now=Date.now,
       }
     }
 
-    try {return await Promise.race([run(),deadline]);}
+    try {
+      const route=await Promise.race([run(),deadline]);
+      // Only the chosen route is traced, and only while enough of the plan's budget remains.
+      const legs=legsOf.get(route);
+      if(legs&&traceEndpoint&&startedAt+timeoutMs-now()>=TRACE_MIN_REMAINING_MS) {
+        const tunnels=await traceTunnels(legs,{fetchImpl,traceUrl:traceEndpoint,signal:controller.signal});
+        if(tunnels?.length)route.tunnels=tunnels;
+      }
+      return route;
+    }
     catch(error) {if(['WALK_NOT_FOUND','WALK_STOPS_NOT_FOUND','WALK_DISCOVERY_UNAVAILABLE','WALK_START_UNREACHABLE','WALK_DESTINATION_UNREACHABLE'].includes(error?.code))throw error;throw unavailable();}
     finally {clearTimeout(timer);controller.abort();release();}
   };

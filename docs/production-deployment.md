@@ -229,7 +229,10 @@ Valhalla is pinned to
 `ghcr.io/valhalla/valhalla-scripted@sha256:64b8f444a39521a8409ae39c8c1f5a80ec8d7167af906d9767c0bbea704fadc7`.
 It uses one build/server thread, 0.75 CPU, 768 MiB RAM and a 1280 MiB combined
 RAM/swap ceiling. Port 8002 is internal only. Readiness probes `/status`;
-the generator uses `WALK_ROUTER_URL=http://valhalla:8002/route`.
+the generator uses `WALK_ROUTER_URL=http://valhalla:8002/route` and
+`WALK_TRACE_URL=http://valhalla:8002/trace_attributes` (tunnels on the built route,
+drawn dashed; set `WALK_TRACE_URL=` empty in `.env` to switch the lookup off without
+a code change, see `docs/agents/route-tunnels.md`).
 
 Ordinary `/api/walk-plan` automatic stop discovery uses the bundled Moscow OSM catalog. The infrastructure
 template retains `WALK_OVERPASS_URL=https://maps.mail.ru/osm/tools/overpass/api/interpreter`,

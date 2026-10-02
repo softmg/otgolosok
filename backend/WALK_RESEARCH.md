@@ -90,7 +90,8 @@ fetch time and radius. Map data identifies candidates; it is not historical evid
 At least two candidates need accepted evidence. The dedicated internal manual
 planner has `minIntervalMs: 0`; a parent tries all three stops and, if needed, the
 three two-stop subsets, at most four bounded route attempts. `WALK_ROUTER_URL`
-remains the existing Valhalla route endpoint. No straight-line route fallback exists.
+remains the existing Valhalla route endpoint; with `WALK_TRACE_URL` set, the same
+planner adds `tunnels` to the final route (best effort, no retry). No straight-line route fallback exists.
 No evidence is terminal `insufficient_evidence`; no feasible route is terminal
 `failed/WALK_NOT_FOUND` with `canRetry:false`. Temporary discovery/router/provider
 failures permit explicit retry up to the existing three processing attempts.

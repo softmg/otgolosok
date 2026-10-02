@@ -55,7 +55,9 @@ docker compose up -d --build
 Открыть **http://localhost:8080**. Compose автоматически поднимает nginx со
 статическим Next.js export, Node.js backend с FFmpeg и Valhalla для пеших маршрутов.
 Только nginx публикует порт, по умолчанию на `127.0.0.1`. Backend и Valhalla
-доступны только внутри Docker-сети; `WALK_ROUTER_URL=http://valhalla:8002/route`.
+доступны только внутри Docker-сети; `WALK_ROUTER_URL=http://valhalla:8002/route`,
+`WALK_TRACE_URL=http://valhalla:8002/trace_attributes` (крытые участки маршрута —
+подземные переходы и арки — рисуются пунктиром; пустое значение в `.env` выключает поиск).
 Nginx обслуживает `/create`, `/admin`, `/walk` без расширения `.html` и передаёт
 `/api/` backend с Origin, Authorization и Range. API не кешируется.
 

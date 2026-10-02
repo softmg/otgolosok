@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWalkPlanner, MAX_AUTO_ROUTER_CALLS, selectChain } from './walks.mjs';
+import { createWalkPlanner, MAX_AUTO_ROUTER_CALLS, selectChain, traceTunnels, TRACE_TIMEOUT_MS } from './walks.mjs';
 import discoveryCatalog from './walk-discovery-catalog.json' with { type: 'json' };
 
 const start={address:'Москва, Арбат, 1',location:{lat:55.75,lon:37.60}};
@@ -772,4 +772,125 @@ test('a manual walk may start at its first stop, but no other stop may coincide 
   assert.equal(calls.length,1);assert.ok(!requestHas(calls[0],here));
   await assert.rejects(plan(input({stops:[stop(1),here]})),{code:'WALK_INVALID'});
   await assert.rejects(plan(input({mode:'open',stops:[here],destination:{address:'Москва, Арбат, 50',location:moved(start.location,0,3)}})),{code:'WALK_INVALID'});
+});
+
+// Tunnel lookup: the chosen route is traced leg by leg against Valhalla's trace_attributes.
+const TRACE='https://router.test/trace_attributes';
+const mid=(a,b,t=0.5)=>({lat:a.lat+(b.lat-a.lat)*t,lon:a.lon+(b.lon-a.lon)*t});
+// About one metre east: the matched shape never repeats our vertices exactly.
+const nudge=p=>({lat:p.lat,lon:p.lon+0.000015});
+/**
+ * @param {(body:any,options:any,calls:any[])=>Response|Promise<Response>} trace
+ * @param {{osm?:any,onRoute?:()=>void,traceUrl?:string,now?:()=>number,timeoutMs?:number}} [options]
+ */
+function traceFixture(trace,{osm=null,onRoute=()=>{},...options}={}) {
+  const calls=[];
+  const plan=createWalkPlanner({routerUrl:'https://router.test/route',traceUrl:TRACE,overpassUrl:'https://osm.test/',discoveryElements:null,minIntervalMs:0,...options,fetchImpl:async(url,o)=>{
+    if(String(url).startsWith('https://osm.test/')){calls.push({url:String(url)});return Response.json(osm);}
+    calls.push({url:String(url),body:JSON.parse(o.body)});
+    if(String(url)===TRACE)return trace(JSON.parse(o.body),o,calls);
+    onRoute();
+    return Response.json(route(JSON.parse(o.body)));
+  }});
+  return {plan,calls,traces:()=>calls.filter(call=>call.url===TRACE)};
+}
+// Fixture legs are [from, midpoint, to]. Leg 0 has its second half in a tunnel and
+// leg 1 its first half, so the two covered segments meet at stop 1 and merge.
+function tunnelAnswer(body) {
+  const [from,middle,to]=body.shape,leg=body.shape;
+  const outbound=leg[0].lat===start.location.lat&&leg.at(-1).lat===stop(1).location.lat;
+  const inbound=leg[0].lat===stop(1).location.lat;
+  if(outbound) {
+    const shape=[from,mid(from,middle),middle,mid(middle,to),to].map(nudge);
+    return Response.json({edges:[{begin_shape_index:0,end_shape_index:2},{tunnel:true,begin_shape_index:2,end_shape_index:4}],shape:encode(shape)});
+  }
+  if(inbound) {
+    const shape=[from,mid(from,middle,0.3),middle,to].map(nudge);
+    return Response.json({edges:[{tunnel:true,begin_shape_index:0,end_shape_index:2},{tunnel:false,begin_shape_index:2,end_shape_index:3}],shape:encode(shape)});
+  }
+  return Response.json({edges:[{begin_shape_index:0,end_shape_index:1}],shape:encode([from,to])});
+}
+
+test('the chosen route gets tunnel ranges mapped back by geometry and merged across a stop',async()=>{
+  const {plan,traces}=traceFixture(tunnelAnswer);
+  const result=await plan(input());
+  assert.deepEqual(result.tunnels,[[1,3]]);
+  assert.equal(traces().length,3);
+  for(const call of traces()) {
+    assert.equal(call.body.shape_match,'walk_or_snap');assert.equal(call.body.costing,'pedestrian');
+    assert.deepEqual(call.body.filters.attributes,['edge.tunnel','edge.begin_shape_index','edge.end_shape_index','shape']);
+  }
+  assert.deepEqual(traces().map(call=>call.body.shape.length),[3,3,3]);
+});
+
+test('a route without tunnel edges has no tunnels key',async()=>{
+  const {plan}=traceFixture(body=>Response.json({edges:[{begin_shape_index:0,end_shape_index:body.shape.length-1}],shape:encode(body.shape)}));
+  const result=await plan(input());
+  assert.equal('tunnels' in result,false);
+});
+
+for(const [name,traceUrl] of [['unset',undefined],['empty',''],['not http','ftp://router.test/trace'],['with credentials','https://user:secret@router.test/trace'],['malformed','not a url']])
+  test(`trace URL ${name}: no lookup and a plain route`,async()=>{
+    const {plan,calls}=traceFixture(()=>{throw new Error('must not trace');},{traceUrl});
+    const result=await plan(input());
+    assert.equal('tunnels' in result,false);
+    assert.ok(calls.every(call=>call.url==='https://router.test/route'));
+  });
+
+for(const [name,answer] of /** @type {Array<[string,(body:any)=>Response]>} */ ([
+  ['HTTP 500',()=>new Response('private',{status:500})],
+  ['HTTP 400 with error_code',()=>new Response(JSON.stringify({error_code:443,error:'Exact route match algorithm failed'}),{status:400})],
+  ['malformed JSON',()=>new Response('{')],
+  ['oversized body',()=>new Response('x'.repeat(1024*1024+1))],
+  ['broken shape',()=>Response.json({edges:[{tunnel:true,begin_shape_index:0,end_shape_index:1}],shape:'!'})],
+  ['index past the shape',body=>Response.json({edges:[{tunnel:true,begin_shape_index:0,end_shape_index:9}],shape:encode(body.shape)})],
+  ['network error',()=>{throw new Error('secret');}],
+]))test(`trace failure (${name}) keeps the route without tunnels`,async()=>{
+  // The first leg succeeds with a tunnel; a later failure must drop it too (all or nothing).
+  const {plan}=traceFixture((body,o,calls)=>calls.filter(call=>call.url===TRACE).length===1?tunnelAnswer(body):answer(body));
+  const result=await plan(input());
+  assert.equal('tunnels' in result,false);
+  assert.equal(result.stops.length,2);
+});
+
+test('a hanging trace is abandoned after its own timeout, and the plan still succeeds',async()=>{
+  const signals=[];
+  const {plan}=traceFixture((body,o)=>{signals.push(o.signal);return new Promise((_,reject)=>o.signal.addEventListener('abort',()=>reject(o.signal.reason)));});
+  const begun=Date.now(),result=await plan(input());
+  const elapsed=Date.now()-begun;
+  assert.equal('tunnels' in result,false);
+  assert.ok(elapsed>=TRACE_TIMEOUT_MS-50&&elapsed<TRACE_TIMEOUT_MS+1500,`${elapsed} ms`);
+  assert.equal(signals.length,1);assert.equal(signals[0].aborted,true);
+});
+
+test('no trace is requested when less than two seconds of the plan budget remain',async()=>{
+  let clock=0;
+  const {plan,traces}=traceFixture(tunnelAnswer,{now:()=>clock,timeoutMs:12000,onRoute:()=>{clock=10500;}});
+  const result=await plan(input());
+  assert.equal(traces().length,0);
+  assert.equal('tunnels' in result,false);
+});
+
+test('candidate measurements are never traced, only the final route',async()=>{
+  const {plan,calls,traces}=traceFixture(tunnelAnswer,{osm:candidates()});
+  const result=await plan({start,mode:'loop',minutes:30});
+  const routed=calls.filter(call=>call.url==='https://router.test/route');
+  assert.ok(routed.length>1,'several candidate routes were measured');
+  const lastRoute=calls.lastIndexOf(routed.at(-1));
+  assert.ok(calls.slice(0,lastRoute).every(call=>call.url!==TRACE),'no trace before routing ends');
+  assert.equal(traces().length,result.stops.length+1);
+});
+
+test('traceTunnels offsets later legs by the shared joint vertex',async()=>{
+  const a=start.location,b=stop(1).location,c=stop(2).location;
+  const legs=[[a,mid(a,b),b],[b,mid(b,c,0.25),mid(b,c,0.5),mid(b,c,0.75),c]];
+  const fetchImpl=async(url,o)=>{
+    const shape=JSON.parse(o.body).shape;
+    // Only the middle of the second leg is covered: global segments 3 and 4.
+    if(shape.length===5)return Response.json({edges:[{begin_shape_index:0,end_shape_index:1},{tunnel:true,begin_shape_index:1,end_shape_index:3},{begin_shape_index:3,end_shape_index:4}],shape:encode(shape.map(nudge))});
+    return Response.json({edges:[{begin_shape_index:0,end_shape_index:2}],shape:encode(shape)});
+  };
+  assert.deepEqual(await traceTunnels(legs,{fetchImpl,traceUrl:TRACE}),[[3,5]]);
+  const aborted=new AbortController();aborted.abort();
+  assert.equal(await traceTunnels(legs,{fetchImpl,traceUrl:TRACE,signal:aborted.signal}),null);
 });
