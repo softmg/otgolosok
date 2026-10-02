@@ -188,11 +188,6 @@
   accent-color: var(--map-green);
 }
 
-.wide {
-  width: 100%;
-  margin-top: var(--space-md);
-}
-
 /* Picking a point on the map: the sheet shrinks to a hint and a cancel. */
 .mapPick p {
   margin: 0 0 var(--space-md);

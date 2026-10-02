@@ -62,7 +62,7 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
     setMode(next); w.edit({ destination: null, mode: next === "time" ? "loop" : "open" });
     w.setTarget("destination");
   }
-  async function build() { await w.plan(); if (w.current.current.route) dispatch({ type: "step", step: "preview" }); }
+  async function build() { setPicker(null); await w.plan(); if (w.current.current.route) dispatch({ type: "step", step: "preview" }); }
   const preview = Boolean(w.draft.route) && !state.picking;
   const shortfall = w.draft.route && w.autoRoute && !w.draft.destination ? routeShortfall(w.draft.route, w.draft.minutes) : null;
 
@@ -91,7 +91,7 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
             </div>}
 
             {w.candidate && <div className={styles.candidate}><p>{w.candidate.address}</p><button className="ui-button" onClick={() => { w.confirmPlace(); setPicker(null); }}>Выбрать эту точку</button></div>}
-            {picker === "time" && <><fieldset className={styles.time} disabled={busy}><legend>Время пешком</legend><div>{([30, 60, 90] as const).map(minutes => <button type="button" key={minutes} aria-pressed={w.draft.minutes === minutes} onClick={() => w.edit({ minutes })}>{minutes} мин</button>)}</div></fieldset><label className={styles.switch}><span>Вернуться к началу</span><input type="checkbox" checked={w.draft.mode === "loop"} onChange={e => w.edit({ mode: e.target.checked ? "loop" : "open" })} /></label><button className={`ui-button ${styles.wide}`} onClick={() => setPicker(null)}>Готово</button></>}
+            {picker === "time" && <><fieldset className={styles.time} disabled={busy}><legend>Время пешком</legend><div>{([30, 60, 90] as const).map(minutes => <button type="button" key={minutes} aria-pressed={w.draft.minutes === minutes} onClick={() => w.edit({ minutes })}>{minutes} мин</button>)}</div></fieldset><label className={styles.switch}><span>Вернуться к началу</span><input type="checkbox" checked={w.draft.mode === "loop"} onChange={e => w.edit({ mode: e.target.checked ? "loop" : "open" })} /></label></>}
           </div>;
   const step = state.picking ? "picking" : preview ? "preview" : "form";
   const footer = preview && w.openHref ? <Link className={`ui-button ${styles.footerAction}`} href={w.openHref}>Начать прогулку</Link>

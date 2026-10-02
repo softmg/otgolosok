@@ -331,7 +331,7 @@ test("ручной адрес подтверждается кнопкой без
   expect(attempts).toBe(2);
 });
 
-test("время имеет мягкий акцент, а Готово подтверждает выбор", async ({ page }) => {
+test("время имеет мягкий акцент и сразу позволяет построить прогулку", async ({ page }) => {
   await page.goto("/?walk=create");
   await page.getByRole("button", { name: "Куда", exact: true }).click();
   await page.getByRole("button", { name: "По времени", exact: true }).click();
@@ -339,10 +339,7 @@ test("время имеет мягкий акцент, а Готово подт�
   await duration.click();
   await expect(duration).toHaveAttribute("aria-pressed", "true");
   expect(await duration.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgba(32, 62, 56, 0.12)");
-  const done = page.getByRole("button", { name: "Готово", exact: true });
-  expect(await done.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(32, 62, 56)");
-  await done.click();
-  await expect(page.locator("#creation-picker")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Готово", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Куда", exact: true })).toContainText("60 мин пешком");
 });
 
@@ -533,7 +530,6 @@ for (const [walkingMinutes, note] of [[18, true], [52, false]] as const) test(`�
   await page.getByRole("button", { name: "Куда", exact: true }).click();
   await page.getByRole("button", { name: "По времени" }).click();
   await page.getByRole("button", { name: "60 мин" }).click();
-  await page.getByRole("button", { name: "Готово" }).click();
   await page.getByRole("button", { name: "Построить прогулку" }).click();
   await expect(page.getByRole("heading", { name: "Ваш маршрут" })).toBeVisible();
   const shortfall = page.getByText(`Рядом нашлось мест только на ${walkingMinutes} мин из 60.`, { exact: false });
