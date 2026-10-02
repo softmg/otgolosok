@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import routeData from "../../../public/data/routes/paveletskaya.json";
-import { chapterTriggerConfig, getWalkChapters, nextChapterTarget } from "./walk-plan";
+import { arrivalTarget, arrivalTriggerConfig, chapterTriggerConfig, getWalkChapters, highlightedLeg, nextChapterTarget } from "./walk-plan";
 import type { Route } from "./types";
 
 const route = routeData as Route;
@@ -88,5 +88,46 @@ describe("Chapter triggers", () => {
   it("prefers a field-checked trigger declared on the next stop", () => {
     const checked = [chapters[0], { ...chapters[1], trigger: { enter_m: 20, exit_m: 45, min_fixes: 4, max_accuracy_m: 25 } }];
     expect(chapterTriggerConfig(checked, 0, fallback)).toEqual({ enterM: 20, exitM: 45, minFixes: 4, windowSize: 5, maxAccuracyM: 25 });
+  });
+});
+
+describe("Walking to a stop before its story", () => {
+  const chapters = getWalkChapters(route);
+  const fallback = { enterM: 35, exitM: 60, minFixes: 3, windowSize: 5, maxAccuracyM: 50 };
+  const finish = walk.finish.location;
+  const stopPoint = (index: number) => chapters[index].trigger_location ?? chapters[index].location;
+  const checked = { enter_m: 20, exit_m: 45, min_fixes: 4, max_accuracy_m: 25 };
+
+  it.each([
+    { name: "on the way to the first stop", index: 0, stage: "approach" as const, expected: () => stopPoint(0) },
+    { name: "at the first stop", index: 0, stage: "stop" as const, expected: () => stopPoint(1) },
+    { name: "on the way to the last stop", index: 3, stage: "approach" as const, expected: () => stopPoint(3) },
+    { name: "at the last stop", index: 3, stage: "stop" as const, expected: () => finish },
+  ])("listens $name", ({ index, stage, expected }) => {
+    expect(arrivalTarget(chapters, index, stage, finish)).toEqual(expected());
+  });
+
+  it("falls back to the finish without chapters", () => {
+    expect(arrivalTarget([], 0, "approach", finish)).toEqual(finish);
+    expect(arrivalTriggerConfig([], 0, "approach", fallback)).toBe(fallback);
+  });
+
+  it("uses the trigger of the stop it listens for", () => {
+    const withTrigger = [{ ...chapters[0], trigger: checked }, chapters[1]];
+    const expected = { enterM: 20, exitM: 45, minFixes: 4, windowSize: 5, maxAccuracyM: 25 };
+    expect(arrivalTriggerConfig(withTrigger, 0, "approach", fallback)).toEqual(expected);
+    expect(arrivalTriggerConfig(withTrigger, 0, "stop", fallback)).toBe(fallback);
+    expect(arrivalTriggerConfig([chapters[0], { ...chapters[1], trigger: checked }], 0, "stop", fallback)).toEqual(expected);
+  });
+
+  it.each([
+    { index: 0, stage: "approach" as const, count: 4, leg: 0 },
+    { index: 0, stage: "stop" as const, count: 4, leg: 1 },
+    { index: 2, stage: "approach" as const, count: 4, leg: 2 },
+    { index: 3, stage: "stop" as const, count: 4, leg: 4 },
+    { index: 0, stage: "approach" as const, count: 0, leg: 0 },
+    { index: 0, stage: "stop" as const, count: 0, leg: 0 },
+  ])("highlights leg $leg at chapter $index ($stage) of $count", ({ index, stage, count, leg }) => {
+    expect(highlightedLeg(index, stage, count)).toBe(leg);
   });
 });

@@ -13,11 +13,41 @@ export function nextChapterTarget(chapters: WalkChapter[], index: number, fallba
   return next?.trigger_location ?? next?.location ?? fallback;
 }
 
-export function chapterTriggerConfig(chapters: WalkChapter[], index: number, fallback: TriggerConfig): TriggerConfig {
-  const trigger = chapters[index + 1]?.trigger;
+function triggerConfigOf(step: WalkChapter | undefined, fallback: TriggerConfig): TriggerConfig {
+  const trigger = step?.trigger;
   return trigger
     ? { enterM: trigger.enter_m, exitM: trigger.exit_m, minFixes: trigger.min_fixes, windowSize: fallback.windowSize, maxAccuracyM: trigger.max_accuracy_m }
     : fallback;
+}
+
+export function chapterTriggerConfig(chapters: WalkChapter[], index: number, fallback: TriggerConfig): TriggerConfig {
+  return triggerConfigOf(chapters[index + 1], fallback);
+}
+
+/**
+ * Where a universal walk stands at chapter `index`: on the way to its stop, its
+ * story not started yet ("approach"), or arrived there ("stop").
+ */
+export type StopStage = "approach" | "stop";
+
+/** On the way to a stop the walk listens for that stop; after arriving, for the next one. */
+export function arrivalTarget(chapters: WalkChapter[], index: number, stage: StopStage, fallback: Coordinates): Coordinates {
+  if (stage === "stop") return nextChapterTarget(chapters, index, fallback);
+  const step = chapters[index];
+  return step?.trigger_location ?? step?.location ?? fallback;
+}
+
+export function arrivalTriggerConfig(chapters: WalkChapter[], index: number, stage: StopStage, fallback: TriggerConfig): TriggerConfig {
+  return stage === "stop" ? chapterTriggerConfig(chapters, index, fallback) : triggerConfigOf(chapters[index], fallback);
+}
+
+/**
+ * The leg the walker should walk now (see legRange): the leg into the stop on the
+ * way to it, the leg out of it after arriving; after the last stop, the leg to the finish.
+ */
+export function highlightedLeg(index: number, stage: StopStage, chapterCount: number): number {
+  if (chapterCount === 0) return 0;
+  return stage === "approach" ? Math.min(index, chapterCount - 1) : Math.min(index + 1, chapterCount);
 }
 
 export function getWalkChapters(route: Route, includePending = false): WalkChapter[] {
