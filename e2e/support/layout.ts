@@ -84,6 +84,9 @@ export async function collectViolations(page: Page, options: LayoutOptions, safe
     const toBox = (rect: DOMRect): Box => ({ left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom });
     const visible = (element: Element) => {
       if (!element.getClientRects().length) return false;
+      // A closed <details> shows only its summary; browsers may still lay out the rest.
+      const details = element.parentElement?.closest("details");
+      if (details && !details.open && !details.querySelector(":scope > summary")?.contains(element)) return false;
       const style = getComputedStyle(element);
       if (style.visibility === "hidden" || Number(style.opacity) === 0) return false;
       const rect = element.getBoundingClientRect();
