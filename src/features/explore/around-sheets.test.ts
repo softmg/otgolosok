@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { NearbySheet } from "./around-sheets";
+import { NearbySheet, PlaceSheet } from "./around-sheets";
 import type { NearbyRecommendation } from "./nearby-stories";
 
 const story: NearbyRecommendation = {
@@ -32,5 +32,21 @@ it.each([
   expect(close).not.toBeNull();
   await act(async () => close!.click());
   expect(onClose).toHaveBeenCalledTimes(1);
+  await act(async () => root.unmount());
+});
+
+it.each([
+  { case: "точка без дома", address: null, error: "", walkHref: "/?walk=create&lat=55.75", title: "Не знаем, что здесь", actions: [["Создать прогулку отсюда", "/?walk=create&lat=55.75"]] },
+  { case: "дом найден", address: "ул. Пятницкая, 1", error: "", walkHref: "/?walk=create", title: "ул. Пятницкая, 1", actions: [["История этого дома", "/create?x=1"], ["Создать прогулку отсюда", "/?walk=create"]] },
+  { case: "адрес не определился", address: null, error: "Не удалось определить адрес.", walkHref: null, title: "О чём расскажет этот дом?", actions: [["Ввести адрес вручную", "/create?x=1"]] },
+])("карточка выбранной точки: $case", async ({ address, error, walkHref, title, actions }) => {
+  const container = document.createElement("div");
+  const root = createRoot(container);
+  await act(async () => root.render(createElement(PlaceSheet, {
+    address, busy: false, error, createHref: "/create?x=1", walkHref, onClose: () => {}, onWalk: () => {},
+  })));
+  expect(container.querySelector("#new-place-title")?.textContent).toBe(title);
+  expect([...container.querySelectorAll("[data-sheet-part='footer'] a")].map(link => [link.textContent?.trim(), link.getAttribute("href")])).toEqual(actions);
+  expect(container.textContent).not.toContain("нет точного номера дома");
   await act(async () => root.unmount());
 });

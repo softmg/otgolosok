@@ -182,7 +182,8 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
   }
   function showMoscow(){setFocus({...MOSCOW_CENTER,zoom:MOSCOW_ZOOM});setGeoMessage("");setGeoOutside(false);}
   const createHref=place?.address?`/create?${new URLSearchParams({address:place.address,lat:String(place.location.lat),lon:String(place.location.lon)})}`:"/create?new=1";
-  const walkStart=place?.address?place:active;
+  // A point without a house number still starts a walk: the builder needs a readable label, so it gets a neutral one.
+  const walkStart=place?{address:place.address??"Точка на карте",location:place.location}:active;
   const walkHref=walkStart?.address?`/?${new URLSearchParams({walk:"create",address:walkStart.address,lat:String(walkStart.location.lat),lon:String(walkStart.location.lon)})}`:"/?walk=create";
   function closePlace(){lookup.current?.abort();setPlace(null);setPlaceBusy(false);setPlaceError("");setNearbyCenter(null);}
 
@@ -191,7 +192,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     : search ? null
     : prompt&&!active&&!place&&!placeBusy&&!placeError ? <LocationPromptSheet geo={geo} onLocate={locate} onDismiss={dismissGeoPrompt} />
     : active ? <StorySheet story={active} walkHref={active.address&&!placeBusy?walkHref:null} startRef={startRef} onStart={onStart} onClose={()=>setSelected(undefined)} onWalk={rememberOpener} />
-    : explorePanel==="place" ? <PlaceSheet address={place?.address??null} busy={placeBusy} error={placeError} createHref={createHref} walkHref={place?.address?walkHref:null} onClose={closePlace} onWalk={rememberOpener} />
+    : explorePanel==="place" ? <PlaceSheet address={place?.address??null} busy={placeBusy} error={placeError} createHref={createHref} walkHref={place?walkHref:null} onClose={closePlace} onWalk={rememberOpener} />
     : explorePanel==="nearby" ? <NearbySheet status={nearbyStatus} radius={nearbyRadius} recommendations={recommendations} onRadius={setNearbyRadius} onSelect={selectRecommendation} onClose={()=>{setNearbyCenter(null);setPlace(null);setPrompt(false);}} />
     : null;
   // An empty slot must stay null: the shell gives the dock room only when there is something to show.

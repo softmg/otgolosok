@@ -71,17 +71,18 @@ export function StorySheet({ story, walkHref, startRef, onStart, onClose, onWalk
 export function PlaceSheet({ address, busy, error, createHref, walkHref, onClose, onWalk }: {
   address: string | null; busy: boolean; error: string; createHref: string; walkHref: string | null; onClose: () => void; onWalk: () => void;
 }) {
+  // A point with no house nearby has no story to prepare; it can still be the start of a walk.
+  const unknown = !busy && !error && !address && walkHref !== null;
   const note = error ? <p className={a.text} role="status">{error}</p>
     : busy ? <p className={a.text} role="status">Смотрим, какой дом находится рядом с выбранной точкой.</p>
-    : !address ? <p className={a.text}>У этой точки нет точного номера дома. Введите адрес, чтобы мы искали историю нужного здания.</p>
     : null;
   return <Sheet name="place" labelledBy="new-place-title"
     header={<div className={a.headerRow}>
-      <h2 id="new-place-title" className={a.title}>{busy ? "Определяем адрес…" : address ?? "О чём расскажет этот дом?"}</h2>
+      <h2 id="new-place-title" className={a.title}>{busy ? "Определяем адрес…" : address ?? (unknown ? "Не знаем, что здесь" : "О чём расскажет этот дом?")}</h2>
       <button type="button" className={a.iconButton} aria-label="Закрыть выбранное место" onClick={onClose}><ExploreIcon name="close" /></button>
     </div>}
     // Both actions stay in the footer: the card has no text to scroll past them.
-    footer={busy ? null : <>
+    footer={busy ? null : unknown && walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} primary /> : <>
       <Link className={a.primary} href={createHref} prefetch={false}>{address ? "История этого дома" : "Ввести адрес вручную"}<ExploreIcon name="plus" /></Link>
       {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} footer /> : null}
     </>}>
@@ -123,8 +124,8 @@ export function NearbySheet({ status = "ready", radius, recommendations, onRadiu
   </Sheet>;
 }
 
-function WalkFromHere({ href, onClick, footer = false }: { href: string; onClick: () => void; footer?: boolean }) {
-  return <Link className={footer ? a.secondary : `${a.secondary} ${a.bodyAction}`} href={href} onClick={onClick} prefetch={false}>Создать прогулку отсюда <ExploreIcon name="walk" /></Link>;
+function WalkFromHere({ href, onClick, footer = false, primary = false }: { href: string; onClick: () => void; footer?: boolean; primary?: boolean }) {
+  return <Link className={primary ? a.primary : footer ? a.secondary : `${a.secondary} ${a.bodyAction}`} href={href} onClick={onClick} prefetch={false}>Создать прогулку отсюда <ExploreIcon name="walk" /></Link>;
 }
 
 /** The first-visit hint in the notices slot. */
