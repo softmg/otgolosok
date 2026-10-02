@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ExploreIcon } from "../explore/icons";
 import { navigationSection, type NavigationSection } from "./app-navigation-state";
+import { useNavigationHidden } from "./navigation-visibility";
 import styles from "./app-navigation.module.css";
 
 type Props = {
@@ -17,8 +18,9 @@ type Props = {
 export function AppNavigation({ active, embedded = false, onNearby, onWalk }: Props) {
   const pathname = usePathname();
   const current = active ?? navigationSection(pathname);
+  const hidden = useNavigationHidden();
 
-  if (!embedded && (current === null || pathname === "/")) return null;
+  if (hidden || (!embedded && (current === null || pathname === "/"))) return null;
 
   const nearby = onNearby
     ? <button type="button" aria-current={current === "nearby" ? "page" : undefined} onClick={onNearby}><ExploreIcon name="map"/><span>Рядом</span></button>

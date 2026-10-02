@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, createElement } from "react";
+import { act, createElement, Fragment } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { navigationSection } from "./app-navigation-state";
@@ -9,6 +9,12 @@ const location = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({ usePathname: () => location.pathname }));
 
 import { AppNavigation } from "./app-navigation";
+import { useHideNavigation } from "./navigation-visibility";
+
+function Hider({ hidden }: { hidden: boolean }) {
+  useHideNavigation(hidden);
+  return null;
+}
 
 let root: Root;
 let container: HTMLDivElement;
@@ -75,5 +81,40 @@ describe("нижняя навигация приложения", () => {
     expect(nearby.tagName).toBe("BUTTON");
     await act(async () => { nearby.click(); });
     expect(onNearby).toHaveBeenCalledOnce();
+  });
+});
+
+describe("скрытие навигации экраном", () => {
+  async function show(hiders: boolean[], props: Parameters<typeof AppNavigation>[0] = {}) {
+    await act(async () => {
+      root.render(createElement(Fragment, null, ...hiders.map((hidden, key) => createElement(Hider, { key, hidden })), createElement(AppNavigation, props)));
+    });
+    return container.querySelector("nav");
+  }
+
+  it("пропадает, пока экран просит, и возвращается, когда он отпускает", async () => {
+    location.pathname = "/walk";
+    expect(await show([false])).not.toBeNull();
+    expect(await show([true])).toBeNull();
+    expect(await show([false])).not.toBeNull();
+  });
+
+  it("возвращается, когда экран, скрывший её, закрыт", async () => {
+    location.pathname = "/walk";
+    expect(await show([true])).toBeNull();
+    expect(await show([])).not.toBeNull();
+  });
+
+  it("при двух экранах возвращается, только когда отпустили оба", async () => {
+    location.pathname = "/walk";
+    expect(await show([true, true])).toBeNull();
+    expect(await show([false, true])).toBeNull();
+    expect(await show([false, false])).not.toBeNull();
+  });
+
+  it("скрывает и навигацию, которую рисует карта", async () => {
+    location.pathname = "/";
+    expect(await show([true], { embedded: true, active: "nearby" })).toBeNull();
+    expect(await show([false], { embedded: true, active: "nearby" })).not.toBeNull();
   });
 });

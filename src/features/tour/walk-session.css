@@ -111,3 +111,18 @@
   .walk-session-locate{top:auto;right:auto;left:calc(max(18px,env(safe-area-inset-left)) + 100px);bottom:calc(98px + 2 * env(safe-area-inset-bottom))}
   .walk-session-map .map-attribution{top:auto;left:auto;right:max(12px,env(safe-area-inset-right));bottom:calc(94px + 2 * env(safe-area-inset-bottom))}
 }
+
+/* Во время прогулки нижней навигации нет (useHideNavigation в walk-session.tsx), и карте
+   достаётся весь экран: панель опускается к низу окна на то же поле, что у шапки сверху.
+   data-mode="walk" на .walk-session ставит tour-experience.tsx одновременно с active у
+   WalkSession; после остановки и завершения навигация и прежние отступы возвращаются. */
+.walk-session[data-mode=walk] .walk-session-panel{bottom:calc(12px + env(safe-area-inset-bottom));max-height:calc(100dvh - 12px - var(--walk-controls-top) - env(safe-area-inset-bottom))}
+@media(min-width:700px){.walk-session[data-mode=walk] .walk-session-panel{bottom:calc(18px + env(safe-area-inset-bottom));max-height:calc(100dvh - 18px - var(--walk-controls-top) - env(safe-area-inset-bottom))}}
+/* Низкий горизонтальный экран: панель-колонка справа и ряд кнопок карты слева встают
+   на 12 и 18 px от низа, как от боковых краёв. Подпись OSM стояла между панелью и
+   навигацией; теперь там панель, и подпись уходит под шапку, как на вертикальном экране. */
+@media(orientation:landscape) and (max-height:560px){
+  .walk-session[data-mode=walk] .walk-session-panel{bottom:calc(12px + env(safe-area-inset-bottom));max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+  .walk-session[data-mode=walk] .walk-session-map .leaflet-bottom.leaflet-right,.walk-session[data-mode=walk] .walk-session-locate{bottom:calc(18px + env(safe-area-inset-bottom))}
+  .walk-session[data-mode=walk] .walk-session-map .map-attribution{top:var(--walk-controls-top);bottom:auto;left:max(12px,env(safe-area-inset-left));right:auto}
+}

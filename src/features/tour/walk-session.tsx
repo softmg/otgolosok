@@ -8,6 +8,7 @@ import { PlacePhotoBanner } from "../explore/place-photo";
 import { usePlaceStory } from "../explore/place-story";
 import { GeoHelp } from "../explore/around-sheets";
 import { BrandMark } from "../brand/brand-mark";
+import { useHideNavigation } from "../navigation/navigation-visibility";
 import type { Coordinates, Route } from "./types";
 import { highlightedLeg, type StopStage, type WalkChapter } from "./walk-plan";
 import { legFitPoints, legRange, routeLegCuts } from "./route-legs";
@@ -63,9 +64,13 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
 }) {
   const panelRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLElement>(null);
-  // The panel covers the bottom of the map or, on a low landscape screen, a column on the right.
+  // The panel covers the bottom of the map or, on a low landscape screen, a column on the right;
+  // `size` is how far it reaches in from that edge of the screen.
   // The header covers the top of the map; its bottom edge is measured from the top of the screen.
-  const [cover, setCover] = useState<{ side: "bottom" | "right"; size: number; top: number }>({ side: "bottom", size: 250, top: 74 });
+  const [cover, setCover] = useState<{ side: "bottom" | "right"; size: number; top: number }>({ side: "bottom", size: 354, top: 74 });
+  // A running walk takes the whole screen: the bottom navigation goes, walk-session.css lowers the panel and map buttons.
+  // The header still leads out of the walk, and the navigation returns once the walk is stopped or finished.
+  useHideNavigation(active);
   // A walk opens on its first stop; a walk without stops shows the whole route.
   const [focus, setFocus] = useState<MapFocus | null>(() => {
     const first = chapters[0];
@@ -99,11 +104,13 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
     setLegFit({ ...legFit, waiting: false, refined: true,
       target: view.withUser && !legFit.refined ? { points: view.points, keepUserView: true } : legFit.target });
   }
-  // Beside the panel the route also keeps clear of the map buttons above the navigation.
+  // Beside the panel the route also keeps clear of the row of map buttons at the bottom left:
+  // above the navigation before the start, at the bottom edge during the walk.
   // Below the header it leaves room for a stop pin, which rises about 48 px above its point.
   const padding = useMemo(() => cover.side === "right"
-    ? { top: cover.top + 48, right: cover.size + 24, bottom: 160, left: 45 }
-    : { top: cover.top + 48, right: 45, bottom: cover.size + 125, left: 45 }, [cover]);
+    ? { top: cover.top + 48, right: cover.size + 24, bottom: active ? 80 : 160, left: 45 }
+    : { top: cover.top + 48, right: 45, bottom: cover.size + 21, left: 45 }, [cover, active]);
+  // Measured again when the walk starts or stops: the panel moves down or up with the navigation and may keep its size.
   useEffect(() => {
     const panel = panelRef.current;
     if (!panel) return;
@@ -111,7 +118,8 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
       const box = panel.getBoundingClientRect();
       // walk-session.css docks the panel to the right on a low landscape screen.
       const side = getComputedStyle(panel).getPropertyValue("--walk-panel-dock").trim() === "right" ? "right" : "bottom";
-      const size = Math.ceil(side === "right" ? (panel.parentElement?.getBoundingClientRect().right ?? innerWidth) - box.left : box.height);
+      const screen = panel.parentElement?.getBoundingClientRect() ?? { right: innerWidth, bottom: innerHeight };
+      const size = Math.ceil(side === "right" ? screen.right - box.left : screen.bottom - box.top);
       const top = Math.ceil(headerRef.current?.getBoundingClientRect().bottom ?? 0);
       setCover(current => current.side === side && current.size === size && current.top === top ? current : { side, size, top });
     };
@@ -121,7 +129,7 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
     // Turning the phone may keep the panel's size while its dock changes.
     addEventListener("resize", measure);
     return () => { observer.disconnect(); removeEventListener("resize", measure); };
-  }, []);
+  }, [active]);
   // The position help closes by itself once a fix arrives after a retry.
   if (drawer === "position" && (user || !active)) setDrawer(null);
   function retryPosition() { setDrawer("position"); onRetryPosition(); }
