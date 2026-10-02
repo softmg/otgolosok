@@ -112,10 +112,10 @@ Cells are only a transport and cache unit, so a line must never be visible on th
 - `public/sw.js` handles only the app shell, `_next/static`, `audio/` and `/api/story-jobs|story-audio`. Unknown `/api/` routes fall through to the network.
 - On activate it deletes only caches prefixed `otgolosok-`. Caches with other names (`story-packs-v1`, `walk-packs-v1`) survive app updates.
 - `docker/nginx.conf`: `location /api/` hides the upstream `Cache-Control` and adds `no-store`. `location /api/story-audio/` shows the pass-through pattern.
-- Production does not use this nginx for the API (`docs/production-deployment.md` ≈ L36–41).
+- Production does not use this nginx for the API (`docs/production-runbook.md` ≈ L36–41).
 
 **Legacy list consumers** (keep the endpoint as is)
-- Smoke checks in `docs/production-deployment.md:311` and `docs/production-osm-tts-runbook.md:87`.
+- Smoke checks in `docs/production-runbook.md:311` and `docs/production-osm-tts-runbook.md:87`.
 - Admin uses `/api/story-admin/content/places` (a different route).
 
 **Existing tests touching the catalog**
@@ -298,7 +298,7 @@ Cells are only a transport and cache unit, so a line must never be visible on th
   - deploy order and the nginx locations;
   - measured sizes.
 - Update its line in `docs/agents/README.md`.
-- In `docs/production-deployment.md`, add a post-deploy check: `curl -sI -H 'Accept-Encoding: br' https://otgolosok.online/api/content/map-cells` → 200 with `ETag`, `Cache-Control: no-cache`, `Content-Encoding: br`. A repeat with `If-None-Match` should give 304.
+- In `docs/production-runbook.md`, add a post-deploy check: `curl -sI -H 'Accept-Encoding: br' https://otgolosok.online/api/content/map-cells` → 200 with `ETag`, `Cache-Control: no-cache`, `Content-Encoding: br`. A repeat with `If-None-Match` should give 304.
 
 ## Testing & verification
 

@@ -16,6 +16,8 @@ type WalkSummary = {
   pendingCount: number;
   failedCount: number;
   updatedAt: string | null;
+  /** All-time launches; null when the launch counter is unavailable. */
+  launches: number | null;
 };
 
 type WalkDraft = {
@@ -321,10 +323,10 @@ export function WalkAdmin({ api, busy, run, onDirtyChange }: WalkAdminProps) {
       <div className="walk-admin__table-wrap" aria-busy={walksLoading}>
         <table className="walk-admin__table">
           <caption className="admin-sr-only">Прогулки и состояние их глав</caption>
-          <thead><tr><th scope="col">Прогулка</th><th scope="col">Главы</th><th scope="col">Готово</th><th scope="col">В работе</th><th scope="col">Ошибки</th><th scope="col">Обновлено</th></tr></thead>
-          <tbody>{walksLoading ? skeletonRows(6, walks.length) : walks.map((item) => <tr key={item.id} data-selected={walk?.id === item.id || undefined}>
+          <thead><tr><th scope="col">Прогулка</th><th scope="col">Главы</th><th scope="col">Готово</th><th scope="col">В работе</th><th scope="col">Ошибки</th><th scope="col">Запуски</th><th scope="col">Обновлено</th></tr></thead>
+          <tbody>{walksLoading ? skeletonRows(7, walks.length) : walks.map((item) => <tr key={item.id} data-selected={walk?.id === item.id || undefined}>
             <th scope="row"><button type="button" className="walk-admin__walk-link" disabled={Boolean(busy)} aria-current={walk?.id === item.id ? "true" : undefined} onClick={() => openWalk(item.id)}><strong>{item.title}</strong><span>{stageLabel(item.status)}</span></button></th>
-            <td>{item.chapterCount}</td><td>{item.publishedCount}</td><td>{item.pendingCount}</td><td data-error={item.failedCount > 0 || undefined}>{item.failedCount}</td><td>{formatDate(item.updatedAt)}</td>
+            <td>{item.chapterCount}</td><td>{item.publishedCount}</td><td>{item.pendingCount}</td><td data-error={item.failedCount > 0 || undefined}>{item.failedCount}</td><td>{item.launches === null ? "Нет данных" : item.launches.toLocaleString("ru-RU")}</td><td>{formatDate(item.updatedAt)}</td>
           </tr>)}</tbody>
         </table>
         {!walks.length && !walksLoading && !busy && <p className="walk-admin__empty">В каталоге пока нет прогулок с редактируемыми главами.</p>}

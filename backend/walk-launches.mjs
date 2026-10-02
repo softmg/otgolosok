@@ -67,5 +67,18 @@ export function createWalkLaunchStore(db, { now = Date.now, transaction }) {
       return new Map(db.prepare("SELECT walk_kind, walk_id, SUM(launches) AS launches FROM walk_launch_days GROUP BY walk_kind, walk_id").all()
         .map(row => [`${row.walk_kind}:${row.walk_id}`, Number(row.launches)]));
     },
+    /**
+     * All-time launches of the given walks of one kind; a walk without launches gets 0. The ids go
+     * in as one JSON value, so a long page never hits SQLite's bound-variable limit.
+     * @param {"catalog" | "account"} kind @param {string[]} ids @returns {Map<string, number>}
+     */
+    launchCounts(kind, ids) {
+      const counts = new Map(ids.map(id => [id, 0]));
+      if (!ids.length) return counts;
+      for (const row of db.prepare(`SELECT walk_id, SUM(launches) AS launches FROM walk_launch_days
+          WHERE walk_kind = ? AND walk_id IN (SELECT value FROM json_each(?)) GROUP BY walk_id`).all(kind, JSON.stringify(ids)))
+        counts.set(String(row.walk_id), Number(row.launches));
+      return counts;
+    },
   };
 }

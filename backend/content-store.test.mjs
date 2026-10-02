@@ -401,6 +401,30 @@ function draftStore(t, count = 4) {
   return { store, story, order, draft };
 }
 
+test("draft status counts never copy research checkpoints into the SQLite sorter", t => {
+  const { store, order } = draftStore(t, 3);
+  const job = store.researchDrafts({ requestKey: "draft-sorter-regression", placeIds: [order[0]] });
+  assert.equal(job.count, 1);
+  const claimed = store.claimContentJob();
+  store.updateContentCheckpoint(claimed.id, { ...claimed.checkpoint, sources: [{ text: "x".repeat(1024 * 1024) }] });
+  const prepare = DatabaseSync.prototype.prepare;
+  const sorters = [];
+  t.mock.method(DatabaseSync.prototype, "prepare", function (sql, ...options) {
+    if (sql.includes("GROUP BY s")) {
+      sorters.push(...prepare.call(this, `EXPLAIN ${sql}`).all().filter(row => row.opcode === "SorterOpen"));
+    }
+    return prepare.call(this, sql, ...options);
+  });
+  const page = store.listDrafts();
+  assert.deepEqual(page.counts, { plain: 2, queued: 1 });
+  assert.equal(page.total, 3);
+  assert.equal(page.unresearched, 2);
+  assert.equal(page.items.find(item => item.placeId === order[0]).research, "queued");
+  assert.equal(sorters.length, 1);
+  // One short status is enough for GROUP BY. The old plan stored the full checkpoint too (four fields).
+  assert.equal(sorters[0].p2, 1);
+});
+
 test("draft re-research takes the oldest unprocessed drafts, skipping approved and busy ones", t => {
   const { store, order } = draftStore(t, 5);
   const [oldest, second, third] = order;

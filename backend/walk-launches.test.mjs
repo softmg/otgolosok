@@ -48,6 +48,26 @@ test("marks older than yesterday are pruned at most once an hour, aggregates sta
   assert.equal(store.launchTotals().get("catalog:msk-walk"), 3);
 });
 
+test("launch counts cover the requested walks of one kind and give zero to walks without launches", t => {
+  const { store, advance } = fixture(t);
+  store.recordLaunch(walk, "a"); store.recordLaunch(walk, "b");
+  advance(86_400_000); store.recordLaunch(walk, "a");
+  store.recordLaunch({ kind: "account", id: "other" }, "a");
+  assert.deepEqual(store.launchCounts("catalog", ["msk-walk", "other", "fresh"]), new Map([["msk-walk", 3], ["other", 0], ["fresh", 0]]));
+  assert.deepEqual(store.launchCounts("account", ["other"]), new Map([["other", 1]]));
+  assert.deepEqual(store.launchCounts("catalog", []), new Map());
+});
+
+test("launch counts accept more ids than SQLite binds as variables", t => {
+  const { store } = fixture(t);
+  store.recordLaunch({ kind: "account", id: "walk-39999" }, "a");
+  const ids = Array.from({ length: 40_000 }, (_, index) => `walk-${index}`);
+  const counts = store.launchCounts("account", ids);
+  assert.equal(counts.size, ids.length);
+  assert.equal(counts.get("walk-39999"), 1);
+  assert.equal(counts.get("walk-0"), 0);
+});
+
 test("invalid targets are rejected", t => {
   const { store } = fixture(t);
   for (const target of [null, { kind: "user", id: "x" }, { kind: "catalog", id: 1 }])

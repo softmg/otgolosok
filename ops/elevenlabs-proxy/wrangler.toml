@@ -4,7 +4,4 @@ compatibility_date = "2026-09-01"
 workers_dev = false
 routes = [{ pattern = "elevenlabs-proxy.otgolosok.online", custom_domain = true }]
 
-[vars]
-# Comma-separated; a request from any other address gets 403.
-# 93.189.230.19 — production generator VPS (Beget); 95.173.207.163 — developer's VPN exit (Datacamp NL), shared with other VPN users.
-ALLOWED_IPS = "93.189.230.19,95.173.207.163"
+# ALLOWED_SOURCE_IPS (comma-separated source addresses) is a Worker secret, see README.md.

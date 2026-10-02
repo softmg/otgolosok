@@ -200,7 +200,7 @@ evidence — `backend/editorial-evidence.test.mjs`, тесты пайплайн�
 
 Требует явного подтверждения пользователя перед каждым шагом с платными вызовами.
 
-1. Выкладка генератора по `docs/production-deployment.md` (`deploy-otgolosok-generator`).
+1. Выкладка генератора по `docs/production-runbook.md` (`deploy-otgolosok-generator`).
 2. Повтор через `retryBatchItem` с `restartFrom:"auto"` (поиск не повторяется):
    - 12 остановленных мест пилота `weak_identity`;
    - 30 случайных обычных `ADDRESS_UNCLEAR` (половина с адресом в OSM, половина без);

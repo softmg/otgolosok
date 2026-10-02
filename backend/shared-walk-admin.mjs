@@ -6,9 +6,10 @@ const badRequest = message => Object.assign(new Error(message), { code: "BAD_REQ
  * Editor view of link-only and public account walks (they live in the auth database,
  * separately from editorial chapters), and pre-moderation of public walks for the top.
  * @param {import("node:sqlite").DatabaseSync} db
- * @param {{ viewWalk: (row: any) => any, documentOf: (row: any) => any, now?: () => number }} options
+ * @param {{ viewWalk: (row: any) => any, documentOf: (row: any) => any,
+ *   launchCounts: (kind: "account", ids: string[]) => Map<string, number>, now?: () => number }} options
  */
-export function createSharedWalkAdminStore(db, { viewWalk, documentOf, now = Date.now }) {
+export function createSharedWalkAdminStore(db, { viewWalk, documentOf, launchCounts, now = Date.now }) {
   db.exec(`DROP INDEX IF EXISTS user_walks_shared_updated;
     CREATE INDEX IF NOT EXISTS user_walks_linked_updated
     ON user_walks(updated_at DESC, id DESC) WHERE visibility IN ('shared', 'public')`);
@@ -16,7 +17,7 @@ export function createSharedWalkAdminStore(db, { viewWalk, documentOf, now = Dat
     typeof value === "string" ? value.normalize("NFKC").toLocaleLowerCase("ru-RU") : "");
 
   const select = "SELECT w.*, u.id AS author_id, u.name AS author_name, u.email AS author_email FROM user_walks w LEFT JOIN user u ON u.id = w.user_id";
-  const adminRow = row => {
+  const adminRow = (row, launches) => {
     const view = viewWalk(row);
     const document = view.snapshotError ? null : view.snapshot;
     return {
@@ -28,6 +29,7 @@ export function createSharedWalkAdminStore(db, { viewWalk, documentOf, now = Dat
       walkingMinutes: document?.route?.walkingMinutes ?? null,
       distanceM: document?.route?.distanceM ?? null,
       snapshotError: view.snapshotError ?? null,
+      launches,
     };
   };
 
@@ -71,7 +73,8 @@ export function createSharedWalkAdminStore(db, { viewWalk, documentOf, now = Dat
       const pageOffset = Math.min(offset, Math.max(0, Math.ceil(total / limit) - 1) * limit);
       const rows = db.prepare(`SELECT w.*, u.id AS author_id, u.name AS author_name, u.email AS author_email
         ${from} ORDER BY w.updated_at DESC, w.id DESC LIMIT ? OFFSET ?`).all(...params, limit, pageOffset);
-      const walks = rows.map(adminRow);
+      const launches = launchCounts("account", rows.map(row => String(row.id)));
+      const walks = rows.map(row => adminRow(row, launches.get(String(row.id)) ?? 0));
       const pending = Number(db.prepare("SELECT count(*) AS count FROM user_walks WHERE visibility = 'public' AND listing_status = 'pending'").get().count);
       return { walks, total, offset: pageOffset, hasMore: pageOffset + walks.length < total, pending };
     },
@@ -97,7 +100,7 @@ export function createSharedWalkAdminStore(db, { viewWalk, documentOf, now = Dat
       } else {
         db.prepare("UPDATE user_walks SET listing_status = 'hidden', listing_updated_at = ? WHERE id = ?").run(time, id);
       }
-      return adminRow(db.prepare(`${select} WHERE w.id = ?`).get(id));
+      return adminRow(db.prepare(`${select} WHERE w.id = ?`).get(id), launchCounts("account", [id]).get(id) ?? 0);
     },
   };
 }

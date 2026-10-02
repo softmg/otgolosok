@@ -199,7 +199,7 @@ used. Place data is marked as data, never instructions (same convention as `rese
 
 ### 7. Deploy and pilot
 
-Follow `docs/production-deployment.md`, `docs/agents/production-deploy-concurrency.md` and the memory notes about
+Follow `docs/production-runbook.md`, `docs/agents/production-deploy-concurrency.md` and the memory notes about
 background deploys and parallel agents. Then:
 
 1. Set `RESEARCH_SEARCH_MODEL=perplexity-web/pplx-auto` in production env and restart the generator.

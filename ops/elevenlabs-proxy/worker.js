@@ -1,5 +1,5 @@
 // Reverse proxy to the ElevenLabs API for a backend whose own address ElevenLabs does not serve.
-// Only /v1/* is forwarded, only from ALLOWED_IPS and only with the shared PROXY_TOKEN; nothing is cached or logged.
+// Only /v1/* is forwarded, only from ALLOWED_SOURCE_IPS and only with the shared PROXY_TOKEN; nothing is cached or logged.
 const UPSTREAM = "https://api.elevenlabs.io";
 const FORWARDED = ["xi-api-key", "content-type", "accept"];
 
@@ -11,7 +11,8 @@ async function sameToken(given, expected) {
 }
 
 // A leaked token alone is useless: requests are accepted only from the listed backend addresses.
-const allowedIp = (request, env) => String(env.ALLOWED_IPS ?? "").split(",").map(value => value.trim()).filter(Boolean)
+// The list is a Worker secret, not a plain var, so the addresses stay out of the public repository.
+const allowedIp = (request, env) => String(env.ALLOWED_SOURCE_IPS ?? "").split(",").map(value => value.trim()).filter(Boolean)
   .includes(request.headers.get("cf-connecting-ip") ?? "");
 
 const proxy = {

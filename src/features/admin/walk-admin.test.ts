@@ -9,6 +9,7 @@ import type { AdminApi, AdminRun } from "./model";
 const walkSummary = {
   id: "walk-1", title: "Замоскворечье", subtitle: "Прогулка по Пятницкой", status: "ready",
   chapterCount: 2, publishedCount: 2, pendingCount: 0, failedCount: 0, updatedAt: "2026-09-18T13:16:44Z",
+  launches: 1234 as number | null,
 };
 
 function chapter(id: string, title: string) {
@@ -156,6 +157,24 @@ describe("прелоадеры таблиц прогулок", () => {
     expect(cells[0].tagName).toBe("TD");
     expect(cells[1].tagName).toBe("TH");
     await openGate();
+  });
+});
+
+describe("запуски прогулок", () => {
+  function launchesCell() {
+    const table = container.querySelector(".walk-admin__table")!;
+    const column = [...table.querySelectorAll("thead th")].findIndex(cell => cell.textContent === "Запуски");
+    return table.querySelector("tbody tr")!.children[column].textContent;
+  }
+
+  it("показывает число запусков в отдельной колонке каталога", () => {
+    expect(launchesCell()).toBe((1234).toLocaleString("ru-RU"));
+  });
+
+  it("пишет «Нет данных», если счётчик запусков недоступен, а не ноль", async () => {
+    walks = [{ ...structuredClone(walkSummary), launches: null }];
+    await click(buttons("Обновить список")[0]);
+    expect(launchesCell()).toBe("Нет данных");
   });
 });
 
