@@ -1,3 +1,4 @@
+import { distanceMeters } from "@/lib/geo/distance";
 import type { TriggerConfig } from "@/lib/geo/types";
 import type { Coordinates, HistoricalContent, Route, WalkStep } from "./types";
 
@@ -44,10 +45,22 @@ export function arrivalTriggerConfig(chapters: WalkChapter[], index: number, sta
 /**
  * The leg the walker should walk now (see legRange): the leg into the stop on the
  * way to it, the leg out of it after arriving; after the last stop, the leg to the finish.
+ * Index `chapterCount` at "approach" is the way to the finish itself (see hasFinishLeg).
  */
 export function highlightedLeg(index: number, stage: StopStage, chapterCount: number): number {
   if (chapterCount === 0) return 0;
-  return stage === "approach" ? Math.min(index, chapterCount - 1) : Math.min(index + 1, chapterCount);
+  return stage === "approach" ? Math.min(index, chapterCount) : Math.min(index + 1, chapterCount);
+}
+
+/**
+ * Whether the walk still goes on after the last stop: its finish lies outside the
+ * last stop's arrival radius (a loop back to the start, a chosen destination).
+ * Then the walk has one more step, index `chapters.length`, on the way to the finish.
+ */
+export function hasFinishLeg(chapters: WalkChapter[], finish: Coordinates, fallbackEnterM: number): boolean {
+  const last = chapters.at(-1);
+  if (!last) return false;
+  return distanceMeters(last.trigger_location ?? last.location, finish) > (last.trigger?.enter_m ?? fallbackEnterM);
 }
 
 export function getWalkChapters(route: Route, includePending = false): WalkChapter[] {

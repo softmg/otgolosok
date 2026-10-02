@@ -34,10 +34,12 @@ export function approachHint(advance: AdvanceMode, hasAudio: boolean) {
   return hasAudio && advance === "place" ? "начнётся, когда подойдёте" : "";
 }
 
-export function WalkSession({ route, chapters, index, stage = "stop", advance = "manual", active, completed, user, positionFailed, resume,
+export function WalkSession({ route, chapters, index, stage = "stop", advance = "manual", active, completed, finishLeg = false, user, positionFailed, resume,
   titleRef, startRef, onStart, onSelect, onStop, player, story, settings, audioError, ratingLabel = "", hasReview = false, ratingCount = null, reviews = null, onRate = noop, own = null,
   positionDenied = false, onRetryPosition = noop }: {
   route: Route; chapters: WalkChapter[]; index: number; active: boolean; completed: boolean;
+  /** The finish lies past the last stop: index `chapters.length` is the way there, ended by «Завершить». */
+  finishLeg?: boolean;
   /** On the way to stop `index` or arrived there (see StopStage). */
   stage?: StopStage;
   advance?: AdvanceMode;
@@ -139,6 +141,8 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
   const distance = (route.walk?.distance_m ?? 0) / 1000;
   const hasText = Boolean(chapter?.content.story.paragraphs.length);
   const canStart = geometry.length > 1;
+  // After the last stop comes the way to the finish, when it lies elsewhere.
+  const next = index + 1 < chapters.length || (finishLeg && index + 1 === chapters.length);
 
   return <>
     <div className="walk-session-map">
@@ -203,7 +207,7 @@ export function WalkSession({ route, chapters, index, stage = "stop", advance = 
           <Link className="walk-session-secondary" href="/">На карту</Link>
         </> : <Link className="walk-session-primary" href="/">На карту</Link> : active ? <>
           {index > 0 ? <button type="button" className="walk-session-previous" aria-label="Предыдущая остановка" onClick={() => select(index - 1)}><ExploreIcon name="arrow" /></button> : null}
-          <button type="button" className="walk-session-primary" onClick={() => { setDrawer(null); if (index + 1 < chapters.length) select(index + 1); else onStop(true); }}>{index + 1 < chapters.length ? "Дальше" : "Завершить"}<ExploreIcon name="arrow" /></button>
+          <button type="button" className="walk-session-primary" onClick={() => { setDrawer(null); if (next) select(index + 1); else onStop(true); }}>{index + 1 < chapters.length ? "Дальше" : next ? "К финишу" : "Завершить"}<ExploreIcon name="arrow" /></button>
         </> : <button type="button" ref={startRef} disabled={!canStart} className="walk-session-primary" onClick={() => { setDrawer(null); onStart(); }}>{resume ? "Продолжить прогулку" : "Начать прогулку"}<ExploreIcon name="arrow" /></button>}
       </footer>
       {!canStart ? <p role="alert" className="walk-session-notice">В этой прогулке ещё нет маршрута. Постройте его в редакторе из истории.</p> : null}

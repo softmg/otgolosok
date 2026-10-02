@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import routeData from "../../../public/data/routes/paveletskaya.json";
-import { arrivalTarget, arrivalTriggerConfig, chapterTriggerConfig, getWalkChapters, highlightedLeg, nextChapterTarget } from "./walk-plan";
+import { arrivalTarget, arrivalTriggerConfig, chapterTriggerConfig, getWalkChapters, hasFinishLeg, highlightedLeg, nextChapterTarget } from "./walk-plan";
 import type { Route } from "./types";
 
 const route = routeData as Route;
@@ -125,9 +125,29 @@ describe("Walking to a stop before its story", () => {
     { index: 0, stage: "stop" as const, count: 4, leg: 1 },
     { index: 2, stage: "approach" as const, count: 4, leg: 2 },
     { index: 3, stage: "stop" as const, count: 4, leg: 4 },
+    { index: 4, stage: "approach" as const, count: 4, leg: 4 },
     { index: 0, stage: "approach" as const, count: 0, leg: 0 },
     { index: 0, stage: "stop" as const, count: 0, leg: 0 },
   ])("highlights leg $leg at chapter $index ($stage) of $count", ({ index, stage, count, leg }) => {
     expect(highlightedLeg(index, stage, count)).toBe(leg);
+  });
+
+  it.each([
+    { name: "far from the last stop", finish: () => ({ lat: stopPoint(3).lat + 0.01, lon: stopPoint(3).lon }), expected: true },
+    { name: "at the last stop", finish: () => stopPoint(3), expected: false },
+    { name: "within the arrival radius", finish: () => ({ lat: stopPoint(3).lat + 0.0001, lon: stopPoint(3).lon }), expected: false },
+  ])("goes on to a finish $name: $expected", ({ finish: target, expected }) => {
+    expect(hasFinishLeg(chapters, target(), 30)).toBe(expected);
+  });
+
+  it("measures the finish against the last stop's own arrival radius", () => {
+    // About 33 m north of the last stop.
+    const near = { lat: stopPoint(3).lat + 0.0003, lon: stopPoint(3).lon };
+    expect(hasFinishLeg(chapters.map((item, i) => i === 3 ? { ...item, trigger: { ...checked, enter_m: 20 } } : item), near, 60)).toBe(true);
+    expect(hasFinishLeg(chapters, near, 60)).toBe(false);
+  });
+
+  it("has no finish leg without stops", () => {
+    expect(hasFinishLeg([], { lat: 55.74, lon: 37.64 }, 30)).toBe(false);
   });
 });

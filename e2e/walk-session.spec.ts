@@ -15,10 +15,11 @@ const storyPlaying = (page: Page) => page.locator("audio").evaluate(el => {
   return !audio.paused && !audio.currentSrc.startsWith("data:");
 });
 
-async function setup(page: import("@playwright/test").Page, empty = false) {
+async function setup(page: import("@playwright/test").Page, empty = false, destination = stops[1]) {
   const selected = empty ? [] : stops;
-  const document = draftToWalkDocument({ version: 1, title: "Арбат", start, destination: stops[1], mode: "open", minutes: 30,
-    stops: selected, route: { stops: selected, geometry: [start.location, ...stops.map(s => s.location)], distanceM: 400, walkingMinutes: 6, attribution: "OSM" }, jobs: [], submitting: null }, id);
+  const geometry = [start.location, ...stops.map(s => s.location), ...(destination === stops[1] ? [] : [destination.location])];
+  const document = draftToWalkDocument({ version: 1, title: "Арбат", start, destination, mode: "open", minutes: 30,
+    stops: selected, route: { stops: selected, geometry, distanceM: 400, walkingMinutes: 6, attribution: "OSM" }, jobs: [], submitting: null }, id);
   await page.addInitScript(({ id, document }) => {
     localStorage.setItem("otgolosok:walks:v2", JSON.stringify({ version: 2, legacyId: null, items: { [id]: { document, revision: 0 } } }));
   }, { id, document });
@@ -100,6 +101,27 @@ test("маршрут без историй можно пройти и завер
   await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
   await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Плеер истории" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Завершить", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Прогулка завершена" })).toBeVisible();
+});
+
+test("после последней остановки прогулка ведёт к финишу и только там завершается", async ({ page }) => {
+  // Финиш в двух сотнях метров за последней остановкой.
+  const finish = { address: "Москва, Арбат, 9", location: { lat: 55.754, lon: 37.601 } };
+  await setup(page, false, finish);
+  await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+  await page.getByRole("button", { name: "Дальше", exact: true }).click();
+  await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Завершить", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "К финишу", exact: true }).click();
+  await expect(page.getByRole("heading", { name: finish.address, exact: true })).toBeVisible();
+  await expect(page.locator(".walk-session-meta")).toHaveText("До финиша");
+  // Подсвечен участок от последней остановки до финиша.
+  await expect(page.locator('.walk-session-map [data-route-part="active"]')).toHaveCount(1);
+  // Назад — к последней остановке, прогулка ещё идёт.
+  await page.getByRole("button", { name: "Предыдущая остановка" }).click();
+  await expect(page.getByRole("heading", { name: stops[1].address, exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "К финишу", exact: true }).click();
   await page.getByRole("button", { name: "Завершить", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Прогулка завершена" })).toBeVisible();
 });
@@ -300,7 +322,7 @@ test("остановка у места без фото не оставляет �
 });
 
 for (const viewport of [{ width: 320, height: 568 }, { width: 844, height: 390 }, { width: 1440, height: 900 }]) {
-  test(`фото остановки, заголовок и «Завершить» помещаются в экран ${viewport.width}×${viewport.height}`, async ({ page }, info) => {
+  test(`фото остановки, заголовок и «К финишу» помещаются в экран ${viewport.width}×${viewport.height}`, async ({ page }, info) => {
     await page.setViewportSize(viewport);
     await openPhotoStop(page);
     const trigger = page.getByRole("button", { name: "Открыть фото: Кинотеатр «Художественный»" });
@@ -309,7 +331,8 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 844, height: 390 }
     // На низком экране фото уступает высоту первым, но остаётся удобной целью для пальца.
     expect(await trigger.evaluate(button => button.parentElement!.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
     await expect(page.locator("#walk-session-title")).toBeInViewport();
-    await expect(page.getByRole("button", { name: "Завершить", exact: true })).toBeInViewport();
+    // Кольцевая прогулка после единственной остановки ведёт обратно к старту.
+    await expect(page.getByRole("button", { name: "К финишу", exact: true })).toBeInViewport();
     await page.screenshot({ path: info.outputPath("walk-photo.png") });
   });
 }
