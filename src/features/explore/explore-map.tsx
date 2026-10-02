@@ -147,6 +147,13 @@ const MARKER_CLASS: Record<MarkerKind, string> = {
 
 const CHEVRON_SIZE = 12;
 
+/**
+ * How far past each edge of the view the route is drawn, in view sizes. Leaflet clips
+ * a line to its renderer and redraws only on moveend; with its default 0.1 a drag
+ * across a desktop screen uncovered a stretch with no line until the map stopped.
+ */
+const ROUTE_RENDER_PADDING = 1;
+
 /** Direction chevrons along the highlighted leg, in its pane, in the casing colour (see .chevron). */
 function drawChevrons(rt: {
   L: typeof Leaflet;
@@ -216,6 +223,7 @@ export function ExploreMap({
     route: Leaflet.LayerGroup;
     chevrons: Leaflet.LayerGroup;
     routePane: HTMLElement;
+    renderers: Record<"route" | "routeActive", Leaflet.Renderer>;
     /** The highlighted leg, redrawn with its chevrons after every zoom. */
     activePath: Leaflet.LatLngExpression[] | null;
   } | null>(null);
@@ -375,6 +383,11 @@ export function ExploreMap({
           route: L.layerGroup().addTo(map),
           chevrons: L.layerGroup().addTo(map),
           routePane,
+          // A pane gets a renderer of its own with the default padding; the map-level renderer option does not reach it.
+          renderers: {
+            route: L.svg({ pane: "route", padding: ROUTE_RENDER_PADDING }),
+            routeActive: L.svg({ pane: "routeActive", padding: ROUTE_RENDER_PADDING }),
+          },
           activePath: null,
         };
         // Chevrons are spaced in screen pixels; panning keeps layer pixels, zooming does not.
@@ -534,13 +547,14 @@ export function ExploreMap({
     for (const part of ["rest", "active"] as const) {
       const own = runs.filter((run) => run.active === (part === "active"));
       const pane = part === "active" ? "routeActive" : "route";
+      const renderer = rt.renderers[pane];
       // A light casing under the green line: the same light rim as the markers, legible over any basemap.
       // All casings of a pane go first, so a casing never covers the line where two runs meet.
       for (const run of own)
-        rt.L.polyline(points.slice(run.from, run.to + 1), { ...stroke, pane, color: rt.colors.casing, weight: 9, opacity: 1 }).addTo(rt.route);
+        rt.L.polyline(points.slice(run.from, run.to + 1), { ...stroke, pane, renderer, color: rt.colors.casing, weight: 9, opacity: 1 }).addTo(rt.route);
       for (const run of own) {
         const line = rt.L.polyline(points.slice(run.from, run.to + 1), {
-          ...stroke, pane, color: rt.colors.route, weight: 5, opacity: 1,
+          ...stroke, pane, renderer, color: rt.colors.route, weight: 5, opacity: 1,
           // Underpasses and arches are not visible from above: dashes on the solid casing.
           ...(run.covered ? { dashArray: ROUTE_COVERED_DASH, lineCap: "butt" as const } : {}),
         }).addTo(rt.route);

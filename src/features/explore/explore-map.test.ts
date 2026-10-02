@@ -120,6 +120,7 @@ vi.mock("leaflet", () => {
     control: { zoom: layer, scale: layer },
     latLngBounds: (points: unknown) => points,
     divIcon: (options: { html: string }) => options,
+    svg: (options: Record<string, unknown>) => ({ options }),
     polyline: (points: number[][], options: Record<string, unknown>) => {
       const entry: (typeof mock.polylines)[number] = { points, options, attributes: new Map() };
       mock.polylines.push(entry);
@@ -339,6 +340,14 @@ it("draws the route in its own panes below the markers, created once per map", a
   const { cleanup } = await mount(undefined, null, undefined, routeProps());
   expect(mock.panes.map((pane) => [pane.name, pane.zIndex])).toEqual([["route", "410"], ["routeActive", "420"]]);
   expect(mock.polylines.every((line) => line.options.pane === "route")).toBe(true);
+  cleanup?.();
+});
+
+it("draws each route pane with a renderer that reaches a full view past every edge", async () => {
+  const { cleanup } = await mount(undefined, null, undefined, routeProps([5, 8]));
+  const renderers = mock.polylines.map((line) => [line.options.pane, (line.options.renderer as { options: Record<string, unknown> } | undefined)?.options]);
+  expect(new Set(renderers.map(([pane]) => pane))).toEqual(new Set(["route", "routeActive"]));
+  for (const [pane, options] of renderers) expect(options).toEqual({ pane, padding: 1 });
   cleanup?.();
 });
 
