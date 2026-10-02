@@ -6,7 +6,7 @@ import { SharedWalkAdmin, WalkAdminSection } from "./shared-walk-admin";
 import type { AdminApi, AdminRun } from "./model";
 
 const walk = { id: "walk", title: "Арбат", shareToken: "public-token", revision: 2, visibility: "shared", listingStatus: null, author: { id: "anna", name: "Анна", email: "anna@example.test" },
-  mode: "loop", stopCount: 4, walkingMinutes: 20, distanceM: 1200, snapshotError: null,
+  mode: "loop", stopCount: 4, walkingMinutes: 20, distanceM: 1200, snapshotError: null, launches: 1234,
   createdAt: "2026-09-30T10:00:00Z", updatedAt: "2026-09-30T11:00:00Z" };
 let root: Root, container: HTMLDivElement;
 const request = vi.fn();
@@ -38,6 +38,8 @@ it("shows author, route metadata and the public link, and confirms a successful 
   await mount();
   expect(container.textContent).toContain("anna@example.test");
   expect(container.textContent).toContain("Точек: 4 · 1,2 км · 20 мин пешком");
+  const column = [...container.querySelectorAll("thead th")].findIndex(cell => cell.textContent === "Запуски");
+  expect(container.querySelector("tbody tr")!.children[column].textContent).toBe((1234).toLocaleString("ru-RU"));
   expect(container.querySelector("a")?.getAttribute("href")).toBe("/walk?share=public-token");
   await click("Скопировать ссылку");
   expect(writeText).toHaveBeenCalledWith(new URL("/walk?share=public-token", window.location.origin).href);

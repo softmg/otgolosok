@@ -120,6 +120,16 @@ test("access and listing filters narrow the list, and pending counts every publi
     assert.throws(() => store.listSharedWalksAdmin(/** @type {any} */ (value)), { code: "BAD_REQUEST" });
 });
 
+test("each listed walk carries its all-time launches, zero without launches", t => {
+  const { store, create } = fixture(t);
+  const launched = create("Арбат"), quiet = create("Бульвары");
+  store.recordLaunch({ kind: "account", id: launched.id }, "viewer-a");
+  store.recordLaunch({ kind: "account", id: launched.id }, "viewer-b");
+  store.recordLaunch({ kind: "catalog", id: quiet.id }, "viewer-a");
+  const launches = Object.fromEntries(store.listSharedWalksAdmin().walks.map(w => [w.id, w.launches]));
+  assert.deepEqual(launches, { [launched.id]: 2, [quiet.id]: 0 }, "catalog launches with the same id are not mixed in");
+});
+
 test("moderation approves or hides a public walk without bumping its revision", t => {
   const { store, db } = fixture(t);
   const walk = createPublic(store, "Публичная");

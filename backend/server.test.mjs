@@ -84,16 +84,27 @@ test("worker transport still exposes credentials and allows issuing keys",async(
 });
 
 test("admin walk catalog accepts pagination and rejects invalid parameters",async(t)=>{
-  const f=await fixture(t);
+  const {accountStore}=await testAccounts(t);
+  const f=await fixture(t,{accountStore});
+  const first=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/walks?limit=1&offset=0`)).json()).walks[0];
+  assert.equal(first.launches,0);
+  accountStore.recordLaunch({kind:"catalog",id:first.id},"viewer-a");
   const response=await fetch(`${f.base}/api/story-admin/walks?limit=1&offset=0`);
   assert.equal(response.status,200);
   const page=/** @type {any} */ (await response.json());
   assert.equal(page.walks.length,1);
+  assert.equal(page.walks[0].launches,1);
   assert.equal(page.total>=page.walks.length,true);
   assert.equal(typeof page.hasMore,"boolean");
   assert.equal((await fetch(`${f.base}/api/story-admin/walks?limit=0&offset=0`)).status,400);
   assert.equal((await fetch(`${f.base}/api/story-admin/walks?limit=1&offset=-1`)).status,400);
   assert.equal((await fetch(`${f.base}/api/story-admin/walks?limit=1&limit=2`)).status,400);
+});
+
+test("admin walk catalog reports unknown launches when the account database is missing",async(t)=>{
+  const f=await fixture(t,{accountStore:null});
+  const page=/** @type {any} */ (await (await fetch(`${f.base}/api/story-admin/walks?limit=1&offset=0`)).json());
+  assert.equal(page.walks[0].launches,null);
 });
 
 test("external worker API authenticates, leases and accepts an idempotent upload",async(t)=>{

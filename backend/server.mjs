@@ -358,7 +358,10 @@ export function createApp({store,provider,osmGeocoder=null,yandexTts=null,eleven
         if(req.method==="GET"&&url.pathname==="/api/story-admin/walks") {
           const entries=[...url.searchParams];
           if(entries.some(([key,value])=>!["limit","offset"].includes(key)||!/^\d+$/.test(value))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
-          json(res,200,store.listWalksAdmin({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0)}));return;
+          const page=store.listWalksAdmin({limit:Number(url.searchParams.get("limit")??50),offset:Number(url.searchParams.get("offset")??0)});
+          // Launches live in the auth database; without it the column shows "нет данных", not zero.
+          const launches=accountStore?.launchCounts("catalog",page.walks.map(walk=>walk.id));
+          json(res,200,{...page,walks:page.walks.map(walk=>({...walk,launches:launches?.get(walk.id)??null}))});return;
         }
         if(req.method==="GET"&&url.pathname==="/api/story-admin/content/places") {
           const entries=[...url.searchParams];if(entries.some(([key,value])=>!["limit","offset","q","status"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value))))throw failure("BAD_REQUEST");

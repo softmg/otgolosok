@@ -105,6 +105,7 @@ test("публичная прогулка попадает в топ после 
     await expect(page.getByRole("button", { name: "Пользовательские · 1", exact: true })).toBeVisible();
     await expect(page.getByRole("combobox", { name: "Топ", exact: true })).toHaveValue("pending");
     await expect(page.getByRole("cell", { name: "Всем · на проверке", exact: true })).toBeVisible();
+    await expect(page.getByRole("row", { name: /Покровка/ }).getByRole("cell", { name: "0", exact: true })).toBeVisible();
     expect(await topTitles()).not.toContain("Покровка");
     await page.getByRole("button", { name: "Одобрить для топа: Покровка", exact: true }).click();
     await expect(page.getByText("«Покровка» в топе.")).toBeVisible();
@@ -121,6 +122,7 @@ test("публичная прогулка попадает в топ после 
     expect((db.prepare("SELECT SUM(launches) AS total FROM walk_launch_days WHERE walk_id = ?").get(walk.id) as { total: number }).total).toBe(1);
 
     await page.goto("/admin?section=walks");
+    await expect(page.getByRole("row", { name: /Покровка/ }).getByRole("cell", { name: "1", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Скрыть из топа: Покровка", exact: true }).click();
     await expect(page.getByText("«Покровка» скрыта из топа. Ссылка продолжает работать.")).toBeVisible();
     expect(await topTitles()).not.toContain("Покровка");

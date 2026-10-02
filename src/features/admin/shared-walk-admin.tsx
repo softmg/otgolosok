@@ -14,6 +14,7 @@ type SharedWalk = {
   author: { id: string; name: string; email: string } | null;
   mode: "open" | "loop" | null; stopCount: number | null;
   walkingMinutes: number | null; distanceM: number | null; snapshotError: string | null;
+  launches: number;
 };
 type WalkPage = { walks: SharedWalk[]; total: number; offset: number; hasMore: boolean; pending: number };
 type Filters = { q: string; author: string; mode: string; access: string; listing: string };
@@ -90,7 +91,7 @@ export function SharedWalkAdmin({ api, run, busy, onPending }: { api: AdminApi; 
   const hasFilters = Boolean(applied.q || applied.author || applied.mode !== "all" || applied.access !== "all" || applied.listing !== "all");
   return <section className="walk-admin" aria-busy={loading} aria-labelledby="shared-walks-title">
     <div className="walk-admin__head">
-      <div><h2 id="shared-walks-title">Пользовательские прогулки</h2><p>Прогулки, открытые по ссылке или всем, включая созданные сервисом. Открытые всем попадают в «Топ прогулок» после одобрения. Сначала недавно обновлённые.{page ? ` На проверке: ${page.pending}.` : ""}</p></div>
+      <div><h2 id="shared-walks-title">Пользовательские прогулки</h2><p>Прогулки, открытые по ссылке или всем, включая созданные сервисом. Открытые всем попадают в «Топ прогулок» после одобрения. Сначала недавно обновлённые. Запуски — сколько раз прогулку начали по ссылке: один зритель в сутки, без запусков автора.{page ? ` На проверке: ${page.pending}.` : ""}</p></div>
       <button type="button" disabled={disabled} onClick={() => void run("Обновление прогулок…", signal => load(applied, page?.offset ?? 0, signal))}>Обновить список</button>
     </div>
     <form className={styles.filters} onSubmit={event => {
@@ -115,13 +116,14 @@ export function SharedWalkAdmin({ api, run, busy, onPending }: { api: AdminApi; 
     <div className="walk-admin__table-wrap" role="region" aria-label="Список пользовательских прогулок" tabIndex={0}>
       <table className={`walk-admin__table ${styles.table}`}>
         <caption className="admin-sr-only">Пользовательские прогулки, их авторы и доступ</caption>
-        <thead><tr><th scope="col">Прогулка</th><th scope="col">Автор</th><th scope="col">Маршрут</th><th scope="col">Даты</th><th scope="col">Доступ</th><th scope="col">Действия</th></tr></thead>
-        <tbody>{loading ? skeletonRows(6, page?.walks.length ?? 0) : page?.walks.map(walk => <tr key={walk.id}>
+        <thead><tr><th scope="col">Прогулка</th><th scope="col">Автор</th><th scope="col">Маршрут</th><th scope="col">Даты</th><th scope="col">Доступ</th><th scope="col">Запуски</th><th scope="col">Действия</th></tr></thead>
+        <tbody>{loading ? skeletonRows(7, page?.walks.length ?? 0) : page?.walks.map(walk => <tr key={walk.id}>
           <th scope="row"><a href={`/walk?share=${encodeURIComponent(walk.shareToken)}`} target="_blank" rel="noopener noreferrer">{walk.title}</a>{walk.snapshotError && <span className={styles.warning}>Снимок повреждён</span>}</th>
           <td>{walk.author ? <><strong>{walk.author.name || "Без имени"}</strong><span className={styles.meta}>{walk.author.email}</span></> : "Автор неизвестен"}</td>
           <td>{walk.mode ? modeLabels[walk.mode] : "Нет данных"}<span className={styles.meta}>{walk.stopCount !== null ? `Точек: ${walk.stopCount}` : ""}{walk.distanceM !== null ? ` · ${(walk.distanceM / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км` : ""}{walk.walkingMinutes !== null ? ` · ${Math.round(walk.walkingMinutes)} мин пешком` : ""}</span></td>
           <td><time dateTime={walk.updatedAt}>{dateLabel(walk.updatedAt)}</time><span className={styles.meta}>Создана {dateLabel(walk.createdAt)}</span></td>
           <td>{accessText(walk)}</td>
+          <td>{walk.launches.toLocaleString("ru-RU")}</td>
           <td className={styles.actions}><button type="button" disabled={disabled || copying} onClick={() => void copyLink(walk)} aria-label={`Скопировать ссылку: ${walk.title}`}>Скопировать ссылку</button>
             {walk.visibility === "public" && walk.listingStatus !== "approved" && <button type="button" disabled={disabled} onClick={() => moderate(walk, "approve")} aria-label={`Одобрить для топа: ${walk.title}`}>Одобрить для топа</button>}
             {walk.visibility === "public" && walk.listingStatus !== "hidden" && <button type="button" disabled={disabled} onClick={() => moderate(walk, "hide")} aria-label={`Скрыть из топа: ${walk.title}`}>Скрыть из топа</button>}</td>
