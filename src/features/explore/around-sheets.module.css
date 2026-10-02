@@ -169,7 +169,10 @@
 
 /* Leaves room for the corner close button beside the first line of the title. */
 .titleRow {
-  padding-right: calc(var(--control-min) - var(--sheet-pad, 1.25rem) + 0.75rem);
+  padding-right: calc(
+    var(--control-min) + var(--sheet-scrollbar, 12px) -
+      var(--sheet-pad, 1.25rem) + 0.75rem
+  );
 }
 
 /* Readable over a photo as well as over the plain card. */

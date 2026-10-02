@@ -1,5 +1,8 @@
-/* Density comes from the map shell (--sheet-pad, --sheet-gap); the fallbacks are the roomy look. */
+/* Density comes from the map shell (--sheet-pad, --sheet-gap); the fallbacks are the roomy look.
+   --sheet-scrollbar is the widest scrollbar the body draws; content beside the body keeps clear of it. */
 .sheet {
+  --sheet-scrollbar: 12px;
+
   container: sheet / inline-size;
   display: flex;
   flex-direction: column;
@@ -34,12 +37,18 @@
   display: none;
 }
 
-/* Raised: the masked body is a stacking context that would otherwise paint over it. */
+/* Raised: the masked body is a stacking context that would otherwise paint over it. Over the body it stands
+   left of the scrollbar, which runs along the body's right edge 0.25rem from the sheet edge. */
 .corner {
   position: absolute;
   top: calc(var(--sheet-pad, 1.25rem) - 0.625rem);
-  right: calc(var(--sheet-pad, 1.25rem) - 0.625rem);
+  right: calc(0.25rem + var(--sheet-scrollbar));
   z-index: var(--z-raise);
+}
+
+/* Over a photo nothing scrolls under it, so it takes the very corner. */
+.sheet:has(> .media:not(:empty)) > .corner {
+  right: calc(var(--sheet-pad, 1.25rem) - 0.625rem);
 }
 
 .header,
@@ -91,7 +100,7 @@
     }
 
     .body::-webkit-scrollbar {
-      width: 12px;
+      width: var(--sheet-scrollbar);
     }
 
     .body::-webkit-scrollbar-thumb {
@@ -148,7 +157,8 @@
           calc(100% - min(var(--fade-bottom), 20%)),
         transparent
       ),
-      linear-gradient(var(--mask-opaque) 0 0) 100% 0 / 12px 100% no-repeat;
+      linear-gradient(var(--mask-opaque) 0 0) 100% 0 / var(--sheet-scrollbar)
+        100% no-repeat;
     animation-name: fadeTop, fadeBottom;
     animation-duration: auto;
     animation-timing-function: linear;

@@ -164,6 +164,17 @@ export async function collectViolations(page: Page, options: LayoutOptions, safe
       for (const body of region.element.querySelectorAll("[data-sheet-part=body]")) {
         if (!visible(body) || body.scrollHeight <= body.clientHeight + 1) continue;
         if (body.clientHeight < 48) add("body", `прокручиваемая часть «${describe(body)}» высотой ${body.clientHeight}`);
+        // A control pinned to the sheet corner must leave the scrollbar free; overlay scrollbars take no gutter, so 8 px is assumed.
+        const rect = body.getBoundingClientRect();
+        const style = getComputedStyle(body);
+        const gutter = (body as HTMLElement).offsetWidth - body.clientWidth - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth);
+        const bar: Box = { left: rect.right - Math.max(gutter, 8), top: rect.top, right: rect.right, bottom: rect.bottom };
+        for (const corner of region.element.querySelectorAll("[data-sheet-part=corner]")) {
+          if (!visible(corner)) continue;
+          const box = toBox(corner.getBoundingClientRect());
+          const apart = box.right <= bar.left + 0.5 || bar.right <= box.left + 0.5 || box.bottom <= bar.top + 0.5 || bar.bottom <= box.top + 0.5;
+          if (!apart) add("overlap", `«${describe(corner.firstElementChild ?? corner)}» ${round(box)} закрывает полосу прокрутки ${round(bar)}`);
+        }
       }
     }
 
