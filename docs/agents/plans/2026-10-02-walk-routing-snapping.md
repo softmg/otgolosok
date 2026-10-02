@@ -1,6 +1,6 @@
 # Plan: Reliable stop snapping for automatic walks
 
-Status: in progress since 2026-10-02.
+Status: implemented 2026-10-02 in branch `feat/promo-walks-stories-only`. Caveat: the post-fix benchmark used a recreated harness with different random starts (old and new planners compared on the same starts).
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
@@ -243,6 +243,16 @@ End-to-end against the local Valhalla (`docker compose` with `compose.override.y
 
   Record the numbers in that note. Do not commit the throwaway harness.
 - Before committing, run `pnpm lint`, `pnpm typecheck`, `pnpm test`, then `pnpm test:e2e`. The known pre-existing `layout-invariants` failures are documented in `2026-10-02-unified-map-markers.md`.
+
+## As built (divergences from the steps above)
+
+- Discovery: a candidate closer than 5 m to the start goes only to `nearStart` (it can only be the start landmark), not to `candidates`; as a routed stop it would coincide with the start and break `validStops`. Deduplication (`catalogId`, address, 5 m) also runs against `nearStart`, so no ordinary stop lands within 5 m of the landmark.
+- Router errors: `request(..., {routerErrors:true})` reads the JSON body of any 4xx; codes 442/171 become the internal `WALK_UNROUTABLE` (caught in `measureRoute`), any other 4xx or a malformed body stays `WALK_UNAVAILABLE`.
+- `measureRoute` validates every leg (summary, decode, length) before the endpoint checks and the per-leg attribution, so malformed data is never blamed on a stop. A route with fewer than 2 routed points (only the start landmark, open, no destination) is rejected without a router call.
+- `fillBudget` requires at least 2 chain stops besides the landmark; with fewer left after exclusions it throws `WALK_NOT_FOUND`.
+- `MAX_AUTO_ROUTER_CALLS` is exported for the tests.
+- e2e: the start marker title is now `Старт: <address>`, so the "selected point is not hidden under the panel" test selector changed. The `content/walk-builder.md` backend reference also lists the new codes and snapping parameters.
+- Verification: backend 688 and vitest 822 tests pass; `e2e/interface.spec.ts` passes; the full e2e run had only the known `layout-invariants` walk-panel failures plus one `map-catalog` Cache Storage test that passes on rerun. Benchmark numbers are in `docs/agents/valhalla-snapping.md`.
 
 ## Out of scope
 

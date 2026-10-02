@@ -31,7 +31,8 @@
 - Миграция при старте один раз переводит существующие промо-прогулки (`shared` с
   корректным снимком) в `public` + `approved`, не меняя `revision` и `updated_at`.
 - Ошибки планировщика общие с `/api/walk-plan`: `walkPlanErrorResponse` в
-  `backend/walk-plan-errors.mjs`.
+  `backend/walk-plan-errors.mjs`. Старт или финиш вне пешеходной сети (привязка дальше 150 м) —
+  404 `WALK_START_UNREACHABLE` / `WALK_DESTINATION_UNREACHABLE`; воркеру стоит выбрать другую точку.
 
 ## Риски
 
