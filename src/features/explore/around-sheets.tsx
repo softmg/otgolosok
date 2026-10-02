@@ -82,7 +82,7 @@ export function PlaceSheet({ address, busy, error, createHref, walkHref, onClose
     </div>}
     // Both actions stay in the footer: the card has no text to scroll past them.
     footer={busy ? null : <>
-      <Link className={a.primary} href={createHref} prefetch={false}>{address ? "Подготовить историю этого дома" : "Ввести адрес вручную"}<ExploreIcon name="plus" /></Link>
+      <Link className={a.primary} href={createHref} prefetch={false}>{address ? "История этого дома" : "Ввести адрес вручную"}<ExploreIcon name="plus" /></Link>
       {walkHref ? <WalkFromHere href={walkHref} onClick={onWalk} footer /> : null}
     </>}>
     {note}
