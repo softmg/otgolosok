@@ -111,7 +111,7 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
         </>}
         {state.picking && <div className={styles.mapPick}><p>Нажмите на карту в нужном месте.</p><button className="ui-button quiet" onClick={() => dispatch({ type: "return" })}>Отменить</button></div>}
         {preview && <>
-          <div className={styles.summary}><strong>{w.draft.route!.walkingMinutes} <small>мин пешком</small></strong><strong>{(w.draft.route!.distanceM / 1000).toFixed(1).replace(".", ",")} <small>км</small></strong></div>
+          <p className={styles.summary}><strong>{w.draft.route!.walkingMinutes} мин</strong><strong>{(w.draft.route!.distanceM / 1000).toFixed(1).replace(".", ",")} км</strong></p>
           {shortfall !== null && <p className={`ui-muted ${styles.shortfall}`}>Рядом нашлось мест только на {shortfall} мин из {w.draft.minutes}. Выберите другое начало или добавьте остановки вручную.</p>}
           <div className={styles.routePoints}><p><small>Откуда</small>{w.draft.start?.address}</p><p><small>Куда</small>{w.draft.destination?.address ?? (w.draft.mode === "loop" ? w.draft.start?.address : w.draft.stops.at(-1)?.address)}</p></div>
           <button className={styles.textButton} disabled={busy} onClick={() => w.edit({})}>Изменить маршрут</button>

@@ -203,6 +203,8 @@
 /* Built route preview. */
 .summary {
   display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   gap: var(--space-lg);
   margin: var(--space-xs) 0 var(--space-md);
 }
@@ -210,14 +212,7 @@
 .summary strong {
   font-size: var(--text-page);
   letter-spacing: -0.04em;
-}
-
-.summary small {
-  display: block;
-  font-size: var(--text-meta);
-  font-weight: 500;
-  letter-spacing: 0;
-  color: var(--map-muted);
+  white-space: nowrap;
 }
 
 .shortfall {
