@@ -43,8 +43,14 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (picked) void resolvePoint(picked); }, [picked]);
   useEffect(() => {
-    const places = [w.draft.start, ...w.draft.stops, w.draft.destination].filter(p => p != null);
-    onMap({ items: places.map((p, i) => ({ id: `creation-${i}`, title: p.address, location: p.location, number: i + 1 })), geometry: w.draft.route?.geometry, focus: w.focus, picking: state.picking });
+    // As in the walk session: the start and the finish are rings, stops are numbered like the stop list.
+    const start = w.draft.start, stops = w.draft.stops, destination = w.draft.destination;
+    const items: MapItem[] = [
+      ...(start ? [{ id: "creation-start", title: `Старт: ${start.address}`, location: start.location, endpoint: true }] : []),
+      ...stops.map((p, i) => ({ id: `creation-stop-${i}`, title: `Остановка ${i + 1}: ${p.address}`, location: p.location, number: i + 1 })),
+      ...(destination ? [{ id: "creation-finish", title: `Финиш: ${destination.address}`, location: destination.location, endpoint: true }] : []),
+    ];
+    onMap({ items, geometry: w.draft.route?.geometry, focus: w.focus, picking: state.picking });
   }, [w.draft.start, w.draft.stops, w.draft.destination, w.draft.route, w.focus, state.picking, onMap]);
 
   // Адрес ищем один раз — по итоговой, самой точной точке.

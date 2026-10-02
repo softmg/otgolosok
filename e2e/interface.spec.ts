@@ -126,6 +126,9 @@ test("создаёт A→Б на карте и восстанавливает е
   await page.getByRole("textbox").press("Enter");
   await page.getByRole("button", { name: "Построить прогулку" }).click();
   await expect(page.getByRole("heading", { name: "Ваш маршрут" })).toBeVisible();
+  // Start and finish are rings, not numbered stops.
+  await expect(page.locator('.leaflet-marker-pane [data-marker="endpoint"]')).toHaveCount(2);
+  await expect(page.locator('.leaflet-marker-pane [data-marker="pin"]')).toHaveCount(0);
   await expect(page.locator('[data-creation="stops"]:empty')).toHaveCount(0);
   await expect(page.getByText("Пешеходный маршрут построен. Исторических остановок по пути пока нет.")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Сохранить в аккаунте" })).toHaveCount(0);
@@ -534,7 +537,30 @@ for (const [walkingMinutes, note] of [[18, true], [52, false]] as const) test(`�
   await expect(page.getByRole("heading", { name: "Ваш маршрут" })).toBeVisible();
   const shortfall = page.getByText(`Рядом нашлось мест только на ${walkingMinutes} мин из 60.`, { exact: false });
   await expect(shortfall).toHaveCount(note ? 1 : 0);
+  // A loop shows one ring at the start; stop numbers match the stop list.
+  await expect(page.getByText(`Остановки · ${stops.length}`, { exact: true })).toBeVisible();
+  await expect(page.locator('.leaflet-marker-pane [data-marker="endpoint"]')).toHaveCount(1);
+  await expect(page.locator('.leaflet-marker-pane [data-marker="pin"]')).toHaveText(stops.map((_, i) => String(i + 1)));
   await page.screenshot({ path: info.outputPath("time-preview.png") });
+});
+
+test("старт вне пешеходной сети объясняет, что выбрать, без предложения исследования", async ({ page }) => {
+  const start = { address: "Москва, Арбат, 1", location: { lat: 55.75, lon: 37.6 } };
+  const message = "Сюда не дойти пешком. Выберите начало на улице рядом.";
+  await page.route("**/api/story-place?*", route => route.fulfill({ json: start }));
+  await page.route("**/api/walk-plan", route => route.fulfill({ status: 404, json: { error: { code: "WALK_START_UNREACHABLE", message } } }));
+  await page.goto("/");
+  await page.getByRole("link", { name: "Прогулка", exact: true }).click();
+  await page.getByRole("button", { name: "Откуда", exact: true }).click();
+  await page.getByRole("button", { name: "Ввести адрес", exact: false }).click();
+  await page.getByRole("textbox", { name: "Откуда", exact: true }).fill(start.address);
+  await page.getByRole("textbox").press("Enter");
+  await page.getByRole("button", { name: "Куда", exact: true }).click();
+  await page.getByRole("button", { name: "По времени" }).click();
+  await page.getByRole("button", { name: "30 мин" }).click();
+  await page.getByRole("button", { name: "Построить прогулку" }).click();
+  await expect(page.getByText(message, { exact: true })).toBeVisible();
+  await expect(page.getByText("Рядом пока недостаточно готовых остановок", { exact: false })).toHaveCount(0);
 });
 
 for (const [width, height] of [[390, 844], [1280, 800], [1440, 900]]) {
@@ -552,7 +578,7 @@ for (const [width, height] of [[390, 844], [1280, 800], [1440, 900]]) {
     // Leaflet пересоздаёт отметки при обновлении слоя: меряем всё в одном кадре.
     const layout = () => page.evaluate(address => {
       const box = (element: Element | null) => element ? element.getBoundingClientRect().toJSON() as { x: number; y: number; width: number; height: number } : null;
-      return { marker: box(document.querySelector(`.leaflet-marker-icon[title="${address}"]`)), panel: box(document.querySelector('[data-sheet="creation"]')), nav: box(document.querySelector('nav[aria-label="Основная навигация"]')) };
+      return { marker: box(document.querySelector(`.leaflet-marker-icon[title="Старт: ${address}"]`)), panel: box(document.querySelector('[data-sheet="creation"]')), nav: box(document.querySelector('nav[aria-label="Основная навигация"]')) };
     }, place.address);
     const overlaps = (a: { x: number; y: number; width: number; height: number }, b: typeof a) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
     await expect.poll(async () => {

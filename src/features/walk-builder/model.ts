@@ -49,8 +49,10 @@ export function manualStopLimit(start: Place | null, jobs: StoryRef[] = []) {
 export function validStops(start: Place | null, stops: Place[], destination?: Place | null, jobs: StoryRef[] = []) {
   if (!start || !isPlace(start) || stops.length < (destination ? 0 : 1) || stops.length > manualStopLimit(start, jobs) || !stops.every(isPlace)) return false;
   if (destination && !isPlace(destination)) return false;
+  // As on the server, the first stop may be the start building itself.
   const points = [start, ...stops, ...(destination ? [destination] : [])];
-  return points.every((p, i) => points.slice(0, i).every(q => {
+  return points.every((p, i) => points.slice(0, i).every((q, j) => {
+    if (stops.length && i === 1 && j === 0) return true;
     const rad = Math.PI / 180;
     const h = Math.sin((p.location.lat-q.location.lat)*rad/2)**2 + Math.cos(p.location.lat*rad)*Math.cos(q.location.lat*rad)*Math.sin((p.location.lon-q.location.lon)*rad/2)**2;
     return 12742000 * Math.asin(Math.sqrt(Math.min(1,h))) >= 5;

@@ -80,6 +80,10 @@ describe("walk requests", () => {
     expect(shouldOfferResearch("manual", unroutable)).toBe(false);
     for (const error of [new Error("WALK_STOPS_NOT_FOUND"), new RequestError("Unavailable", "SERVICE_UNAVAILABLE", 503)]) expect(shouldOfferResearch("auto", error)).toBe(false);
   });
+  // Researching other stops cannot fix a start or finish off the pedestrian network.
+  it.each(["WALK_START_UNREACHABLE", "WALK_DESTINATION_UNREACHABLE"])("does not offer research for %s", code => {
+    expect(shouldOfferResearch("auto", new RejectedRequest("Сюда не дойти пешком.", code, 404))).toBe(false);
+  });
   it("preserves error codes for CTA gating, missing recovery and unavailable providers", async () => {
     for (const [status, code] of [[422, "WALK_STOPS_NOT_FOUND"], [404, "NOT_FOUND"], [503, "RESEARCH_UNAVAILABLE"]] as const) {
       vi.stubGlobal("fetch", vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ error: { code, message: "Unavailable" } }), { status }))));

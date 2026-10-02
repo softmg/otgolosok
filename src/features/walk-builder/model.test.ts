@@ -40,11 +40,29 @@ describe("walk draft", () => {
     expect(validStops(start, [stop, last])).toBe(true);
     expect(validStops(null, [stop])).toBe(false);
     expect(validStops(start, [])).toBe(false);
-    expect(validStops(start, [start])).toBe(false);
+    expect(validStops(start, [stop, start])).toBe(false);
     expect(validStops(start, [stop, stop])).toBe(false);
     const distinct = Array.from({ length: 40 }, (_, index) => ({ address: `Москва, Арбат, ${index + 10}`, location: { lat: 55.752 + index * 0.001, lon: 37.604 } }));
     expect(validStops(start, distinct)).toBe(true);
     expect(validStops(start, [...distinct, { address: "Москва, Арбат, 50", location: { lat: 55.792, lon: 37.604 } }])).toBe(false);
+  });
+  // The first stop may be the start building, like on the server; no other pair may coincide.
+  it.each([
+    ["first stop at the start", [0], undefined, true],
+    ["first stop 3 m from the start", [3], undefined, true],
+    ["first stop 3 m from the start with a destination", [3], 400, true],
+    ["second stop 3 m from the start", [200, 3], undefined, false],
+    ["destination 3 m from the start", [200], 3, false],
+    ["destination 3 m from the start without stops", [], 3, false],
+  ] as const)("%s: valid is %s", (_, stopsNorthM, destinationEastM, valid) => {
+    const north = (m: number, i: number): Place => ({ address: `Москва, Арбат, ${i + 10}`, location: { lat: start.location.lat + m / 111195, lon: start.location.lon } });
+    const destination: Place | null = destinationEastM === undefined ? null : { address: "Москва, Арбат, 99", location: { lat: start.location.lat, lon: start.location.lon + destinationEastM / 62600 } };
+    expect(validStops(start, stopsNorthM.map(north), destination)).toBe(valid);
+  });
+  it("restores a saved route whose first stop is the start building", () => {
+    const here: Place = { address: start.address, location: { lat: start.location.lat + 3 / 111195, lon: start.location.lon } };
+    const d = { ...emptyDraft(), start, stops: [here, stop], route: { ...route, stops: [here, stop] } };
+    expect(parseDraft(JSON.stringify(d))).toEqual(d);
   });
   it.each([11, 28, 40])("restores all %i stops and rejects oversized or reordered routes", count => {
     const stops = Array.from({ length: count }, (_, index) => ({ address: `Москва, Арбат, ${index + 10}`, location: { lat: 55.752 + index * 0.001, lon: 37.604 } }));
