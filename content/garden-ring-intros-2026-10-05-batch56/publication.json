@@ -1,0 +1,181 @@
+{
+  "verifiedAt": "2026-10-05T20:53:50.188Z",
+  "bundleId": "garden-ring-intros-2026-10-05-batch56",
+  "transport": "https-h2",
+  "results": [
+    {
+      "placeId": "osm:relation:12198830",
+      "name": "Церковь Рождества Богоматери",
+      "textId": "025335aa-f7f6-406c-97ce-db25d3fd8290",
+      "audioJobId": "107b5423-b26b-4418-b20d-888b4c67ec2f",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/0f9f5b54d3d6646541c7063b839b56380301c7054cbdb4f3f29da6e24918fd7e.mp3",
+        "sha256": "0f9f5b54d3d6646541c7063b839b56380301c7054cbdb4f3f29da6e24918fd7e",
+        "bytes": 471789,
+        "durationSec": 58.944,
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/0353ab85ad9941e138560da44a7ae1dbe5902a7195a498671abb3dd9a24b4e95.jpg",
+        "src": "/api/place-images/4d8aeb80d1d3e1215ae8166a86e160a207c494f53b98b4aeaac8a161553e951c.jpg",
+        "width": 500,
+        "height": 461,
+        "alt": "Храм на Стрелке: две дороги и одна колокольня",
+        "author": "Николай Аввакумов",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A6%D0%B5%D1%80%D0%BA%D0%BE%D0%B2%D1%8C_%D0%A0%D0%BE%D0%B6%D0%B4%D0%B5%D1%81%D1%82%D0%B2%D0%B0_%D0%91%D0%BE%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%B8%D1%86%D1%8B_%D0%BD%D0%B0_%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%B5.jpg",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "fe2b9285-7052-4a31-9061-41397f1e08ca",
+          "title": "От Чистых прудов до Китай-города",
+          "shareToken": "9e588fd7-1424-4dcc-8e05-ad89d5007e7b"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "fe2b9285-7052-4a31-9061-41397f1e08ca",
+          "title": "От Чистых прудов до Китай-города",
+          "shareToken": "9e588fd7-1424-4dcc-8e05-ad89d5007e7b",
+          "chapterId": "chistye-stop-28",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/0f9f5b54d3d6646541c7063b839b56380301c7054cbdb4f3f29da6e24918fd7e.mp3",
+            "sha256": "0f9f5b54d3d6646541c7063b839b56380301c7054cbdb4f3f29da6e24918fd7e",
+            "durationSec": 58.944
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    },
+    {
+      "placeId": "osm:node:5244167433",
+      "name": "Э.Г. Гилельсу",
+      "textId": "a4bb896a-eec3-4357-bb50-ca9710623a8c",
+      "audioJobId": "2419f0b9-c399-467a-b5b9-cc9bbf6d9466",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/4f59fd76a377e04572f29ced4ac623d51ee5b3ab1b95b6a46ee944a42d303a3b.mp3",
+        "sha256": "4f59fd76a377e04572f29ced4ac623d51ee5b3ab1b95b6a46ee944a42d303a3b",
+        "bytes": 538989,
+        "durationSec": 67.344,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "dc59981eecf70c58d6cd0cf41295c51450ede41ed74e1a7ab0b5ced228c4d14f",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/images/places/node-5244167433-82d4034dcaaf.jpg",
+        "src": "/images/places/node-5244167433-1eb6d7be915d.jpg",
+        "width": 960,
+        "height": 506,
+        "alt": "Декор фасада дома на Тверской, 25/12, где жил Эмиль Гилельс. Снимок 2007 года, контекстный вид здания, не мемориальная доска.",
+        "author": "NVO",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Tverskaya_25-12_detail.jpg",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:node:253124200",
+      "name": "Юрию Долгорукому",
+      "textId": "31bad6dd-41c8-42fd-86e8-383192755b19",
+      "audioJobId": "94ae72de-a504-4779-9d12-359e122b33ed",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/4fe36bc8473e4aa3e91cfbad71de9c3c5ef6f74b2138e14a01ff5510f0e94e86.mp3",
+        "sha256": "4fe36bc8473e4aa3e91cfbad71de9c3c5ef6f74b2138e14a01ff5510f0e94e86",
+        "bytes": 511917,
+        "durationSec": 63.96,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "e6f4338ec77d9f7b6f4606be3344b233a73223027d2f15a3d8c4073ee809f49f",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/85b4947bd4c9152d0abffbce3fc0a9258b81f48cabbad0d58da451a78b554b20.jpg",
+        "src": "/api/place-images/ec7f1c96c42fd1a5fec38053a4bc99c8f5eb8fa0bf45e59e330f1d93e2ddfa7b.jpg",
+        "width": 500,
+        "height": 761,
+        "alt": "Памятник Юрию Долгорукому",
+        "author": "Derzsi Elekes Andor",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:USSR,_1966_(34).jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:node:4142936190",
+      "name": "Яблоко",
+      "textId": "0355d0ef-c255-4d5b-bb5e-b709ecfba1b4",
+      "audioJobId": "66d4f13b-8261-455d-a7ea-7c65801394f5",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/f518d530b3c09b11d33bd7f333fd46c3ab5c57d8e406fa609df4ddf3790e114a.mp3",
+        "sha256": "f518d530b3c09b11d33bd7f333fd46c3ab5c57d8e406fa609df4ddf3790e114a",
+        "bytes": 479085,
+        "durationSec": 59.856,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "3255c030046e19f72ef92b10ce9f479d1c6f40555db0d5d8bb15ce3441ad0444",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": null,
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": false,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    }
+  ],
+  "summary": {
+    "publishedTexts": 4,
+    "firstPublications": 2,
+    "revoiced": 4,
+    "f5": 3,
+    "elevenlabs": 1,
+    "newPhotos": 1,
+    "preservedPhotos": 2,
+    "photoNotFound": 1,
+    "totalCandidatesCompleted": 396
+  }
+}

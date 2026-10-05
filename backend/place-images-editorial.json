@@ -1438,7 +1438,7 @@
     "author": "Stolbovsky",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Plaque_to_WWII_in_Moscow_3.jpg",
     "license": "Public domain",
-    "licenseUrl": "https://commons.wikimedia.org/wiki/Template:PD-ineligible",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Plaque_to_WWII_in_Moscow_3.jpg#Licensing",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
   },
@@ -1815,7 +1815,7 @@
     "author": "Шерер, Набгольц и Ко",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gulevich_VS.jpg",
     "license": "Public domain",
-    "licenseUrl": "https://commons.wikimedia.org/wiki/Template:PD-ineligible",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gulevich_VS.jpg#Licensing",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
   },
@@ -3428,6 +3428,19 @@
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Church_of_Elijah_the_Prophet_in_Ilyinka_by_shakko_01.jpg",
     "license": "CC BY-SA 3.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:5244167433": {
+    "thumbnail": "/images/places/node-5244167433-82d4034dcaaf.jpg",
+    "src": "/images/places/node-5244167433-1eb6d7be915d.jpg",
+    "width": 960,
+    "height": 506,
+    "alt": "Декор фасада дома на Тверской, 25/12, где жил Эмиль Гилельс. Снимок 2007 года, контекстный вид здания, не мемориальная доска.",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Tverskaya_25-12_detail.jpg",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
   }

@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T20:49:51.099643+00:00",
+  "updatedAt": "2026-10-05T20:54:37.927887+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 392,
+    "publishedWithRevoice": 396,
     "reviewedNoChange": 4,
-    "pending": 4
+    "pending": 0
   },
   "entries": [
     {
@@ -3166,7 +3166,8 @@
       "name": "Церковь Рождества Богоматери",
       "originalTextId": "903759c9-b6db-44f0-8bcf-6ba08251c173",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch56/changes.json"
     },
     {
       "placeId": "osm:way:52467191",
@@ -3189,21 +3190,24 @@
       "name": "Э.Г. Гилельсу",
       "originalTextId": "a4bb896a-eec3-4357-bb50-ca9710623a8c",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch56/changes.json"
     },
     {
       "placeId": "osm:node:253124200",
       "name": "Юрию Долгорукому",
       "originalTextId": "b83e82bd-dcb1-4524-886e-7de95b718266",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch56/changes.json"
     },
     {
       "placeId": "osm:node:4142936190",
       "name": "Яблоко",
       "originalTextId": "0355d0ef-c255-4d5b-bb5e-b709ecfba1b4",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch56/changes.json"
     }
   ]
 }

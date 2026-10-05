@@ -1,0 +1,2405 @@
+{
+  "checkedAt": "2026-10-05T20:57:16.427Z",
+  "results": [
+    {
+      "placeId": "osm:node:4992691359",
+      "jobId": "37c45904-da99-4072-a7a4-8ed34b5248cf",
+      "sourceHashVerified": true,
+      "audioSha256": "58241bc74c30c4f23059c0ab58ac35ab2019d894c4437cb12e506e41cb885570"
+    },
+    {
+      "placeId": "osm:relation:225030",
+      "jobId": "3e521a25-ebd0-45c0-8e38-68737e082615",
+      "sourceHashVerified": true,
+      "audioSha256": "6a6fdfba322a98df08d4b50bf07167c777b98280ac63d57d331c4373c78dda12"
+    },
+    {
+      "placeId": "osm:node:10747680860",
+      "jobId": "afbbe2e4-c1cc-4e54-91e9-08696f3f921c",
+      "sourceHashVerified": true,
+      "audioSha256": "22a351841585b2e6673f11be1ad97be6468d0076c77f69106882358b22545aca"
+    },
+    {
+      "placeId": "osm:node:5244167436",
+      "jobId": "d56a333d-020f-429e-bef6-f0a9aa19097d",
+      "sourceHashVerified": true,
+      "audioSha256": "3f1330812c45f4e39f4e95b515c60f42441467f75c356544453ffbbc83f51537"
+    },
+    {
+      "placeId": "osm:node:9106236034",
+      "jobId": "d9876ab3-1ec0-48cc-8d97-3b263940b819",
+      "sourceHashVerified": true,
+      "audioSha256": "50bba13eddcc0608609af710ddffaf0561c72bf950fb7da0d45a6dd55a177d21"
+    },
+    {
+      "placeId": "osm:node:6225259086",
+      "jobId": "8490b704-3525-4395-88b9-5f1c3007082b",
+      "sourceHashVerified": true,
+      "audioSha256": "b83ee33c48bc23bbf13b05269a76dade8cc50ca834cca625fb0d5c856881ce6d"
+    },
+    {
+      "placeId": "osm:node:6655953290",
+      "jobId": "ea458121-00b4-4af9-9a70-5cbdefa0a343",
+      "sourceHashVerified": true,
+      "audioSha256": "e584a40a63bfd3d95588548590aba1468e85866f33b305b46d9308377979e452"
+    },
+    {
+      "placeId": "osm:node:2585233691",
+      "jobId": "c12ac19e-8ea5-43d1-b289-036a896670d5",
+      "sourceHashVerified": true,
+      "audioSha256": "e58c33ab59ab6b431510bacd29bfd86ffabf8bc1e455e76fd9d21c817e49a33d"
+    },
+    {
+      "placeId": "osm:node:5294751991",
+      "jobId": "0609dcac-255c-4642-a8aa-0bd6c87ac232",
+      "sourceHashVerified": true,
+      "audioSha256": "5eefc40234857a8651cd7a62501b799aede563a8969c9659c2f6281e6979abb2"
+    },
+    {
+      "placeId": "osm:node:1096235294",
+      "jobId": "56b7a37c-e71a-4e33-8bd7-98832193de02",
+      "sourceHashVerified": true,
+      "audioSha256": "032a23678602a13d7ec5c0106f0a4e62f6262c3ffce458d2c6ff6202d57c0155"
+    },
+    {
+      "placeId": "osm:node:6644719373",
+      "jobId": "9c0b218f-4a3f-49b2-a0f6-bcfccfcea76b",
+      "sourceHashVerified": true,
+      "audioSha256": "a3b985e3af92ab83a1ba0317af07a192a180e9d42a29815d536fc0f74c18cf43"
+    },
+    {
+      "placeId": "osm:node:7934342888",
+      "jobId": "c42fa096-6867-4e9b-a848-fbcb65bfd24b",
+      "sourceHashVerified": true,
+      "audioSha256": "5c1a40eaea9a39b2f5889a511ea8d99a2decfefc2933f90797707941cda2c613"
+    },
+    {
+      "placeId": "osm:node:7667621840",
+      "jobId": "ea908ccd-06ff-46db-adf3-8217627c2711",
+      "sourceHashVerified": true,
+      "audioSha256": "e5274d93ded62963894e1d0475561476e54a8e0ffbb8e973daea0c23348df687"
+    },
+    {
+      "placeId": "osm:node:6845394705",
+      "jobId": "3042a46f-d8cd-4d1e-ba67-feceabb5e4b0",
+      "sourceHashVerified": true,
+      "audioSha256": "a420451f1a11bb14607a1a3173ea3142f15b3def8bd23cd8e478fabf9b4efae9"
+    },
+    {
+      "placeId": "osm:node:1161887274",
+      "jobId": "f7cb4b88-4a0e-4736-aa8a-3f20620b1eeb",
+      "sourceHashVerified": true,
+      "audioSha256": "ddf4f3a0ac19eb0b5acfcf32429f75c7c813c5447551dbdf667e260f6c6009b7"
+    },
+    {
+      "placeId": "osm:node:8431671816",
+      "jobId": "61717d45-ee58-4b41-ab19-1edf89f8ecd8",
+      "sourceHashVerified": true,
+      "audioSha256": "0c6a46337259fb05185880618d13cdf8817163d9a7848001f3ece4146ba97526"
+    },
+    {
+      "placeId": "osm:node:8702379682",
+      "jobId": "0347c5e8-04f5-4cc4-9080-25bbb9880b49",
+      "sourceHashVerified": true,
+      "audioSha256": "a48ed6aaa3a96b56cadd2fed7b1ce7a0877ea67664c4c756e70ed08894c1957f"
+    },
+    {
+      "placeId": "osm:node:12471022954",
+      "jobId": "9936c1fd-b4af-4ff0-987b-590383ebd6ae",
+      "sourceHashVerified": true,
+      "audioSha256": "61f79a350e9e394a6d48eaedec47f456eb1c40add62a86477dc5b60cee6bce81"
+    },
+    {
+      "placeId": "osm:node:8440787111",
+      "jobId": "473cad57-cb35-451e-97c2-e22649f7049c",
+      "sourceHashVerified": true,
+      "audioSha256": "9ddc1c1b9449e262f0e5583e0fcea503009cf3b3e3abcb7d284c6396a3b1293d"
+    },
+    {
+      "placeId": "osm:node:12413738023",
+      "jobId": "a6db275f-8bfc-4220-9ca6-73372a1087ee",
+      "sourceHashVerified": true,
+      "audioSha256": "7a1f99919648b53603e6ab6d78ed21396a9b1cb77497d5c0e0c877ac07f56b5f"
+    },
+    {
+      "placeId": "osm:node:6449794072",
+      "jobId": "9f302795-4b3e-428a-ab20-07969f0b5972",
+      "sourceHashVerified": true,
+      "audioSha256": "e200da80ff8cc3b7be8bdeb6d3a07c83345fad14297e9e66b28e7ecae595a653"
+    },
+    {
+      "placeId": "osm:node:7099701418",
+      "jobId": "ed19da25-e7e3-4e2b-887c-612a1b4ba80e",
+      "sourceHashVerified": true,
+      "audioSha256": "0668c61e7b697d54cd47da54a068d72eff96188080f1c1a31b6d6ac071d896e1"
+    },
+    {
+      "placeId": "osm:node:5057733049",
+      "jobId": "28daf63d-6196-4ca7-a23a-dde8ec959461",
+      "sourceHashVerified": true,
+      "audioSha256": "edcf58eae41921e80c5cf0df62ebeb075bff70d70f8db56df4c7dba0cb08be68"
+    },
+    {
+      "placeId": "osm:node:4142905057",
+      "jobId": "db260235-2555-474c-865c-3cfb8e6fdc3b",
+      "sourceHashVerified": true,
+      "audioSha256": "d5697b157f96f1aceac181a931fe92abb316d75fafcdaa6fa0178e667f1eaf64"
+    },
+    {
+      "placeId": "osm:relation:1362325",
+      "jobId": "45e154cf-4439-488a-a3b3-8e3e87d435f4",
+      "sourceHashVerified": true,
+      "audioSha256": "221babcc83084da2e75f54a3502fd33fdca13acdca35e1dd0013a6084a8decb5"
+    },
+    {
+      "placeId": "osm:node:416562794",
+      "jobId": "0e51b197-da65-465e-bf9c-a52b1e51222e",
+      "sourceHashVerified": true,
+      "audioSha256": "565942e914e9e89b4c8d7450b95acae2796cb02de6855f1e4112e05d5f0a9f2f"
+    },
+    {
+      "placeId": "osm:node:669409021",
+      "jobId": "bd277693-25b3-4eb6-937f-5127eba017c4",
+      "sourceHashVerified": true,
+      "audioSha256": "51056da4ccf52c49485e8a34102f0a21cdc50acc604c8d8059263b69c3a376dc"
+    },
+    {
+      "placeId": "osm:way:45892322",
+      "jobId": "5f642e01-1656-4c4a-b5a5-266a76ad4edf",
+      "sourceHashVerified": true,
+      "audioSha256": "c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46"
+    },
+    {
+      "placeId": "osm:way:44185735",
+      "jobId": "87e9b60e-c0ec-425b-ad09-2a750bf5658e",
+      "sourceHashVerified": true,
+      "audioSha256": "7a57211b28f7d3f625e4685539aa71440e0d4a767b7c4056392cc95421d11bbe"
+    },
+    {
+      "placeId": "osm:way:52829438",
+      "jobId": "1efa4b00-a0f8-4175-8e47-2eff44bd48c7",
+      "sourceHashVerified": true,
+      "audioSha256": "0482b951c82171b70b378c1cb4db17f56e83c1b54902db1ef20a5b22701cf154"
+    },
+    {
+      "placeId": "osm:way:49436498",
+      "jobId": "1e86efb6-5b09-4766-944c-796cc65967e5",
+      "sourceHashVerified": true,
+      "audioSha256": "fe28c1d6957b0a4aff1b3901c54fd3dc75150a217527b2caf3d480baacbc8048"
+    },
+    {
+      "placeId": "osm:relation:6204093",
+      "jobId": "2069024b-664b-460f-ae7c-15c8013e9b93",
+      "sourceHashVerified": true,
+      "audioSha256": "b9e8097b9f728f4f28c792c08aa367f4525b72b6427d52f172e4d84f36421c42"
+    },
+    {
+      "placeId": "osm:relation:19086176",
+      "jobId": "a834222e-020b-4949-9db6-37d04e116426",
+      "sourceHashVerified": true,
+      "audioSha256": "8b3e95c336e9a346de53e7d6d33d7896aa0f82ae25e5824e19928b7fe8c67f95"
+    },
+    {
+      "placeId": "osm:node:4142864173",
+      "jobId": "c1c6e73d-4904-4f6f-a4c8-37df20597fee",
+      "sourceHashVerified": true,
+      "audioSha256": "97f133829dedf65cf702942f6d94e693c68ee50d80d081f61f4c0e658d212fa1"
+    },
+    {
+      "placeId": "osm:node:7804955746",
+      "jobId": "72268529-0be0-449f-9e14-4e33536c2662",
+      "sourceHashVerified": true,
+      "audioSha256": "e6e68a6e230470b5f194b6ae794d81bdc4158ece3be5f9f94e198b4be56b12ee"
+    },
+    {
+      "placeId": "osm:node:4142944123",
+      "jobId": "0e23fccd-2981-4deb-8888-bb6fc67ee0e5",
+      "sourceHashVerified": true,
+      "audioSha256": "a2e5c51347a57902ce469b7dcd3d883ccec8a73d78262cfe2960a2a45394564b"
+    },
+    {
+      "placeId": "osm:node:7643484540",
+      "jobId": "e53dc217-3a3a-476a-9c1a-0cb9f54a91e9",
+      "sourceHashVerified": true,
+      "audioSha256": "0a47f7f25200677d618355ba613aad6a4a1eec75ce108b0e690a3e3ac54139af"
+    },
+    {
+      "placeId": "osm:node:9866102348",
+      "jobId": "cbeda939-af5b-41cb-9baf-81ef7326b09d",
+      "sourceHashVerified": true,
+      "audioSha256": "c49ac998501ee2f0959a258949a43c0e2e9016f72d43996192ac5e9cee575d9c"
+    },
+    {
+      "placeId": "osm:node:6731731188",
+      "jobId": "e5b6c332-64bb-4a3c-abbd-03f8d4073c3d",
+      "sourceHashVerified": true,
+      "audioSha256": "ef22c36befefda11c7cc41d7661e6d08d3d56c49394ff974154762cb99d79c99"
+    },
+    {
+      "placeId": "osm:node:2322476565",
+      "jobId": "535b328b-b846-44be-85aa-2f897a363a1e",
+      "sourceHashVerified": true,
+      "audioSha256": "4a3c87df552827a25f7a150a1962f15248e95a8ebb6e8d69b35bc8a38f9f16a8"
+    },
+    {
+      "placeId": "osm:node:9282393807",
+      "jobId": "3a372857-cc5d-4c64-afb6-6581a5a9edc0",
+      "sourceHashVerified": true,
+      "audioSha256": "605a2067370c5d35d93e3c3f58f337e02ab47f185a204dd3be891789e8a27fe0"
+    },
+    {
+      "placeId": "osm:node:11808136918",
+      "jobId": "87a31499-816f-4d03-9451-fb7242e7cd36",
+      "sourceHashVerified": true,
+      "audioSha256": "029901e285444786023dd81597433f23928e88f886df5f2a3154836d266ca56e"
+    },
+    {
+      "placeId": "osm:node:6731731189",
+      "jobId": "1c242a3a-5232-4715-b0a5-c84cb501f50c",
+      "sourceHashVerified": true,
+      "audioSha256": "5129f8df789db5bd1851e09b569ce8876ca7a492503183117dd7b851adf49c74"
+    },
+    {
+      "placeId": "osm:node:7644098498",
+      "jobId": "e8274bb9-ecf3-45c5-b7ed-90520ad8d4e0",
+      "sourceHashVerified": true,
+      "audioSha256": "2561222087458cda42ef245ddacce1cba629045306353ae6c49d80435584287e"
+    },
+    {
+      "placeId": "osm:node:9117500930",
+      "jobId": "0b05702b-4ac2-4d8b-af22-ac210ef0005e",
+      "sourceHashVerified": true,
+      "audioSha256": "8539c8c497c34a5d64a0bb39350301e50622335aa27f05fc55c4b5f8dfb6b12b"
+    },
+    {
+      "placeId": "osm:node:6883694881",
+      "jobId": "1d39f15f-7d9e-49b2-89e6-cc63e1d7b411",
+      "sourceHashVerified": true,
+      "audioSha256": "af451df00190da4460d8f3a381e1d3e9ba3080cdb9fe8cb017b0e90f8c275afe"
+    },
+    {
+      "placeId": "osm:node:5554932774",
+      "jobId": "ed167ccd-6739-4afe-bf73-afa05c5c11bd",
+      "sourceHashVerified": true,
+      "audioSha256": "ebd64d6d56fde49d9f4eb3fbe9b980b8a43f0010258f575af05dad73f8c4ec85"
+    },
+    {
+      "placeId": "osm:node:6801999747",
+      "jobId": "99ec4929-fba3-422e-9599-fce51e471a36",
+      "sourceHashVerified": true,
+      "audioSha256": "a0626bcfe3152800c481f4765684de2d1c6db0df5ef1a434e0d015546015c47c"
+    },
+    {
+      "placeId": "osm:node:6449794077",
+      "jobId": "551b4c44-84d7-48cd-9a63-a7da7b78c8be",
+      "sourceHashVerified": true,
+      "audioSha256": "69b9645f84379559994adfb785d0ae3597b8ded7319027b573ad31c23a72c0d5"
+    },
+    {
+      "placeId": "osm:node:4481478260",
+      "jobId": "2e158258-c24b-4594-b5b9-e63b7637f542",
+      "sourceHashVerified": true,
+      "audioSha256": "6c0005e753091e28dc0a1f42e3adb4553b0a0fb40756276f7a237df52c13a798"
+    },
+    {
+      "placeId": "osm:node:2821784588",
+      "jobId": "6b640d2d-e619-4a66-8851-65b4603dbbcb",
+      "sourceHashVerified": true,
+      "audioSha256": "8a16b827fc9cfcabf2d6a7ec1d03647ea45fad3749e2d64c3c9dc6ecb9daaa18"
+    },
+    {
+      "placeId": "osm:node:3632375393",
+      "jobId": "22c507c4-0c7f-4270-906f-0e385a5903e8",
+      "sourceHashVerified": true,
+      "audioSha256": "b08a4a5b564d62f9d5440d86ef1257068859a451ac21ce0d3400a1499928a46a"
+    },
+    {
+      "placeId": "osm:node:14096253201",
+      "jobId": "7fff6eb9-db9e-4961-86ee-ca4cb08abe5a",
+      "sourceHashVerified": true,
+      "audioSha256": "c7644554e974de5f9e069699809afd623e389ed8fbe0c97953bc7ca707dc8564"
+    },
+    {
+      "placeId": "osm:node:3069066677",
+      "jobId": "f3ecb054-567f-421a-b33b-062d7d4b0084",
+      "sourceHashVerified": true,
+      "audioSha256": "05c641efc15633a98a4b00511e9dd1ad364fe2dc3e39a97a3eca19024c29c2c4"
+    },
+    {
+      "placeId": "osm:node:2582950702",
+      "jobId": "4fd73330-7429-4a31-91b6-875155c0a803",
+      "sourceHashVerified": true,
+      "audioSha256": "ddd79e58e89263085cdf0d0dffcb2ab7abb86e4deb6155621a257301b3f273aa"
+    },
+    {
+      "placeId": "osm:node:6005863542",
+      "jobId": "8ad2ed00-00fe-449c-945c-6d26e40c439b",
+      "sourceHashVerified": true,
+      "audioSha256": "276dcef8580a4cf3e70092be456fb27ab8f1acbc54efed94a984e9aed6476de2"
+    },
+    {
+      "placeId": "osm:node:1367901767",
+      "jobId": "be99a278-3012-4eda-9ea7-87227cee4c75",
+      "sourceHashVerified": true,
+      "audioSha256": "b00a3eed88e4d1e1bf1122c998dcb4549d25fa8c50d5303a92760a40992c6de0"
+    },
+    {
+      "placeId": "osm:node:11043826183",
+      "jobId": "665d6842-5081-447d-9700-6f5304853409",
+      "sourceHashVerified": true,
+      "audioSha256": "643f5fd46cc439ad401914000956af3c31b35f798bff2ec79280b7538071481e"
+    },
+    {
+      "placeId": "osm:node:273354762",
+      "jobId": "217c334d-d140-49cf-a311-87ba9ec05fc6",
+      "sourceHashVerified": true,
+      "audioSha256": "26d68c8e74ffac245ae625b5d757adc5282747afd5985bd8addc0b66482ac659"
+    },
+    {
+      "placeId": "osm:node:12314105580",
+      "jobId": "4b67a76b-5616-402b-af53-20be4e31ce1b",
+      "sourceHashVerified": true,
+      "audioSha256": "087a609fd6c4c213750c796c49ed307734924e5b1c0f26f2ffb6ea65960bf680"
+    },
+    {
+      "placeId": "osm:node:5181847692",
+      "jobId": "13152d24-b6c9-4c38-b73c-ad2c0dde0fdc",
+      "sourceHashVerified": true,
+      "audioSha256": "490dc07778c14092fea39cc791960d5ef609d9c1cba5b83509c6ed58dfbf5865"
+    },
+    {
+      "placeId": "osm:way:129228259",
+      "jobId": "ef72d09b-ab02-4443-8f25-4bcffd298788",
+      "sourceHashVerified": true,
+      "audioSha256": "be119f5ccff8bdeb22501e890b176c574e127c954e05575eb344b5537c643c39"
+    },
+    {
+      "placeId": "osm:way:45777816",
+      "jobId": "be68a470-8238-498f-a56e-b05c4369647b",
+      "sourceHashVerified": true,
+      "audioSha256": "9999d6e6dd2205c934a787e4258965a39ab726e2c3a2c5206dc726a3145e47bd"
+    },
+    {
+      "placeId": "osm:node:11299249710",
+      "jobId": "f8389d65-8e9b-4b14-9b87-195a32292c40",
+      "sourceHashVerified": true,
+      "audioSha256": "665d200e9ab7d79480e31ec726d49f9d1fc833e339c8ee9808578facf597bb77"
+    },
+    {
+      "placeId": "osm:node:8440603119",
+      "jobId": "666a2cf4-00a5-4978-bb2c-62fd6875a61e",
+      "sourceHashVerified": true,
+      "audioSha256": "a83d5c1bf464f54e1a60c9786660e47c7899639351848cc403f0f7a9e89d4caf"
+    },
+    {
+      "placeId": "osm:way:160191365",
+      "jobId": "4e86a3e9-931f-49fe-9973-836c2302a907",
+      "sourceHashVerified": true,
+      "audioSha256": "20c7cbae8fac7b38102c1bf64a4d782d9cab6076908af81e898a0e879a1c266e"
+    },
+    {
+      "placeId": "osm:way:131491823",
+      "jobId": "43729c78-de35-4ee7-98f6-dacacc63f712",
+      "sourceHashVerified": true,
+      "audioSha256": "158f94b0f99ba81e8d43664c83bd305ff84c507f61a54e4af837c37acb4bba7b"
+    },
+    {
+      "placeId": "osm:way:47973338",
+      "jobId": "98c86655-00d9-44b2-b7ce-34ffa10abf8d",
+      "sourceHashVerified": true,
+      "audioSha256": "a9b4b60d173724a19bd2d4f29fcbad5ef2e071e8ed75624d77f50c45b5828fd3"
+    },
+    {
+      "placeId": "osm:node:273355916",
+      "jobId": "173a24d5-def6-4e06-8f01-c9156500390b",
+      "sourceHashVerified": true,
+      "audioSha256": "926f36efb1114827bc66abb5131578c5a418f36463803347dbb45687a17d52cc"
+    },
+    {
+      "placeId": "osm:way:32693733",
+      "jobId": "a68d1603-e8b8-47d8-952b-b92aaadd8082",
+      "sourceHashVerified": true,
+      "audioSha256": "571bd3720b77a0b2e4ca3f9505a76bd8eca58de4b16d8dced026268a1c979b82"
+    },
+    {
+      "placeId": "osm:node:6054425459",
+      "jobId": "3c8a8e7f-1ef6-4c5b-a68c-d299570fdfc7",
+      "sourceHashVerified": true,
+      "audioSha256": "bf4782fd0ce617808a2fc320301127ea6a3fc8b9ccf743a5465fdc27dff6e1a3"
+    },
+    {
+      "placeId": "osm:node:2798179186",
+      "jobId": "64265124-cfbe-4972-904c-27a726708db8",
+      "sourceHashVerified": true,
+      "audioSha256": "481c2088144bedbe7716d95758037954d8bc0289a08c022a5d544066cae69dae"
+    },
+    {
+      "placeId": "osm:way:47138160",
+      "jobId": "053f9d5e-fbd4-4072-a604-609f31318d57",
+      "sourceHashVerified": true,
+      "audioSha256": "e7558a74102dffc09307803b9f1f8274e94839dc26a4559190f8f5d221344b19"
+    },
+    {
+      "placeId": "osm:relation:16685841",
+      "jobId": "8ce20d45-621d-4d91-973d-50363d2d81be",
+      "sourceHashVerified": true,
+      "audioSha256": "bd094f3d07226576f86d3b106d94abdf3cd2db32adc7a73179b573699b9b4755"
+    },
+    {
+      "placeId": "osm:node:12729053255",
+      "jobId": "08ae76c8-bb29-47de-8bff-bcc33eef2d7f",
+      "sourceHashVerified": true,
+      "audioSha256": "303ef1e6594ad87bef52cf6595a6193e3a59f84de6c69560c1a1bd57ef6c3b33"
+    },
+    {
+      "placeId": "osm:node:12529340641",
+      "jobId": "087bf6da-66e7-4463-aae6-30dc7e86956a",
+      "sourceHashVerified": true,
+      "audioSha256": "9746efcadc906fd780b607a8be0379065ee307536d32433b2ee13ad00259e45d"
+    },
+    {
+      "placeId": "osm:relation:8062635",
+      "jobId": "fe72739b-d7a7-4167-a5f2-f2a98225ed56",
+      "sourceHashVerified": true,
+      "audioSha256": "1cf5050b6ffea56c54d1bd488f96395ca96e4bb626f31955e7454c2df136dbfb"
+    },
+    {
+      "placeId": "osm:way:224146643",
+      "jobId": "ad278c61-e35e-4168-b4f8-66479b6693e4",
+      "sourceHashVerified": true,
+      "audioSha256": "a0493d795abea2adb320367989f2d79400e5e0319caa772205761e87b1ca8279"
+    },
+    {
+      "placeId": "osm:way:173172365",
+      "jobId": "823f8022-8bd4-4f90-b0b0-5091f2bbfa54",
+      "sourceHashVerified": true,
+      "audioSha256": "2fd5e88da1da03730283a0b69cee097a6228c3616348aef64d3fd4eda6e2ff2f"
+    },
+    {
+      "placeId": "osm:node:2715045290",
+      "jobId": "c31e7657-e72a-4dd1-8dd4-0eadf5b4fb60",
+      "sourceHashVerified": true,
+      "audioSha256": "0a5b1e63e7ab615122c0320ce1568883bdf27e7dd025a2f3db1387af517b396a"
+    },
+    {
+      "placeId": "osm:node:8431704517",
+      "jobId": "855510b4-239f-46c0-958a-6d2874e83c3b",
+      "sourceHashVerified": true,
+      "audioSha256": "6a068c326ae325f9a8ba9c3cf664451e86ef3711bf1aeef503dabd37b9a39d4e"
+    },
+    {
+      "placeId": "osm:node:3466483914",
+      "jobId": "dde77b29-6847-46a4-8fc3-a3f68f2e66e3",
+      "sourceHashVerified": true,
+      "audioSha256": "95afaa69ed849d4d2cedf28acaf83b2e93700e8829dbeb85de9c5ceaf9ef22e2"
+    },
+    {
+      "placeId": "osm:node:5218469188",
+      "jobId": "9d17ae2c-889a-4484-93dc-5194170d17ef",
+      "sourceHashVerified": true,
+      "audioSha256": "f0c4e2033b5b424e19274b96b2ceb3bfe03987a70140a47504542464532e9d9f"
+    },
+    {
+      "placeId": "osm:node:13245906707",
+      "jobId": "90388058-d6bd-491e-9243-7e3b4e1b40b2",
+      "sourceHashVerified": true,
+      "audioSha256": "857da2a3b9c27261b6ac58798ea6dc81d24a7ce5b2431ca1557be0bc2ed591a8"
+    },
+    {
+      "placeId": "osm:node:1592025111",
+      "jobId": "eb36240b-f172-421d-9752-3911d68c98fe",
+      "sourceHashVerified": true,
+      "audioSha256": "5635aa643bbc4fd4f5ca60e44b28d25e7723d2f58ced341eb06691b83f5c14fc"
+    },
+    {
+      "placeId": "osm:relation:5969167",
+      "jobId": "6fc758a3-b797-43b2-9721-61b3f77a8334",
+      "sourceHashVerified": true,
+      "audioSha256": "44dc55816ee92545e8eb38846c35e0fde1ca06de8c4032b4c1fe700314020dda"
+    },
+    {
+      "placeId": "osm:way:274909164",
+      "jobId": "624a3a28-7eda-4110-930f-2f51cb1f55a8",
+      "sourceHashVerified": true,
+      "audioSha256": "50f5b80ce57e646113963cdf70f3a9d523cf133df22cdfc7ab6f87f3e4457b66"
+    },
+    {
+      "placeId": "osm:relation:12198829",
+      "jobId": "bfcee4d5-df6f-4b48-b9f3-1766d6290043",
+      "sourceHashVerified": true,
+      "audioSha256": "ebe8f6297e26f036038a11a13f9367c025da85c30d6a78e630fc8f086cfe4b4e"
+    },
+    {
+      "placeId": "osm:relation:6210565",
+      "jobId": "120a67c0-983f-472e-8637-6f740b48e9e6",
+      "sourceHashVerified": true,
+      "audioSha256": "84fdfff78d89b841550bd3ff12beee43bfe5987c13cc87d3dc28558306753b6b"
+    },
+    {
+      "placeId": "osm:way:120727145",
+      "jobId": "7e3cadb5-efd7-4a3d-8f09-5c36d067d4e9",
+      "sourceHashVerified": true,
+      "audioSha256": "7e97f9c8aadb414c25a05ba744ab3ce16f9c818501f607d8c3408b5ba2d7a7c8"
+    },
+    {
+      "placeId": "osm:relation:10319256",
+      "jobId": "a27576a9-5c29-484a-81e3-7905ac39e422",
+      "sourceHashVerified": true,
+      "audioSha256": "5d7b71c5030329e4a07afbd128a6eef2ce65bef4fd36f0c7e71ba351bec9420b"
+    },
+    {
+      "placeId": "osm:node:3500729458",
+      "jobId": "87e5973e-2fec-4025-aed7-807bcd45875b",
+      "sourceHashVerified": true,
+      "audioSha256": "80bb9fae589244aa41090ab6511f6bbae6325e4b2167a6aa9b9a5e2d5d1cb145"
+    },
+    {
+      "placeId": "osm:node:1359123836",
+      "jobId": "5b69cc5c-94e8-4893-a7ff-f303e5d868b7",
+      "sourceHashVerified": true,
+      "audioSha256": "aece6560a618f23cceec7e224db3646496fb747ed5a12796e55ebe134d549232"
+    },
+    {
+      "placeId": "osm:node:10015992717",
+      "jobId": "479b6b4c-0349-4de1-b629-1cb3121ecc24",
+      "sourceHashVerified": true,
+      "audioSha256": "0de54018789dd292811a3f88145cbe6ba8f7e689a0b767a262b27d5bd0cf3ddf"
+    },
+    {
+      "placeId": "osm:way:312412195",
+      "jobId": "d190668a-0317-49ec-8214-3dfd1f69dedb",
+      "sourceHashVerified": true,
+      "audioSha256": "e5d4a1d6e75e024e6c17c8b75bd4870944b6395e88bcdd8a06353d3a823f0e99"
+    },
+    {
+      "placeId": "osm:way:300426887",
+      "jobId": "94a8fd7d-1bf3-4348-b2d1-5b4cc8ac1c52",
+      "sourceHashVerified": true,
+      "audioSha256": "705dcbc40cdea735dabcb8db94f6282e8fbb53c894443add7c91edea18ae8930"
+    },
+    {
+      "placeId": "osm:node:8431704518",
+      "jobId": "d20dd2fc-e122-43d2-b6f1-966b6634b0b9",
+      "sourceHashVerified": true,
+      "audioSha256": "43411702104e37dcdc6b7af973eb37de43956e12ca0f88deebeb2841843363b1"
+    },
+    {
+      "placeId": "osm:way:47978268",
+      "jobId": "ed4594d9-b606-413b-944e-339fa09ea06d",
+      "sourceHashVerified": true,
+      "audioSha256": "7eb32ed8f8c37a3e5d19b78871c066ca7c96051ab3b46592d81bfb1da0837ba9"
+    },
+    {
+      "placeId": "osm:node:7428358397",
+      "jobId": "cdb7628c-f096-4339-82bb-9c174140bb33",
+      "sourceHashVerified": true,
+      "audioSha256": "a044fccb64120b1c4acbdda3d56303b9478e96bf41f2b86ffa535a3af74c661c"
+    },
+    {
+      "placeId": "osm:relation:12344757",
+      "jobId": "1484026d-7ab0-44b9-8590-e14237fa2a8f",
+      "sourceHashVerified": true,
+      "audioSha256": "26fb3dc80533ce750d9d1cdd1621018940d9255f77b16bd860434915ca6221aa"
+    },
+    {
+      "placeId": "osm:node:4142983687",
+      "jobId": "960b2190-547c-4bd1-9a9f-bc9f82e623b0",
+      "sourceHashVerified": true,
+      "audioSha256": "d3c0ac6d251362e035903a5c3f92587fe5c70b6903d9b72ae633d7b553cca60e"
+    },
+    {
+      "placeId": "osm:node:7906582329",
+      "jobId": "94b49175-c6fa-4f4a-930d-668f04c2fc1c",
+      "sourceHashVerified": true,
+      "audioSha256": "873b2ce300148f7ab558e1588c3ce2106902140801973ad2d90f58c3256adf20"
+    },
+    {
+      "placeId": "osm:node:9976724415",
+      "jobId": "9b895229-4547-4f18-bd6e-ef6ddf8392be",
+      "sourceHashVerified": true,
+      "audioSha256": "3f64701d31197a354a048e45d30b1f6677b8e77dcb87729420e7663c1f9f985e"
+    },
+    {
+      "placeId": "osm:node:640142003",
+      "jobId": "568206d4-ce45-4180-8625-2f523e8196f9",
+      "sourceHashVerified": true,
+      "audioSha256": "efc51fc1c87097fed34d72acbb4a9f46d2863eadfddd203c548143d40166db7b"
+    },
+    {
+      "placeId": "osm:node:8104894066",
+      "jobId": "c47bcf4e-71e3-4e78-9af7-946a940d33ae",
+      "sourceHashVerified": true,
+      "audioSha256": "c06f64e4af910b86c59e4ad661b9bd21fb5d0bb95aac6eb2e2a4f74087d499c6"
+    },
+    {
+      "placeId": "osm:node:4142944125",
+      "jobId": "d906868b-c090-4a7a-9284-1ad426b1f8ab",
+      "sourceHashVerified": true,
+      "audioSha256": "a18d8862b9e914b93dfac7f087f0ec23c4fb4975b829849f4acf3e6105d6a021"
+    },
+    {
+      "placeId": "osm:node:10090116527",
+      "jobId": "bb432e69-0e53-4782-ba5a-bead737bedcb",
+      "sourceHashVerified": true,
+      "audioSha256": "5c1f8645489b9cf073b6392511aba4d036c8f683237c3bd05cd6a99a2ad9c9d8"
+    },
+    {
+      "placeId": "osm:node:12729053257",
+      "jobId": "1994bcf9-fed8-49d2-94c9-8b05d8873c72",
+      "sourceHashVerified": true,
+      "audioSha256": "e1af7928be7ff9f2e4e6941b2b47bff82d172449ec04258e23087e4e59154daa"
+    },
+    {
+      "placeId": "osm:node:6551722694",
+      "jobId": "ba051d86-7383-4ae1-964c-d1fa3ace2675",
+      "sourceHashVerified": true,
+      "audioSha256": "8cfed802cf50bd539cdbea4319ece4d1f7855d96ccbb567911ae11bc30afb543"
+    },
+    {
+      "placeId": "osm:node:9282393808",
+      "jobId": "f5a92251-279e-449a-9f1b-22fbd20a1652",
+      "sourceHashVerified": true,
+      "audioSha256": "0a2aad699b9e9cc40e0e45aed8d9d1f2c4746e999f297b2eaa2934bf6a86c79a"
+    },
+    {
+      "placeId": "osm:node:7333329471",
+      "jobId": "d6a52970-0142-4602-b7b7-69e463bd57c4",
+      "sourceHashVerified": true,
+      "audioSha256": "9569e875a3b9ba77241a836e73f98df6da6a08519d932315fa200864aa42b3e0"
+    },
+    {
+      "placeId": "osm:way:32693328",
+      "jobId": "2e4f7e04-1128-4308-8ea2-1c0bdf5be0af",
+      "sourceHashVerified": true,
+      "audioSha256": "d5a8e03a07976045e79b68f632d95d65f0f3102bda97ee53f577f1657ec9e7a5"
+    },
+    {
+      "placeId": "osm:node:14096306301",
+      "jobId": "199121e8-5518-4579-9627-f07d9e54ff2c",
+      "sourceHashVerified": true,
+      "audioSha256": "f9fd08e3d01c36d83d106697a25077c40b3f7239c108305885ab7681f5648781"
+    },
+    {
+      "placeId": "osm:relation:20429242",
+      "jobId": "bff9ae9f-7f39-48a6-a9e3-9c8d1979314a",
+      "sourceHashVerified": true,
+      "audioSha256": "852a02200dee103d921458fe6a3dcedb0978ea9a8a4a9693ee09d80646c0a376"
+    },
+    {
+      "placeId": "osm:relation:9303001",
+      "jobId": "0dae6669-4e6b-461d-b69e-af64f3b518b6",
+      "sourceHashVerified": true,
+      "audioSha256": "cf0129c57fabf69830da1153dbc0fe3ee1e2171a528aedb0220bb165d9bb77e5"
+    },
+    {
+      "placeId": "osm:relation:7418784",
+      "jobId": "218a71de-95f4-4138-9917-a90fd470939f",
+      "sourceHashVerified": true,
+      "audioSha256": "a8302d83f09bc64f417caa476433bd2b8ab71d612b5f57d487184cc3f1baa6ca"
+    },
+    {
+      "placeId": "osm:relation:5963922",
+      "jobId": "ff66f652-05a4-444c-95f9-b8e3fa176c15",
+      "sourceHashVerified": true,
+      "audioSha256": "69e869509b7975bc0254ece7bd70f86756e47e8dccb249c52d0a9abb7474c2f8"
+    },
+    {
+      "placeId": "osm:node:10572977040",
+      "jobId": "45614e7d-491a-4539-ab69-9418c28b83aa",
+      "sourceHashVerified": true,
+      "audioSha256": "72d8c6ed235901bf3ab0981db711a3c7abc64ec29018a6ba09fd57693f44a6e4"
+    },
+    {
+      "placeId": "osm:node:5310616994",
+      "jobId": "c26f518f-fe7e-4625-a4d3-cf5aa469a439",
+      "sourceHashVerified": true,
+      "audioSha256": "6a5632571d58b8e3921fd9094def8360794045a32455e7ff176fa6abc2aa7059"
+    },
+    {
+      "placeId": "osm:node:6306853696",
+      "jobId": "06a1f867-4e17-4278-8199-5aee07c68e7b",
+      "sourceHashVerified": true,
+      "audioSha256": "8181eb919fd533edfa8dac0e27193783352fb6ddc71c133ab8348b3ce67a48e0"
+    },
+    {
+      "placeId": "osm:node:13254353242",
+      "jobId": "fa75cf77-1631-4710-a22a-11b961a00784",
+      "sourceHashVerified": true,
+      "audioSha256": "080f9b989883d8c594baacaea21da73e6d3c1636871900ab142914c3b41d45ad"
+    },
+    {
+      "placeId": "osm:node:6449794076",
+      "jobId": "4f1f4776-1ad5-4290-b85e-faeaf4afae8f",
+      "sourceHashVerified": true,
+      "audioSha256": "af8364d2bfe3501460487290754ad8859d83a779fc90ebcc4bebaa283736e863"
+    },
+    {
+      "placeId": "osm:node:13155862702",
+      "jobId": "a7201cd9-067c-4cc3-8c06-9543f5a971bd",
+      "sourceHashVerified": true,
+      "audioSha256": "e33fbe53cb3e8161acff468928ba62ffc08d1aa878990bb92ffbab381c5b909c"
+    },
+    {
+      "placeId": "osm:node:784052411",
+      "jobId": "75e6fcd4-2bf4-4438-b3d2-e2b118e20053",
+      "sourceHashVerified": true,
+      "audioSha256": "a5456d36a7d979b21ef0e3733c98391f97e72a8ff90d2b3557042335655c8658"
+    },
+    {
+      "placeId": "osm:relation:7524307",
+      "jobId": "41e57831-8a29-47b4-a016-ab02bd19de3f",
+      "sourceHashVerified": true,
+      "audioSha256": "ac23ab514aa5322ab6a6b785acad8aad6626397f7c71497231bebf994a812f6f"
+    },
+    {
+      "placeId": "osm:node:10030895986",
+      "jobId": "e9485f9d-be0c-44cf-a4a9-4583c90ed3c4",
+      "sourceHashVerified": true,
+      "audioSha256": "3e40f4ad24af1ea6748fdee375e190dc8d4cb7a9a13ec0aaeb1e1c03ea38d0ea"
+    },
+    {
+      "placeId": "osm:node:8849289628",
+      "jobId": "ed118a6e-bc93-4119-8a9e-2a12db509da6",
+      "sourceHashVerified": true,
+      "audioSha256": "b3f03999ccf768b2497f5824e1b161119970473ab6eb3d9672bed5c149de15b3"
+    },
+    {
+      "placeId": "osm:relation:1360645",
+      "jobId": "84ebfdd3-ad07-4075-a1cc-483e9b88da4c",
+      "sourceHashVerified": true,
+      "audioSha256": "4b1db1d4f92470b86d89f2f506ce176d8d595f4857dc4b95c9c9aaa6901f4a91"
+    },
+    {
+      "placeId": "osm:relation:15449241",
+      "jobId": "e3ccd206-6bf3-4354-bd12-f42fd8dce44f",
+      "sourceHashVerified": true,
+      "audioSha256": "3f08ef666f113569c6391c228d6a5ad10256fb27d9bc03f15661c800461ba51e"
+    },
+    {
+      "placeId": "osm:relation:7555555",
+      "jobId": "0f5aaf7b-f84e-4a3c-9b27-a3e219ae6f16",
+      "sourceHashVerified": true,
+      "audioSha256": "3ac7c46bb7bfa8b54d0592044a4693e45343aa707582ac47970c35baf5ed40e9"
+    },
+    {
+      "placeId": "osm:way:52387428",
+      "jobId": "39965fb8-c16f-4e40-8758-4e6d66195a50",
+      "sourceHashVerified": true,
+      "audioSha256": "0f91fa566e25fe40dada82170bfe7cbbb332a6133b323ca8f72bf22c16c208b0"
+    },
+    {
+      "placeId": "osm:relation:1577673",
+      "jobId": "a5a4ad11-bbe6-4d29-b36f-9a97dc46729e",
+      "sourceHashVerified": true,
+      "audioSha256": "57d9183ec8430327ee2513710ce3d2862a8dcb3ee6ac9d7713a7ab3338398f10"
+    },
+    {
+      "placeId": "osm:node:5932638885",
+      "jobId": "927400c7-45ed-4fdb-a1dd-cdfc6920dfe1",
+      "sourceHashVerified": true,
+      "audioSha256": "3b330bee48cb3c8e606c59537f09517bf462e39b3761cc12427320f7609756e1"
+    },
+    {
+      "placeId": "osm:node:4142863819",
+      "jobId": "96754857-8c82-46d2-bb71-3688c5331082",
+      "sourceHashVerified": true,
+      "audioSha256": "55ae6945291f69325dba3694e018ba02d0efb863dab249a29fa114bd7ec0c6a6"
+    },
+    {
+      "placeId": "osm:node:1691951977",
+      "jobId": "890507e2-1ebb-45db-a69d-5fea140f9bc9",
+      "sourceHashVerified": true,
+      "audioSha256": "a67a9dbb4f8225fd96122f77f7de6e9ad99016fed34033e8d4cfdc2b7c416324"
+    },
+    {
+      "placeId": "osm:way:52673205",
+      "jobId": "5e72ae50-3705-43c7-be9e-ae62202ad3ad",
+      "sourceHashVerified": true,
+      "audioSha256": "0840d7432490ccbac8bdfd3b111b2d329872bad620ce26239d6b5c4fa588c0e8"
+    },
+    {
+      "placeId": "osm:node:916076811",
+      "jobId": "e67ba41e-3076-4842-8bb5-7aa8a4a85052",
+      "sourceHashVerified": true,
+      "audioSha256": "8279c6c148cfe3ac718ac804bc03d615f556064bf2384549e045c685be6de914"
+    },
+    {
+      "placeId": "osm:node:7333329478",
+      "jobId": "a1b317f2-227a-45a6-98e1-d9ead9024e81",
+      "sourceHashVerified": true,
+      "audioSha256": "70ac9ff425218f44bf0be08d606438febc2457ee5cd5ca901a0d919a1c473a98"
+    },
+    {
+      "placeId": "osm:node:6845394704",
+      "jobId": "d680c296-31fa-45d9-8923-19eaa480625e",
+      "sourceHashVerified": true,
+      "audioSha256": "81450d295cfe1261832776ca787286f14f044a5e26567a572e2ef364b50c6237"
+    },
+    {
+      "placeId": "osm:node:5083895957",
+      "jobId": "450afba7-66b8-4fde-80e9-8cfebc3fd62f",
+      "sourceHashVerified": true,
+      "audioSha256": "4c1ad9c607309f1dbd9194ee1ee966a2c0f9d25bf599ae5d95b7c2a8aeefac3d"
+    },
+    {
+      "placeId": "osm:node:6276151672",
+      "jobId": "073bfc62-fa74-4e7a-8a12-aa4ec5b65c23",
+      "sourceHashVerified": true,
+      "audioSha256": "851c920087366f40e67d418075b08b58794c41c81581697c1c8e6b644c596c44"
+    },
+    {
+      "placeId": "osm:node:916076773",
+      "jobId": "d1f68632-6984-4d73-9696-73bc24996f87",
+      "sourceHashVerified": true,
+      "audioSha256": "1441f67f002d6decd0b18287f25febf303bf8dacb5d4f82c4c0f85778273e182"
+    },
+    {
+      "placeId": "osm:node:9282393809",
+      "jobId": "286d9ae9-75b6-4571-8b00-90ce9a6bb5b3",
+      "sourceHashVerified": true,
+      "audioSha256": "cfd4bd195f3c8894f097f5e09b109dc07e62c45e9b76af2fe457cc3f6cc7b05e"
+    },
+    {
+      "placeId": "osm:node:12855637233",
+      "jobId": "23fd0723-78b2-4a7a-b9b8-38d53e4afb47",
+      "sourceHashVerified": true,
+      "audioSha256": "925ad3a0a6c898dc1119fd2e91120b7788e0147399e2778b5eb16bbf5c802ec9"
+    },
+    {
+      "placeId": "osm:node:2157117342",
+      "jobId": "b600acd1-e640-4941-9af8-9c1648087ba2",
+      "sourceHashVerified": true,
+      "audioSha256": "c24cf6aa4cebda6c311cb790a7739812afd451ca29ea4ae65e71676667a83029"
+    },
+    {
+      "placeId": "osm:node:13259551104",
+      "jobId": "5b895731-db93-4bc2-b73c-388d87d0b18e",
+      "sourceHashVerified": true,
+      "audioSha256": "4725de4adbca2e73af4520f14eaf46cfb3b6c38f9f9b2f5c05dd50080a2c2709"
+    },
+    {
+      "placeId": "osm:node:8440603117",
+      "jobId": "6524b348-df38-44a2-ac0f-438396ee6924",
+      "sourceHashVerified": true,
+      "audioSha256": "f74dc95689a1752bc888a3dea067b681df377f43fd17f85c5463ac0495857951"
+    },
+    {
+      "placeId": "osm:node:13245906713",
+      "jobId": "95908afc-dd0c-4948-baa7-27064c7e21db",
+      "sourceHashVerified": true,
+      "audioSha256": "6a7472301e496cd499c87a02eb4bf2b112acbb7237eba46d0ad19823c8ce8f80"
+    },
+    {
+      "placeId": "osm:node:11335355279",
+      "jobId": "3cab0c27-416c-467c-bf96-7528ff037a2a",
+      "sourceHashVerified": true,
+      "audioSha256": "f88f1415e76801811bab387172e7acac90299d960437088a039d7c9d7862e5c8"
+    },
+    {
+      "placeId": "osm:node:7099701420",
+      "jobId": "a4d816a3-c9c0-4026-9302-2d6bfeffe388",
+      "sourceHashVerified": true,
+      "audioSha256": "9bc98be2d35ee17307b2e68735f550acfa16877ceebf11ecf53746196d5a7b24"
+    },
+    {
+      "placeId": "osm:relation:3272726",
+      "jobId": "e6a00542-d051-4184-b8cb-a820cb2bfd76",
+      "sourceHashVerified": true,
+      "audioSha256": "d6679fd4565e5cba89b821dc633eace33182c8f3c36715d9166fc1b24abdcbc8"
+    },
+    {
+      "placeId": "osm:relation:7259801",
+      "jobId": "2eec449a-ff78-4d60-9183-8482a5dc6f5c",
+      "sourceHashVerified": true,
+      "audioSha256": "cb33c96597f80d0ff5c917da6f2b25a93a03fe70c34dc4ca158576eff308d950"
+    },
+    {
+      "placeId": "osm:node:4604279417",
+      "jobId": "5c0eff52-be92-4a7c-b1e0-d5859e18edd6",
+      "sourceHashVerified": true,
+      "audioSha256": "83fdbb260a2e2d702a6338dd9696ce98b29a0f5c074ff3399bb7a6327902954f"
+    },
+    {
+      "placeId": "osm:node:14096310201",
+      "jobId": "2c5a0414-9eab-4ee3-b50f-25a4d1bd3069",
+      "sourceHashVerified": true,
+      "audioSha256": "ac4a9dc1e02b60043a7c1b030c8322baa6d900edf2116c5ba49e52ba421ce8fb"
+    },
+    {
+      "placeId": "osm:node:3500710699",
+      "jobId": "10498a1c-9991-41e3-8f70-e442cdff0e89",
+      "sourceHashVerified": true,
+      "audioSha256": "21c500aff02c7a49300d54c74b42ebe835b0d45a502c11182144bd8e5eeffcf5"
+    },
+    {
+      "placeId": "osm:node:4088301220",
+      "jobId": "5d0b6a41-c8b9-4719-ab5a-ad7e197c745f",
+      "sourceHashVerified": true,
+      "audioSha256": "3a00fab49f2b1cad72f7c4fa0c3abc737850293296e45822651e6bfe630b45be"
+    },
+    {
+      "placeId": "osm:node:6303242526",
+      "jobId": "76d47440-0089-4837-88cc-f4231c14208f",
+      "sourceHashVerified": true,
+      "audioSha256": "522e744e96054e31bbf958eec10daa5161a13c7329216113f999e8ae187780de"
+    },
+    {
+      "placeId": "osm:node:4692951498",
+      "jobId": "59a4da95-93b3-45ff-aaaa-6310c37a44ec",
+      "sourceHashVerified": true,
+      "audioSha256": "077267ad0c656b9fbb408e8109cb185c96c544f6bfced6f51cf570c38eb58366"
+    },
+    {
+      "placeId": "osm:node:2219502268",
+      "jobId": "5d5edaf5-6190-42d1-9e1e-8e3f0a498da9",
+      "sourceHashVerified": true,
+      "audioSha256": "b5b10c01b22a3962c0220ce3359df10982e5205f80bb758468ae9187262142a6"
+    },
+    {
+      "placeId": "osm:node:6294334620",
+      "jobId": "8448903c-0833-48e8-a2bf-10d761771b29",
+      "sourceHashVerified": true,
+      "audioSha256": "edd2aa706c2629c3c6abd9ad3d27241af14e478267482ea55bd23b76a24a889f"
+    },
+    {
+      "placeId": "osm:node:10572977039",
+      "jobId": "ae527334-2503-405d-8290-1741bce363c5",
+      "sourceHashVerified": true,
+      "audioSha256": "52399d649f09c28e811af2fc7fb40b69e4416a8a605192c7ab9115cd079dd28d"
+    },
+    {
+      "placeId": "osm:node:9181274057",
+      "jobId": "39c8535e-c346-405e-a96b-901fbef06014",
+      "sourceHashVerified": true,
+      "audioSha256": "cd18625a20eb7b9da6ca8212b5b9a601ec971d53c95de6d63b7f7008c1cb150c"
+    },
+    {
+      "placeId": "osm:relation:85761",
+      "jobId": "7e77039b-228c-4f5e-bc15-1beee20d4eaf",
+      "sourceHashVerified": true,
+      "audioSha256": "0273e97b52f653336274a165ecfde6f56555c179c80f97c0dc9807c1c3d332c4"
+    },
+    {
+      "placeId": "osm:relation:3881262",
+      "jobId": "f28b39f3-458d-4434-b78c-40a3c073da16",
+      "sourceHashVerified": true,
+      "audioSha256": "8dd83c6a43cd94c5a2b5a2af381d85d179711fe0b7a1aca7cd408f2d6a562800"
+    },
+    {
+      "placeId": "osm:node:12729053253",
+      "jobId": "bca492af-471b-41ec-849f-f87a45dde90b",
+      "sourceHashVerified": true,
+      "audioSha256": "308f07712596d00717dc002fd1049fc9e5788cfe456ce96322c1e677408ee9e4"
+    },
+    {
+      "placeId": "osm:way:52132608",
+      "jobId": "f5c4a27e-7cb6-466f-8358-c52f27c2edc9",
+      "sourceHashVerified": true,
+      "audioSha256": "c79397c843086d9b597edf872d1c122cd66392a8aab2433fe36dcd234922e25c"
+    },
+    {
+      "placeId": "osm:way:60453478",
+      "jobId": "842e1461-7942-4bee-86fd-9824456915ae",
+      "sourceHashVerified": true,
+      "audioSha256": "6b3efc7c1e9274cc8c85264e6354087aa156eb6dc9beee478e1c0b72719c4056"
+    },
+    {
+      "placeId": "osm:node:4142899081",
+      "jobId": "ba6c174e-00fd-4c5f-b912-0f0d1acc9e72",
+      "sourceHashVerified": true,
+      "audioSha256": "6b160a57ff68384ec4d731d24d9ba12b38c87de1056a6e2784703ea53adb0bcb"
+    },
+    {
+      "placeId": "osm:node:4142950214",
+      "jobId": "b420892e-7874-4010-aea1-2356f3193979",
+      "sourceHashVerified": true,
+      "audioSha256": "c75d2f44fd7ed744a077b083fb2b8b4eb00e71367db71edeae24d1ab513e81cf"
+    },
+    {
+      "placeId": "osm:node:2380290736",
+      "jobId": "5f8ddb4c-757b-48b9-8807-8d3cb45f8690",
+      "sourceHashVerified": true,
+      "audioSha256": "86d51126c6a86f9b7c788f1fbe5cfc7466b98e7d742cae2998e343be534a7ba9"
+    },
+    {
+      "placeId": "osm:node:2380290735",
+      "jobId": "09476b96-443f-48de-ac7d-ee4452c8811f",
+      "sourceHashVerified": true,
+      "audioSha256": "bc89ff494ba6bb78966ab2bcd6010b0962f858b854fa3a27791e43c8be3cedf2"
+    },
+    {
+      "placeId": "osm:node:2380290741",
+      "jobId": "a67d274e-7d89-43e0-a6ad-4aabffc22612",
+      "sourceHashVerified": true,
+      "audioSha256": "b9d83b530f5bd3379cc9797d08e130284f35633ce6ced39ab04db2a32dd837a3"
+    },
+    {
+      "placeId": "osm:node:2380290743",
+      "jobId": "fb03f3b5-073e-43ce-88de-481ca3facc90",
+      "sourceHashVerified": true,
+      "audioSha256": "286cd8e25056f8ed058af445156dfbd84e55ad072e1a7acac17fd0c9c7e1cf72"
+    },
+    {
+      "placeId": "osm:relation:7151077",
+      "jobId": "e4304b98-8547-482d-b6cb-c0bead3bb17c",
+      "sourceHashVerified": true,
+      "audioSha256": "57d6d93c4b21e106cd781b533cfbdbc617dcce2a77f613d9edcdfa06e310b338"
+    },
+    {
+      "placeId": "osm:node:9866186555",
+      "jobId": "f1073dfb-dff8-4e54-b768-383c085ae7e5",
+      "sourceHashVerified": true,
+      "audioSha256": "5695ab4ab7ef29f61244812a36100692091bb9b9be7259283e9294f1daa1aa8b"
+    },
+    {
+      "placeId": "osm:way:45768173",
+      "jobId": "f9d50beb-ca61-4891-a03b-bccd70e5fc57",
+      "sourceHashVerified": true,
+      "audioSha256": "7ce503aaf335c413771d5a23b6dbf6a4b029d6a959fb8aa803f132515ca31f56"
+    },
+    {
+      "placeId": "osm:node:2587146329",
+      "jobId": "d25b10be-90d0-4ff0-b459-85896d72efae",
+      "sourceHashVerified": true,
+      "audioSha256": "6908a45de555ebd4bf988c19a4c6bf632c63df9bad72ab80913088ba80433f22"
+    },
+    {
+      "placeId": "osm:relation:2669510",
+      "jobId": "1fb30d02-f20f-470e-a137-cc9e669beb61",
+      "sourceHashVerified": true,
+      "audioSha256": "88a2e12e2cbddf30f63228054befc2b8c96a102012d0044055816b5c4a8b1f3c"
+    },
+    {
+      "placeId": "osm:node:12803628465",
+      "jobId": "96207d84-002b-4a3b-bf69-f3ba31f7a7b8",
+      "sourceHashVerified": true,
+      "audioSha256": "5446fa845e5f9ade84bcaf8935c52391b9e61e635a6896050b40cd6f1800d25c"
+    },
+    {
+      "placeId": "osm:relation:418691",
+      "jobId": "a3822bfb-ed32-4458-ad3a-43adb6ed1dbc",
+      "sourceHashVerified": true,
+      "audioSha256": "0b178015467ff83b8cd2570927b73aed803c6b74ff2b6fe5834a111c85aa6224"
+    },
+    {
+      "placeId": "osm:way:52583222",
+      "jobId": "1e01550e-c28c-4827-8070-da8f53b57653",
+      "sourceHashVerified": true,
+      "audioSha256": "c05be2e2a0be37879ee5b654a4ec51a589b4e66872af4cde0206fb415286a13d"
+    },
+    {
+      "placeId": "osm:relation:2669481",
+      "jobId": "863f7a18-23eb-42e1-877f-69c617d069d2",
+      "sourceHashVerified": true,
+      "audioSha256": "50ab4e4e75be16b02358ec3a1669233d5d517334913f479046f6beaec5556af8"
+    },
+    {
+      "placeId": "osm:node:6061084594",
+      "jobId": "a9da0ae3-c5c1-4ebb-9911-11741f5102d5",
+      "sourceHashVerified": true,
+      "audioSha256": "f20141e386176d6060db65d5144f89bb6d9ea7db5f0b53ebff1bf06e5b6e8918"
+    },
+    {
+      "placeId": "osm:way:164210810",
+      "jobId": "4a5d369f-575e-4e53-ad0c-e385775def17",
+      "sourceHashVerified": true,
+      "audioSha256": "cf9571935d6221a81ad26a26f663e3fadcc2d6561c82ac6064959354ae4f011e"
+    },
+    {
+      "placeId": "osm:node:3500887936",
+      "jobId": "69bcf3ae-2b35-47f7-96e5-c5ab3d917e17",
+      "sourceHashVerified": true,
+      "audioSha256": "8081f59a26f6878291c2303c2d53313394be9da138ea948c60f9e859c53276c9"
+    },
+    {
+      "placeId": "osm:node:2613597034",
+      "jobId": "81dd25d1-e616-4c7b-a261-26802d400ac5",
+      "sourceHashVerified": true,
+      "audioSha256": "e08719b7d6ba544a28e13f8e4b4adf04b7a9dbe84f68e4894bfdcc1e80754684"
+    },
+    {
+      "placeId": "osm:node:6977883849",
+      "jobId": "f32f4509-dfbc-4157-9574-0ec5fb2c0d97",
+      "sourceHashVerified": true,
+      "audioSha256": "83491b0b4169dceb0e166f44f1db77b8a54ce5073f2732179f59273946898527"
+    },
+    {
+      "placeId": "osm:node:3361538621",
+      "jobId": "4536a18b-aa07-46a9-8eeb-3dcd0cb48cea",
+      "sourceHashVerified": true,
+      "audioSha256": "a0e20c4daa3b811102d0566e138aa16085776d1fbca95457d66d56a25edcd978"
+    },
+    {
+      "placeId": "osm:node:5581175521",
+      "jobId": "3b8c90b6-5db1-4f76-a917-ca95d5c5092d",
+      "sourceHashVerified": true,
+      "audioSha256": "7534f0947e3967705d80f9b7d8b669ae5500d58407f1c7327d6eac8b63fc4393"
+    },
+    {
+      "placeId": "osm:node:7810650304",
+      "jobId": "72bb78e7-04d6-4fd1-8c8c-7fcb3644e8be",
+      "sourceHashVerified": true,
+      "audioSha256": "4dd0142fe7d8864140c4460bd13f76927689cc8ce62675d9da597974f21b93b6"
+    },
+    {
+      "placeId": "osm:relation:5371132",
+      "jobId": "4951d350-51e3-4606-9dbd-e8b3bf88c1e5",
+      "sourceHashVerified": true,
+      "audioSha256": "6d21b8103a6929c8cbfd6b8672369d9b156cb3c285ddc68eaefc11baf59fcbd1"
+    },
+    {
+      "placeId": "osm:node:9610774317",
+      "jobId": "2b87780a-ddea-4b8b-9e3d-a7ad52cbf7ef",
+      "sourceHashVerified": true,
+      "audioSha256": "36f1b634f96eb5d9ff6756e5b85c0c0a466568a371f5a123060d9da493603ce8"
+    },
+    {
+      "placeId": "osm:node:11809152313",
+      "jobId": "69754540-56d1-4ee9-bc4f-4d4a01ea819d",
+      "sourceHashVerified": true,
+      "audioSha256": "570021761252c13935356ada3cd9b4f19d2a57af9716e31866ba3108d3d77086"
+    },
+    {
+      "placeId": "osm:way:36358910",
+      "jobId": "71a6d4df-71c0-4353-8cf1-080ad72794ac",
+      "sourceHashVerified": true,
+      "audioSha256": "e9f3b18da9ff8d6e452c93ac990c6a2cda14379c62238c637202cfcd9e5dad4f"
+    },
+    {
+      "placeId": "osm:way:151077489",
+      "jobId": "c134dde4-09a6-4276-af30-795e567ea144",
+      "sourceHashVerified": true,
+      "audioSha256": "5ad21d62ddda1e7d658d230b88643e504a72f3cf11a24a9cfbbb0c0c27409bdc"
+    },
+    {
+      "placeId": "osm:node:1161887242",
+      "jobId": "32060e20-1517-4e7b-868b-34d6462db491",
+      "sourceHashVerified": true,
+      "audioSha256": "2f7abb3fdc0caf544d950b98e73420804a97a329b02ddc7ee262230529fda64a"
+    },
+    {
+      "placeId": "osm:node:7887532120",
+      "jobId": "09840748-b0a0-4418-8065-4f485df3dde2",
+      "sourceHashVerified": true,
+      "audioSha256": "6a853b2855d8c714a2730144fa6dfd8eab77da23792442cee91d5f7cb65f83d9"
+    },
+    {
+      "placeId": "osm:node:3206046372",
+      "jobId": "fa9d9b88-4d1a-4bac-982e-d09b2e5a2bcd",
+      "sourceHashVerified": true,
+      "audioSha256": "747896be1009dd2ac9fc50bdbabd1d04c16c5d98750a00298c78d514c03cae8c"
+    },
+    {
+      "placeId": "osm:node:1733057309",
+      "jobId": "318fe5a6-d9b4-4456-8a76-83fbef748406",
+      "sourceHashVerified": true,
+      "audioSha256": "5919e92bda03da4684f5e965fc6160779eb87883f7c4a4c9e63ac1ecde65dd56"
+    },
+    {
+      "placeId": "osm:node:3794298653",
+      "jobId": "62795d80-8afb-4b20-a9d9-136fd3894c86",
+      "sourceHashVerified": true,
+      "audioSha256": "46e1a207854b7ebc9daf3d095a2a98194da43124ea04e6799c3cc119a326d883"
+    },
+    {
+      "placeId": "osm:node:6008487169",
+      "jobId": "bc126c11-062b-4d0b-8c6e-7a6b4e9a7a7a",
+      "sourceHashVerified": true,
+      "audioSha256": "7c719b150a03a9687856224e9beb1df66f6e91c28fc9600df5f4f4ee4853f9f8"
+    },
+    {
+      "placeId": "osm:node:5181346005",
+      "jobId": "ad7d842b-6497-41ad-b6c3-925a3ef46e05",
+      "sourceHashVerified": true,
+      "audioSha256": "6d1973a27f4b53493547b3061ba2da86854aab4d83e600c61152dd5e268a7d49"
+    },
+    {
+      "placeId": "osm:way:47296416",
+      "jobId": "e12c18f4-3e80-4b9b-ab37-3009ff6d73a3",
+      "sourceHashVerified": true,
+      "audioSha256": "6f9fd0efd101f75daaeda689715eb3d9e58664805bea5330001d4ad9fab62524"
+    },
+    {
+      "placeId": "osm:node:703628600",
+      "jobId": "3d965786-bd44-43d3-877a-ebc7608d868d",
+      "sourceHashVerified": true,
+      "audioSha256": "52fe865d8135505b010e84b0d24774d8fc08aeb1b70c712e1dfb596596d85ac7"
+    },
+    {
+      "placeId": "osm:node:3502941745",
+      "jobId": "a98db544-5024-4afc-9bdc-92b5e6eb5d27",
+      "sourceHashVerified": true,
+      "audioSha256": "4827317a7996f6bcb19165b9f7b23c0c6a91810d39eab82b31a6ef70b389dbcd"
+    },
+    {
+      "placeId": "osm:node:5332088685",
+      "jobId": "f8f3cced-2007-4acf-99bb-de7bfee99dc2",
+      "sourceHashVerified": true,
+      "audioSha256": "b8ebebad1c49d3157e263aa6831c5dbe72789310efb0e4af290b4709016e948a"
+    },
+    {
+      "placeId": "osm:node:2590877091",
+      "jobId": "8624df71-8c83-4109-8f15-531dd83f6732",
+      "sourceHashVerified": true,
+      "audioSha256": "7d2b4172ec3c61d766f606976ef7d3ccdb3a41925a2bba76a669781203a7da8a"
+    },
+    {
+      "placeId": "osm:node:3500852153",
+      "jobId": "27e417c4-0dae-4bb4-8a59-b8f45701d689",
+      "sourceHashVerified": true,
+      "audioSha256": "6aabed6e9e884114dbefd6d420c4bd8f0aea90de94172e40e01313c5529bf106"
+    },
+    {
+      "placeId": "osm:node:5181397887",
+      "jobId": "887b717b-d1c6-4e5b-8126-f75223a6d438",
+      "sourceHashVerified": true,
+      "audioSha256": "6a60835dcbf06c99f2cd32ce8255bb1c7f44804f782d9ae4b85032368903f4dc"
+    },
+    {
+      "placeId": "osm:way:47513274",
+      "jobId": "6f10348d-2763-41c1-844f-0a11ef4a9707",
+      "sourceHashVerified": true,
+      "audioSha256": "dc004f531c23c9b89a84a52f9091ec490f1f421dc8fdfd1246d50527c612b735"
+    },
+    {
+      "placeId": "osm:node:5538400321",
+      "jobId": "0543363b-bbe4-49ab-a2e1-f5c5a786d48b",
+      "sourceHashVerified": true,
+      "audioSha256": "4d7fec1d4bb05f05692b5824b3c346633c8fd73c0f7578a1919809eaae9dc770"
+    },
+    {
+      "placeId": "osm:relation:7750047",
+      "jobId": "7b0788f6-41ac-4913-892d-a8dea9eca6c6",
+      "sourceHashVerified": true,
+      "audioSha256": "020bb7c762b70d36bbbdb5367f44f7a981e33a0bcd37e5c3718bef08d7e5546b"
+    },
+    {
+      "placeId": "osm:relation:456961",
+      "jobId": "982ec40a-44d4-4075-bce8-e55f7b1c0df4",
+      "sourceHashVerified": true,
+      "audioSha256": "b0505d56d3467799b4b3575f2a64c3c36d428839a950e9896ef375f777f8670c"
+    },
+    {
+      "placeId": "osm:node:7903427569",
+      "jobId": "d2067960-fc25-435b-bcd0-6d8c3671d180",
+      "sourceHashVerified": true,
+      "audioSha256": "1af087414566c0a9e097e25131ae2d4af0d0ed92ceda544c61d0885c11f731d5"
+    },
+    {
+      "placeId": "osm:node:489814793",
+      "jobId": "2eb4989d-6962-425e-a1ef-dbbc584796ee",
+      "sourceHashVerified": true,
+      "audioSha256": "e5164899056e5125b1e51c9cb5d0880292b209f80354d94b2d21e28efdbb688e"
+    },
+    {
+      "placeId": "osm:node:7095783553",
+      "jobId": "b0c7c132-eabd-4b2c-917f-1e1b5b19e1cf",
+      "sourceHashVerified": true,
+      "audioSha256": "4e97d87942ddfc975080ef00a32e739255adb8f86705f6f64bce3dc7d125261d"
+    },
+    {
+      "placeId": "osm:node:3918934609",
+      "jobId": "9a3b3348-f2f2-4a50-bdff-101f9aeff71c",
+      "sourceHashVerified": true,
+      "audioSha256": "2f2aa2af0e0467abe4de3646657a600fe493a3a0ab11e4bd4d408128ebfaf0e9"
+    },
+    {
+      "placeId": "osm:node:5773235115",
+      "jobId": "cb834d81-b01c-4a2e-a5ee-cc2f1cebac6b",
+      "sourceHashVerified": true,
+      "audioSha256": "ea3f69a2e26ac92e66d50d79dbdb18eb3b2c4dc3ff775f3e6288eeef3f93a608"
+    },
+    {
+      "placeId": "osm:node:11012889364",
+      "jobId": "ee5673a3-e451-4b80-82f1-1c810bf621c9",
+      "sourceHashVerified": true,
+      "audioSha256": "1170605fb6e44dd7207c28073727704bdd0fbc2dbd4cc6b151e69cdd1e6f89d1"
+    },
+    {
+      "placeId": "osm:node:5239330160",
+      "jobId": "db395631-f8ca-4b51-a4b7-bdc925c4a52d",
+      "sourceHashVerified": true,
+      "audioSha256": "25dfa56e995b1d38661f665fb7ff8fef86671467fde75b043aa5085c36a9a58e"
+    },
+    {
+      "placeId": "osm:node:5300886473",
+      "jobId": "db2ec5bf-ff93-430f-8fef-ee4682cd0a21",
+      "sourceHashVerified": true,
+      "audioSha256": "0a6ae8991817ce4213a1a8892dd1869c6ddbb19ff52b7588eec8e03ad9b05f34"
+    },
+    {
+      "placeId": "osm:node:12729053249",
+      "jobId": "1e5ead71-ad55-43df-a8be-339d7b5d8292",
+      "sourceHashVerified": true,
+      "audioSha256": "092ed45ed42773d4677eac3a8f0b6d72a6d5b503def6c5174851390c42c51a7e"
+    },
+    {
+      "placeId": "osm:node:13326303469",
+      "jobId": "84d72bc6-1f56-4545-a9bc-5b7883f5a7bf",
+      "sourceHashVerified": true,
+      "audioSha256": "417d050f7ab436fe240f6a960ce581a52591a23a0a0f34ba963086ca56feec91"
+    },
+    {
+      "placeId": "osm:relation:225031",
+      "jobId": "eb374083-e273-44b8-adb9-2851a26e4b5f",
+      "sourceHashVerified": true,
+      "audioSha256": "826934f5b317fdc62db8c53f2401d5178191520f6b08b0b367fbc98841a38d62"
+    },
+    {
+      "placeId": "osm:node:11741417323",
+      "jobId": "993560bb-f58c-494f-b829-a0fa9c423c17",
+      "sourceHashVerified": true,
+      "audioSha256": "566d064c22fa4f2b4daf3f5e510c40d3278831b62c40f1c5af85da13f25fcce2"
+    },
+    {
+      "placeId": "osm:node:1855700832",
+      "jobId": "1d7a6029-23e6-4ee6-a025-b66a5c0da465",
+      "sourceHashVerified": true,
+      "audioSha256": "69ca66365a431badf5b79c34e5b896181c31ca9cb843dfd8286c797257f533ab"
+    },
+    {
+      "placeId": "osm:way:31482139",
+      "jobId": "660166b7-0f22-4585-b903-01342af34a24",
+      "sourceHashVerified": true,
+      "audioSha256": "e38cd4c32254953f97060e912af11f7ee93ca3fb28492601415b186e118692ee"
+    },
+    {
+      "placeId": "osm:way:52613447",
+      "jobId": "6974c919-42c3-4a4f-8e3c-df11eb719fd6",
+      "sourceHashVerified": true,
+      "audioSha256": "cd04f2a0f18cc2733da3dc3e493dbfb1489b843f3e4aae75b4ab8fb06317669e"
+    },
+    {
+      "placeId": "osm:relation:3366074",
+      "jobId": "5f8d5a17-294e-4a02-baf1-0cf125f6a67c",
+      "sourceHashVerified": true,
+      "audioSha256": "f7641af699600502509facb960464e16b13fdc28a7a3ed3aed9c5d9ad10049c1"
+    },
+    {
+      "placeId": "osm:relation:8675640",
+      "jobId": "2cac42bf-6bde-472b-97a1-c62e0556cdab",
+      "sourceHashVerified": true,
+      "audioSha256": "8fcbed3ddc81d7644c739fd3de525ba840a6ef4859955d0c2ae654a83d8a2202"
+    },
+    {
+      "placeId": "osm:node:7428358400",
+      "jobId": "1346211b-40da-47a8-ac76-2aeaa213942a",
+      "sourceHashVerified": true,
+      "audioSha256": "a28271738861756021a5ed0171981a3b35dd82beb2454ade4f0abd72c4b8d93b"
+    },
+    {
+      "placeId": "osm:node:13254353233",
+      "jobId": "af642a06-2b43-46c4-888a-c60e0b09a316",
+      "sourceHashVerified": true,
+      "audioSha256": "67cb81fa34fb3b9e3ecf7f8da2bbe96771e452b080cb1486a8f26cd0ee9a866c"
+    },
+    {
+      "placeId": "osm:node:13305990964",
+      "jobId": "1e820ab2-7ddf-46df-b66d-a205820449a3",
+      "sourceHashVerified": true,
+      "audioSha256": "30c7558533ad7c67648906f6a2f42549105712e6c9fcadceae14177a0843130e"
+    },
+    {
+      "placeId": "osm:way:32903277",
+      "jobId": "cdadfd73-4bc1-43fb-b633-fe2dc6e6f01a",
+      "sourceHashVerified": true,
+      "audioSha256": "d09496aa493e4abd66ed791a0b653794bcdf59809eb0cf4fbf293044e0e0bbc7"
+    },
+    {
+      "placeId": "osm:relation:1360631",
+      "jobId": "726c9125-ecfc-4a51-9f97-f521e5dcbc7b",
+      "sourceHashVerified": true,
+      "audioSha256": "73e67d80504037823de1a6ad9a0487c9c4713f0b5737d40ff3737fad2f5ccc89"
+    },
+    {
+      "placeId": "osm:node:12309870570",
+      "jobId": "8c68e301-358c-4f80-9179-5c95b05b3944",
+      "sourceHashVerified": true,
+      "audioSha256": "f8b231065f848540c0e5aac2c9bbd2386c561125f2cb68049856526671c1ace7"
+    },
+    {
+      "placeId": "osm:way:46931798",
+      "jobId": "21d0c794-50a5-4691-ae29-d6be027224a6",
+      "sourceHashVerified": true,
+      "audioSha256": "fcb8257b71fea57723884fea1469cb51e078769b471968f6d3ca0447a1c2f374"
+    },
+    {
+      "placeId": "osm:relation:5371125",
+      "jobId": "7da0efbe-68a8-4ee8-b6b0-692bcfe99471",
+      "sourceHashVerified": true,
+      "audioSha256": "0a1a6c577e50548bb45740957c78d3ca94781cf3e01c69791a7789f42a302660"
+    },
+    {
+      "placeId": "osm:relation:1850015",
+      "jobId": "257760bd-c949-445f-b3f9-a1ae3fb2ce45",
+      "sourceHashVerified": true,
+      "audioSha256": "1655a29f5cf9b602a324be4fd3dd327a4cd713c35326346df7e117433f465af2"
+    },
+    {
+      "placeId": "osm:way:51049346",
+      "jobId": "36038787-3893-4c08-a4e0-eb1a99b2c43f",
+      "sourceHashVerified": true,
+      "audioSha256": "8fc198b82e2e9285b193a8d13f3d98abcbaaafe1e9cac7400f65429051e36a21"
+    },
+    {
+      "placeId": "osm:way:163742857",
+      "jobId": "26071962-795e-40f1-a56c-db0d6e991e1f",
+      "sourceHashVerified": true,
+      "audioSha256": "06ca3c7c15d51f2372ee8784aa6877f05ff99f77debed4912890da35b314f7b6"
+    },
+    {
+      "placeId": "osm:node:12891738501",
+      "jobId": "43af21d7-91d4-4693-8f88-383f8f4929eb",
+      "sourceHashVerified": true,
+      "audioSha256": "4cbfa0d75adafdfe4d447089d4044b37ac2fee655f90c1774bf836607f7b8ec3"
+    },
+    {
+      "placeId": "osm:node:7442048631",
+      "jobId": "390ce586-3716-4765-976f-0fad2395840c",
+      "sourceHashVerified": true,
+      "audioSha256": "ced6f2d0e2712dde86cfd308a19f746b610b3f45f9b1015684f51a8dd9a213d5"
+    },
+    {
+      "placeId": "osm:node:916076772",
+      "jobId": "e931ab8b-f840-460a-8578-e9b5dd0705eb",
+      "sourceHashVerified": true,
+      "audioSha256": "8224233acb7da200113f0e3d1a1c4edbe6c46f1eb55ee2b86365dc81badc7463"
+    },
+    {
+      "placeId": "osm:node:13294163587",
+      "jobId": "1cde64ce-4129-4ad2-ac1b-9dc42ccf43e3",
+      "sourceHashVerified": true,
+      "audioSha256": "f007c01c4586b31e207cfc2d8106ec5745fb20d1a3a214d2a52fa5d523ad7526"
+    },
+    {
+      "placeId": "osm:node:13324750787",
+      "jobId": "bb2692bd-c1e1-40d2-92c7-6c789770b525",
+      "sourceHashVerified": true,
+      "audioSha256": "41f04439c28c72937734cc941c7a1590b80bfc843b5ac6a2bfac337229192528"
+    },
+    {
+      "placeId": "osm:relation:19077852",
+      "jobId": "dc40fba4-c00b-4433-86c3-4637703df35f",
+      "sourceHashVerified": true,
+      "audioSha256": "6f1c799b605e6b48193859f570f076ec97acc35d192e81a959f2d298abe72da5"
+    },
+    {
+      "placeId": "osm:way:53854158",
+      "jobId": "d816dc6c-2da2-4ff1-a3f3-b6c2637a8cbe",
+      "sourceHashVerified": true,
+      "audioSha256": "19ec3a05dff441309610b8533c8bf0e16265e84df90d7f9c9013da620b6d4c87"
+    },
+    {
+      "placeId": "osm:way:53016616",
+      "jobId": "4ce47b36-eea1-4736-a127-99c6ac7a0d87",
+      "sourceHashVerified": true,
+      "audioSha256": "5c5c9ca085b29e8f52957ef6f633d57c8db9d114f2dabdf8cdd6d13df0497794"
+    },
+    {
+      "placeId": "osm:relation:9037250",
+      "jobId": "2fc49483-1f63-4b5a-8300-4fe9059bd718",
+      "sourceHashVerified": true,
+      "audioSha256": "69f85f81560f635a83f9efb26d98cf3ac3b1b2d127d88938a511c93cb31be000"
+    },
+    {
+      "placeId": "osm:relation:1555621",
+      "jobId": "c00843ff-e85c-48c0-b8f2-af8eae6e8524",
+      "sourceHashVerified": true,
+      "audioSha256": "87efafa5ffe4d16f9cd6d07c4b7d580075d8ef25f75bb2d8641eab69e2f3e16c"
+    },
+    {
+      "placeId": "osm:node:13258938689",
+      "jobId": "a9652c6b-380e-4c14-9da8-c2ffd70247cd",
+      "sourceHashVerified": true,
+      "audioSha256": "ac9a3ef47f85ef539551c84ea6080109ec0e3aa50eb85db003decf634fb2cafd"
+    },
+    {
+      "placeId": "osm:relation:1360660",
+      "jobId": "d74aa1af-cb2b-42cb-956a-3c325017ee15",
+      "sourceHashVerified": true,
+      "audioSha256": "3ed18f00d95237098e26c3bd3327dde6d116a7225f07aee883ed7fe2fb3b3fe6"
+    },
+    {
+      "placeId": "osm:node:4948141391",
+      "jobId": "1d19666a-5a5b-402f-bb3a-a9635ddd59e3",
+      "sourceHashVerified": true,
+      "audioSha256": "7180493dfc4934cc52c74226ab9936d02aa8c2a9a24438fe88025f22f04929b8"
+    },
+    {
+      "placeId": "osm:way:52132603",
+      "jobId": "bcf6e8ee-caa5-4d2d-8b0a-35ff96be54ac",
+      "sourceHashVerified": true,
+      "audioSha256": "f0b3d213f67bbd34435a487c12dcb654ee52a0d9454e7671b50bdc81e81c9060"
+    },
+    {
+      "placeId": "osm:way:47296531",
+      "jobId": "5da3acd0-daa3-43e8-9081-676c5293affe",
+      "sourceHashVerified": true,
+      "audioSha256": "d7ddec0134e3ca8aadfa25c16b8f5fbe2a72ae584dbad76880e3a24d38869302"
+    },
+    {
+      "placeId": "osm:way:32783696",
+      "jobId": "a5b8abe6-a565-47b3-84f2-eeebe9a7e673",
+      "sourceHashVerified": true,
+      "audioSha256": "65b74dc56ac1fb33720365a064b3e9f01b0f439823461118aab235eb220d9dbc"
+    },
+    {
+      "placeId": "osm:way:249468659",
+      "jobId": "e8eb02db-2c18-41e8-b910-555ce1068330",
+      "sourceHashVerified": true,
+      "audioSha256": "729983fd5df28778e342d8be2d0484aa3028847aa6db9049dacf9d4d94523332"
+    },
+    {
+      "placeId": "osm:relation:7103022",
+      "jobId": "e49a1b61-c065-4e34-917d-ab28741e7817",
+      "sourceHashVerified": true,
+      "audioSha256": "745cc0d6f22adfcd52fc3ad582ec3c2d6fd0d0c4b92bc40ca95f4dffbff20b05"
+    },
+    {
+      "placeId": "osm:way:104201990",
+      "jobId": "5c0f5ae1-3c6c-4321-8538-fb0c4a8528da",
+      "sourceHashVerified": true,
+      "audioSha256": "17ffc6df27e87efb551533cfbbc094bd9409630600acaf69770867e6a9635fb7"
+    },
+    {
+      "placeId": "osm:way:47513393",
+      "jobId": "76f8f5a1-f166-4d1b-a1aa-256c158fe60e",
+      "sourceHashVerified": true,
+      "audioSha256": "6e0aab45b95fb452b5b688e8413a0b127c6130a067474f428bdc7d60b9cd893f"
+    },
+    {
+      "placeId": "osm:way:300340509",
+      "jobId": "0176634b-d46e-4d5f-917a-852a411fd1a0",
+      "sourceHashVerified": true,
+      "audioSha256": "829ef6bc5eb0ecf4c6a90079721e28b1d3d3d5af87d829043aaa7817e15d5daf"
+    },
+    {
+      "placeId": "osm:way:52434941",
+      "jobId": "1676a48b-ad1a-47cf-83a5-d1e828ecb271",
+      "sourceHashVerified": true,
+      "audioSha256": "50caf5af0fe61f599a3bd1763b78dea399834bdc6c674a9ba9c674ed794602ef"
+    },
+    {
+      "placeId": "osm:way:160317025",
+      "jobId": "3d5efbad-6d6b-4c08-b0fc-cf2909c7766e",
+      "sourceHashVerified": true,
+      "audioSha256": "727d7c4597afd042d53b1c594857026504e22b9ec4a65c7b5a534dd42cf938de"
+    },
+    {
+      "placeId": "osm:way:32783700",
+      "jobId": "a71a5e5c-ede4-4e0d-af22-1b8c8ab572a9",
+      "sourceHashVerified": true,
+      "audioSha256": "0c48a44f70cfcb0fb56176a878b74e24256d67cc406f25315f4c21787dd1de3e"
+    },
+    {
+      "placeId": "osm:relation:18607617",
+      "jobId": "ca1b6673-5ac7-488b-be0d-8a27f4a8c82e",
+      "sourceHashVerified": true,
+      "audioSha256": "fa4f09bcc635cb96ab640236c8a77cfb0e3e5f61123c106c8f25891b127143fe"
+    },
+    {
+      "placeId": "osm:way:52583204",
+      "jobId": "5705ca92-6f4d-464d-9972-d0621f4b39a5",
+      "sourceHashVerified": true,
+      "audioSha256": "95964cacb3ce95618228a1b191a926bab059a10b67752043729b56c6d4dde4de"
+    },
+    {
+      "placeId": "osm:way:47294368",
+      "jobId": "93d020e4-eee8-400e-8745-e96bcf3552fd",
+      "sourceHashVerified": true,
+      "audioSha256": "b9f0e59b5fb23b4048f3596456ac12b8a3208506795ff8f70fc77b269e06ac30"
+    },
+    {
+      "placeId": "osm:way:45818762",
+      "jobId": "fd364ef0-af45-45cc-86fe-6a5a07108481",
+      "sourceHashVerified": true,
+      "audioSha256": "971f33f8991a513228763115663ad326762c13c1d4952352fb2026724e8a241d"
+    },
+    {
+      "placeId": "osm:way:52106120",
+      "jobId": "455167fb-2c57-432c-9c63-88d64551d02f",
+      "sourceHashVerified": true,
+      "audioSha256": "3b8411dd55f1ee0aca1bdf05a20802eaa7455032d877bced0350655b7cef161d"
+    },
+    {
+      "placeId": "osm:way:30153015",
+      "jobId": "8466131e-9cc8-4259-9a63-632e724660d4",
+      "sourceHashVerified": true,
+      "audioSha256": "d89056ffb541bd1b4af12773e7334288dfae3c6537565280325e3bc21119d0a6"
+    },
+    {
+      "placeId": "osm:way:47360141",
+      "jobId": "259c1a0f-cf86-4a7e-bdf4-11fb53f2bee7",
+      "sourceHashVerified": true,
+      "audioSha256": "0c34f517df50a02893eca938ee09e7aa7353de92522d33e66e444d8bcba202a6"
+    },
+    {
+      "placeId": "osm:relation:1359337",
+      "jobId": "a041cc5c-b73b-4406-9e0a-0dfd9b53ff7d",
+      "sourceHashVerified": true,
+      "audioSha256": "efc572de705c9e908291b103b7502f53e5d89c19eb7e829147858fb59a30c413"
+    },
+    {
+      "placeId": "osm:relation:9303002",
+      "jobId": "f1f0d08e-fbbe-4ca3-8561-470f66c401a5",
+      "sourceHashVerified": true,
+      "audioSha256": "2d75cfb68fc554605bd0f724ec1b716044bcc33b2f6980fdd4a5bbcf11163222"
+    },
+    {
+      "placeId": "osm:node:4142950215",
+      "jobId": "42423383-3414-4dfc-a8a4-254877312d67",
+      "sourceHashVerified": true,
+      "audioSha256": "daef4a04bbaf26d35fa007207ce1636b020aef9f49669bdb537df298e3823539"
+    },
+    {
+      "placeId": "osm:node:12233205875",
+      "jobId": "13b9b35d-78e6-4654-99b6-2af03a39627d",
+      "sourceHashVerified": true,
+      "audioSha256": "4650ff703a9d19381b5b8b3cdd3fdd9de1bf4fe252e80f44bf6805865a93b9cb"
+    },
+    {
+      "placeId": "osm:node:11037404188",
+      "jobId": "681fd9e3-10b8-4ed9-8b70-136b8620b983",
+      "sourceHashVerified": true,
+      "audioSha256": "eddc7874948cecff175946a93a59c56234ff14aefacc4f3cfba5c307f5a7ec6e"
+    },
+    {
+      "placeId": "osm:node:11012889362",
+      "jobId": "78b9ead4-91dc-4f54-bfb7-7da1075dadca",
+      "sourceHashVerified": true,
+      "audioSha256": "b61dd168a89cfd54ba542fbdead42323f2940dd1cbe0b058f8c2cdb03fb20f2d"
+    },
+    {
+      "placeId": "osm:relation:13626693",
+      "jobId": "0943ca13-2116-43fa-b6c7-6320d4c3050a",
+      "sourceHashVerified": true,
+      "audioSha256": "177d57c77d6501e9a9b31ed3211c8664a86f207765dd6e5dc45934bbc13cec7b"
+    },
+    {
+      "placeId": "osm:relation:15671457",
+      "jobId": "879a96ad-be69-448a-a31a-a0b60ff133c9",
+      "sourceHashVerified": true,
+      "audioSha256": "7983e8f885083ce77e82ee32d88ca06df776420eb68b0eaad98f62faec261426"
+    },
+    {
+      "placeId": "osm:relation:456962",
+      "jobId": "729ded05-65dc-446c-97a8-02cdfacf110e",
+      "sourceHashVerified": true,
+      "audioSha256": "13e8a2c7593a954c0e62f62dda71f2b5f1297eea0383a7090cf592b59bf3534c"
+    },
+    {
+      "placeId": "osm:way:53830818",
+      "jobId": "e32b5ed1-2d57-4b65-91cc-7a59a31965a0",
+      "sourceHashVerified": true,
+      "audioSha256": "86ba211f735d2c852850aecb48fc572da7a592f52538e4021124fcc33a0e9f70"
+    },
+    {
+      "placeId": "osm:node:8664353717",
+      "jobId": "dcaf50cc-197d-4338-929e-56b1fbe6c51c",
+      "sourceHashVerified": true,
+      "audioSha256": "161115e7f8ab68885d143b63a9d68f6d8f35f28a93f2982ebe67cb4135feac28"
+    },
+    {
+      "placeId": "osm:relation:19558831",
+      "jobId": "c893e289-4e32-47b6-911c-6f5fea8d70b4",
+      "sourceHashVerified": true,
+      "audioSha256": "7550df3bbaf01fe6d12c047354d8066642c85e100c3eff91ef2f9ab2ac6ad649"
+    },
+    {
+      "placeId": "osm:relation:8016233",
+      "jobId": "ea40cb1e-0da9-43e1-9053-4604cd487312",
+      "sourceHashVerified": true,
+      "audioSha256": "2fbab91416bde99a364135af2f852d4779f5b3233bc9b1f28248998cd77de5d4"
+    },
+    {
+      "placeId": "osm:node:11780094310",
+      "jobId": "6c2070fb-ba27-4ebb-8a44-2e6f5f1bdff5",
+      "sourceHashVerified": true,
+      "audioSha256": "5218caa5cf452550d0d9867bb6852356df55acb132ff0ff1dc7cc6e6028cc379"
+    },
+    {
+      "placeId": "osm:node:4143539655",
+      "jobId": "031df1b2-c16a-464c-a25c-13d9c94b36d5",
+      "sourceHashVerified": true,
+      "audioSha256": "3c18ab2c80ff92aea6e65d3f52851532f6865d11b3d0fa361869e1292a42ad9b"
+    },
+    {
+      "placeId": "osm:node:8898082923",
+      "jobId": "98a92f61-2cff-4cc2-a813-30dab9f1f2b4",
+      "sourceHashVerified": true,
+      "audioSha256": "78672dff085250f879098f545a566b897eb12907043d2afba83f3690d6355456"
+    },
+    {
+      "placeId": "osm:node:12236419787",
+      "jobId": "05fcb00d-6906-4ef2-960c-df42f028d597",
+      "sourceHashVerified": true,
+      "audioSha256": "281d3dc2b39497d32603d6be3762993ad8b5e5e42d99d7f4974a1a6c65f91ead"
+    },
+    {
+      "placeId": "osm:node:6449794071",
+      "jobId": "34fc62b1-9d72-485b-a053-5eec24ffeabd",
+      "sourceHashVerified": true,
+      "audioSha256": "9ba2e28f6e21b5508e92cf5b7f4d996315af3427ade0c4b97d7266f28e14bf05"
+    },
+    {
+      "placeId": "osm:node:6449794069",
+      "jobId": "d4c9fd9a-db42-4bde-a61e-569806c0a2b7",
+      "sourceHashVerified": true,
+      "audioSha256": "f6a236629281a107640d49055c8333b10f1d2213fbe86a98c86ada077a78a398"
+    },
+    {
+      "placeId": "osm:relation:6210567",
+      "jobId": "2032a5df-2863-4819-8fe2-7611d51e052a",
+      "sourceHashVerified": true,
+      "audioSha256": "267b62b797fccdca4ff1d7ac656004a9f3e1614f0fb198d86775caa0810a65b9"
+    },
+    {
+      "placeId": "osm:way:471223526",
+      "jobId": "ef87f351-1dc5-4396-9daa-4759019d7a7d",
+      "sourceHashVerified": true,
+      "audioSha256": "f8304c8ecdadc7794c2eca5d4a281dbdadfbb88f4f66002cde87bf2674ccf245"
+    },
+    {
+      "placeId": "osm:node:4142941912",
+      "jobId": "d6b0a585-163a-49c6-909f-3df95993c8bc",
+      "sourceHashVerified": true,
+      "audioSha256": "c16039c8896ad20e322d28faca5f8691ec3ba435fda0ea6c8878123d5d3bee5b"
+    },
+    {
+      "placeId": "osm:relation:6812723",
+      "jobId": "f4d8afd0-559b-4749-97d6-73c8051fd513",
+      "sourceHashVerified": true,
+      "audioSha256": "a7569eed86a539a53c2a04ca01811b0c3bd222f9a1561ccd7a6d375e30c71237"
+    },
+    {
+      "placeId": "osm:relation:7839823",
+      "jobId": "0c69dd5c-7e99-492b-a301-e4cb03b83686",
+      "sourceHashVerified": true,
+      "audioSha256": "c4138ae16405307ba5c39e7744f148ecbeb6ba8089c13a16c10fa66444ed3beb"
+    },
+    {
+      "placeId": "osm:way:211651325",
+      "jobId": "24e0be96-bc13-4f6f-974a-06f05736cf27",
+      "sourceHashVerified": true,
+      "audioSha256": "77c696dd486ff5a72e3b67e258aa015bfb8b3eb545a1e7f76b1fae0fd4df6dca"
+    },
+    {
+      "placeId": "osm:way:758586236",
+      "jobId": "1aaf1e26-a52b-4749-97d3-46556362f205",
+      "sourceHashVerified": true,
+      "audioSha256": "b3b1ba5ca0ba917532b8de75e1b246fbaecb2ad30402b451822f0dd9f171e897"
+    },
+    {
+      "placeId": "osm:way:174929171",
+      "jobId": "9ee0c383-2662-4b0e-a43f-1d236823b943",
+      "sourceHashVerified": true,
+      "audioSha256": "9b2465f53ce9eb87dd2f6bd50c20e4df636619cafc22063347a740eaa3a2158c"
+    },
+    {
+      "placeId": "osm:way:307795782",
+      "jobId": "08072c96-c9b2-4b2b-a4cd-a3535073539e",
+      "sourceHashVerified": true,
+      "audioSha256": "20d9d1ac12520747ef7b7b7c59de9a1248f5033c5717124d1eec8a39811355c0"
+    },
+    {
+      "placeId": "osm:node:9106236033",
+      "jobId": "2e7c8fe2-e2ab-4503-9cd6-42d74ac9ca53",
+      "sourceHashVerified": true,
+      "audioSha256": "7eedd4b457ab5f271329671af14b592033affb284f70fcf2e27d7c46ad37f3d6"
+    },
+    {
+      "placeId": "osm:relation:7520849",
+      "jobId": "51707c89-a184-48b5-8e59-261f6a0ba0e4",
+      "sourceHashVerified": true,
+      "audioSha256": "b36fd9172130082713aefd532f08f5eb8e0fd4c3ce06ab08e782e80b7e544b05"
+    },
+    {
+      "placeId": "osm:way:205734958",
+      "jobId": "a1039cc2-3c65-408c-95c3-9a385562c1b7",
+      "sourceHashVerified": true,
+      "audioSha256": "4b427bb83d5e0ed9098aaa3a95769da0ac433abb1c2957da76f9f5e5790c1e2d"
+    },
+    {
+      "placeId": "osm:relation:7672227",
+      "jobId": "aa7f0409-fbf4-4b7b-bce8-84ca90150cad",
+      "sourceHashVerified": true,
+      "audioSha256": "07c0ef33475a45ecd1b6e93d87e18a699cd4a754d125b0df1a69c81cd902859c"
+    },
+    {
+      "placeId": "osm:way:251330231",
+      "jobId": "97c67c73-74a0-4720-9cc2-fc633a025437",
+      "sourceHashVerified": true,
+      "audioSha256": "8dd698a60391bdf2899dbc393c543d26c357f3e4e07260b1aade0c4f86caf0cd"
+    },
+    {
+      "placeId": "osm:way:289507858",
+      "jobId": "63a38e74-8192-4362-bb3c-e9f5e82bfaf9",
+      "sourceHashVerified": true,
+      "audioSha256": "4a3d52cbfa53d19a96e86f7bc82784717223afba63cc2a5488de19d4cbd488b9"
+    },
+    {
+      "placeId": "osm:node:4142950216",
+      "jobId": "79159170-316f-4de6-9988-da858f96fffd",
+      "sourceHashVerified": true,
+      "audioSha256": "81bd6d702570835085573fa846ae36018f171ea66ac44584f57222f968767ed9"
+    },
+    {
+      "placeId": "osm:node:4142981447",
+      "jobId": "1b18ffac-222e-4e2b-b4b2-8d11b9280666",
+      "sourceHashVerified": true,
+      "audioSha256": "067bcf0f522bd763e3bf70cc502abd3c227fe19bb4b064c3ff9d1ef0b0d111f0"
+    },
+    {
+      "placeId": "osm:relation:3030568",
+      "jobId": "8f6901bb-5c4a-4f86-9f2d-a48b7ec8b1d4",
+      "sourceHashVerified": true,
+      "audioSha256": "4ae90278cfaa7dc050634817ba41cc0f37d6e20ccb00ef3b511bdb427916da6f"
+    },
+    {
+      "placeId": "osm:way:52613460",
+      "jobId": "db8a9a30-0010-401b-8d49-f0ad215ebc5a",
+      "sourceHashVerified": true,
+      "audioSha256": "7af080d6cdd839d635fa243bb0247888e9717b5896431dd4c01ecfa3f035be43"
+    },
+    {
+      "placeId": "osm:way:84690464",
+      "jobId": "93cde033-0d41-4767-9006-f22e8bdbae91",
+      "sourceHashVerified": true,
+      "audioSha256": "dcd9d2364bc3c953c6e7bb9cb4f3b6de849f6866b165ee282d17383e131ed982"
+    },
+    {
+      "placeId": "osm:node:5906743571",
+      "jobId": "f1264f03-cfbb-4974-9c23-fd6040221109",
+      "sourceHashVerified": true,
+      "audioSha256": "1d8a2c699dcfa6fe1105472346f550cdf09911e945adba3c4af0bc2bc4e0467a"
+    },
+    {
+      "placeId": "osm:way:42503311",
+      "jobId": "7b6ab77b-ef51-4667-be75-9fab6b777fc2",
+      "sourceHashVerified": true,
+      "audioSha256": "19b78dca8b9112b1aaa9208ff3420a55f87e60c5d3e2466532c6df3eb8053fb9"
+    },
+    {
+      "placeId": "osm:way:49578741",
+      "jobId": "d2a25a4b-2cfd-4df3-92e6-8b625ba923f8",
+      "sourceHashVerified": true,
+      "audioSha256": "91324239fabf41e806c96bf8876516db0ce61bb50981f7e917fe0148a168d171"
+    },
+    {
+      "placeId": "osm:node:2624695929",
+      "jobId": "3c3c05f9-5335-4d9e-b264-29b6c9d241cd",
+      "sourceHashVerified": true,
+      "audioSha256": "ca332ad89bd85ed41472c737c32c425f3275c1b40b18611cf434e940b5c49cf3"
+    },
+    {
+      "placeId": "osm:relation:9241423",
+      "jobId": "5a24e425-fe1b-4280-b387-2169b3bba802",
+      "sourceHashVerified": true,
+      "audioSha256": "e99174819f8e1c729bc7fce4886d7855481ed1d2497eb2ddb1802bd3711adfe9"
+    },
+    {
+      "placeId": "osm:node:4534758656",
+      "jobId": "5bb4776a-d7bf-4149-805b-89f16be8b57b",
+      "sourceHashVerified": true,
+      "audioSha256": "5c9c9b6e9572dd7517e40174f2edd6b728506ef7d72af47b32b9cbc31ebc221a"
+    },
+    {
+      "placeId": "osm:node:14096306201",
+      "jobId": "3b42685b-d5d7-4bf7-a6b0-014d5488f3a8",
+      "sourceHashVerified": true,
+      "audioSha256": "e7842b58efa383a1b16798affcda0b98640948c4d630ef1ad6f58d3893fe3537"
+    },
+    {
+      "placeId": "osm:relation:20397973",
+      "jobId": "79125bcc-3078-4646-910e-73d2af4e610d",
+      "sourceHashVerified": true,
+      "audioSha256": "2ea6c49137bb1b8d529b1176203c434f37c63a7077f2ddc969955e2e48b51be3"
+    },
+    {
+      "placeId": "osm:way:224225490",
+      "jobId": "281d290e-a481-4016-8d08-105b9acd4643",
+      "sourceHashVerified": true,
+      "audioSha256": "49f63b2ac82bf5deb4c16e767057f024e8ead2c2b96c978be52c5a077e03f128"
+    },
+    {
+      "placeId": "osm:relation:16682982",
+      "jobId": "25547ebb-93a2-4b1a-9034-6f75310d7147",
+      "sourceHashVerified": true,
+      "audioSha256": "02688d269c1c2a9c8833a84afc8e5b70c68c1e881d22b2f2330d652a0e2dbdca"
+    },
+    {
+      "placeId": "osm:relation:9341259",
+      "jobId": "dc496056-5709-4c66-b180-84343d6a20c2",
+      "sourceHashVerified": true,
+      "audioSha256": "3f7beaf24446a60ce0245e83f47ac3936f46f3547b191cd3889aa429a202c17b"
+    },
+    {
+      "placeId": "osm:node:13190696077",
+      "jobId": "6feaf9d3-e1c9-4a54-959b-38dff278bcfd",
+      "sourceHashVerified": true,
+      "audioSha256": "19d18c727bef9d5b4ad346481111c7aa98d221e736b14e000b8ef6ce55dfe014"
+    },
+    {
+      "placeId": "osm:node:4139540604",
+      "jobId": "43edc292-3bde-4b54-8cc3-6286f79214d5",
+      "sourceHashVerified": true,
+      "audioSha256": "f45eab2d6d451bff1bf21cd56bcfda42c79f4334793492d6e5122ae5a674463d"
+    },
+    {
+      "placeId": "osm:relation:6233742",
+      "jobId": "bea99d4f-adce-45f0-82f5-20e88e718937",
+      "sourceHashVerified": true,
+      "audioSha256": "8b7870870d088352ac82fd71dabf9fcbd458892a189da910ba12bd95d0667e6d"
+    },
+    {
+      "placeId": "osm:relation:1907261",
+      "jobId": "f796c23b-9639-4fe2-bc24-f3e1c68e7d0f",
+      "sourceHashVerified": true,
+      "audioSha256": "68b712e417b89d57f892fc29933c1eafdd899bef07851ec2bae5c887d447fa95"
+    },
+    {
+      "placeId": "osm:way:642091604",
+      "jobId": "265429e1-3635-4a3f-909c-7bf3c902d46f",
+      "sourceHashVerified": true,
+      "audioSha256": "dee87a035bb151a7ed0eac3c5b2d9bfc569463826da3b31a448edf062838b613"
+    },
+    {
+      "placeId": "osm:relation:1360627",
+      "jobId": "c7b1fd83-5786-4108-bbff-8d35d87b2d06",
+      "sourceHashVerified": true,
+      "audioSha256": "bd68743395afaa51422eb050ba3a9876a260c3e7ba27333848349d4961a3d5f6"
+    },
+    {
+      "placeId": "osm:relation:1360653",
+      "jobId": "899455cb-5ca9-4df0-b06b-45ca5179df71",
+      "sourceHashVerified": true,
+      "audioSha256": "c66bef1f8ef43d9092a9dd615e661df13b26e7bca2af95c81754cdbe4687450d"
+    },
+    {
+      "placeId": "osm:way:48172547",
+      "jobId": "85fb8cc8-c96f-4d94-b685-aa439c941306",
+      "sourceHashVerified": true,
+      "audioSha256": "fcacf7b1a68ea03a9cdf5befb183221092d53054e6d8d335246d96f59d70c952"
+    },
+    {
+      "placeId": "osm:way:47853856",
+      "jobId": "d1b2a0b4-82a1-485e-8cd3-a56cdf338cc5",
+      "sourceHashVerified": true,
+      "audioSha256": "c71b51aac4d49e447861de2a6131fc124d51ce5f9af40be9d5c17db54015c423"
+    },
+    {
+      "placeId": "osm:way:131491845",
+      "jobId": "ee528110-4f1a-4265-bce4-e74e5d9b297a",
+      "sourceHashVerified": true,
+      "audioSha256": "9684f39c80ddbba7656dbc5ddd2f038cbb27bf04e84551cf6b4a7baa5158cb79"
+    },
+    {
+      "placeId": "osm:way:32693719",
+      "jobId": "50ce1d43-cd5e-4a0b-865d-8e60287ec808",
+      "sourceHashVerified": true,
+      "audioSha256": "02efc387519fefd1dbe8eba7b8e4805ff9820924d9cb02779dd1eba62a3cbf06"
+    },
+    {
+      "placeId": "osm:way:412738928",
+      "jobId": "ba2822fe-ba4a-43fc-bb11-6581828334b3",
+      "sourceHashVerified": true,
+      "audioSha256": "07f6a28785fa12393af7ea55190678bc8188052b01f07adbec5491ee7918ac38"
+    },
+    {
+      "placeId": "osm:relation:2156225",
+      "jobId": "77f21431-4c39-4b31-ad19-6a106502b792",
+      "sourceHashVerified": true,
+      "audioSha256": "c19f33e2dbfab13c19ca84650e95d535e68db63e3d9210ebc03471e86304e52d"
+    },
+    {
+      "placeId": "osm:way:32693356",
+      "jobId": "da79125b-2c3c-4193-9128-d1efa1cf7eb7",
+      "sourceHashVerified": true,
+      "audioSha256": "6cdabdafc8d7956b4f3121846a458f135b8d19ece7133d19809ab176c9650b89"
+    },
+    {
+      "placeId": "osm:way:32693359",
+      "jobId": "1ee9568d-947c-41a0-8fb8-77f896629963",
+      "sourceHashVerified": true,
+      "audioSha256": "67df5dee888934f3bf7931de7cc29de8955856665a4ddcf6818406399fa0b75c"
+    },
+    {
+      "placeId": "osm:way:104202024",
+      "jobId": "61fc2d8a-5a8a-4f37-a831-37beb431ad45",
+      "sourceHashVerified": true,
+      "audioSha256": "dc482c697ef30e95a01f030252eb766cf9d43019ba2254d781017c6961129a5d"
+    },
+    {
+      "placeId": "osm:relation:9464684",
+      "jobId": "fbcb6698-1287-41e8-9b12-46e453f711af",
+      "sourceHashVerified": true,
+      "audioSha256": "b01b06d44f9d38fc67868659d105e9ddf3029114323317d872acf5aa5922a385"
+    },
+    {
+      "placeId": "osm:relation:2156516",
+      "jobId": "a2b7dac2-35a5-4802-a40b-c64ffd0835d6",
+      "sourceHashVerified": true,
+      "audioSha256": "855beb4d161bdff6b8a964ad7318a77bb45e833f33dc2d234a4fdaa36c7f1ebd"
+    },
+    {
+      "placeId": "osm:relation:5371134",
+      "jobId": "2394f1aa-fc76-4741-b3fc-f14e0197afcd",
+      "sourceHashVerified": true,
+      "audioSha256": "19e486ebe7e09c820dd6e7ab73191753890279165250c4f35b0abd9b67dbfe16"
+    },
+    {
+      "placeId": "osm:node:6617755692",
+      "jobId": "fe627b7a-d502-4d40-ac53-03050611c065",
+      "sourceHashVerified": true,
+      "audioSha256": "8d64e96621d0f27d9c57ce14ed8922b2220dbd5d149b8aac322d86793ff71ade"
+    },
+    {
+      "placeId": "osm:node:8898082930",
+      "jobId": "bda621cb-2825-451c-b941-78db9e4208a7",
+      "sourceHashVerified": true,
+      "audioSha256": "c178ee37fa9147aaac2f892a7b6bb497d763e5a62e4459a45aaf3dc1bc8fa7ae"
+    },
+    {
+      "placeId": "osm:node:4142854541",
+      "jobId": "65dffaa3-1077-4b9c-abe8-2529b4db7dab",
+      "sourceHashVerified": true,
+      "audioSha256": "f9acff80cd5c439108039c0e4b5d49928d1e79482dd74cd2ef311ce7a911422a"
+    },
+    {
+      "placeId": "osm:relation:15344966",
+      "jobId": "867a56bf-56a2-44ad-8de0-1195449e785b",
+      "sourceHashVerified": true,
+      "audioSha256": "f3eb4a416e1fc9cdc53caa5b797f9329a65cc52e122d9de3daa6979c56f546a1"
+    },
+    {
+      "placeId": "osm:way:31482156",
+      "jobId": "32e30e76-069e-4899-b243-f3e1992b4b7a",
+      "sourceHashVerified": true,
+      "audioSha256": "66794144628050f6fd6872dffee10014ebb2978980ebbac3dce11e11d0f8c981"
+    },
+    {
+      "placeId": "osm:way:52444324",
+      "jobId": "88b0dd46-7352-470a-a89b-7612a54045ff",
+      "sourceHashVerified": true,
+      "audioSha256": "ba7af5b6a12d5125a1080ebb41b38df2c5221009942f699de6eacd34b34f525f"
+    },
+    {
+      "placeId": "osm:relation:9241422",
+      "jobId": "8a88ded4-d5b0-4bfe-b540-54c40e846e1a",
+      "sourceHashVerified": true,
+      "audioSha256": "3f9a4349060397fd5b1647e1f665b80fc0dd8c90ed750b31ff03bb4c54addb80"
+    },
+    {
+      "placeId": "osm:way:52673166",
+      "jobId": "239778b8-10d1-45b0-a070-a65b72019c11",
+      "sourceHashVerified": true,
+      "audioSha256": "465ba2d1c4a71b7975a9c7fca3bde972391771822d60365c0be9c2fc8da0d0ac"
+    },
+    {
+      "placeId": "osm:way:225157172",
+      "jobId": "79f5417f-f656-40ed-9ae5-f39e13bc5932",
+      "sourceHashVerified": true,
+      "audioSha256": "b7e998fb610821140819d0aa53ff1383455ed01d2064d5623af4a538d02c7f80"
+    },
+    {
+      "placeId": "osm:way:79980545",
+      "jobId": "9cecd629-c319-42a0-b1c7-c2845f185ba5",
+      "sourceHashVerified": true,
+      "audioSha256": "9824bf9696e12cae312d34781eaa9d450ada105d809674d5926b81928f8bfa9a"
+    },
+    {
+      "placeId": "osm:node:4142945438",
+      "jobId": "a68f9f7f-8b17-4d1f-9def-a1df5aa36c4a",
+      "sourceHashVerified": true,
+      "audioSha256": "7aabf15b61457cbd1a052f6e25a77fff586549f409ebcfbf8217eaf594f236d6"
+    },
+    {
+      "placeId": "osm:node:916076746",
+      "jobId": "cf2b9cac-c530-49c4-a602-5132b6991b06",
+      "sourceHashVerified": true,
+      "audioSha256": "9bab3773a6ad0d63b04b982768e0b474030619721280060536d188ae5dca0062"
+    },
+    {
+      "placeId": "osm:way:32045644",
+      "jobId": "53531207-c519-4bad-af20-3edb9085d50a",
+      "sourceHashVerified": true,
+      "audioSha256": "ff2c92f54eb662ca82764361763fb9c9ba8621a866f710aa0d4a5b982b27c5ad"
+    },
+    {
+      "placeId": "osm:relation:19079948",
+      "jobId": "fbd407ba-6301-48fc-89dc-388c6797a6a4",
+      "sourceHashVerified": true,
+      "audioSha256": "a3178d1590c71b4f17f717af4718f2d3de8faef5fdb468c37d5e93e7e7b37b0c"
+    },
+    {
+      "placeId": "osm:way:151077511",
+      "jobId": "a6ef7d36-02c0-4531-ac54-c369e30d20dd",
+      "sourceHashVerified": true,
+      "audioSha256": "d2956f4c60b9027e8b6712efad9a4a271344578ee81d8ffc8685ed39113c200c"
+    },
+    {
+      "placeId": "osm:relation:8463582",
+      "jobId": "597a9e42-2b7d-4ef4-aa03-abe829fc7240",
+      "sourceHashVerified": true,
+      "audioSha256": "ae2e431ebe37487ed16225ad92d7666caf1eeecc3592e5afce0aa7092ef61a30"
+    },
+    {
+      "placeId": "osm:relation:7259659",
+      "jobId": "53fa4c97-75a5-4b75-946c-8e98b8eba4ff",
+      "sourceHashVerified": true,
+      "audioSha256": "5a6f46b43a5e2688aef6033d96e83e7fbe041a0ebc88610f6fd53bf3e25924e4"
+    },
+    {
+      "placeId": "osm:relation:7483246",
+      "jobId": "31d4f94d-88d0-4510-9538-10aca981e6b5",
+      "sourceHashVerified": true,
+      "audioSha256": "a59cf32016a3976bb0a160f83123188e2b26b5ec8213e85aedb7daca18a97913"
+    },
+    {
+      "placeId": "osm:way:252370791",
+      "jobId": "76c9ffeb-7e72-45e5-9da7-b7aaefcc289c",
+      "sourceHashVerified": true,
+      "audioSha256": "2f1f89d1eb48ea4bb92b0aa983016dec170a36fd40cf57645bf512b5ad16e6f9"
+    },
+    {
+      "placeId": "osm:relation:19083613",
+      "jobId": "f3626009-8d8f-4dab-becf-f7fc3322e9b0",
+      "sourceHashVerified": true,
+      "audioSha256": "d2f86d57672e43baedaeafb059e6b063a7406bb245e65a726ddd3273d6c53ba0"
+    },
+    {
+      "placeId": "osm:relation:8443298",
+      "jobId": "9959c338-b29f-43f8-b3b8-8194f605c07b",
+      "sourceHashVerified": true,
+      "audioSha256": "7b83a0982be6cb85a06fdf49729fa17af7149ed12702f8ae9ebb5bbee7a55bc7"
+    },
+    {
+      "placeId": "osm:relation:15344965",
+      "jobId": "949d32ff-d3b9-4356-84d7-e19efbd1f680",
+      "sourceHashVerified": true,
+      "audioSha256": "3f4aa9f1f534d9db2de9a883c1a513926d04cd952a617ad425cafac0eb663181"
+    },
+    {
+      "placeId": "osm:way:53548437",
+      "jobId": "e48f55e4-39aa-4822-bf04-de604eec6afa",
+      "sourceHashVerified": true,
+      "audioSha256": "6511d6c1eb409398f8f90da4cd8e4a261007d361466f5aaf5f42ee152bdd50bd"
+    },
+    {
+      "placeId": "osm:way:484755695",
+      "jobId": "135248ee-6ce7-4933-86ac-b7e2ffcaa182",
+      "sourceHashVerified": true,
+      "audioSha256": "29af460c93750d9284f5e8e27dbc6fc2a11127488200f49c032ceb22c282d646"
+    },
+    {
+      "placeId": "osm:relation:7725971",
+      "jobId": "3a3ef636-1124-420a-a9d1-e4d7403342df",
+      "sourceHashVerified": true,
+      "audioSha256": "b5bde27ab21c017cc5b6c9e02907dee4d2071f0cc92c40dc45bdb39a25991ef3"
+    },
+    {
+      "placeId": "osm:way:110894021",
+      "jobId": "509b6e94-6ef2-4110-bb69-0d159e927393",
+      "sourceHashVerified": true,
+      "audioSha256": "ae37e459be7f2ad19755a731c4d7e82cda0d454ff18db9269e6deaede699ea83"
+    },
+    {
+      "placeId": "osm:way:165740280",
+      "jobId": "4bc70460-0012-4416-8e17-4d9a0e305d3b",
+      "sourceHashVerified": true,
+      "audioSha256": "f441c9ac911686651fe85bee42efaf56b76ca30d20ca0169f5bf9d0adecc9f29"
+    },
+    {
+      "placeId": "osm:relation:8763486",
+      "jobId": "bf4c863a-249b-4368-b5be-9cfc510fc28e",
+      "sourceHashVerified": true,
+      "audioSha256": "14a96c2e5ed10d9944b54eabcf889e9551a995f4473fc8bb6c36a3349934a982"
+    },
+    {
+      "placeId": "osm:relation:7719252",
+      "jobId": "9cc39998-fe4f-4911-a128-ce704bcb7157",
+      "sourceHashVerified": true,
+      "audioSha256": "38acf1906754aaf14620af45f2705e9c5e3b28c08f3ca03ab85b8134eb32aaf8"
+    },
+    {
+      "placeId": "osm:relation:8043044",
+      "jobId": "f7cc8089-15a5-497b-b3d8-5f6454ef023f",
+      "sourceHashVerified": true,
+      "audioSha256": "3c339d8718fa5c616a7a2aa3f2dc4842d251e1999351cf166e253e019b2168ff"
+    },
+    {
+      "placeId": "osm:relation:2424377",
+      "jobId": "79b12a88-0731-4e54-9c37-fa6bbed92b72",
+      "sourceHashVerified": true,
+      "audioSha256": "a65882eb79f18f616ee356c0857079dd0c6dda45b9bf5063d4afa400198a3fc7"
+    },
+    {
+      "placeId": "osm:relation:9919623",
+      "jobId": "37947fae-eacb-4ccf-b9a3-87bb62f18ae6",
+      "sourceHashVerified": true,
+      "audioSha256": "6b804e0fba1c470a03676701ebc254f4f11c4363cb00514a4eb2a58fd0263037"
+    },
+    {
+      "placeId": "osm:way:534370303",
+      "jobId": "d17a42e5-f2dc-4545-ab58-b52739f975fc",
+      "sourceHashVerified": true,
+      "audioSha256": "8a0195b594ea72e5de8ca9f4fad03edcc5cc339c261266dfa29e2a5e2a3c4925"
+    },
+    {
+      "placeId": "osm:relation:10317488",
+      "jobId": "12e7fedc-3ea5-4801-ad62-beb8c260138e",
+      "sourceHashVerified": true,
+      "audioSha256": "7b0310bc9e9dabf677a9dc1129118d74b2d993f7c72dd703b8a64c09488b724d"
+    },
+    {
+      "placeId": "osm:relation:7402492",
+      "jobId": "11c1d03c-d527-43b7-a1ab-0feaaa9bb442",
+      "sourceHashVerified": true,
+      "audioSha256": "89f872d1ce3a703f2b8267864f43db78277ebf50a4f72a1240c4c4d6aea397b7"
+    },
+    {
+      "placeId": "osm:relation:7968458",
+      "jobId": "0bb3f1ea-8ee0-4cf4-a711-92ccda590db2",
+      "sourceHashVerified": true,
+      "audioSha256": "2a1d96bf97b832d2995ffd347a399642fee94ead9e057b4d624c45c543972bce"
+    },
+    {
+      "placeId": "osm:relation:9688342",
+      "jobId": "a7991bc5-7c84-4104-adc8-67eee79086a7",
+      "sourceHashVerified": true,
+      "audioSha256": "65f04a2d03116b85ee98563661814dd59d747e37f1a571e15addba9f1e0700c2"
+    },
+    {
+      "placeId": "osm:relation:10165684",
+      "jobId": "7ea5edce-888c-44d3-9415-990a11f1f803",
+      "sourceHashVerified": true,
+      "audioSha256": "071ba588179b39647cca6ee57a3ac0dbbde3265fc0c77a579612b2289ab142fc"
+    },
+    {
+      "placeId": "osm:relation:7314898",
+      "jobId": "9bd911c4-78ca-4ff2-95cf-754df861ef88",
+      "sourceHashVerified": true,
+      "audioSha256": "099c205214d7d08c06235ac4ea9820625d1b516d7e18ef933d0b2aec615190d4"
+    },
+    {
+      "placeId": "osm:way:35814561",
+      "jobId": "13cf84cc-8f08-4330-85de-cd8cfabd8295",
+      "sourceHashVerified": true,
+      "audioSha256": "36b565550c88405d8fd80094228482fec44c41cded3df386c1200372c28b869e"
+    },
+    {
+      "placeId": "osm:way:129306472",
+      "jobId": "fa3187b3-4b71-4331-ad89-fd5ec5f5db66",
+      "sourceHashVerified": true,
+      "audioSha256": "d482cc8338afd0eaf1d72ba01bb9c6f29b7630a442656cb4db5b5bdc18d86e31"
+    },
+    {
+      "placeId": "osm:way:317918942",
+      "jobId": "18fe4afe-5987-442c-9527-56cdf4037adb",
+      "sourceHashVerified": true,
+      "audioSha256": "0e20748c2f11b72b121e528adbd9bad8a8a692417876acb9b434a1727ed43e2e"
+    },
+    {
+      "placeId": "osm:way:31497220",
+      "jobId": "5be8b3b2-c932-4600-a898-2973b2ee16af",
+      "sourceHashVerified": true,
+      "audioSha256": "365efcbbc9ad1d2d44591d8d6dcbadc38678b889953d1c3dda9fd59fe5844c82"
+    },
+    {
+      "placeId": "osm:way:46966391",
+      "jobId": "7724c8af-f7a5-4305-85b0-5a562eb5ca63",
+      "sourceHashVerified": true,
+      "audioSha256": "be11494df4b0b97909db61be578b9f98cdf59c7c10c7dfe9faaf1cbe08b7ddb4"
+    },
+    {
+      "placeId": "osm:way:47031131",
+      "jobId": "123a125d-8f96-40e9-9aa6-18dda16e31df",
+      "sourceHashVerified": true,
+      "audioSha256": "4c863a19c3203d5350b64dc604cd50d031973eb8d55904b77f343cfd7df1533e"
+    },
+    {
+      "placeId": "osm:way:129212972",
+      "jobId": "e0c34e90-bf30-42e9-8876-8a3a56943a33",
+      "sourceHashVerified": true,
+      "audioSha256": "d3234b3c0a3ef14e00f9ebb56245eca6f5289323f1c5818d067b7cd6e6996f74"
+    },
+    {
+      "placeId": "osm:relation:11661228",
+      "jobId": "b5ce6342-55ce-4cc9-a027-db100078dfe3",
+      "sourceHashVerified": true,
+      "audioSha256": "423101ac98099040d8d87b3fd2050ac77c638df7fbeae8155b5c906299af6803"
+    },
+    {
+      "placeId": "osm:way:84632785",
+      "jobId": "43bc296e-c94f-4793-adb5-cd678df1c46a",
+      "sourceHashVerified": true,
+      "audioSha256": "3141830a88158867130177e948518ec57dc728746a307866dfd6ce3f330f6dfe"
+    },
+    {
+      "placeId": "osm:relation:1359281",
+      "jobId": "e65cd33f-0676-4f18-b534-bf4335908d5c",
+      "sourceHashVerified": true,
+      "audioSha256": "cd8805482e89923217eef77f9efd9544a65fb5065388bbd1705bfea77936c9af"
+    },
+    {
+      "placeId": "osm:way:52504840",
+      "jobId": "83b15001-a0e5-4a42-a3ce-94c793259ca6",
+      "sourceHashVerified": true,
+      "audioSha256": "20fac63ef948b3e546822cb56b8fe1f9ecf9a5e4ed1ca2316e91ea8f0e1c2f8e"
+    },
+    {
+      "placeId": "osm:relation:8453866",
+      "jobId": "a1de454f-4eeb-4395-92a0-882d292f80d9",
+      "sourceHashVerified": true,
+      "audioSha256": "ee6cd5a4554e972c57e56b49f62498d8fd665e4314a88fbe85f65e66c2b57f9a"
+    },
+    {
+      "placeId": "osm:way:136577481",
+      "jobId": "fc413f8a-3241-4775-8290-6f2f4e7d1a0c",
+      "sourceHashVerified": true,
+      "audioSha256": "5a65e7686e0624d6c6f125c69668bdd147e682ea0ac43b2a814fdeed285f83f8"
+    },
+    {
+      "placeId": "osm:relation:7688144",
+      "jobId": "60ac36bf-f9e8-433a-9c7c-97483cdc7d7e",
+      "sourceHashVerified": true,
+      "audioSha256": "117eaebf8a3db0df47f778b9557e800185afd6089168054ace4e10c1aec3a2f1"
+    },
+    {
+      "placeId": "osm:relation:12198830",
+      "jobId": "107b5423-b26b-4418-b20d-888b4c67ec2f",
+      "sourceHashVerified": true,
+      "audioSha256": "0f9f5b54d3d6646541c7063b839b56380301c7054cbdb4f3f29da6e24918fd7e"
+    },
+    {
+      "placeId": "osm:way:52467191",
+      "jobId": "710b8b9e-c6ca-4b11-a411-8a094ecd6359",
+      "sourceHashVerified": true,
+      "audioSha256": "c8e0013d314ac2fb7aafb940c9f8a120f66f7f5c52626252ab37c2a88b32a166"
+    },
+    {
+      "placeId": "osm:relation:9539448",
+      "jobId": "305001fe-230d-46b5-b208-7d551db777ea",
+      "sourceHashVerified": true,
+      "audioSha256": "f7bce62a74ba60856520e0f1dd8eb0bde7b8bdac25e098363af9d4ec2bb26d3c"
+    },
+    {
+      "placeId": "osm:node:5244167433",
+      "jobId": "2419f0b9-c399-467a-b5b9-cc9bbf6d9466",
+      "sourceHashVerified": true,
+      "audioSha256": "4f59fd76a377e04572f29ced4ac623d51ee5b3ab1b95b6a46ee944a42d303a3b"
+    },
+    {
+      "placeId": "osm:node:253124200",
+      "jobId": "94ae72de-a504-4779-9d12-359e122b33ed",
+      "sourceHashVerified": true,
+      "audioSha256": "4fe36bc8473e4aa3e91cfbad71de9c3c5ef6f74b2138e14a01ff5510f0e94e86"
+    },
+    {
+      "placeId": "osm:node:4142936190",
+      "jobId": "66d4f13b-8261-455d-a7ea-7c65801394f5",
+      "sourceHashVerified": true,
+      "audioSha256": "f518d530b3c09b11d33bd7f333fd46c3ab5c57d8e406fa609df4ddf3790e114a"
+    }
+  ]
+}
