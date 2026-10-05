@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T15:44:17.858462+00:00",
+  "updatedAt": "2026-10-05T15:57:13.299155+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 192,
+    "publishedWithRevoice": 200,
     "reviewedNoChange": 4,
-    "pending": 204
+    "pending": 196
   },
   "entries": [
     {
@@ -985,7 +985,8 @@
       "name": "Консульский отдел посольства Ирана",
       "originalTextId": "6738034a-e91f-4aa0-b8a4-026a7ce3e68b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch31/changes.json"
     },
     {
       "placeId": "osm:relation:7555555",
@@ -1940,21 +1941,24 @@
       "name": "Посольство Бенина",
       "originalTextId": "8c202671-7653-4631-ac9a-7e3e8474cd8d",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch31/changes.json"
     },
     {
       "placeId": "osm:relation:7103022",
       "name": "Посольство Ганы",
       "originalTextId": "08fd2805-1b56-4ff2-9272-3aa67caea9e0",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch31/changes.json"
     },
     {
       "placeId": "osm:way:104201990",
       "name": "Посольство Гвинеи",
       "originalTextId": "58ad7203-671c-4953-94bd-b36311f7508e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch31/changes.json"
     },
     {
       "placeId": "osm:way:47513393",
@@ -2001,28 +2005,32 @@
       "name": "Посольство Мьянмы",
       "originalTextId": "51cd0f55-08a6-43d5-80e0-a9f32242b593",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch31/changes.json"
     },
     {
       "placeId": "osm:way:52583204",
       "name": "Посольство Нигерии",
       "originalTextId": "b2f3689f-1322-46d1-88f7-2c0a0d82e269",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch31/changes.json"
     },
     {
       "placeId": "osm:way:47294368",
       "name": "Посольство Норвегии",
       "originalTextId": "49d79691-68e1-4008-a2cc-97685cecdc8e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch31/changes.json"
     },
     {
       "placeId": "osm:way:45818762",
       "name": "Посольство Сирии",
       "originalTextId": "9ddaf1a3-fe59-4801-9c14-bc545d02d24e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch31/changes.json"
     },
     {
       "placeId": "osm:way:52106120",
