@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T19:26:16.144526+00:00",
+  "updatedAt": "2026-10-05T19:38:21.631134+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 328,
+    "publishedWithRevoice": 336,
     "reviewedNoChange": 4,
-    "pending": 68
+    "pending": 60
   },
   "entries": [
     {
@@ -2038,7 +2038,8 @@
       "name": "Площадь Арбатские Ворота",
       "originalTextId": "09e39804-222d-45b4-bb5c-25595807a59b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch48/changes.json"
     },
     {
       "placeId": "osm:way:52132603",
@@ -2165,21 +2166,24 @@
       "name": "Посольство Таджикистана",
       "originalTextId": "d4281d99-c53f-4b07-8e63-8cc49789f234",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch48/changes.json"
     },
     {
       "placeId": "osm:way:30153015",
       "name": "Посольство Туркменистана",
       "originalTextId": "5d9c3ad5-f8ea-403b-b793-9b9855116946",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch48/changes.json"
     },
     {
       "placeId": "osm:way:47360141",
       "name": "Посольство Филиппин",
       "originalTextId": "58ba5738-1977-4379-9420-cdf4d7e45b20",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch48/changes.json"
     },
     {
       "placeId": "osm:relation:1359337",
@@ -2194,28 +2198,32 @@
       "name": "Правильная палата",
       "originalTextId": "5f4db1ba-223e-4c82-81f0-143923092a65",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch48/changes.json"
     },
     {
       "placeId": "osm:node:4142950215",
       "name": "Прайд",
       "originalTextId": "23d5142b-c039-4d42-9a98-eb13e0c9d31f",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch48/changes.json"
     },
     {
       "placeId": "osm:node:12233205875",
       "name": "Пречистенские вечерние классы для рабочих",
       "originalTextId": "fa429479-0d34-48c3-8def-2e54a30221b3",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch48/changes.json"
     },
     {
       "placeId": "osm:node:11037404188",
       "name": "Пушкин и Мицкевич",
       "originalTextId": "8fb9676c-db77-4aeb-b9d6-aed13ae47910",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch48/changes.json"
     },
     {
       "placeId": "osm:node:11012889362",
