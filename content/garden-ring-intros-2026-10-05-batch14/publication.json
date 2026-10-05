@@ -1,0 +1,133 @@
+{
+  "verifiedAt": "2026-10-05T10:19:06.771Z",
+  "bundleId": "garden-ring-intros-2026-10-05-batch14",
+  "transport": "https-h2",
+  "results": [
+    {
+      "placeId": "osm:way:131491845",
+      "name": "Усадьба Васильчиковых",
+      "textId": "4854dd3b-92ea-4a08-9cc4-23fa9a51cb76",
+      "audioJobId": "ee528110-4f1a-4265-bce4-e74e5d9b297a",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/9684f39c80ddbba7656dbc5ddd2f038cbb27bf04e84551cf6b4a7baa5158cb79.mp3",
+        "sha256": "9684f39c80ddbba7656dbc5ddd2f038cbb27bf04e84551cf6b4a7baa5158cb79",
+        "bytes": 496941,
+        "durationSec": 62.088,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "0ce66e69c0f25fd24c5f114d239360c1785cd8d24f307dee9ce0005ff32160be",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/50e75c2bd30a9c5e6f7fc0c7fbb042e58648b797b803213ce9e62399a492212c.jpg",
+        "src": "/api/place-images/d10fd530032da92b2a467a0bbf0464ae86abd3b72d56df4c57c063c3d4b5c294.jpg",
+        "width": 960,
+        "height": 640,
+        "alt": "Усадьба Васильчиковых",
+        "author": "Татьяна Краснова",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D1%83%D0%B7%D0%B5%D0%B9_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D0%BE%D0%B9_%D1%84%D0%BE%D1%80%D0%BC%D1%8B_%D0%A3%D1%81%D0%B0%D0%B4%D1%8C%D0%B1%D0%B0_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D1%87%D0%B8%D0%BA%D0%BE%D0%B2%D1%8B%D1%85.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:relation:9464684",
+      "name": "Усадьба Хрущёвых-Селезнёвых",
+      "textId": "0f3ce5a1-4f3c-4627-a002-5374e1795af0",
+      "audioJobId": "fbcb6698-1287-41e8-9b12-46e453f711af",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/b01b06d44f9d38fc67868659d105e9ddf3029114323317d872acf5aa5922a385.mp3",
+        "sha256": "b01b06d44f9d38fc67868659d105e9ddf3029114323317d872acf5aa5922a385",
+        "bytes": 523053,
+        "durationSec": 65.352,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "8059bcd690c3d9913edace78b4775006d7c3241b3403b860821559b8bfbd741f",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/23f41bacbd747bccace3ceee6097c4fac1558f6219abc5647ba1745ebcbfe8a9.jpg",
+        "src": "/api/place-images/1a049de0b34ed8d9b8eab65fa5e6d3fcb80cdb84899ddf82c1dd3227ed3aa704.jpg",
+        "width": 960,
+        "height": 531,
+        "alt": "Усадьба Хрущёвых-Селезнёвых",
+        "author": "NVO",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prechistenka_pushkin_museum_corner.jpg",
+        "license": "CC BY-SA 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:relation:5371134",
+      "name": "Усадьба Шаховского-Краузе-Осиповых",
+      "textId": "0e71cdbc-9cdc-4b35-8f65-bab0e1f1f86a",
+      "audioJobId": "2394f1aa-fc76-4741-b3fc-f14e0197afcd",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/19e486ebe7e09c820dd6e7ab73191753890279165250c4f35b0abd9b67dbfe16.mp3",
+        "sha256": "19e486ebe7e09c820dd6e7ab73191753890279165250c4f35b0abd9b67dbfe16",
+        "bytes": 499437,
+        "durationSec": 62.4,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "4cf5dfaef624000fa4a81eabf28119c8c51bf80e7d957cb569d05258e6401e03",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/166d1f08425dc878e1e66ccd46b3a97b0ffada2a78765f3d74be7e2ef873baa0.jpg",
+        "src": "/api/place-images/5f82a566eb328797df104651a057d91343fb7425ccf04933850842fc0897e37b.jpg",
+        "width": 960,
+        "height": 480,
+        "alt": "Усадьба Шаховского — Краузе — Осиповских",
+        "author": "A.Savin",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Vozdvizhenka18_manor_08-2016.jpg",
+        "license": "FAL",
+        "licenseUrl": "http://artlibre.org/licence/lal/en"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    }
+  ],
+  "summary": {
+    "publishedTexts": 3,
+    "revoiced": 3,
+    "f5": 3,
+    "elevenlabs": 0,
+    "newPhotos": 0,
+    "preservedPhotos": 3,
+    "totalCandidatesCompleted": 74
+  }
+}
