@@ -1,0 +1,2899 @@
+{
+  "auditAt": "2026-10-05T12:16:46.251Z",
+  "updatedAt": "2026-10-05T12:31:51.563278+00:00",
+  "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
+  "summary": {
+    "total": 400,
+    "publishedWithRevoice": 82,
+    "reviewedNoChange": 4,
+    "pending": 314
+  },
+  "entries": [
+    {
+      "placeId": "osm:node:4992691359",
+      "name": "9-й Московской стрелковой дивизии народного ополчения",
+      "originalTextId": "f0417cbc-30a7-4046-8da0-4f0d5920b62d",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:225030",
+      "name": "Four Seasons Hotel Moscow",
+      "originalTextId": "54288233-5ad8-42aa-be35-50d974b5680e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:node:10747680860",
+      "name": "Sistema gallery",
+      "originalTextId": "d5defc15-f69b-457f-8aee-565652c41a5c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5244167436",
+      "name": "А. А. Фадееву",
+      "originalTextId": "fc36c942-8bea-432d-bd51-58044b736923",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9106236034",
+      "name": "А. А. Яблочкиной",
+      "originalTextId": "7c4204d3-2f1c-4b2b-b951-226dc926f572",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6225259086",
+      "name": "А. В. Луначарскому",
+      "originalTextId": "199ecb85-73fb-48f3-87eb-2c58b0d2964b",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6655953290",
+      "name": "А. Д. Дикому",
+      "originalTextId": "b94e8d84-c99c-4508-b66f-a2f937f39f66",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2585233691",
+      "name": "А. И. Герцену",
+      "originalTextId": "df4cad0d-f1a6-457c-800f-bee5decf3714",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:node:5294751991",
+      "name": "А. И. Южину-Сумбатову",
+      "originalTextId": "16594024-3df0-4e9b-b5e2-b28956dd241f",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:1096235294",
+      "name": "А. Л. Мясникову",
+      "originalTextId": "829e914e-bcbd-41d4-8ef5-7a2567ffb236",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6644719373",
+      "name": "А. М. Васнецову",
+      "originalTextId": "abb4cbb7-44ac-4df8-a87b-b098723cd609",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7934342888",
+      "name": "А. М. Горчакову",
+      "originalTextId": "54678831-3fe3-48b0-b43f-729883c47cef",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7667621840",
+      "name": "А. Н. Островскому",
+      "originalTextId": "225a246f-cb1a-4ad7-9a7f-d73745f54d5a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6845394705",
+      "name": "А. Н. Рыбакову",
+      "originalTextId": "1f8022cc-26a3-4ac8-b308-785522f60f10",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:1161887274",
+      "name": "А. П. Чехову",
+      "originalTextId": "8384d15c-1a2b-4a60-92ca-cdb1c9df8955",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:node:8431671816",
+      "name": "А. С. Голубкиной",
+      "originalTextId": "637bc468-7612-40a4-8ee5-620862742589",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8702379682",
+      "name": "А. С. Иванову",
+      "originalTextId": "32b7acc4-a53a-4397-a215-a4820f4240ee",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12471022954",
+      "name": "А. С. Пушкину",
+      "originalTextId": "b8239f65-1510-4e59-be03-47ae416534e8",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8440787111",
+      "name": "А. С. Пушкину",
+      "originalTextId": "f215dc7f-ddd8-40b5-813a-3d3c475d6342",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12413738023",
+      "name": "А. А. Брусилову",
+      "originalTextId": "3adb0161-6b5d-4ec0-b26e-1fcb2c2d13ff",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6449794072",
+      "name": "А.А. Андрееву",
+      "originalTextId": "d5590772-b95a-491f-a86e-2c6e033b70b6",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7099701418",
+      "name": "А.П. Маресьеву",
+      "originalTextId": "204dc5a1-11fe-423e-afdc-abde9708a43b",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5057733049",
+      "name": "А3",
+      "originalTextId": "41d15417-5ae3-4884-84c9-eeaa90c2aafc",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142905057",
+      "name": "Адамово яблоко",
+      "originalTextId": "b26c86d0-7e0f-425d-80ff-1f5fc74ad884",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1362325",
+      "name": "Александровский сад",
+      "originalTextId": "54de4cfe-d527-4e91-abde-812158994559",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:node:416562794",
+      "name": "Александру II",
+      "originalTextId": "c70cdb28-e446-469d-8b11-ea859bcdd8c9",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:node:669409021",
+      "name": "Алексию I",
+      "originalTextId": "adc77997-e9ba-4581-9626-064d0321c2f8",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:45892322",
+      "name": "Аналитический центр при Правительстве Российской Федерации",
+      "originalTextId": "edd6717a-e7e2-446a-b078-ca9686e704d3",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:44185735",
+      "name": "Балчуг Кемпински",
+      "originalTextId": "84420e3c-0a28-4e86-bba0-f44d14fb51cf",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch3/changes.json"
+    },
+    {
+      "placeId": "osm:way:52829438",
+      "name": "Библиотека-читальня им. И. С. Тургенева",
+      "originalTextId": "f6dfd4b4-e809-4959-af0f-1aff9ade4894",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch3/changes.json"
+    },
+    {
+      "placeId": "osm:way:49436498",
+      "name": "Бизнес-центр \"Cabinet Lounge\"",
+      "originalTextId": "4c3eb322-a29b-4626-8558-b385c222ce04",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:6204093",
+      "name": "Большой театр (Новая сцена)",
+      "originalTextId": "f14e41ab-190d-4f59-a53c-72a23c37b043",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch4/changes.json"
+    },
+    {
+      "placeId": "osm:relation:19086176",
+      "name": "Братский корпус Знаменского монастыря",
+      "originalTextId": "db033d72-5448-425b-a5f6-004d36be0ba5",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142864173",
+      "name": "Броненосец",
+      "originalTextId": "6068459a-dfff-4fa7-8889-f797dc7c576d",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7804955746",
+      "name": "Бункер-703",
+      "originalTextId": "7c45aecf-d04a-4600-a4f0-2db56f736332",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142944123",
+      "name": "Буратино",
+      "originalTextId": "20650f42-e84f-46ce-b7dd-118e84242f00",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7643484540",
+      "name": "В память о боях революционных отрядов с белогвардейцами в октябре 1917 года",
+      "originalTextId": "0ed10789-f7c7-418b-8b45-f65a8dd8fa8b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9866102348",
+      "name": "В. А. Касатонову",
+      "originalTextId": "700ff851-4bdb-4fe1-a0e7-9a3c914ff9b0",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6731731188",
+      "name": "В. А. Серову",
+      "originalTextId": "a17eff27-8295-468b-8bd6-6013304c304a",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2322476565",
+      "name": "В. А. Тропинину",
+      "originalTextId": "fb2b0038-4ec4-467e-b29b-12d8b1bdb486",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9282393807",
+      "name": "В. Г. Захарову",
+      "originalTextId": "8998e6d7-9a5f-4e03-a279-222405630abe",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11808136918",
+      "name": "В. И. Ленину",
+      "originalTextId": "67a3480c-a56c-4618-ab97-c5880e49d496",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6731731189",
+      "name": "В. И. Ленину",
+      "originalTextId": "dd64c3e9-4c8e-4b35-9801-06675cec1479",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7644098498",
+      "name": "В. И. Ленину и А. М. Горькому",
+      "originalTextId": "11cb99e5-8989-4eeb-b71e-78f7659692c7",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9117500930",
+      "name": "В. М. Соломину",
+      "originalTextId": "a9a0bbe2-0e00-49ea-b6a1-ff43d6cb8d52",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6883694881",
+      "name": "В. Н. Пашенной",
+      "originalTextId": "164b2b6d-2011-43c8-a156-b9b011e80ef2",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5554932774",
+      "name": "В. С. Гулевичу",
+      "originalTextId": "04f9dba0-3289-4a5b-a3cc-7f09ea5d9610",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6801999747",
+      "name": "В. Я. Шишкову",
+      "originalTextId": "700b9da7-6c0d-4116-a24d-d5d3d23a0fea",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6449794077",
+      "name": "В.И. Чуйкову",
+      "originalTextId": "e787b493-395a-4313-aeb4-48fd3e4c7798",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4481478260",
+      "name": "Владимиру Великому",
+      "originalTextId": "15540f8f-5d48-4568-8b1a-64e85ad6be72",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch3/changes.json"
+    },
+    {
+      "placeId": "osm:node:2821784588",
+      "name": "Воину-ополченцу Фрунзенской дивизии",
+      "originalTextId": "3f64b0a3-8024-4bfd-b46e-6f290fca1f3a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:3632375393",
+      "name": "Воспитанникам московских специальных артиллерийских школ",
+      "originalTextId": "8d7e3b37-97db-4590-a882-b4a74eecfafd",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:14096253201",
+      "name": "Всадник",
+      "originalTextId": "f9cb5c4b-5c1b-402e-9def-37b8d7215ba0",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:3069066677",
+      "name": "Выставочный зал \"АхДи\"",
+      "originalTextId": "4859854b-5889-4fea-aff2-3d6bfbae1c20",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2582950702",
+      "name": "Выставочный зал фонда Андрея Чеглакова",
+      "originalTextId": "7ab9d84c-0b81-4c06-8388-145199bb9c44",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6005863542",
+      "name": "Г. В. Чичерину",
+      "originalTextId": "edd9190a-7882-47fc-a9ef-99ca9acd5254",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:1367901767",
+      "name": "Габдулле Тукаю",
+      "originalTextId": "6c742ab0-dd89-4c1c-98b2-48c5f5180eea",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11043826183",
+      "name": "Галеев - галерея",
+      "originalTextId": "3f32cb2e-6dfb-4cfd-80ac-20fdc0a83f67",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:273354762",
+      "name": "Галерея искусства стран Европы и Америки XIX—XX веков",
+      "originalTextId": "e44c2a88-61f1-437d-9f64-ea1a62a1fee5",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12314105580",
+      "name": "Галерея Мамонтовых",
+      "originalTextId": "8f9491ea-4f8a-43c6-8a7d-75cdaf5254b5",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5181847692",
+      "name": "Галерея На Чистых Прудах",
+      "originalTextId": "71283699-873d-41bd-ba00-e4cefe5b6834",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:129228259",
+      "name": "Главное управление МЧС России по городу Москве",
+      "originalTextId": "0bc07ed6-9f47-45fa-aa17-239b3dd67a43",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:45777816",
+      "name": "Главный дом городской усадьбы Головиных",
+      "originalTextId": "d78b3d71-c654-482d-8d03-74b75779ddcd",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch15/changes.json"
+    },
+    {
+      "placeId": "osm:node:11299249710",
+      "name": "Города воинской славы",
+      "originalTextId": "25877eda-e735-46c3-af97-e8f41aa6a0ee",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:node:8440603119",
+      "name": "Городская усадьба Е. Н. Горчаковой — Н. А. Богданова",
+      "originalTextId": "c981bbfa-b708-4b48-96be-e68b8e71755c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:160191365",
+      "name": "Государственный академический университет гуманитарных наук",
+      "originalTextId": "6c0fbcb7-81c6-4342-90c7-11308318c68b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:131491823",
+      "name": "Государственный дом радиовещания и звукозаписи",
+      "originalTextId": "686bc658-21ef-4388-8796-9451fbe0d735",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:47973338",
+      "name": "Государственный институт искусствознания",
+      "originalTextId": "33ae66c1-32b0-490d-b1c1-6b663d0495ac",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:273355916",
+      "name": "Государственный музей А.С.Пушкина",
+      "originalTextId": "97bc597d-26df-498f-9788-ff9e4de11a35",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch4/changes.json"
+    },
+    {
+      "placeId": "osm:way:32693733",
+      "name": "Государственный музей архитектуры им. А. В. Щусева",
+      "originalTextId": "993a42b4-e213-42fb-a0e4-0c05445be14f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch4/changes.json"
+    },
+    {
+      "placeId": "osm:node:6054425459",
+      "name": "Государственный музей Л. Н. Толстого",
+      "originalTextId": "18f12bf9-60ee-4526-8ebc-b9387aa0a07f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch4/changes.json"
+    },
+    {
+      "placeId": "osm:node:2798179186",
+      "name": "Государственный музей Л.Н. Толстого",
+      "originalTextId": "795d986a-665d-4693-bf05-c3f0059d6165",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch9/changes.json"
+    },
+    {
+      "placeId": "osm:way:47138160",
+      "name": "Государственный театр наций",
+      "originalTextId": "39a4950b-824c-497a-987b-006b3dcb0578",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch4/changes.json"
+    },
+    {
+      "placeId": "osm:relation:16685841",
+      "name": "Государственный центральный музей современной истории России",
+      "originalTextId": "ee525a17-e587-4e2e-8253-ebbfbd17b591",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch4/changes.json"
+    },
+    {
+      "placeId": "osm:node:12729053255",
+      "name": "Грум-Гржимайло Юрий Владимирович",
+      "originalTextId": "5a12d036-9426-47b6-ab73-1cbe30eaa271",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12529340641",
+      "name": "Д. Н. Анучину",
+      "originalTextId": "779d1f43-85b8-4ef3-a8d3-b8333e8742f2",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:8062635",
+      "name": "Дом Апраксиных — Трубецких",
+      "originalTextId": "734b0e99-e8a4-4e09-956c-23437c358a1a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:224146643",
+      "name": "Дом архитектора Мельникова",
+      "originalTextId": "a6b854b3-72c1-4d08-ac54-7871b9c9aa34",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:way:173172365",
+      "name": "Дом Бурганова",
+      "originalTextId": "d6586385-9054-43aa-89b7-d2cd95dab691",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch9/changes.json"
+    },
+    {
+      "placeId": "osm:node:2715045290",
+      "name": "Дом Высоцкого на Таганке",
+      "originalTextId": "07978d96-517b-4b6b-8ef0-9a7e87161a40",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8431704517",
+      "name": "Дом дворцового ведомства",
+      "originalTextId": "b662581f-f80a-4f7e-9502-8f5300895f2a",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:3466483914",
+      "name": "Дом И.С. Остроухова в Трубниках",
+      "originalTextId": "253888ea-5344-4f9d-9369-7f8effceabc9",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5218469188",
+      "name": "Дом Коллекционера",
+      "originalTextId": "20825ec8-37b8-4dc3-a43d-19518f0d1550",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13245906707",
+      "name": "Дом Н. Ф. Павлова",
+      "originalTextId": "0b7e703b-edb1-4cbd-bb2e-3803f9c0fdac",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:1592025111",
+      "name": "Дом на набережной",
+      "originalTextId": "12f25c2a-3b22-4076-8b38-e0431e4179c3",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch6/changes.json"
+    },
+    {
+      "placeId": "osm:relation:5969167",
+      "name": "Дом Пашкова",
+      "originalTextId": "be82ddca-7a64-4314-a49a-7215ce0efd64",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:274909164",
+      "name": "Дом Пороховщикова",
+      "originalTextId": "4d4405b5-5694-4c21-ba88-0f93c7449224",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch6/changes.json"
+    },
+    {
+      "placeId": "osm:relation:12198829",
+      "name": "Дом с атлантами",
+      "originalTextId": "f2d8ef50-c32a-43ec-a052-5f577e104a2e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch6/changes.json"
+    },
+    {
+      "placeId": "osm:relation:6210565",
+      "name": "Дом Союзов",
+      "originalTextId": "127f7473-617f-4931-96a9-aa1da718ab67",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch6/changes.json"
+    },
+    {
+      "placeId": "osm:way:120727145",
+      "name": "Дом Толстого",
+      "originalTextId": "2d1a7d40-72f6-42e3-866e-f680a5dc5d66",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:10319256",
+      "name": "Дом Ярошенко",
+      "originalTextId": "119994f7-1af3-4658-9667-f6dbd65a1e51",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:3500729458",
+      "name": "Дом-музей А. И. Герцена",
+      "originalTextId": "49708378-dc02-4fb7-96c3-dd60093dfb72",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch5/changes.json"
+    },
+    {
+      "placeId": "osm:node:1359123836",
+      "name": "Дом-музей А.Н. Островского",
+      "originalTextId": "139e26bb-a534-4fe0-9c94-3e95ecff78d1",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:10015992717",
+      "name": "Дом-музей и экспедиционный штаб Федора Конюхова",
+      "originalTextId": "3c69aaa3-5ccf-459c-84be-eadc2c3338d8",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:312412195",
+      "name": "Дом-музей М. Н. Ермоловой",
+      "originalTextId": "7ee639a9-4e15-41fc-b951-fc5db01fce8d",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch4/changes.json"
+    },
+    {
+      "placeId": "osm:way:300426887",
+      "name": "Дом-музей М. Ю. Лермонтова",
+      "originalTextId": "04607ccd-1b2d-4cf8-945f-a940de37d8c5",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch4/changes.json"
+    },
+    {
+      "placeId": "osm:node:8431704518",
+      "name": "Доходное владение Г. Е. и А. Г. Бройдо — В. Я. Бурдакова. Жилой дом",
+      "originalTextId": "d6f69ecd-652e-4814-8970-86bbc236fdc8",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:47978268",
+      "name": "Доходный дом архитектора Л. Кекушева",
+      "originalTextId": "b560c595-a687-41c1-a658-c115b72368f6",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7428358397",
+      "name": "Доходный жилой дом (З. А. Перцевой)",
+      "originalTextId": "9bdcd376-79cf-4a3d-9660-8f5440001c5f",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:12344757",
+      "name": "Древлеправославный храм в честь Покрова Пресвятой Богородицы",
+      "originalTextId": "86cf13bf-be7c-4bc8-a3f6-198e222ae665",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142983687",
+      "name": "Дуэль",
+      "originalTextId": "4631bd6b-56c9-406d-9cb8-55e330630e24",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7906582329",
+      "name": "Е. А. Иванову",
+      "originalTextId": "c5cec7e1-73e8-48b7-a37e-90f2129e9908",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9976724415",
+      "name": "Е. В. Вучетичу",
+      "originalTextId": "fc4d24f0-1985-4ab8-9abc-532b98587edf",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:640142003",
+      "name": "Е. Е. Лансере",
+      "originalTextId": "3b9d2474-d9fa-443c-ae69-5f9d0968a0c7",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8104894066",
+      "name": "Е. Л. Дзигану",
+      "originalTextId": "3f83e8b2-2e84-49bb-8fd6-cb35ba617df4",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142944125",
+      "name": "Жертвоприношение",
+      "originalTextId": "9919a960-bca8-46e4-aa35-e8e762b88df0",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:10090116527",
+      "name": "Жилой дом Н. К. Боля — К. А. Гутхейля",
+      "originalTextId": "869d961b-ac08-45ef-9ac3-5352f2ed0f98",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12729053257",
+      "name": "Заседателев Борис Федорович",
+      "originalTextId": "8d204ea8-2fd0-4cd7-a3a4-c3daf55308d4",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6551722694",
+      "name": "И. А. Пятницкому",
+      "originalTextId": "7e13467a-3726-4894-80da-01ace6bb5f80",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9282393808",
+      "name": "И. М. Майскому",
+      "originalTextId": "bb215e08-81d1-423b-94c2-07ac0e455847",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7333329471",
+      "name": "И. Х. Баграмяну",
+      "originalTextId": "6a7c62b7-b253-488b-b551-fa8e141e93c1",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:32693328",
+      "name": "Ивановский зал РГБ",
+      "originalTextId": "8f956394-d042-408b-86ae-7cbbc5e5d538",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:node:14096306301",
+      "name": "Игнатий",
+      "originalTextId": "620f05ca-ad09-49ba-bae3-60c019a1a36e",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:20429242",
+      "name": "Институт физики атмосферы им. А.М. Обухова РАН",
+      "originalTextId": "f7d3e9d2-e2cc-4834-bb34-596a8e641de8",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:9303001",
+      "name": "Историко-архивный институт РГГУ",
+      "originalTextId": "cf0ce66e-d46c-4a5a-b859-ce542600afcb",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7418784",
+      "name": "Историческая мечеть",
+      "originalTextId": "47387d0a-cf73-4493-935c-66f075485835",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:5963922",
+      "name": "Исторический музей",
+      "originalTextId": "29ccd14a-3f8e-43c7-88e3-0fe7f7dc2d06",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:10572977040",
+      "name": "К. А. Тимирязеву",
+      "originalTextId": "bac135eb-760d-4189-8b58-e84f4ac8ebb6",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5310616994",
+      "name": "К. Д. Бальмонту",
+      "originalTextId": "78dcda6f-c2df-4f78-8110-6813e8b4ba3d",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6306853696",
+      "name": "К. С. Москаленко",
+      "originalTextId": "dc101c74-01e6-4a6a-b2c1-f9bf3bbe931e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13254353242",
+      "name": "К.Д. Ушинскому",
+      "originalTextId": "15def338-5868-4caa-a8d8-6afe28a23161",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6449794076",
+      "name": "К.Е. Ворошилову",
+      "originalTextId": "8f92fe40-ace2-4400-9081-6db8488d0519",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13155862702",
+      "name": "Каллистову А.Н.",
+      "originalTextId": "c8a7b165-722b-4250-9ebb-763d2870d309",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:784052411",
+      "name": "Карлу Марксу",
+      "originalTextId": "c8a4021f-b204-486a-8fd7-7a898af5d20e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7524307",
+      "name": "Кафедральный собор Святых Петра и Павла",
+      "originalTextId": "d0c82105-f85b-49cb-b956-5bbd18f0da13",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch7/changes.json"
+    },
+    {
+      "placeId": "osm:node:10030895986",
+      "name": "Квадрига Аполлона",
+      "originalTextId": "7e406cb5-47c1-436b-b094-3996e5584f03",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8849289628",
+      "name": "Ключ счастья",
+      "originalTextId": "9a14acc5-deab-4050-a744-e1450095a90a",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1360645",
+      "name": "Константино-Еленинская башня",
+      "originalTextId": "71bf177e-129c-4004-b834-1712d79dbdcd",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:15449241",
+      "name": "Консульский отдел посольства Ирана",
+      "originalTextId": "6738034a-e91f-4aa0-b8a4-026a7ce3e68b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7555555",
+      "name": "Концертный зал «Зарядье»",
+      "originalTextId": "11221a3c-f980-475a-b3e7-f7174e5d0cbb",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52387428",
+      "name": "Корпус «Т» АУК «Покровка» НИУ ВШЭ",
+      "originalTextId": "27dc097c-e7e6-4b13-8b45-d82e909a3595",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1577673",
+      "name": "Красная площадь",
+      "originalTextId": "7d43c1c4-017d-4dc0-a42d-fdf21faca865",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5932638885",
+      "name": "Л. Г. Полищук",
+      "originalTextId": "09a8585e-5676-45df-87d8-34f7ceebe897",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142863819",
+      "name": "Лев",
+      "originalTextId": "cc05cfda-23d6-49e4-b1cd-dd5b3ec12e34",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:1691951977",
+      "name": "Ленин-гимназист",
+      "originalTextId": "947459d0-8068-4038-ae7c-8438c9e35f32",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52673205",
+      "name": "М'арс",
+      "originalTextId": "c63ae918-142b-4a02-ac5e-6c336610e964",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:916076811",
+      "name": "М. А. Максимовичу",
+      "originalTextId": "b474c674-21b9-451f-a2a9-084d816c882c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7333329478",
+      "name": "М. А. Шолохову",
+      "originalTextId": "292b2af0-e81a-401d-ade7-1c791db56f2e",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6845394704",
+      "name": "М. В. Нестерову",
+      "originalTextId": "de5f9200-a521-40e2-b319-9d3f3f889ac2",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5083895957",
+      "name": "М. В. Фрунзе",
+      "originalTextId": "6057fb14-5420-4a0f-9eec-e78f32ed4f71",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6276151672",
+      "name": "М. И. Бабановой",
+      "originalTextId": "d76502f6-a124-46ce-a2b5-ab346d9cf649",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:916076773",
+      "name": "М. И. Калинину",
+      "originalTextId": "66e69920-77e1-4376-8754-3458b0577716",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9282393809",
+      "name": "М. И. Ромму",
+      "originalTextId": "f5c72e83-cdec-418c-8b5d-584c7214813c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12855637233",
+      "name": "М. И. Ульяновой",
+      "originalTextId": "1373671d-6ba0-40d1-a742-2693e33cf036",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2157117342",
+      "name": "М. Л. Ростроповичу",
+      "originalTextId": "e001175b-5169-4b4a-9955-8f495816ac18",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13259551104",
+      "name": "М. М. Ботвиннику",
+      "originalTextId": "019f8059-6bcc-4d9e-bc2f-8fff8842c009",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8440603117",
+      "name": "М. С. Шагинян",
+      "originalTextId": "1ba1bc34-0249-4ec0-8c2b-3ea027b0e550",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13245906713",
+      "name": "М. Светлову",
+      "originalTextId": "01824a37-775e-4492-90a1-e0d86ee0698e",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11335355279",
+      "name": "М. Ф. Митькову",
+      "originalTextId": "b3b76187-5ba9-4ed9-bc4e-6a22d4512a6c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7099701420",
+      "name": "М.А. Ульянову",
+      "originalTextId": "1ad46d07-6736-44b8-b897-d07539385a26",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:3272726",
+      "name": "Мавзолей В. И. Ленина",
+      "originalTextId": "2c9c3396-0210-4798-b7d8-26fa80174175",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7259801",
+      "name": "Малороссийское подворье",
+      "originalTextId": "192f857e-4493-4f29-aae3-a1f04f2025ff",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4604279417",
+      "name": "Мартышка и очки;Осёл;Волк и ягнёнок",
+      "originalTextId": "c56c0c24-51fa-4911-98d0-2d541722da05",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:14096310201",
+      "name": "Махатма Ганди",
+      "originalTextId": "19c90bea-ffbd-4c64-8b8c-d5ab412b509f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:node:3500710699",
+      "name": "Мемориальная квартира Андрея Белого",
+      "originalTextId": "3397dd88-297a-4f04-9635-caf8ef01f203",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4088301220",
+      "name": "Мемориальная квартира-музей Е. Б. Вахтангова",
+      "originalTextId": "1ee7befd-8cbc-4495-ae63-4c4060d86f64",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6303242526",
+      "name": "Мемориальная музей-квартира Г.М. Кржижановского",
+      "originalTextId": "68f5362a-0e39-490c-a835-aa377d754de9",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4692951498",
+      "name": "Мемориальный музей-квартира А. М. Горького",
+      "originalTextId": "28060d77-1346-48c7-8cf2-1283cfe1c704",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch5/changes.json"
+    },
+    {
+      "placeId": "osm:node:2219502268",
+      "name": "Мемориальный музей-квартира А. Н. Толстого",
+      "originalTextId": "cea0986d-5703-429c-8837-943d91083e63",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch5/changes.json"
+    },
+    {
+      "placeId": "osm:node:6294334620",
+      "name": "Мемориальный музей-квартира А.И. Сумбатова-Южина",
+      "originalTextId": "d6619f69-a13a-4fd8-ae81-4beabcbb53af",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:10572977039",
+      "name": "Мемориальный музей-квартира Тимирязева Климента Аркадьевича",
+      "originalTextId": "23beeb6b-2c74-4e88-98d7-5f8199477875",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9181274057",
+      "name": "Место церкви Ржевской иконы Божией Матери",
+      "originalTextId": "c5da4c3f-57c1-498e-8069-b437c1a3a676",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:85761",
+      "name": "Метрополь",
+      "originalTextId": "80c9b876-f3c6-4b74-842b-fa21aed315a9",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:3881262",
+      "name": "МИД России центральное здание",
+      "originalTextId": "26744b7f-a090-4738-b10e-581dc83b9b0e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12729053253",
+      "name": "Минаев-Каневский Сергей Владимирович",
+      "originalTextId": "47b23c96-5462-465e-acd9-f8b1d1d1e8f8",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52132608",
+      "name": "Министерство культуры РФ",
+      "originalTextId": "94780af1-7019-481a-9e87-730bda21848d",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:60453478",
+      "name": "Министерство юстиции РФ",
+      "originalTextId": "018a77aa-2448-4892-884b-3b313413deaa",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142899081",
+      "name": "Мистерия",
+      "originalTextId": "33863c54-5258-414f-80f2-684b0befaaa0",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142950214",
+      "name": "Мишка с мячом",
+      "originalTextId": "54822b0b-472d-4f54-a994-ee6a19d7d976",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2380290736",
+      "name": "Могила И. В. Сталина",
+      "originalTextId": "eb2dfc43-c417-456f-a66d-67e676d64a06",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2380290735",
+      "name": "Могила К. У. Черненко",
+      "originalTextId": "2fe7a3cf-8d65-4a80-b9af-8b15ec40316f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2380290741",
+      "name": "Могила М. И. Калинина",
+      "originalTextId": "b7c2d11a-8a26-4fe1-817e-a00f29d4ca5f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2380290743",
+      "name": "Могила Ф. Э. Дзержинского",
+      "originalTextId": "87464146-178b-46eb-a7f6-00a1af79add7",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7151077",
+      "name": "Морозовский сад",
+      "originalTextId": "22d6fd4b-51e9-4d62-8045-9f11ff007c53",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9866186555",
+      "name": "Московская гимназия им. И. и А. Медведниковых",
+      "originalTextId": "78ef3842-7379-4253-9c8e-966eaa507f49",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:45768173",
+      "name": "Московская хоральная синагога",
+      "originalTextId": "223feb2c-366d-49bb-b1ac-2fc6ef8dcc98",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch11/changes.json"
+    },
+    {
+      "placeId": "osm:node:2587146329",
+      "name": "Московский дом Ахматовой",
+      "originalTextId": "d92ad585-b2a4-4cfc-82de-dd73994fca31",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:2669510",
+      "name": "Московский дом художника",
+      "originalTextId": "5500a691-021b-486a-9abc-35143324884a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12803628465",
+      "name": "Московский музей Рахманинова",
+      "originalTextId": "fd77b815-1e4a-40dc-89c5-1dae153e6481",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:418691",
+      "name": "Московский почтамт",
+      "originalTextId": "0ad6f81e-b449-447a-b115-e4e2839110e1",
+      "hadPublishedVersionAtAudit": true,
+      "status": "reviewed_no_change",
+      "review": "content/garden-ring-intros-2026-10-03/reviewed-existing.json"
+    },
+    {
+      "placeId": "osm:way:52583222",
+      "name": "Московский театр юного зрителя",
+      "originalTextId": "3cc9b3e2-b6b1-4678-bdba-b632aec4cd30",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch11/changes.json"
+    },
+    {
+      "placeId": "osm:relation:2669481",
+      "name": "Московский художественный театр им. А. П. Чехова",
+      "originalTextId": "6a96b9e6-7f84-4390-9adc-571fb95c1d01",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:node:6061084594",
+      "name": "Музей археологии Москвы",
+      "originalTextId": "6151b1ce-91e0-4d2b-bb2a-edcded66342b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:164210810",
+      "name": "Музей В.А. Тропинина и московских художников его времени",
+      "originalTextId": "ba0cc1b6-5f97-4409-a446-9964fc25e7b3",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch10/changes.json"
+    },
+    {
+      "placeId": "osm:node:3500887936",
+      "name": "Музей Императорского православного палестинского общества",
+      "originalTextId": "30f6607b-2b49-44f3-9197-9c7d755a7089",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2613597034",
+      "name": "Музей искусства народов Востока",
+      "originalTextId": "a75fabaa-1122-42e8-b6d8-2e817b7bdb6b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch8/changes.json"
+    },
+    {
+      "placeId": "osm:node:6977883849",
+      "name": "Музей истории телесных наказаний",
+      "originalTextId": "aff6de86-4d4f-40bd-b031-d12fae5c4334",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:3361538621",
+      "name": "Музей М. А. Булгакова",
+      "originalTextId": "92b9a564-e8b1-4cc6-a3f6-084acea0a3d8",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:node:5581175521",
+      "name": "Музей международного нумизматического клуба",
+      "originalTextId": "b5e986c8-0c67-440c-b7de-9ec175558195",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7810650304",
+      "name": "Музей мертвых кукол",
+      "originalTextId": "55c38420-261c-42d6-99c1-bc343acd2a06",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:relation:5371132",
+      "name": "Музей Н. В. Гоголя",
+      "originalTextId": "d66392e6-ac30-4369-9e70-b11a36465882",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch3/changes.json"
+    },
+    {
+      "placeId": "osm:node:9610774317",
+      "name": "Музей Павла и Сергея Третьяковых",
+      "originalTextId": "1b9cf9f7-0832-4611-8ec3-ef0eaadb43b9",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11809152313",
+      "name": "Музей ПАО \"Лукойл\"",
+      "originalTextId": "45a6a608-7e1e-456a-8263-00e0f617fada",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:36358910",
+      "name": "Музей русского лубка и наивного искусства",
+      "originalTextId": "81eeff8f-a07f-413c-94e2-7a4410b4602a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:151077489",
+      "name": "Музей русской иконы",
+      "originalTextId": "646d1ec0-201c-4076-8b3a-2d0fd8da60e4",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:1161887242",
+      "name": "Музей С. С. Прокофьева",
+      "originalTextId": "60e220e4-630a-4a30-a444-b40c4f3ba57a",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7887532120",
+      "name": "Музей советских игровых автоматов",
+      "originalTextId": "e3c5653d-b72d-4fd4-954f-4cede367d53e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch10/changes.json"
+    },
+    {
+      "placeId": "osm:node:3206046372",
+      "name": "Музей уникальных кукол",
+      "originalTextId": "d30ddb5a-41cb-4062-9073-f9c1a9724507",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:1733057309",
+      "name": "Музей холодной войны (экспозиционный комплекс Бункер-42)",
+      "originalTextId": "3340b387-1e5a-4eda-b139-eeafefcfbcd1",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:3794298653",
+      "name": "Музей шахмат Российской шахматной федерации",
+      "originalTextId": "54b24a3f-9aeb-424b-9eb4-e80b497c3443",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch9/changes.json"
+    },
+    {
+      "placeId": "osm:node:6008487169",
+      "name": "Музей экслибриса и миниатюрной книги",
+      "originalTextId": "d2a6f34f-b7f7-4f20-b42c-358a822973d9",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5181346005",
+      "name": "Музей-квартира А. Б. Гольденвейзера",
+      "originalTextId": "c373e892-4d2a-421c-b5db-4e0b8d7a5ec9",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch8/changes.json"
+    },
+    {
+      "placeId": "osm:way:47296416",
+      "name": "Музей-квартира А. М. Горького",
+      "originalTextId": "7b036479-ce53-42e4-afac-4ff75771dcfd",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:703628600",
+      "name": "Музей-квартира А. С. Пушкина",
+      "originalTextId": "b4a091c8-a69f-47da-99ab-25efcf9cd5bb",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch5/changes.json"
+    },
+    {
+      "placeId": "osm:node:3502941745",
+      "name": "Музей-квартира А.М. Васнецова",
+      "originalTextId": "1b0dea6b-fd31-43c7-8a34-21eaf9155ba9",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch8/changes.json"
+    },
+    {
+      "placeId": "osm:node:5332088685",
+      "name": "Музей-квартира актерской семьи М. В., А. А. Мироновых — А. С. Менакера",
+      "originalTextId": "0670c46c-982f-463e-86e2-675b5430cfe3",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2590877091",
+      "name": "Музей-квартира В. Э. Мейерхольда",
+      "originalTextId": "edff5f19-88e4-4af8-b820-6e3fd59eff93",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:node:3500852153",
+      "name": "Музей-квартира Г. С. Улановой",
+      "originalTextId": "d5798c88-5787-4de7-bacf-3b88281463ae",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch9/changes.json"
+    },
+    {
+      "placeId": "osm:node:5181397887",
+      "name": "Музей-квартира Н.С. Голованова",
+      "originalTextId": "fd4c439c-96fa-468d-8739-e7e7336863ab",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch8/changes.json"
+    },
+    {
+      "placeId": "osm:way:47513274",
+      "name": "Музей-мастерская А. С. Голубкиной",
+      "originalTextId": "db8f1951-fe92-48aa-90b0-c68f522f6205",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch10/changes.json"
+    },
+    {
+      "placeId": "osm:node:5538400321",
+      "name": "Музей-мастерская Людмилы Гурченко",
+      "originalTextId": "23ff6a89-d0b6-4c00-9147-af03f2de3533",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7750047",
+      "name": "Музейный парк",
+      "originalTextId": "6bb6e1de-0529-46a5-a1f2-4355182c7813",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:456961",
+      "name": "Музыкальный театр им. Станиславского и Немировича-Данченко",
+      "originalTextId": "8b1dd3c4-a24e-404b-a65e-57dbdbcb15b9",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7903427569",
+      "name": "Н. А. Островскому",
+      "originalTextId": "a05df7a9-6bbe-42fd-802c-a8c9223631af",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:489814793",
+      "name": "Н. Г. Чернышевскому",
+      "originalTextId": "d1eebdf6-2f67-41f8-a7fe-cb5f1b9038f7",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7095783553",
+      "name": "Н. К. Крупской",
+      "originalTextId": "1600d814-a77a-4acc-a6d4-3fa0551fd5d0",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:3918934609",
+      "name": "Н. Н. Озерову",
+      "originalTextId": "ea0a64c5-17a9-4484-9551-7574a609f1ef",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5773235115",
+      "name": "Н. П. Огарёву",
+      "originalTextId": "4b14057e-8233-443c-9279-9c541681ad1d",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11012889364",
+      "name": "Н. С. Надеждиной",
+      "originalTextId": "a5f66673-c529-4ecf-bb24-f6584513d44b",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5239330160",
+      "name": "Н. С. Хрущёву",
+      "originalTextId": "57f6ef05-3201-46de-9a37-bae52755973b",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5300886473",
+      "name": "Н. П. Брюханову",
+      "originalTextId": "ab08a1fc-eba6-43d1-a274-ca2e31c948ff",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12729053249",
+      "name": "Н.А. Семашко",
+      "originalTextId": "363e33a0-647d-416d-8a76-5addb4a823c3",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13326303469",
+      "name": "Н.Д. Телешову",
+      "originalTextId": "2cb5bed4-3b14-4498-92ef-cd6fb3a373c0",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:relation:225031",
+      "name": "Националь",
+      "originalTextId": "f72ec93e-5618-4d3c-b413-0b4183c8cb64",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11741417323",
+      "name": "Нехорошая квартира",
+      "originalTextId": "937c603d-580f-4f9f-94cc-79fd7bbae729",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:1855700832",
+      "name": "Низами Гянджеви",
+      "originalTextId": "4c3f8e1b-2cb2-4bde-a031-2f7dc3e6cf8c",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:31482139",
+      "name": "НИИ нормальной физиологии им. П. К. Анохина",
+      "originalTextId": "f5d23918-20c9-4ada-943b-ed8c8aa10616",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52613447",
+      "name": "НИИ общей реаниматологии им. В. А. Неговского",
+      "originalTextId": "80b9b947-2f03-4ac8-84cd-3b742b646c89",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:3366074",
+      "name": "Никитский бульвар и память о «Соловьином доме»",
+      "originalTextId": "b9ea6efc-77d7-4d50-971c-ded420ba2ac2",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:8675640",
+      "name": "Новый манеж",
+      "originalTextId": "1b290889-ff3e-45ff-bfd6-26aff7db071e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7428358400",
+      "name": "Нормандия — Неман",
+      "originalTextId": "2e6584ae-20b5-4d31-9029-f4c558fb16ad",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:node:13254353233",
+      "name": "О. Э. Мандельштаму",
+      "originalTextId": "6185dcea-5cb0-4a6b-91db-03586a947a06",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13305990964",
+      "name": "О.И. Далю",
+      "originalTextId": "dc8b59f7-bc73-48ee-86a4-6149b4ed0cf0",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:32903277",
+      "name": "Около дома Станиславского",
+      "originalTextId": "d041bf73-ab7a-4f3c-8679-a8fb38b623de",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1360631",
+      "name": "Оружейная башня",
+      "originalTextId": "07d1d5d9-4427-45da-8840-0460b9f59436",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:node:12309870570",
+      "name": "Оружейный подвал",
+      "originalTextId": "e8f5786a-f403-441a-97e9-66c9862a3f51",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:46931798",
+      "name": "Особняк А. К. Ферстер — Михельсона",
+      "originalTextId": "38866c01-05a9-45c8-b263-d7f77c30e7fd",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:5371125",
+      "name": "Особняк Арсения Морозова",
+      "originalTextId": "565da199-eeea-41f0-9477-94812ec137fa",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch11/changes.json"
+    },
+    {
+      "placeId": "osm:relation:1850015",
+      "name": "Особняк Всеволожских",
+      "originalTextId": "b60e08c6-c51c-4413-8d09-afe87264f690",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch13/changes.json"
+    },
+    {
+      "placeId": "osm:way:51049346",
+      "name": "Особняк Зинаиды Морозовой",
+      "originalTextId": "2e8b9769-fe62-4998-9168-195eac28d7f2",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch11/changes.json"
+    },
+    {
+      "placeId": "osm:way:163742857",
+      "name": "Особняк Новиковых",
+      "originalTextId": "265e7287-97bd-4845-9289-0a10cf596b86",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch13/changes.json"
+    },
+    {
+      "placeId": "osm:node:12891738501",
+      "name": "Особняк-Небылица",
+      "originalTextId": "1aaeff21-bec4-448d-9eb5-e32d0cb75416",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:7442048631",
+      "name": "П. Г. Лисициану",
+      "originalTextId": "8211d8eb-3fd4-4dda-bf86-8d5e1f049a4c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:916076772",
+      "name": "П. Н. Лебедеву",
+      "originalTextId": "eaaf2e16-87f1-446e-88c5-8cb802b3ed3f",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13294163587",
+      "name": "П.А. Кропоткину",
+      "originalTextId": "f8ff8e49-9e71-4ce4-af4a-4cbe84db632b",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13324750787",
+      "name": "П.И. Чайковскому",
+      "originalTextId": "79db6be8-2b68-45ee-b1c7-8838bcaf83d3",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:19077852",
+      "name": "Палаты бояр Романовых",
+      "originalTextId": "40b5114f-6a81-4854-ac1f-ff53edada173",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch12/changes.json"
+    },
+    {
+      "placeId": "osm:way:53854158",
+      "name": "Палаты в Овчинниках",
+      "originalTextId": "2e739d1c-b727-4b86-809c-dc493964eae0",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch12/changes.json"
+    },
+    {
+      "placeId": "osm:way:53016616",
+      "name": "Палаты Голицыных",
+      "originalTextId": "9ecb7b89-54d6-4058-89f5-5e98a3439273",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch12/changes.json"
+    },
+    {
+      "placeId": "osm:relation:9037250",
+      "name": "Палаты Мазепы",
+      "originalTextId": "90150ecf-3856-4f23-ad3c-5cfb485887f2",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch13/changes.json"
+    },
+    {
+      "placeId": "osm:relation:1555621",
+      "name": "парк «Зарядье»",
+      "originalTextId": "b6b1210a-c84e-4278-9f86-dc7fce9c4f07",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13258938689",
+      "name": "Патриарху Иову",
+      "originalTextId": "8b7312ed-099a-4c36-b6d9-1df382072332",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1360660",
+      "name": "Петровская башня",
+      "originalTextId": "ecca892a-5550-454f-b9b3-e41c9af66b1d",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4948141391",
+      "name": "Площадь Арбатские Ворота",
+      "originalTextId": "09e39804-222d-45b4-bb5c-25595807a59b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52132603",
+      "name": "Посольство Азербайджана",
+      "originalTextId": "6b89864e-e539-4c6c-9642-59a8e544eafc",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:47296531",
+      "name": "Посольство Афганистана",
+      "originalTextId": "d076d58a-2098-427f-8e6f-d14a0ac36bf7",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:32783696",
+      "name": "Посольство Бельгии",
+      "originalTextId": "080f0a56-19ff-46e6-a9b6-1ee6b348b764",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:249468659",
+      "name": "Посольство Бенина",
+      "originalTextId": "8c202671-7653-4631-ac9a-7e3e8474cd8d",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7103022",
+      "name": "Посольство Ганы",
+      "originalTextId": "08fd2805-1b56-4ff2-9272-3aa67caea9e0",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:104201990",
+      "name": "Посольство Гвинеи",
+      "originalTextId": "58ad7203-671c-4953-94bd-b36311f7508e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:47513393",
+      "name": "посольство Италии",
+      "originalTextId": "7fc9e624-9c5d-4f4d-b7ed-c18d65559a52",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:300340509",
+      "name": "Посольство Кубы",
+      "originalTextId": "606902f7-d125-4fe0-816d-e7cb6dbddd38",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52434941",
+      "name": "Посольство Ливана. Резиденция",
+      "originalTextId": "4a4a94ba-c65a-4db9-b1f0-9ebc5d97cd62",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:160317025",
+      "name": "Посольство Литвы",
+      "originalTextId": "fcb22987-288d-42f8-b498-ce7a417a77dd",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:32783700",
+      "name": "Посольство Монголии",
+      "originalTextId": "0be85f8f-a8a6-42ab-a099-7f68a58ef6ee",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:18607617",
+      "name": "Посольство Мьянмы",
+      "originalTextId": "51cd0f55-08a6-43d5-80e0-a9f32242b593",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52583204",
+      "name": "Посольство Нигерии",
+      "originalTextId": "b2f3689f-1322-46d1-88f7-2c0a0d82e269",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:47294368",
+      "name": "Посольство Норвегии",
+      "originalTextId": "49d79691-68e1-4008-a2cc-97685cecdc8e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:45818762",
+      "name": "Посольство Сирии",
+      "originalTextId": "9ddaf1a3-fe59-4801-9c14-bc545d02d24e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52106120",
+      "name": "Посольство Таджикистана",
+      "originalTextId": "d4281d99-c53f-4b07-8e63-8cc49789f234",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:30153015",
+      "name": "Посольство Туркменистана",
+      "originalTextId": "5d9c3ad5-f8ea-403b-b793-9b9855116946",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:47360141",
+      "name": "Посольство Филиппин",
+      "originalTextId": "58ba5738-1977-4379-9420-cdf4d7e45b20",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1359337",
+      "name": "Потешный дворец",
+      "originalTextId": "23eeaf53-094a-48bc-b64e-35a53a646ce9",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch3/changes.json"
+    },
+    {
+      "placeId": "osm:relation:9303002",
+      "name": "Правильная палата",
+      "originalTextId": "5f4db1ba-223e-4c82-81f0-143923092a65",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142950215",
+      "name": "Прайд",
+      "originalTextId": "23d5142b-c039-4d42-9a98-eb13e0c9d31f",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12233205875",
+      "name": "Пречистенские вечерние классы для рабочих",
+      "originalTextId": "fa429479-0d34-48c3-8def-2e54a30221b3",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11037404188",
+      "name": "Пушкин и Мицкевич",
+      "originalTextId": "8fb9676c-db77-4aeb-b9d6-aed13ae47910",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11012889362",
+      "name": "Р. Я. Плятту",
+      "originalTextId": "c3ac70ab-8ccd-4ce0-88a4-40c63e9f92e8",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:13626693",
+      "name": "Росатом",
+      "originalTextId": "f0278ef4-6737-4ff1-8a62-eb51e9d0f82d",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:15671457",
+      "name": "Российская Академия живописи, ваяния и зодчества Ильи Глазунова",
+      "originalTextId": "c924aa8e-b924-4e11-a127-79e704f63883",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:456962",
+      "name": "Российский государственный архив социально-политической истории",
+      "originalTextId": "a7fb974d-340b-47ee-a72f-79cc7c3d9d5f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:53830818",
+      "name": "Российский музей леса",
+      "originalTextId": "3b8e9d7b-8f45-4537-9dff-1913ef591514",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8664353717",
+      "name": "Российский музей медицины",
+      "originalTextId": "df421ad2-680a-4bf6-988f-c6cf57550a91",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:19558831",
+      "name": "Российский федеральный центр судебной экспертизы",
+      "originalTextId": "87311a9e-afb7-4e9b-8e7d-e40c25e6a08a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:8016233",
+      "name": "Росстат",
+      "originalTextId": "f03d1b51-c682-42b4-ab8e-ff461028229e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:11780094310",
+      "name": "Рудно-петрографический музей",
+      "originalTextId": "4264b80b-2d67-4c3c-b906-de55fff0a436",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4143539655",
+      "name": "Русское Поле",
+      "originalTextId": "1cd56e8c-257d-468e-bd39-5297f4b4b520",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8898082923",
+      "name": "С. М. Соловьёву и И. А. Гончарову",
+      "originalTextId": "02443509-7ee5-46bf-9312-e90222bf6012",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:12236419787",
+      "name": "С. И. Мицкевичу",
+      "originalTextId": "cc1093fd-ab21-4526-b697-2f20b5832810",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6449794071",
+      "name": "С.А. Оруджеву",
+      "originalTextId": "ac3a2d34-17f1-4dcc-a8b0-991491a3692c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:6449794069",
+      "name": "С.К. Тимошенко",
+      "originalTextId": "2493cd61-bb8b-4489-97b0-8a82d7df949f",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:6210567",
+      "name": "Савой",
+      "originalTextId": "441e366e-7a18-4f12-b2d1-81ee778d632b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:471223526",
+      "name": "Садовый павильон с садом",
+      "originalTextId": "d31a0397-bac4-4c04-95a6-841ec84113ef",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142941912",
+      "name": "Самурай",
+      "originalTextId": "71dfedad-f84b-4805-8532-8f0d64edefd4",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:6812723",
+      "name": "Сандуновские бани",
+      "originalTextId": "569cd153-7e7a-4951-be9e-f096c5a28254",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7839823",
+      "name": "Сквер Аргентинской Республики",
+      "originalTextId": "457ba28b-2fc9-4d46-95e6-e29f22fdf288",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:211651325",
+      "name": "Сквер Булгакова",
+      "originalTextId": "f5d39d5a-24d6-4ce6-9758-1a363827c863",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:758586236",
+      "name": "Сквер Генерала армии А.В.Хрулёва",
+      "originalTextId": "42f325f2-5223-4e34-8980-54d4183b28ef",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:174929171",
+      "name": "сквер им. Муслима Магомаева",
+      "originalTextId": "005aab5f-b6de-44e3-a43a-348041241594",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:307795782",
+      "name": "Сквер Киселева",
+      "originalTextId": "a5c6db49-1d04-460e-b1b9-3770a13f7d83",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:9106236033",
+      "name": "Сквер Майи Плисецкой",
+      "originalTextId": "32992a2c-bd4e-47e2-b4de-1cd2860d8b36",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7520849",
+      "name": "Сквер Мандельштама",
+      "originalTextId": "0dac2ef4-156f-468e-a421-49b3e13ce95c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:205734958",
+      "name": "сквер Мстислава Ростроповича",
+      "originalTextId": "f4fed30b-54b9-49c3-a34c-95b9b0785fcc",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7672227",
+      "name": "сквер Ополченцев Замоскворечья",
+      "originalTextId": "e287829f-ad8d-424d-ae6b-79a108018c79",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:251330231",
+      "name": "сквер Строителей Москвы",
+      "originalTextId": "4713641b-e95e-4e15-97de-13ca5e5cc651",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:289507858",
+      "name": "Сквер Тургенева",
+      "originalTextId": "6f0b31a1-69d2-4122-932e-53d7af720851",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142950216",
+      "name": "Слоник",
+      "originalTextId": "bd5cb698-0277-4da2-9f90-bdc8f9da1bda",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142981447",
+      "name": "Смерть отца",
+      "originalTextId": "bfab8985-7042-4b99-9ea8-3584a3916e2a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:relation:3030568",
+      "name": "Собор Василия Блаженного",
+      "originalTextId": "c52cfee9-eb0f-416c-aa16-4a7fa0c2fad6",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52613460",
+      "name": "Собор Петра, митрополита Московского",
+      "originalTextId": "c0dc920b-7177-4792-a67c-1f17f615c69f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:84690464",
+      "name": "Собор Спаса Нерукотворного Образа в Заиконоспасском монастыре",
+      "originalTextId": "5ff7d47a-c24f-436f-9c03-8840a840e877",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5906743571",
+      "name": "Собрание",
+      "originalTextId": "b950db60-d27f-45b3-867f-aac68bcef875",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:42503311",
+      "name": "Современник",
+      "originalTextId": "c88e0dea-3503-491c-a003-2285ec27a085",
+      "hadPublishedVersionAtAudit": true,
+      "status": "reviewed_no_change",
+      "review": "content/garden-ring-intros-2026-10-03/reviewed-existing.json"
+    },
+    {
+      "placeId": "osm:way:49578741",
+      "name": "Сретенская духовная семинария",
+      "originalTextId": "78ecf0bc-7f69-411c-823f-e02fcd6075d2",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:2624695929",
+      "name": "Стена Цоя",
+      "originalTextId": "e2604aa3-5266-490f-9e68-8c3391f75235",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:9241423",
+      "name": "Стоматологическая поликлиника №53",
+      "originalTextId": "3aa246fa-1cb0-483f-9594-bc81f077a59b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4534758656",
+      "name": "Студентам, преподавателям, сотрудникам архитектурного института, павшим в Великой Отечественной войне",
+      "originalTextId": "42a77279-68fd-4d15-919d-be0f4c691fb7",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:14096306201",
+      "name": "Суворов в Альпах",
+      "originalTextId": "4fc67530-d66e-4bbb-8a28-aa8a8120821f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:relation:20397973",
+      "name": "ТВ Центр",
+      "originalTextId": "e3c14e6f-9d58-4788-a96f-dc7d251cdff3",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:224225490",
+      "name": "Театр им. Евгения Вахтангова",
+      "originalTextId": "29fff717-c1da-4c7c-b615-ffc61955bd1f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:16682982",
+      "name": "Театр имени Моссовета",
+      "originalTextId": "62138a22-8b47-4a97-950d-1f0da341ffcd",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:9341259",
+      "name": "Театр на Бронной",
+      "originalTextId": "c1a40e59-88ae-43b4-9f69-af682618d719",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:13190696077",
+      "name": "Театр Скатуве",
+      "originalTextId": "1b94ec24-6988-4167-8f65-6dea598c68b4",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4139540604",
+      "name": "Театральная галерея на Малой Ордынке",
+      "originalTextId": "7c343085-a91f-4c90-8aa6-510314f3564f",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:6233742",
+      "name": "Торговый комплекс «Охотный ряд»",
+      "originalTextId": "49085b1a-38db-4037-ac79-924a5972cbcd",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1907261",
+      "name": "Третьяковская галерея",
+      "originalTextId": "d780807b-e5b1-4594-a348-cc9692f2eea2",
+      "hadPublishedVersionAtAudit": true,
+      "status": "reviewed_no_change",
+      "review": "content/garden-ring-intros-2026-10-03/reviewed-existing.json"
+    },
+    {
+      "placeId": "osm:way:642091604",
+      "name": "Третьяковская галерея на Кадашёвской набережной",
+      "originalTextId": "9b2fe2e6-718c-4bf8-81d6-7127557e520b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1360627",
+      "name": "Троицкая башня",
+      "originalTextId": "a705f083-2070-4b56-99ce-1cfdba371d41",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch3/changes.json"
+    },
+    {
+      "placeId": "osm:relation:1360653",
+      "name": "Угловая Арсенальная башня",
+      "originalTextId": "d74439b5-d699-4e38-9544-43f001b9e3f1",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:48172547",
+      "name": "Университет Российской академии образования",
+      "originalTextId": "10db1853-5198-4a04-b529-ccf6f91008f9",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:47853856",
+      "name": "Усадьба Апраксиных-Бутурлиных",
+      "originalTextId": "4666b834-1021-405d-81a7-5edb554723fe",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch15/changes.json"
+    },
+    {
+      "placeId": "osm:way:131491845",
+      "name": "Усадьба Васильчиковых",
+      "originalTextId": "6465eb77-6ea1-4a40-a3a6-c9e224186f35",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch14/changes.json"
+    },
+    {
+      "placeId": "osm:way:32693719",
+      "name": "Усадьба Вяземских-Долгоруковых",
+      "originalTextId": "af090780-9748-4d40-97d3-8b1bc14af49e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch15/changes.json"
+    },
+    {
+      "placeId": "osm:way:412738928",
+      "name": "Усадьба Давыдова",
+      "originalTextId": "82ce4662-1c90-4ffb-8d67-b4e8e83263f5",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:2156225",
+      "name": "Усадьба Замятина-Третьякова",
+      "originalTextId": "c6a0d312-9c18-4451-b2be-fbacef52010f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch15/changes.json"
+    },
+    {
+      "placeId": "osm:way:32693356",
+      "name": "Усадьба князей Голицыных",
+      "originalTextId": "02928437-64f2-47cc-b759-4dd97d2c05f8",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch15/changes.json"
+    },
+    {
+      "placeId": "osm:way:32693359",
+      "name": "Усадьба Лопухиных",
+      "originalTextId": "595e3744-5b60-4dcd-9f73-6eeb5f912632",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch15/changes.json"
+    },
+    {
+      "placeId": "osm:way:104202024",
+      "name": "Усадьба Самсонова",
+      "originalTextId": "4fa9bb85-1582-4f23-9aa5-bea1cc5e31f5",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch15/changes.json"
+    },
+    {
+      "placeId": "osm:relation:9464684",
+      "name": "Усадьба Хрущёвых-Селезнёвых",
+      "originalTextId": "c116abbf-da96-44bd-8f02-82dfb1abe899",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch14/changes.json"
+    },
+    {
+      "placeId": "osm:relation:2156516",
+      "name": "Усадьба Цурикова",
+      "originalTextId": "55ac37b3-de5d-4fcb-a8c1-953555b054a2",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch15/changes.json"
+    },
+    {
+      "placeId": "osm:relation:5371134",
+      "name": "Усадьба Шаховского-Краузе-Осиповых",
+      "originalTextId": "097b2dfd-123d-4d7e-831f-d2e1034db886",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch14/changes.json"
+    },
+    {
+      "placeId": "osm:node:6617755692",
+      "name": "Ф. В. Токареву",
+      "originalTextId": "d0135fdb-a2be-4bbf-937e-b06421cb61d9",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:8898082930",
+      "name": "Ф. Платтену",
+      "originalTextId": "458594d1-935f-4142-85b9-c2a59b81e423",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142854541",
+      "name": "Ф. Э. Дзержинскому",
+      "originalTextId": "698e65ee-6a9f-410c-80f2-913476b9963e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:15344966",
+      "name": "Факультет журналистики МГУ",
+      "originalTextId": "bb66d57a-be9e-4258-8ed8-91926a427241",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:31482156",
+      "name": "Факультет психологии МГУ",
+      "originalTextId": "bd4f9340-5754-4f89-84e7-41efb593a59f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:way:52444324",
+      "name": "Факультет психологии МГУ — лабораторный корпус",
+      "originalTextId": "fbd6473c-4cf6-46b1-9c07-1329ea85f7c4",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:9241422",
+      "name": "Федеральная служба государственной регистрации, кадастра и картографии",
+      "originalTextId": "f34eaacf-6d1b-4d52-96aa-4e174bc56c50",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52673166",
+      "name": "Федеральное агентство по рыболовству",
+      "originalTextId": "4ca3e280-5090-4d69-bb51-5cade7057b78",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:225157172",
+      "name": "ФЕСКО Транспортная группа",
+      "originalTextId": "21caa7d1-b21f-49dd-bdfb-45e5d3b6faad",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:79980545",
+      "name": "Филиал Государственного музея Л.Н. Толстого",
+      "originalTextId": "722b27c2-7f3c-4480-a7bc-2b0745c0ce6f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142945438",
+      "name": "Философский камень",
+      "originalTextId": "805b3b0f-bd7d-413e-8634-880138f6437a",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:916076746",
+      "name": "Фридриху Энгельсу",
+      "originalTextId": "cc22ef9b-1a2a-4be5-990e-b2e966eb1dba",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:32045644",
+      "name": "Храм Большое Вознесение у Никитских ворот",
+      "originalTextId": "64c5f2dc-b246-4d20-8a9a-70820b303544",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:19079948",
+      "name": "Храм Варвары Великомученицы на Варварке",
+      "originalTextId": "86681d67-a368-4110-ac70-4157395f7b91",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:151077511",
+      "name": "Храм Великомученика Никиты",
+      "originalTextId": "ac92517b-3124-4b44-aa5f-40a1e3a74e39",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:8463582",
+      "name": "Храм Вознесения Господня на Никитской",
+      "originalTextId": "0267b328-ccee-4944-af6d-21e76e4a9bf3",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7259659",
+      "name": "Храм Воскресения Словущего на Успенском Вражке",
+      "originalTextId": "9a0533a1-9d0b-47c1-a646-fa2299c9dec7",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7483246",
+      "name": "Храм Иверской иконы Божьей Матери на Всполье",
+      "originalTextId": "38f4c96b-5b68-4a62-ac43-28261f7de338",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:252370791",
+      "name": "Храм иконы Божией Матери «Знамение»",
+      "originalTextId": "35e6e45a-f2a1-4716-97cd-7615421047ad",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:19083613",
+      "name": "Храм Максима Блаженного на Варварке",
+      "originalTextId": "d5844755-c2cd-49de-8e9d-e562c814cf2f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:8443298",
+      "name": "Храм Михаила Архангела",
+      "originalTextId": "8385337f-9aad-4419-afcc-13703173ae29",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:15344965",
+      "name": "Храм мученицы Татианы при МГУ",
+      "originalTextId": "f248002e-3458-4089-acb7-4155eafe44c3",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:53548437",
+      "name": "Храм Николая Чудотворца в Толмачах",
+      "originalTextId": "73ae17c9-4ffe-4d41-b706-d1621275a6a2",
+      "hadPublishedVersionAtAudit": true,
+      "status": "reviewed_no_change",
+      "review": "content/garden-ring-intros-2026-10-03/reviewed-existing.json"
+    },
+    {
+      "placeId": "osm:way:484755695",
+      "name": "Храм Новомучеников и исповедников Российских на Лубянке",
+      "originalTextId": "7498f879-9f0f-4bf8-b109-7888d370c66d",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7725971",
+      "name": "Храм святителей Афанасия и Кирилла на Сивцевом Вражке",
+      "originalTextId": "5794fb19-77fd-498a-8483-425a85cfd50b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:110894021",
+      "name": "Храм Святителя Николая в Кузнецкой Слободе",
+      "originalTextId": "7c69805a-10fd-4aa6-9289-1cd66f16bd9a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:165740280",
+      "name": "Храм Святителя Николая в Старом Ваганькове",
+      "originalTextId": "7dfa9f50-5d57-45e1-a840-0ec6008d4e0f",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:8763486",
+      "name": "Храм Святого Апостола Иакова Зеведеева в Казенной Слободе",
+      "originalTextId": "2bc16eaa-1aea-489e-9f06-94cb4f0d73c5",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7719252",
+      "name": "Храм Святого Людовика Французского",
+      "originalTextId": "051dbb67-982a-4a91-b376-c59f4b38de55",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch7/changes.json"
+    },
+    {
+      "placeId": "osm:relation:8043044",
+      "name": "Храм Святой Живоначальной Троицы в Хохлах",
+      "originalTextId": "ad58055a-bb65-4ce5-869a-0869ddccf542",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch7/changes.json"
+    },
+    {
+      "placeId": "osm:relation:2424377",
+      "name": "Храм Священномученика Антипы на Колымажном дворе",
+      "originalTextId": "512a36ac-e52a-413e-808e-07371e32fd61",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:9919623",
+      "name": "Храм священномученика Климента папы Римского",
+      "originalTextId": "435341eb-e834-42dc-affa-ef0441387835",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:way:534370303",
+      "name": "Храм Спаса Преображения",
+      "originalTextId": "ead06249-e798-485a-84e2-a6f160a49b5b",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:10317488",
+      "name": "Храм Троицы Живоначальной",
+      "originalTextId": "1059115e-c1a4-4811-950c-3aee8aacff01",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7402492",
+      "name": "Храм Усекновения главы Иоанна Предтечи под Бором",
+      "originalTextId": "9787a75b-0f12-4244-8662-e6e9471b3072",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7968458",
+      "name": "Храм Успения Пресвятой Богородицы",
+      "originalTextId": "dc6d4dbd-b650-439b-8aa5-8f0fdd465995",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:9688342",
+      "name": "Храм Успения Пресвятой Богородицы в Печатниках",
+      "originalTextId": "aee6491f-7c40-4c2f-8eea-17b38ce7558a",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:10165684",
+      "name": "Храм Успения Пресвятой Богородицы на Успенском вражке",
+      "originalTextId": "d39ccbaf-5940-4752-88b3-3b781a3385be",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7314898",
+      "name": "Храм Христа Спасителя",
+      "originalTextId": "8c65a06f-3eb4-42e6-8c82-173e41fac73e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:35814561",
+      "name": "Художественный",
+      "originalTextId": "d4216538-5f10-43b6-a113-43ea0afad9b8",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:way:129306472",
+      "name": "Центр детского творчества \"Замоскворечье\"",
+      "originalTextId": "dda393d9-3086-4159-b79e-54da21cd428d",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:317918942",
+      "name": "Центральная избирательная комиссия Российской Федерации",
+      "originalTextId": "07cfa08e-98ca-4d64-ae82-017822863131",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:31497220",
+      "name": "Центральная тяговая подстанция Т-3 Московского метрополитена",
+      "originalTextId": "c2bebe5a-da28-4161-aec1-c84168c6e889",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch2/changes.json"
+    },
+    {
+      "placeId": "osm:way:46966391",
+      "name": "Центральный дом журналиста",
+      "originalTextId": "e4554eb9-c728-4552-a672-e0cfe6d54bea",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-03/drafts.json"
+    },
+    {
+      "placeId": "osm:way:47031131",
+      "name": "Центральный дом литераторов",
+      "originalTextId": "c8e6e2e1-d1ee-4cff-94be-97fd094d3cce",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch5/changes.json"
+    },
+    {
+      "placeId": "osm:way:129212972",
+      "name": "Центральный дом учёных",
+      "originalTextId": "4a3ef870-cefe-4285-9597-a8e075582450",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:11661228",
+      "name": "Церковь Григория Неокесарийского в Дербицах",
+      "originalTextId": "db075dcf-058d-490e-9c9c-9660c22d5b5e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:84632785",
+      "name": "Церковь Ильи Пророка на Новгородском подворье",
+      "originalTextId": "0f4806cd-9f85-4d76-aa97-4f8850404d04",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:1359281",
+      "name": "Церковь Иоанна Лествичника",
+      "originalTextId": "417d40dc-86a6-4202-af30-8302ee2c042e",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52504840",
+      "name": "Церковь Космы и Дамиана на Маросейке",
+      "originalTextId": "81b85d15-e06e-493d-a09b-0b629694b6ca",
+      "hadPublishedVersionAtAudit": true,
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-04-batch7/changes.json"
+    },
+    {
+      "placeId": "osm:relation:8453866",
+      "name": "Церковь Николая Чудотворца в Пыжах",
+      "originalTextId": "c3a03bb5-83a7-43b3-8481-1bbdc5e215b7",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:136577481",
+      "name": "Церковь Покрова Пресвятой Богородицы",
+      "originalTextId": "fbd9c36b-3283-42ed-9815-9879486d9b48",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:7688144",
+      "name": "Церковь Преображения Господня, что на Песках",
+      "originalTextId": "aebe4b23-55e6-4be9-97ae-c6cb6076f125",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:12198830",
+      "name": "Церковь Рождества Богоматери",
+      "originalTextId": "903759c9-b6db-44f0-8bcf-6ba08251c173",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:way:52467191",
+      "name": "Церковь Троицы в Никитниках",
+      "originalTextId": "b6e48a46-79c2-4ab8-bb28-31e9faebd365",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:relation:9539448",
+      "name": "Часовня Бориса и Глеба",
+      "originalTextId": "a6a44407-689c-4bdd-92cf-6135c191b1b4",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:5244167433",
+      "name": "Э.Г. Гилельсу",
+      "originalTextId": "a4bb896a-eec3-4357-bb50-ca9710623a8c",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:253124200",
+      "name": "Юрию Долгорукому",
+      "originalTextId": "b83e82bd-dcb1-4524-886e-7de95b718266",
+      "hadPublishedVersionAtAudit": true,
+      "status": "pending"
+    },
+    {
+      "placeId": "osm:node:4142936190",
+      "name": "Яблоко",
+      "originalTextId": "0355d0ef-c255-4d5b-bb5e-b709ecfba1b4",
+      "hadPublishedVersionAtAudit": false,
+      "status": "pending"
+    }
+  ]
+}
