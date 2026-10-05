@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T20:09:53.517347+00:00",
+  "updatedAt": "2026-10-05T20:17:43.464697+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 360,
+    "publishedWithRevoice": 368,
     "reviewedNoChange": 4,
-    "pending": 36
+    "pending": 28
   },
   "entries": [
     {
@@ -2454,14 +2454,16 @@
       "name": "Сквер Тургенева",
       "originalTextId": "6f0b31a1-69d2-4122-932e-53d7af720851",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch52/changes.json"
     },
     {
       "placeId": "osm:node:4142950216",
       "name": "Слоник",
       "originalTextId": "bd5cb698-0277-4da2-9f90-bdc8f9da1bda",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch52/changes.json"
     },
     {
       "placeId": "osm:node:4142981447",
@@ -2484,7 +2486,8 @@
       "name": "Собор Петра, митрополита Московского",
       "originalTextId": "c0dc920b-7177-4792-a67c-1f17f615c69f",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch52/changes.json"
     },
     {
       "placeId": "osm:way:84690464",
@@ -2499,7 +2502,8 @@
       "name": "Собрание",
       "originalTextId": "b950db60-d27f-45b3-867f-aac68bcef875",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch52/changes.json"
     },
     {
       "placeId": "osm:way:42503311",
@@ -2514,28 +2518,32 @@
       "name": "Сретенская духовная семинария",
       "originalTextId": "78ecf0bc-7f69-411c-823f-e02fcd6075d2",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch52/changes.json"
     },
     {
       "placeId": "osm:node:2624695929",
       "name": "Стена Цоя",
       "originalTextId": "e2604aa3-5266-490f-9e68-8c3391f75235",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch52/changes.json"
     },
     {
       "placeId": "osm:relation:9241423",
       "name": "Стоматологическая поликлиника №53",
       "originalTextId": "3aa246fa-1cb0-483f-9594-bc81f077a59b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch52/changes.json"
     },
     {
       "placeId": "osm:node:4534758656",
       "name": "Студентам, преподавателям, сотрудникам архитектурного института, павшим в Великой Отечественной войне",
       "originalTextId": "42a77279-68fd-4d15-919d-be0f4c691fb7",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch52/changes.json"
     },
     {
       "placeId": "osm:node:14096306201",

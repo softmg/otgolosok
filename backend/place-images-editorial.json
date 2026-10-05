@@ -3248,5 +3248,57 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:289507858": {
+    "thumbnail": "/images/places/way-289507858-04e906368dac.jpg",
+    "src": "/images/places/way-289507858-2bb2a19d34b1.jpg",
+    "width": 960,
+    "height": 636,
+    "alt": "Дом-музей Тургенева на Остоженке, 37/7. Контекстный снимок 2026 года, не фотография сквера или памятника.",
+    "author": "Никонико962",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%94%D0%BE%D0%BC_%D0%98.%D0%A1._%D0%A2%D1%83%D1%80%D0%B3%D0%B5%D0%BD%D0%B5%D0%B2%D0%B0_%D0%9E%D1%81%D1%82%D0%BE%D0%B6%D0%B5%D0%BD%D0%BA%D0%B0_37_2026_02.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:52613460": {
+    "thumbnail": "/images/places/way-52613460-9469343f290e.jpg",
+    "src": "/images/places/way-52613460-5ec7fa01563b.jpg",
+    "width": 960,
+    "height": 873,
+    "alt": "Собор Петра Митрополита Высоко-Петровского монастыря на переднем плане; позади расположен Боголюбский собор.",
+    "author": "Ludvig14",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:VysokopetrovskyMonastery_StPeter.JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:5906743571": {
+    "thumbnail": "/images/places/node-5906743571-ccba3aac01b6.jpg",
+    "src": "/images/places/node-5906743571-5dedaf0e449b.jpg",
+    "width": 960,
+    "height": 701,
+    "alt": "Солянка у домов 16 и 15 в январе 2014 года. Контекстный вид улицы до открытия музея «Собрание», не фотография экспозиции.",
+    "author": "Retired electrician",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Solyanka_16_and_15,_January_2014_01.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:4534758656": {
+    "thumbnail": "/images/places/node-4534758656-1561a4e2b14b.jpg",
+    "src": "/images/places/node-4534758656-856eefc14707.jpg",
+    "width": 960,
+    "height": 640,
+    "alt": "Фрагмент фасада Московского архитектурного института на Рождественке. Контекстный вид, не фотография мемориала погибшим.",
+    "author": "Andrey Filippov 安德烈 from Moscow, Russia",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Rozhdestvenka_Street,_MARKHI_facade_(27604988148).jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
