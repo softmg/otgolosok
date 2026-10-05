@@ -1922,5 +1922,57 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:1367901767": {
+    "thumbnail": "/images/places/node-1367901767-ab5fe2a69205.jpg",
+    "src": "/images/places/node-1367901767-5e4526be4c3e.jpg",
+    "width": 960,
+    "height": 1504,
+    "alt": "Памятник Габдулле Тукаю в Москве, 5 июля 2019 года, после церемонии возложения цветов.",
+    "author": "Unknown authorUnknown author",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gabdulla_Tukay_monument,_Moscow_(2019-07-05)_27.jpg",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:8440603119": {
+    "thumbnail": "/images/places/node-8440603119-f95b93d6b24d.jpg",
+    "src": "/images/places/node-8440603119-82f7c95910b6.jpg",
+    "width": 960,
+    "height": 720,
+    "alt": "Главный дом усадьбы Е. Н. Горчаковой — Н. А. Богданова в Денежном переулке, 18.",
+    "author": "Valbaro",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A3%D1%81%D0%B0%D0%B4%D1%8C%D0%B1%D0%B0_%D0%93%D0%BE%D1%80%D1%87%D0%B0%D0%BA%D0%BE%D0%B2%D0%BE%D0%B9.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:12729053255": {
+    "thumbnail": "/images/places/node-12729053255-66d373e8f557.jpg",
+    "src": "/images/places/node-12729053255-66eafa5f5e77.jpg",
+    "width": 960,
+    "height": 641,
+    "alt": "Большой Кисловский переулок: дом 5–7 в отдалённой части кадра, дом 13 слева на переднем плане. Общий вид улицы в контексте рассказа о «Последнем адресе»; табличка Грум-Гржимайло не показана.",
+    "author": "Gennady Grachev from Moscow, Russia",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshoy_Kislovsky_Lane_5-7_and_13_(31072765450).jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:12529340641": {
+    "thumbnail": "/images/places/node-12529340641-cee198ade01d.jpg",
+    "src": "/images/places/node-12529340641-5ba7c3703ab2.jpg",
+    "width": 960,
+    "height": 1057,
+    "alt": "Дом в Хлебном переулке, 6, где жил Дмитрий Анучин. Общий вид фасада в июне 2008 года; мемориальная доска в этом кадре не различима.",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Khlebny_6_June_2008_01.JPG",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }

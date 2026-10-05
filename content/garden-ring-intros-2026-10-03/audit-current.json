@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T16:30:05.557150+00:00",
+  "updatedAt": "2026-10-05T16:44:22.585178+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 216,
+    "publishedWithRevoice": 224,
     "reviewedNoChange": 4,
-    "pending": 180
+    "pending": 172
   },
   "entries": [
     {
@@ -446,21 +446,24 @@
       "name": "Выставочный зал фонда Андрея Чеглакова",
       "originalTextId": "7ab9d84c-0b81-4c06-8388-145199bb9c44",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch34/changes.json"
     },
     {
       "placeId": "osm:node:6005863542",
       "name": "Г. В. Чичерину",
       "originalTextId": "edd9190a-7882-47fc-a9ef-99ca9acd5254",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch34/changes.json"
     },
     {
       "placeId": "osm:node:1367901767",
       "name": "Габдулле Тукаю",
       "originalTextId": "6c742ab0-dd89-4c1c-98b2-48c5f5180eea",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch34/changes.json"
     },
     {
       "placeId": "osm:node:11043826183",
@@ -483,14 +486,16 @@
       "name": "Галерея Мамонтовых",
       "originalTextId": "8f9491ea-4f8a-43c6-8a7d-75cdaf5254b5",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch34/changes.json"
     },
     {
       "placeId": "osm:node:5181847692",
       "name": "Галерея На Чистых Прудах",
       "originalTextId": "71283699-873d-41bd-ba00-e4cefe5b6834",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch34/changes.json"
     },
     {
       "placeId": "osm:way:129228259",
@@ -521,7 +526,8 @@
       "name": "Городская усадьба Е. Н. Горчаковой — Н. А. Богданова",
       "originalTextId": "c981bbfa-b708-4b48-96be-e68b8e71755c",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch34/changes.json"
     },
     {
       "placeId": "osm:way:160191365",
@@ -600,14 +606,16 @@
       "name": "Грум-Гржимайло Юрий Владимирович",
       "originalTextId": "5a12d036-9426-47b6-ab73-1cbe30eaa271",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch34/changes.json"
     },
     {
       "placeId": "osm:node:12529340641",
       "name": "Д. Н. Анучину",
       "originalTextId": "779d1f43-85b8-4ef3-a8d3-b8333e8742f2",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch34/changes.json"
     },
     {
       "placeId": "osm:relation:8062635",
