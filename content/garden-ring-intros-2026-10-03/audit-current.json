@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T13:12:25.239790+00:00",
+  "updatedAt": "2026-10-05T13:24:10.358128+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 100,
+    "publishedWithRevoice": 104,
     "reviewedNoChange": 4,
-    "pending": 296
+    "pending": 292
   },
   "entries": [
     {
@@ -14,7 +14,8 @@
       "name": "9-й Московской стрелковой дивизии народного ополчения",
       "originalTextId": "f0417cbc-30a7-4046-8da0-4f0d5920b62d",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch19/changes.json"
     },
     {
       "placeId": "osm:relation:225030",
@@ -177,7 +178,8 @@
       "name": "А3",
       "originalTextId": "41d15417-5ae3-4884-84c9-eeaa90c2aafc",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch19/changes.json"
     },
     {
       "placeId": "osm:node:4142905057",
@@ -282,7 +284,8 @@
       "name": "В память о боях революционных отрядов с белогвардейцами в октябре 1917 года",
       "originalTextId": "0ed10789-f7c7-418b-8b45-f65a8dd8fa8b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch19/changes.json"
     },
     {
       "placeId": "osm:node:9866102348",
@@ -1367,7 +1370,8 @@
       "name": "Музей истории телесных наказаний",
       "originalTextId": "aff6de86-4d4f-40bd-b031-d12fae5c4334",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch19/changes.json"
     },
     {
       "placeId": "osm:node:3361538621",
