@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T12:44:14.607561+00:00",
+  "updatedAt": "2026-10-05T12:58:04.583314+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 86,
+    "publishedWithRevoice": 94,
     "reviewedNoChange": 4,
-    "pending": 310
+    "pending": 302
   },
   "entries": [
     {
@@ -232,7 +232,8 @@
       "name": "Бизнес-центр \"Cabinet Lounge\"",
       "originalTextId": "4c3eb322-a29b-4626-8558-b385c222ce04",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch17/changes.json"
     },
     {
       "placeId": "osm:relation:6204093",
@@ -495,7 +496,8 @@
       "name": "Государственный институт искусствознания",
       "originalTextId": "33ae66c1-32b0-490d-b1c1-6b663d0495ac",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch17/changes.json"
     },
     {
       "placeId": "osm:node:273355916",
@@ -564,7 +566,8 @@
       "name": "Дом Апраксиных — Трубецких",
       "originalTextId": "734b0e99-e8a4-4e09-956c-23437c358a1a",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch17/changes.json"
     },
     {
       "placeId": "osm:way:224146643",
@@ -669,7 +672,8 @@
       "name": "Дом Ярошенко",
       "originalTextId": "119994f7-1af3-4658-9667-f6dbd65a1e51",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch17/changes.json"
     },
     {
       "placeId": "osm:node:3500729458",
@@ -721,7 +725,8 @@
       "name": "Доходный дом архитектора Л. Кекушева",
       "originalTextId": "b560c595-a687-41c1-a658-c115b72368f6",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch17/changes.json"
     },
     {
       "placeId": "osm:node:7428358397",
@@ -954,7 +959,8 @@
       "name": "Корпус «Т» АУК «Покровка» НИУ ВШЭ",
       "originalTextId": "27dc097c-e7e6-4b13-8b45-d82e909a3595",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch17/changes.json"
     },
     {
       "placeId": "osm:relation:1577673",
@@ -2767,7 +2773,8 @@
       "name": "Центр детского творчества \"Замоскворечье\"",
       "originalTextId": "dda393d9-3086-4159-b79e-54da21cd428d",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch17/changes.json"
     },
     {
       "placeId": "osm:way:317918942",
@@ -2805,7 +2812,8 @@
       "name": "Центральный дом учёных",
       "originalTextId": "4a3ef870-cefe-4285-9597-a8e075582450",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch17/changes.json"
     },
     {
       "placeId": "osm:relation:11661228",
