@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T14:25:07.411627+00:00",
+  "updatedAt": "2026-10-05T14:39:13.147343+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 144,
+    "publishedWithRevoice": 152,
     "reviewedNoChange": 4,
-    "pending": 252
+    "pending": 244
   },
   "entries": [
     {
@@ -256,7 +256,8 @@
       "name": "Братский корпус Знаменского монастыря",
       "originalTextId": "db033d72-5448-425b-a5f6-004d36be0ba5",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch25/changes.json"
     },
     {
       "placeId": "osm:node:4142864173",
@@ -464,7 +465,8 @@
       "name": "Главное управление МЧС России по городу Москве",
       "originalTextId": "0bc07ed6-9f47-45fa-aa17-239b3dd67a43",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch25/changes.json"
     },
     {
       "placeId": "osm:way:45777816",
@@ -494,14 +496,16 @@
       "name": "Государственный академический университет гуманитарных наук",
       "originalTextId": "6c0fbcb7-81c6-4342-90c7-11308318c68b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch25/changes.json"
     },
     {
       "placeId": "osm:way:131491823",
       "name": "Государственный дом радиовещания и звукозаписи",
       "originalTextId": "686bc658-21ef-4388-8796-9451fbe0d735",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch25/changes.json"
     },
     {
       "placeId": "osm:way:47973338",
@@ -754,7 +758,8 @@
       "name": "Древлеправославный храм в честь Покрова Пресвятой Богородицы",
       "originalTextId": "86cf13bf-be7c-4bc8-a3f6-198e222ae665",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch25/changes.json"
     },
     {
       "placeId": "osm:node:4142983687",
@@ -853,21 +858,24 @@
       "name": "Институт физики атмосферы им. А.М. Обухова РАН",
       "originalTextId": "f7d3e9d2-e2cc-4834-bb34-596a8e641de8",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch25/changes.json"
     },
     {
       "placeId": "osm:relation:9303001",
       "name": "Историко-архивный институт РГГУ",
       "originalTextId": "cf0ce66e-d46c-4a5a-b859-ce542600afcb",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch25/changes.json"
     },
     {
       "placeId": "osm:relation:7418784",
       "name": "Историческая мечеть",
       "originalTextId": "47387d0a-cf73-4493-935c-66f075485835",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch25/changes.json"
     },
     {
       "placeId": "osm:relation:5963922",
