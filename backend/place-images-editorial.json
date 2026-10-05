@@ -2104,5 +2104,57 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:9282393808": {
+    "thumbnail": "/images/places/node-9282393808-a79890c88203.jpg",
+    "src": "/images/places/node-9282393808-c034030c40a9.jpg",
+    "width": 960,
+    "height": 623,
+    "alt": "Иван Майский справа и финский министр иностранных дел Аарно Юрьё-Коскинен слева при подписании договора, Хельсинки, 21 января 1932 года. Архивный снимок в контексте рассказа о дипломате; мемориальная доска не показана.",
+    "author": "WSOY kuva-arkisto",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Soviet-finnish-nonaggression-pact-1932.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Soviet-finnish-nonaggression-pact-1932.jpg#Licensing",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:10572977040": {
+    "thumbnail": "/images/places/node-10572977040-4f73900b5e55.jpg",
+    "src": "/images/places/node-10572977040-9d7bdb378dbd.jpg",
+    "width": 960,
+    "height": 1430,
+    "alt": "Вход в музей-квартиру Климента Тимирязева в Романовом переулке, 4. Общий вид фасада; мраморная мемориальная доска в кадре не показана.",
+    "author": "timmuseum.timacad.ru",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dom_Timeryazova_vneshnii_vid.png",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:5310616994": {
+    "thumbnail": "/images/places/node-5310616994-96ff1645591d.jpg",
+    "src": "/images/places/node-5310616994-f98cfff8a74b.jpg",
+    "width": 960,
+    "height": 1375,
+    "alt": "Мемориальная доска Константину Бальмонту в Большом Николопесковском переулке, 15, строение 1.",
+    "author": "Stolbovsky from Moscow, Moscow",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Commemorative_plaque_to_Konstantin_Balmont_(48961376568).jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:13254353242": {
+    "thumbnail": "/images/places/node-13254353242-89d512205e4c.jpg",
+    "src": "/images/places/node-13254353242-67d7688b2cd1.jpg",
+    "width": 960,
+    "height": 720,
+    "alt": "Мемориальная доска Константину Ушинскому на Аудиторном корпусе Московского университета, Моховая улица, 9.",
+    "author": "Vladimir OKC",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Konstantin_Ushinsky_Plaque_on_Wall_of_Moscow_State_University.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Konstantin_Ushinsky_Plaque_on_Wall_of_Moscow_State_University.jpg#Licensing",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
