@@ -1532,5 +1532,18 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Из исторического снимка выделен главный дом усадьбы справа; кадр уменьшен и перекодирован в JPEG для веб, превью обрезается при показе."
+  },
+  "osm:way:32783696": {
+    "thumbnail": "/images/places/way-32783696-9bca91db0d0a.jpg",
+    "src": "/images/places/way-32783696-099ed974bb70.jpg",
+    "width": 960,
+    "height": 1280,
+    "alt": "Посольство Бельгии на Малой Молчановке, 7: жёлтое здание на переднем плане, вид со двора. За ним расположен соседний дом. Фото 2009 года.",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:M_Molchanovka_7,8_June_2009_02.JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
