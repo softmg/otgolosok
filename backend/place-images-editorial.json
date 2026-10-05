@@ -1454,5 +1454,83 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:53830787": {
+    "thumbnail": "/images/places/way-53830787-e83345a9c2d4.jpg",
+    "src": "/images/places/way-53830787-3dce71f5724c.jpg",
+    "width": 960,
+    "height": 720,
+    "alt": "Доходный дом Алексея Дурилина, Малая Ордынка, 39 с1",
+    "author": "Artyom Svetlov",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Malaya_Ordynka_Street_39_s1_2026-06_136.JPG",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Фото уменьшено и перекодировано в JPEG для веб; превью обрезается при показе."
+  },
+  "osm:way:48172698": {
+    "thumbnail": "/images/places/way-48172698-62bef5ea9412.jpg",
+    "src": "/images/places/way-48172698-def30c5d6042.jpg",
+    "width": 960,
+    "height": 1181,
+    "alt": "Доходный дом Николая Ижболдина, Большая Ордынка, 68",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_68_June_2008_01.JPG",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Фото уменьшено и перекодировано в JPEG для веб; превью обрезается при показе."
+  },
+  "osm:way:283084311": {
+    "thumbnail": "/images/places/way-283084311-143d9335493c.jpg",
+    "src": "/images/places/way-283084311-1ea0ac2d0971.jpg",
+    "width": 960,
+    "height": 626,
+    "alt": "Особняк Константина Осипова, Большая Ордынка, 70 с1",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_70_June_2008_01.JPG",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Фото уменьшено и перекодировано в JPEG для веб; превью обрезается при показе."
+  },
+  "osm:way:48172598": {
+    "thumbnail": "/images/places/way-48172598-cb1cb448a3ee.jpg",
+    "src": "/images/places/way-48172598-82a3af005019.jpg",
+    "width": 960,
+    "height": 879,
+    "alt": "Дом купца Кулешова, Большая Ордынка, 72 с1",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_72,_embassy_of_Argentina.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Фото уменьшено и перекодировано в JPEG для веб; превью обрезается при показе."
+  },
+  "osm:way:314197370": {
+    "thumbnail": "/images/places/way-314197370-feef297827bd.jpg",
+    "src": "/images/places/way-314197370-52bfc30ac0ba.jpg",
+    "width": 960,
+    "height": 1440,
+    "alt": "Сцена Малого театра на Большой Ордынке, 69",
+    "author": "Retired electrician",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_69_May_2022_01.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Фото уменьшено и перекодировано в JPEG для веб; превью обрезается при показе."
+  },
+  "osm:way:53816187": {
+    "thumbnail": "/images/places/way-53816187-b036b27a47ee.jpg",
+    "src": "/images/places/way-53816187-c5235375e938.jpg",
+    "width": 530,
+    "height": 425,
+    "alt": "Главный дом бывшей усадьбы Гусева и Ново-Полянской аптеки Феррейна, Большая Полянка, 65/74; исторический вид с Полянки",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:B_Polyanka_63_65.JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Из исторического снимка выделен главный дом усадьбы справа; кадр уменьшен и перекодирован в JPEG для веб, превью обрезается при показе."
   }
 }

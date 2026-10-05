@@ -1,0 +1,32 @@
+{
+  "stops": 11,
+  "newPlaces": 5,
+  "reusedStories": 3,
+  "changedStories": 2,
+  "newStories": 6,
+  "words": 2040,
+  "dryRunRollback": true,
+  "concurrentEditRejected": true,
+  "reuseMismatchRejected": true,
+  "idempotentRepeat": true,
+  "resolvedStories": 11,
+  "distanceM": 2286,
+  "walkingMinutes": 30,
+  "route": {
+    "routeContinuous": true,
+    "maxTriggerOffsetM": 5.66,
+    "metroStartOffsetM": 0.04,
+    "metroFinishOffsetM": 0.04,
+    "fieldChecked": false
+  },
+  "productionRepeat": {
+    "newPlaces": 0,
+    "published": 0,
+    "skipped": 11
+  },
+  "projectCheck": {
+    "command": "pnpm check",
+    "passed": true,
+    "checkedAt": "2026-10-05"
+  }
+}

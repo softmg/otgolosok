@@ -1,0 +1,400 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "checkedAt": "2026-10-05",
+  "stories": 11,
+  "sources": 11,
+  "photos": 11,
+  "stops": [
+    {
+      "stop": 1,
+      "sources": [
+        {
+          "text": "Усадьба Долгова — Жемочкина",
+          "url": "https://ru.wikipedia.org/wiki/%D0%A3%D1%81%D0%B0%D0%B4%D1%8C%D0%B1%D0%B0_%D0%94%D0%BE%D0%BB%D0%B3%D0%BE%D0%B2%D0%B0_%E2%80%94_%D0%96%D0%B5%D0%BC%D0%BE%D1%87%D0%BA%D0%B8%D0%BD%D0%B0"
+        },
+        {
+          "text": "Замоскворечье: храм «Всех скорбящих Радость»",
+          "url": "https://www.mos.ru/upload/documents/files/1776/Zamoskvoreche_sait.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://ru.wikipedia.org/wiki/%D0%A3%D1%81%D0%B0%D0%B4%D1%8C%D0%B1%D0%B0_%D0%94%D0%BE%D0%BB%D0%B3%D0%BE%D0%B2%D0%B0_%E2%80%94_%D0%96%D0%B5%D0%BC%D0%BE%D1%87%D0%BA%D0%B8%D0%BD%D0%B0"
+        },
+        {
+          "text": "[2] ",
+          "url": "https://www.mos.ru/upload/documents/files/1776/Zamoskvoreche_sait.pdf"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:%D0%93%D0%BE%D1%80%D0%BE%D0%B4%D1%81%D0%BA%D0%B0%D1%8F_%D1%83%D1%81%D0%B0%D0%B4%D1%8C%D0%B1%D0%B0_%D0%94%D0%BE%D0%BB%D0%B3%D0%BE%D0%B2%D1%8B%D1%85-%D0%96%D0%B5%D0%BC%D0%BE%D1%87%D0%BA%D0%B8%D0%BD%D1%8B%D1%85.jpg"
+        },
+        {
+          "text": "CC BY-SA 4.0",
+          "url": "https://creativecommons.org/licenses/by-sa/4.0"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 2,
+      "sources": [
+        {
+          "text": "Московская епархия: училище иконописания и ремёсел",
+          "url": "https://www.pravenc.ru/text/2564192.html"
+        },
+        {
+          "text": "Давид Иванович Хлудов — купец, отдавший всё",
+          "url": "https://pravoslavie.ru/179998.html"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.pravenc.ru/text/2564192.html"
+        },
+        {
+          "text": "[2] ",
+          "url": "https://pravoslavie.ru/179998.html"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:BolOrdynka-BTolmachevsky_Lane_Moscow_01-2016.jpg"
+        },
+        {
+          "text": "FAL",
+          "url": "http://artlibre.org/licence/lal/en"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 3,
+      "sources": [
+        {
+          "text": "Василий Фёдорович Аршинов",
+          "url": "https://kdarchiv.ru/vasilij-fedorovich-arshinov"
+        },
+        {
+          "text": "Создание института",
+          "url": "https://vims-geo.ru/ru/about/history/creating/"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://kdarchiv.ru/vasilij-fedorovich-arshinov"
+        },
+        {
+          "text": "[2] ",
+          "url": "https://vims-geo.ru/ru/about/history/creating/"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_30_Sep_2008_02.JPG"
+        },
+        {
+          "text": "CC BY-SA 4.0",
+          "url": "https://creativecommons.org/licenses/by-sa/4.0"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 4,
+      "sources": [
+        {
+          "text": "Историко-культурная экспертиза усадьбы на Большой Ордынке, 41",
+          "url": "https://www.mos.ru/upload/documents/files/1132/AktOrdinkaB41pdfsECP41pdfsECP.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/1132/AktOrdinkaB41pdfsECP41pdfsECP.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/1132/AktOrdinkaB41pdfsECP41pdfsECP.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/1132/AktOrdinkaB41pdfsECP41pdfsECP.pdf"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_41_June_2009_01.JPG"
+        },
+        {
+          "text": "CC BY-SA 4.0",
+          "url": "https://creativecommons.org/licenses/by-sa/4.0"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 5,
+      "sources": [
+        {
+          "text": "Историко-культурная экспертиза Александро-Мариинского училища",
+          "url": "https://www.mos.ru/upload/documents/files/5908/AktBOrdinka47-7str12ogradasvorotami(Dytlovapodpisan).pdf"
+        },
+        {
+          "text": "Здание на Большой Ордынке, 47",
+          "url": "https://we.hse.ru/icc/building_bo47"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/5908/AktBOrdinka47-7str12ogradasvorotami(Dytlovapodpisan).pdf"
+        },
+        {
+          "text": "[2] ",
+          "url": "https://we.hse.ru/icc/building_bo47"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_47_June_2009_01.JPG"
+        },
+        {
+          "text": "CC BY-SA 4.0",
+          "url": "https://creativecommons.org/licenses/by-sa/4.0"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 6,
+      "sources": [
+        {
+          "text": "Историко-культурная экспертиза дома на Малой Ордынке, 39 с1",
+          "url": "https://www.mos.ru/upload/documents/files/7197/AktGIKEylicaOrdinkadom39stroenie1.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/7197/AktGIKEylicaOrdinkadom39stroenie1.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/7197/AktGIKEylicaOrdinkadom39stroenie1.pdf"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:Moscow_Malaya_Ordynka_Street_39_s1_2026-06_136.JPG"
+        },
+        {
+          "text": "CC BY 4.0",
+          "url": "https://creativecommons.org/licenses/by/4.0"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 7,
+      "sources": [
+        {
+          "text": "Никита Лазарев. Архитектор и инженер: Большая Ордынка, стр. 75",
+          "url": "https://www.mos.ru/upload/documents/files/4967/Moskovskoenasledie37.pdf"
+        },
+        {
+          "text": "Большая Ордынка: дом 68",
+          "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D0%BB%D1%8C%D1%88%D0%B0%D1%8F_%D0%9E%D1%80%D0%B4%D1%8B%D0%BD%D0%BA%D0%B0"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/4967/Moskovskoenasledie37.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/4967/Moskovskoenasledie37.pdf"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_68_June_2008_01.JPG"
+        },
+        {
+          "text": "CC BY-SA 4.0",
+          "url": "https://creativecommons.org/licenses/by-sa/4.0"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 8,
+      "sources": [
+        {
+          "text": "Никита Лазарев. Архитектор и инженер: Большая Ордынка, стр. 75",
+          "url": "https://www.mos.ru/upload/documents/files/4967/Moskovskoenasledie37.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.mos.ru/upload/documents/files/4967/Moskovskoenasledie37.pdf"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_70_June_2008_01.JPG"
+        },
+        {
+          "text": "CC BY-SA 4.0",
+          "url": "https://creativecommons.org/licenses/by-sa/4.0"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 9,
+      "sources": [
+        {
+          "text": "Дом купца Кулешова, Большая Ордынка, 72",
+          "url": "https://mansions.updk.ru/mansions/117396/"
+        },
+        {
+          "text": "Историко-культурная экспертиза дома на Большой Ордынке, 72 с1",
+          "url": "https://www.mos.ru/upload/documents/files/2070/AktOrdinkaB72AktOrdinkaB72pdf.pdf"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://mansions.updk.ru/mansions/117396/"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://mansions.updk.ru/mansions/117396/"
+        },
+        {
+          "text": "[2] ",
+          "url": "https://www.mos.ru/upload/documents/files/2070/AktOrdinkaB72AktOrdinkaB72pdf.pdf"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_72,_embassy_of_Argentina.jpg"
+        },
+        {
+          "text": "CC BY-SA 3.0",
+          "url": "https://creativecommons.org/licenses/by-sa/3.0"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 10,
+      "sources": [
+        {
+          "text": "Филиал Малого — в новом цвете: история сцены на Ордынке",
+          "url": "https://www.maly.ru/news/4873"
+        },
+        {
+          "text": "Малый театр. Сцена на Ордынке",
+          "url": "https://www.culture.ru/institutes/21896/gosudarstvennyi-akademicheskii-malyi-teatr-rossii-scena-na-ordynke"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.maly.ru/news/4873"
+        },
+        {
+          "text": "[2] ",
+          "url": "https://www.culture.ru/institutes/21896/gosudarstvennyi-akademicheskii-malyi-teatr-rossii-scena-na-ordynke"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.maly.ru/news/4873"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.maly.ru/news/4873"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://www.maly.ru/news/4873"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_69_May_2022_01.jpg"
+        },
+        {
+          "text": "CC0",
+          "url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+        }
+      ],
+      "photoLoaded": true
+    },
+    {
+      "stop": 11,
+      "sources": [
+        {
+          "text": "Аптека Феррейна на Большой Полянке",
+          "url": "https://pharmvestnik.ru/content/articles/apteka-ferrejna-na-boljshoj-poljanke.html"
+        },
+        {
+          "text": "Аптека Феррейна, Большая Ордынка, 74",
+          "url": "https://culture.wikireading.ru/23354"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://pharmvestnik.ru/content/articles/apteka-ferrejna-na-boljshoj-poljanke.html"
+        },
+        {
+          "text": "[2] ",
+          "url": "https://culture.wikireading.ru/23354"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://pharmvestnik.ru/content/articles/apteka-ferrejna-na-boljshoj-poljanke.html"
+        },
+        {
+          "text": "[1] ",
+          "url": "https://pharmvestnik.ru/content/articles/apteka-ferrejna-na-boljshoj-poljanke.html"
+        }
+      ],
+      "photoLinks": [
+        {
+          "text": "Wikimedia Commons",
+          "url": "https://commons.wikimedia.org/wiki/File:B_Polyanka_63_65.JPG"
+        },
+        {
+          "text": "CC BY-SA 3.0",
+          "url": "https://creativecommons.org/licenses/by-sa/3.0"
+        }
+      ],
+      "photoLoaded": true
+    }
+  ],
+  "playback": {
+    "first": true,
+    "last": true,
+    "pause": true,
+    "firstAudio": [
+      {
+        "src": "https://otgolosok.online/api/story-audio/a5e83e8873a0d112679bcb8ab581111df6b82da0c13a21c648da9d9b2c5fd8bf.mp3",
+        "time": 0.516304,
+        "paused": false,
+        "duration": 81.2
+      }
+    ],
+    "lastAudio": [
+      {
+        "src": "https://otgolosok.online/api/story-audio/05e487332e2020c4e07d7f28efdf7d857ab279d31ff7b76f52730ea2eaaf17aa.mp3",
+        "time": 0.507892,
+        "paused": false,
+        "duration": 103.68
+      }
+    ]
+  },
+  "fieldChecked": false,
+  "destinationShown": "Москва, метро «Добрынинская», выход 1; переход на «Серпуховскую» внутри метро",
+  "finishTransitionChecked": true
+}

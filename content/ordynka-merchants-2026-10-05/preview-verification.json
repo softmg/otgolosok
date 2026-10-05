@@ -1,0 +1,173 @@
+{
+  "photos": 11,
+  "publicFiles": 22,
+  "filesMatch": true,
+  "creditsMatch": true,
+  "rows": [
+    {
+      "placeId": "osm:way:75650837",
+      "files": [
+        {
+          "url": "/images/places/way-75650837-96f0590c5532.jpg",
+          "sha256": "96f0590c5532f79647c5cc5b43e0e916f451a33663956b4cbd9474a1bfff35d5",
+          "bytes": 14519
+        },
+        {
+          "url": "/images/places/way-75650837-fa777f6f3664.jpg",
+          "sha256": "fa777f6f36647e43124a0cbab8126dc41152039524f13191f15e08bb54824af5",
+          "bytes": 210066
+        }
+      ]
+    },
+    {
+      "placeId": "osm:relation:6381244",
+      "files": [
+        {
+          "url": "/images/places/relation-6381244-18e4ebbb6f39.jpg",
+          "sha256": "18e4ebbb6f39c32242c02ce130710d83eb6e92686a017db9d1e3ee47b4d7bec5",
+          "bytes": 16343
+        },
+        {
+          "url": "/images/places/relation-6381244-947c262a6054.jpg",
+          "sha256": "947c262a6054a40f06bd95257baf398fbab76c68503c17bf6ec74f206ad8f933",
+          "bytes": 197467
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:111136355",
+      "files": [
+        {
+          "url": "/images/places/way-111136355-dc81d13c7b04.jpg",
+          "sha256": "dc81d13c7b04bbfb534e29040a77b8dbdc4334662886a7af525dc12414c06108",
+          "bytes": 25682
+        },
+        {
+          "url": "/images/places/way-111136355-7530eaa81230.jpg",
+          "sha256": "7530eaa81230d9671af07ea2475524b8619b7ae63cd2a5bd44ea0434bfb3b14e",
+          "bytes": 413923
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:156493115",
+      "files": [
+        {
+          "url": "/images/places/way-156493115-b308fb11d561.jpg",
+          "sha256": "b308fb11d56116929d35b22cbca400af62042149c61787baf0b20589e96462fb",
+          "bytes": 19392
+        },
+        {
+          "url": "/images/places/way-156493115-d677ce667fc3.jpg",
+          "sha256": "d677ce667fc372a263f5d81f35522c7c613ccdb5c0750631a1d4f1aa1f7924ec",
+          "bytes": 294997
+        }
+      ]
+    },
+    {
+      "placeId": "osm:relation:8454676",
+      "files": [
+        {
+          "url": "/images/places/relation-8454676-b208e887b37f.jpg",
+          "sha256": "b208e887b37f79802f373658c62fa10c294465a38a6f337c16d249cf29a0d7fb",
+          "bytes": 20993
+        },
+        {
+          "url": "/images/places/relation-8454676-f31dcb49a1b0.jpg",
+          "sha256": "f31dcb49a1b0707086dab58d0dccbe2572a003bcf025f7459bfadd41d0083d42",
+          "bytes": 324641
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:53830787",
+      "files": [
+        {
+          "url": "/images/places/way-53830787-e83345a9c2d4.jpg",
+          "sha256": "e83345a9c2d4d3013065220e8f5bdd2ebd6d23cc7be56b7b1198494c4c8176ec",
+          "bytes": 14978
+        },
+        {
+          "url": "/images/places/way-53830787-3dce71f5724c.jpg",
+          "sha256": "3dce71f5724c0fc34d818ff4148eb3f4b18314d6a6ef22df209d81241af4e02c",
+          "bytes": 165941
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:48172698",
+      "files": [
+        {
+          "url": "/images/places/way-48172698-62bef5ea9412.jpg",
+          "sha256": "62bef5ea941218903f733ea2bef2a70e8c0b666452dc826ca91267d8a1cbf2af",
+          "bytes": 24602
+        },
+        {
+          "url": "/images/places/way-48172698-def30c5d6042.jpg",
+          "sha256": "def30c5d60425d61fbf6be2ee2d63092352b5d4562ffded541e9cd829d97b704",
+          "bytes": 393038
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:283084311",
+      "files": [
+        {
+          "url": "/images/places/way-283084311-143d9335493c.jpg",
+          "sha256": "143d9335493c54e1f2b70e239b9cf45fd12cd659fd0edc8a738fef439d5a5379",
+          "bytes": 14181
+        },
+        {
+          "url": "/images/places/way-283084311-1ea0ac2d0971.jpg",
+          "sha256": "1ea0ac2d0971dc822979eff7a67c8c4bfb59a250d50c1da9639a687a15692dd2",
+          "bytes": 204314
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:48172598",
+      "files": [
+        {
+          "url": "/images/places/way-48172598-cb1cb448a3ee.jpg",
+          "sha256": "cb1cb448a3eea5b25f1f106b83fa80cd88c337e76c1bc164d65c5c5018029b3d",
+          "bytes": 16738
+        },
+        {
+          "url": "/images/places/way-48172598-82a3af005019.jpg",
+          "sha256": "82a3af005019c57891c2dca224dd81eff39748c7f631df7ce6a2ddd9a2b096e6",
+          "bytes": 222815
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:314197370",
+      "files": [
+        {
+          "url": "/images/places/way-314197370-feef297827bd.jpg",
+          "sha256": "feef297827bdb30c5e56e21cb276ef3acc314e435a5d98ca84e7f6eef69f126a",
+          "bytes": 29914
+        },
+        {
+          "url": "/images/places/way-314197370-52bfc30ac0ba.jpg",
+          "sha256": "52bfc30ac0ba2996d24a597919bedaa81829e13aac2455206c0b5331abf5c5ce",
+          "bytes": 388955
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:53816187",
+      "files": [
+        {
+          "url": "/images/places/way-53816187-b036b27a47ee.jpg",
+          "sha256": "b036b27a47eedd57f07fd2238533aa2773561833a34c97071c513506fac2dd8b",
+          "bytes": 17102
+        },
+        {
+          "url": "/images/places/way-53816187-c5235375e938.jpg",
+          "sha256": "c5235375e938ea95bf40edf2de032a43cc09c3be2219db0a82635c7218d116ba",
+          "bytes": 77678
+        }
+      ]
+    }
+  ]
+}
