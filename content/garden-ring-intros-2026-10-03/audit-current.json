@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T15:33:06.553618+00:00",
+  "updatedAt": "2026-10-05T15:44:17.858462+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 184,
+    "publishedWithRevoice": 192,
     "reviewedNoChange": 4,
-    "pending": 212
+    "pending": 204
   },
   "entries": [
     {
@@ -2809,35 +2809,40 @@
       "name": "Храм Троицы Живоначальной",
       "originalTextId": "1059115e-c1a4-4811-950c-3aee8aacff01",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch30/changes.json"
     },
     {
       "placeId": "osm:relation:7402492",
       "name": "Храм Усекновения главы Иоанна Предтечи под Бором",
       "originalTextId": "9787a75b-0f12-4244-8662-e6e9471b3072",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch30/changes.json"
     },
     {
       "placeId": "osm:relation:7968458",
       "name": "Храм Успения Пресвятой Богородицы",
       "originalTextId": "dc6d4dbd-b650-439b-8aa5-8f0fdd465995",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch30/changes.json"
     },
     {
       "placeId": "osm:relation:9688342",
       "name": "Храм Успения Пресвятой Богородицы в Печатниках",
       "originalTextId": "aee6491f-7c40-4c2f-8eea-17b38ce7558a",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch30/changes.json"
     },
     {
       "placeId": "osm:relation:10165684",
       "name": "Храм Успения Пресвятой Богородицы на Успенском вражке",
       "originalTextId": "d39ccbaf-5940-4752-88b3-3b781a3385be",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch30/changes.json"
     },
     {
       "placeId": "osm:relation:7314898",
@@ -2922,7 +2927,8 @@
       "name": "Церковь Иоанна Лествичника",
       "originalTextId": "417d40dc-86a6-4202-af30-8302ee2c042e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch30/changes.json"
     },
     {
       "placeId": "osm:way:52504840",
@@ -2952,7 +2958,8 @@
       "name": "Церковь Преображения Господня, что на Песках",
       "originalTextId": "aebe4b23-55e6-4be9-97ae-c6cb6076f125",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch30/changes.json"
     },
     {
       "placeId": "osm:relation:12198830",
@@ -2974,7 +2981,8 @@
       "name": "Часовня Бориса и Глеба",
       "originalTextId": "a6a44407-689c-4bdd-92cf-6135c191b1b4",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch30/changes.json"
     },
     {
       "placeId": "osm:node:5244167433",

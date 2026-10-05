@@ -1727,5 +1727,18 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:relation:9539448": {
+    "thumbnail": "/images/places/relation-9539448-813d0bee3bc8.jpg",
+    "src": "/images/places/relation-9539448-d8180bbcf1dc.jpg",
+    "width": 960,
+    "height": 864,
+    "alt": "Современная часовня Бориса и Глеба на Арбатской площади, построенная в 1997 году.",
+    "author": "Panther",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Boris_and_Gleb_chapel_at_the_Arbat_square_in_Moscow.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
