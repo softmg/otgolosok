@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T18:18:41.688147+00:00",
+  "updatedAt": "2026-10-05T18:35:28.164078+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 280,
+    "publishedWithRevoice": 288,
     "reviewedNoChange": 4,
-    "pending": 116
+    "pending": 108
   },
   "entries": [
     {
@@ -1342,49 +1342,56 @@
       "name": "Министерство юстиции РФ",
       "originalTextId": "018a77aa-2448-4892-884b-3b313413deaa",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch42/changes.json"
     },
     {
       "placeId": "osm:node:4142899081",
       "name": "Мистерия",
       "originalTextId": "33863c54-5258-414f-80f2-684b0befaaa0",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch42/changes.json"
     },
     {
       "placeId": "osm:node:4142950214",
       "name": "Мишка с мячом",
       "originalTextId": "54822b0b-472d-4f54-a994-ee6a19d7d976",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch42/changes.json"
     },
     {
       "placeId": "osm:node:2380290736",
       "name": "Могила И. В. Сталина",
       "originalTextId": "eb2dfc43-c417-456f-a66d-67e676d64a06",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch42/changes.json"
     },
     {
       "placeId": "osm:node:2380290735",
       "name": "Могила К. У. Черненко",
       "originalTextId": "2fe7a3cf-8d65-4a80-b9af-8b15ec40316f",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch42/changes.json"
     },
     {
       "placeId": "osm:node:2380290741",
       "name": "Могила М. И. Калинина",
       "originalTextId": "b7c2d11a-8a26-4fe1-817e-a00f29d4ca5f",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch42/changes.json"
     },
     {
       "placeId": "osm:node:2380290743",
       "name": "Могила Ф. Э. Дзержинского",
       "originalTextId": "87464146-178b-46eb-a7f6-00a1af79add7",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch42/changes.json"
     },
     {
       "placeId": "osm:relation:7151077",
@@ -1399,7 +1406,8 @@
       "name": "Московская гимназия им. И. и А. Медведниковых",
       "originalTextId": "78ef3842-7379-4253-9c8e-966eaa507f49",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch42/changes.json"
     },
     {
       "placeId": "osm:way:45768173",

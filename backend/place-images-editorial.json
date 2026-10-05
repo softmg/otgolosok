@@ -2494,5 +2494,83 @@
     "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:60453478": {
+    "thumbnail": "/images/places/way-60453478-c21575ddad81.jpg",
+    "src": "/images/places/way-60453478-af7af0215e6a.jpg",
+    "width": 960,
+    "height": 1440,
+    "alt": "Здание Министерства юстиции на Житной улице, 14. Снимок 2022 года.",
+    "author": "Retired electrician",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Zhitnaya_14_May_2022_01.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:2380290736": {
+    "thumbnail": "/images/places/node-2380290736-28c11ce28922.jpg",
+    "src": "/images/places/node-2380290736-b1be44112ff0.jpg",
+    "width": 960,
+    "height": 1200,
+    "alt": "Бюст и надгробная плита на могиле Иосифа Сталина у Кремлёвской стены. Снимок 2022 года.",
+    "author": "Quintin Soloviev",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grave_of_Joseph_Stalin.jpg",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:2380290735": {
+    "thumbnail": "/images/places/node-2380290735-20d5dfb3204c.jpg",
+    "src": "/images/places/node-2380290735-f61fd1d9f243.jpg",
+    "width": 960,
+    "height": 720,
+    "alt": "Общий вид некрополя у Кремлёвской стены в 2018 году. Контекстный снимок; могила Константина Черненко крупным планом не показана.",
+    "author": "Hayden Soloviev",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kremlin_Necropolis.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:2380290741": {
+    "thumbnail": "/images/places/node-2380290741-d2364a8ad14a.jpg",
+    "src": "/images/places/node-2380290741-460702a490ec.jpg",
+    "width": 960,
+    "height": 831,
+    "alt": "Бюст Михаила Калинина на его могиле у Кремлёвской стены. Снимок 2022 года.",
+    "author": "Reda Kerbush",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bust_of_Mikhail_Kalinin_at_Kremlin_Wall_Necropolis.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:2380290743": {
+    "thumbnail": "/images/places/node-2380290743-d3c210e48cbf.jpg",
+    "src": "/images/places/node-2380290743-31ae1e1b029b.jpg",
+    "width": 960,
+    "height": 1454,
+    "alt": "Надгробие Феликса Дзержинского у Кремлёвской стены. Архивная фотография 1952 года.",
+    "author": "David Sholomovich / Давид Шоломович",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:RIAN_archive_698181_Bust_of_Felix_Dzerzhinsky.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:9866186555": {
+    "thumbnail": "/images/places/node-9866186555-e058d7bed86b.jpg",
+    "src": "/images/places/node-9866186555-f8bfeb23db53.jpg",
+    "width": 960,
+    "height": 669,
+    "alt": "Вход в бывшую гимназию Медведниковых в Староконюшенном переулке, 18. Снимок 2024 года.",
+    "author": "Пресс-служба Мэра и Правительства Москвы",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D1%82%D0%B0%D1%80%D0%BE%D0%BA%D0%BE%D0%BD%D1%8E%D1%88%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9_18,_%D0%B3%D0%B8%D0%BC%D0%BD%D0%B0%D0%B7%D0%B8%D1%8F_%D0%B8%D0%BC.%D0%9C%D0%B5%D0%B4%D0%B2%D0%B5%D0%B4%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2%D1%8B%D1%85,_2024-08-12_02.jpg",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
