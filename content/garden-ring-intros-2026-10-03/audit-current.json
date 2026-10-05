@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T15:57:13.299155+00:00",
+  "updatedAt": "2026-10-05T16:14:51.555530+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 200,
+    "publishedWithRevoice": 208,
     "reviewedNoChange": 4,
-    "pending": 196
+    "pending": 188
   },
   "entries": [
     {
@@ -366,28 +366,32 @@
       "name": "В. Н. Пашенной",
       "originalTextId": "164b2b6d-2011-43c8-a156-b9b011e80ef2",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch32/changes.json"
     },
     {
       "placeId": "osm:node:5554932774",
       "name": "В. С. Гулевичу",
       "originalTextId": "04f9dba0-3289-4a5b-a3cc-7f09ea5d9610",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch32/changes.json"
     },
     {
       "placeId": "osm:node:6801999747",
       "name": "В. Я. Шишкову",
       "originalTextId": "700b9da7-6c0d-4116-a24d-d5d3d23a0fea",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch32/changes.json"
     },
     {
       "placeId": "osm:node:6449794077",
       "name": "В.И. Чуйкову",
       "originalTextId": "e787b493-395a-4313-aeb4-48fd3e4c7798",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch32/changes.json"
     },
     {
       "placeId": "osm:node:4481478260",
@@ -402,28 +406,32 @@
       "name": "Воину-ополченцу Фрунзенской дивизии",
       "originalTextId": "3f64b0a3-8024-4bfd-b46e-6f290fca1f3a",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch32/changes.json"
     },
     {
       "placeId": "osm:node:3632375393",
       "name": "Воспитанникам московских специальных артиллерийских школ",
       "originalTextId": "8d7e3b37-97db-4590-a882-b4a74eecfafd",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch32/changes.json"
     },
     {
       "placeId": "osm:node:14096253201",
       "name": "Всадник",
       "originalTextId": "f9cb5c4b-5c1b-402e-9def-37b8d7215ba0",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch32/changes.json"
     },
     {
       "placeId": "osm:node:3069066677",
       "name": "Выставочный зал \"АхДи\"",
       "originalTextId": "4859854b-5889-4fea-aff2-3d6bfbae1c20",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch32/changes.json"
     },
     {
       "placeId": "osm:node:2582950702",

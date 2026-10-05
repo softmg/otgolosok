@@ -1792,5 +1792,70 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:6883694881": {
+    "thumbnail": "/images/places/node-6883694881-0c9986195117.jpg",
+    "src": "/images/places/node-6883694881-2e559d5b9ddb.jpg",
+    "width": 960,
+    "height": 1280,
+    "alt": "Уличная часть комплекса Большая Никитская, 12 / Газетный переулок, 1. Мемориальная доска Пашенной находится во дворе; на фото её нет.",
+    "author": "Retired electrician",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_B.Nikitskaya_12_Aug_2024_03.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:5554932774": {
+    "thumbnail": "/images/places/node-5554932774-8dbf277a96d1.jpg",
+    "src": "/images/places/node-5554932774-df3ac1b4949c.jpg",
+    "width": 493,
+    "height": 489,
+    "alt": "Владимир Сергеевич Гулевич, портрет 1911 года. Иллюстрация к рассказу о мемориальной доске; сама доска здесь не показана.",
+    "author": "Шерер, Набгольц и Ко",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gulevich_VS.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/Template:PD-ineligible",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:6801999747": {
+    "thumbnail": "/images/places/node-6801999747-c3e0637b2791.jpg",
+    "src": "/images/places/node-6801999747-013ad9a8b15d.jpg",
+    "width": 960,
+    "height": 720,
+    "alt": "Часть фасада дома Тверская, 8, в котором жил Вячеслав Шишков. Общий вид с улицы, фотография 2007 года.",
+    "author": "Svetlov Artem",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Tverskaya_8_2007-05.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:6449794077": {
+    "thumbnail": "/images/places/node-6449794077-871984142629.jpg",
+    "src": "/images/places/node-6449794077-394c72735783.jpg",
+    "width": 960,
+    "height": 784,
+    "alt": "Романов переулок, 3, строение 7. Общий вид дома, где жил Василий Чуйков; мемориальная доска в этом кадре не показана.",
+    "author": "AndyVolykhov",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0,_%D0%A0%D0%BE%D0%BC%D0%B0%D0%BD%D0%BE%D0%B2_%D0%BF%D0%B5%D1%80%D0%B5%D1%83%D0%BB%D0%BE%D0%BA,_3,_%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5_7.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:3069066677": {
+    "thumbnail": "/images/places/node-3069066677-642bc6beb7bf.jpg",
+    "src": "/images/places/node-3069066677-c42301b435c1.jpg",
+    "width": 960,
+    "height": 1280,
+    "alt": "Вход в выставочный зал АХДИ на Арбате, 21. Фотография августа 2012 года.",
+    "author": "Алена Рязанова",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Arbat_21_art_shop,_August_2012.jpg",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
