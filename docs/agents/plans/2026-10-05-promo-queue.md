@@ -32,7 +32,8 @@ External services (all already used by Shorts, except the image endpoint):
   `tools: [{type: "image_generation", model: "gpt-image-2.5-flare", size}]`,
   `tool_choice: {type: "image_generation"}` → `output[]` item `type: "image_generation_call"`,
   `status: "completed"`, `result` = base64 PNG, plus `size`, `quality`, `revised_prompt`. Verified
-  2026-10-05: HTTP 200, 1024×1536 PNG in 40–65 s. **Caveat:** the router ignores the tool's `model`
+  2026-10-05: HTTP 200, 1024×1536 PNG in 40–65 s with `codex/gpt-6-sol-medium` and 100–155 s with
+  `codex/gpt-6.1-sol-medium` (owner's current `AIROUTER_MODEL`); keep the 300 s timeout. **Caveat:** the router ignores the tool's `model`
   (a made-up model name also succeeded), so the Codex backend picks its own image model; the response
   does not say which. `/images/generations` rejects `cs/gpt-image-2.5-flare` ("Invalid image model");
   `openai/gpt-image-2.5-flare` on `/images/generations` (sizes 1024x1024, 1024x1792, 1792x1024) is the
