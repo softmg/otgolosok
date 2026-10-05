@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T18:51:53.053637+00:00",
+  "updatedAt": "2026-10-05T19:04:19.866817+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 304,
+    "publishedWithRevoice": 312,
     "reviewedNoChange": 4,
-    "pending": 92
+    "pending": 84
   },
   "entries": [
     {
@@ -1726,56 +1726,64 @@
       "name": "Н. Г. Чернышевскому",
       "originalTextId": "d1eebdf6-2f67-41f8-a7fe-cb5f1b9038f7",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch45/changes.json"
     },
     {
       "placeId": "osm:node:7095783553",
       "name": "Н. К. Крупской",
       "originalTextId": "1600d814-a77a-4acc-a6d4-3fa0551fd5d0",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch45/changes.json"
     },
     {
       "placeId": "osm:node:3918934609",
       "name": "Н. Н. Озерову",
       "originalTextId": "ea0a64c5-17a9-4484-9551-7574a609f1ef",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch45/changes.json"
     },
     {
       "placeId": "osm:node:5773235115",
       "name": "Н. П. Огарёву",
       "originalTextId": "4b14057e-8233-443c-9279-9c541681ad1d",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch45/changes.json"
     },
     {
       "placeId": "osm:node:11012889364",
       "name": "Н. С. Надеждиной",
       "originalTextId": "a5f66673-c529-4ecf-bb24-f6584513d44b",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch45/changes.json"
     },
     {
       "placeId": "osm:node:5239330160",
       "name": "Н. С. Хрущёву",
       "originalTextId": "57f6ef05-3201-46de-9a37-bae52755973b",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch45/changes.json"
     },
     {
       "placeId": "osm:node:5300886473",
       "name": "Н. П. Брюханову",
       "originalTextId": "ab08a1fc-eba6-43d1-a274-ca2e31c948ff",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch45/changes.json"
     },
     {
       "placeId": "osm:node:12729053249",
       "name": "Н.А. Семашко",
       "originalTextId": "363e33a0-647d-416d-8a76-5addb4a823c3",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch45/changes.json"
     },
     {
       "placeId": "osm:node:13326303469",
