@@ -1,4 +1,5 @@
 import { createSharedWalkAdminStore } from "./shared-walk-admin.mjs";
+import { createPromoQueueStore } from "./promo-queue.mjs";
 import { createWalkReviewStore } from "./walk-reviews.mjs";
 import { createPlaceFeedbackStore } from "./place-feedback.mjs";
 import { createWalkImprovementStore } from "./walk-improvements.mjs";
@@ -135,8 +136,10 @@ export function createAccountStore(db, now = Date.now) {
       ...(snapshot ? {draft:!snapshot.route,walkingMinutes:snapshot.route?.walkingMinutes??null,distanceM:snapshot.route?.distanceM??null} : {})};
   };
   const launches = createWalkLaunchStore(db, { now, transaction });
+  const promo = createPromoQueueStore(db, { now, transaction });
   return {
-    ...createSharedWalkAdminStore(db, { viewWalk, documentOf, launchCounts: launches.launchCounts, now }),
+    ...promo,
+    ...createSharedWalkAdminStore(db, { viewWalk, documentOf, launchCounts: launches.launchCounts, promoStates: promo.promoStates, now }),
     ...createWalkReviewStore(db, { now, transaction }),
     ...createWalkImprovementStore(db, { now, transaction }),
     ...createPlaceFeedbackStore(db, { now, transaction }),

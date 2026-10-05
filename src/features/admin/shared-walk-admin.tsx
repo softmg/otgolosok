@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState, type ComponentProps } from "r
 import { WalkAdmin } from "./walk-admin";
 import { pageCount, pageRange, type AdminApi, type AdminRun } from "./model";
 import { skeletonRows } from "./table-skeleton";
+import { canEnqueue, PROMO_LINK_ONLY_WARNING, promoText, type PromoState } from "./promo-queue-model";
+import { PromoQueueAdmin } from "./promo-queue-admin";
 import styles from "./shared-walk-admin.module.css";
 
 type Visibility = "shared" | "public";
@@ -14,11 +16,11 @@ type SharedWalk = {
   author: { id: string; name: string; email: string } | null;
   mode: "open" | "loop" | null; stopCount: number | null;
   walkingMinutes: number | null; distanceM: number | null; snapshotError: string | null;
-  launches: number;
+  launches: number; promo: PromoState | null;
 };
 type WalkPage = { walks: SharedWalk[]; total: number; offset: number; hasMore: boolean; pending: number };
-type Filters = { q: string; author: string; mode: string; access: string; listing: string };
-const EMPTY_FILTERS: Filters = { q: "", author: "", mode: "all", access: "all", listing: "all" };
+type Filters = { q: string; author: string; mode: string; access: string; listing: string; promo: string };
+const EMPTY_FILTERS: Filters = { q: "", author: "", mode: "all", access: "all", listing: "all", promo: "all" };
 const STALE_MESSAGE = "Прогулка изменилась — обновите список.";
 const PAGE_SIZE = 25;
 const modeLabels = { open: "В одну сторону", loop: "Кольцевой" };
@@ -87,8 +89,25 @@ export function SharedWalkAdmin({ api, run, busy, onPending }: { api: AdminApi; 
     });
   }
 
+  function enqueue(walk: SharedWalk) {
+    if (walk.visibility !== "public" && !window.confirm(PROMO_LINK_ONLY_WARNING)) return;
+    setNotice(""); setManualLink("");
+    void run("Постановка в очередь промо…", async signal => {
+      try {
+        await api("/promo-queue", signal, { walkId: walk.id });
+      } catch (error) {
+        if ((error as { status?: number }).status !== 409) throw error;
+        await load(applied, page?.offset ?? 0, signal);
+        setNotice("Прогулка уже в очереди промо или больше не открыта по ссылке — список обновлён.");
+        return;
+      }
+      await load(applied, page?.offset ?? 0, signal);
+      setNotice(`«${walk.title}» в очереди промо. Дата выхода — во вкладке «Очередь промо».`);
+    });
+  }
+
   const disabled = Boolean(busy) || loading;
-  const hasFilters = Boolean(applied.q || applied.author || applied.mode !== "all" || applied.access !== "all" || applied.listing !== "all");
+  const hasFilters = Boolean(applied.q || applied.author || applied.mode !== "all" || applied.access !== "all" || applied.listing !== "all" || applied.promo !== "all");
   return <section className="walk-admin" aria-busy={loading} aria-labelledby="shared-walks-title">
     <div className="walk-admin__head">
       <div><h2 id="shared-walks-title">Пользовательские прогулки</h2><p>Прогулки, открытые по ссылке или всем, включая созданные сервисом. Открытые всем попадают в «Топ прогулок» после одобрения. Сначала недавно обновлённые. Запуски — сколько раз прогулку начали по ссылке: один зритель в сутки, без запусков автора.{page ? ` На проверке: ${page.pending}.` : ""}</p></div>
@@ -103,8 +122,9 @@ export function SharedWalkAdmin({ api, run, busy, onPending }: { api: AdminApi; 
       <label>Тип маршрута<select value={filters.mode} onChange={event => setFilters({ ...filters, mode: event.target.value })}><option value="all">Все типы</option><option value="open">В одну сторону</option><option value="loop">Кольцевой</option></select></label>
       <label>Доступ<select value={filters.access} onChange={event => setFilters({ ...filters, access: event.target.value })}><option value="all">Все</option><option value="shared">По ссылке</option><option value="public">Всем</option></select></label>
       <label>Топ<select value={filters.listing} onChange={event => setFilters({ ...filters, listing: event.target.value })}><option value="all">Все</option><option value="pending">На проверке</option><option value="approved">В топе</option><option value="hidden">Скрытые</option></select></label>
+      <label>Промо<select value={filters.promo} onChange={event => setFilters({ ...filters, promo: event.target.value })}><option value="all">Все</option><option value="none">Без промо</option><option value="active">В очереди</option><option value="published">Опубликованы</option></select></label>
       <button type="submit" className="admin-primary" disabled={disabled}>Найти</button>
-      <button type="button" disabled={disabled || (!hasFilters && !filters.q && !filters.author && filters.mode === "all" && filters.access === "all" && filters.listing === "all")} onClick={() => {
+      <button type="button" disabled={disabled || (!hasFilters && !filters.q && !filters.author && filters.mode === "all" && filters.access === "all" && filters.listing === "all" && filters.promo === "all")} onClick={() => {
         setFilters(EMPTY_FILTERS);
         void run("Сброс фильтров…", signal => load(EMPTY_FILTERS, 0, signal));
       }}>Сбросить</button>
@@ -116,17 +136,19 @@ export function SharedWalkAdmin({ api, run, busy, onPending }: { api: AdminApi; 
     <div className="walk-admin__table-wrap" role="region" aria-label="Список пользовательских прогулок" tabIndex={0}>
       <table className={`walk-admin__table ${styles.table}`}>
         <caption className="admin-sr-only">Пользовательские прогулки, их авторы и доступ</caption>
-        <thead><tr><th scope="col">Прогулка</th><th scope="col">Автор</th><th scope="col">Маршрут</th><th scope="col">Даты</th><th scope="col">Доступ</th><th scope="col">Запуски</th><th scope="col">Действия</th></tr></thead>
-        <tbody>{loading ? skeletonRows(7, page?.walks.length ?? 0) : page?.walks.map(walk => <tr key={walk.id}>
+        <thead><tr><th scope="col">Прогулка</th><th scope="col">Автор</th><th scope="col">Маршрут</th><th scope="col">Даты</th><th scope="col">Доступ</th><th scope="col">Запуски</th><th scope="col">Промо</th><th scope="col">Действия</th></tr></thead>
+        <tbody>{loading ? skeletonRows(8, page?.walks.length ?? 0) : page?.walks.map(walk => <tr key={walk.id}>
           <th scope="row"><a href={`/walk?share=${encodeURIComponent(walk.shareToken)}`} target="_blank" rel="noopener noreferrer">{walk.title}</a>{walk.snapshotError && <span className={styles.warning}>Снимок повреждён</span>}</th>
           <td>{walk.author ? <><strong>{walk.author.name || "Без имени"}</strong><span className={styles.meta}>{walk.author.email}</span></> : "Автор неизвестен"}</td>
           <td>{walk.mode ? modeLabels[walk.mode] : "Нет данных"}<span className={styles.meta}>{walk.stopCount !== null ? `Точек: ${walk.stopCount}` : ""}{walk.distanceM !== null ? ` · ${(walk.distanceM / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км` : ""}{walk.walkingMinutes !== null ? ` · ${Math.round(walk.walkingMinutes)} мин пешком` : ""}</span></td>
           <td><time dateTime={walk.updatedAt}>{dateLabel(walk.updatedAt)}</time><span className={styles.meta}>Создана {dateLabel(walk.createdAt)}</span></td>
           <td>{accessText(walk)}</td>
           <td>{walk.launches.toLocaleString("ru-RU")}</td>
+          <td>{promoText(walk.promo)}{walk.promo?.youtubeUrl && <a className={styles.meta} href={walk.promo.youtubeUrl} target="_blank" rel="noopener noreferrer">Ролик на YouTube</a>}</td>
           <td className={styles.actions}><button type="button" disabled={disabled || copying} onClick={() => void copyLink(walk)} aria-label={`Скопировать ссылку: ${walk.title}`}>Скопировать ссылку</button>
             {walk.visibility === "public" && walk.listingStatus !== "approved" && <button type="button" disabled={disabled} onClick={() => moderate(walk, "approve")} aria-label={`Одобрить для топа: ${walk.title}`}>Одобрить для топа</button>}
-            {walk.visibility === "public" && walk.listingStatus !== "hidden" && <button type="button" disabled={disabled} onClick={() => moderate(walk, "hide")} aria-label={`Скрыть из топа: ${walk.title}`}>Скрыть из топа</button>}</td>
+            {walk.visibility === "public" && walk.listingStatus !== "hidden" && <button type="button" disabled={disabled} onClick={() => moderate(walk, "hide")} aria-label={`Скрыть из топа: ${walk.title}`}>Скрыть из топа</button>}
+            {canEnqueue(walk.promo) && !walk.snapshotError && <button type="button" disabled={disabled} onClick={() => enqueue(walk)} aria-label={`В очередь промо: ${walk.title}`}>В очередь промо</button>}</td>
         </tr>)}</tbody>
       </table>
       {page && !page.total && !loading && !failed && <p className="walk-admin__empty">{hasFilters ? "По этим фильтрам прогулок нет. Измените условия или сбросьте фильтры." : "Пока никто не открыл доступ к прогулке."}</p>}
@@ -147,11 +169,13 @@ export function WalkAdminSection(props: ComponentProps<typeof WalkAdmin>) {
   const trackDirty = useCallback((value: boolean) => { dirty.current = value; onDirtyChange(value); }, [onDirtyChange]);
   return <>
     <nav className="admin-tabs" aria-label="Каталоги прогулок">
-      {[{ id: "shared", title: pending > 0 ? `Пользовательские · ${pending}` : "Пользовательские" }, { id: "editorial", title: "Редактор глав" }].map(item => <button key={item.id} disabled={Boolean(props.busy)} aria-current={tab === item.id ? "page" : undefined} onClick={() => {
+      {[{ id: "shared", title: pending > 0 ? `Пользовательские · ${pending}` : "Пользовательские" }, { id: "promo", title: "Очередь промо" }, { id: "editorial", title: "Редактор глав" }].map(item => <button key={item.id} disabled={Boolean(props.busy)} aria-current={tab === item.id ? "page" : undefined} onClick={() => {
         if (tab === item.id || (dirty.current && !window.confirm("Есть несохранённые правки главы. Отбросить их и продолжить?"))) return;
         setTab(item.id);
       }}>{item.title}</button>)}
     </nav>
-    {tab === "shared" ? <SharedWalkAdmin api={props.api} busy={props.busy} run={props.run} onPending={setPending} /> : <WalkAdmin {...props} onDirtyChange={trackDirty} />}
+    {tab === "shared" ? <SharedWalkAdmin api={props.api} busy={props.busy} run={props.run} onPending={setPending} />
+      : tab === "promo" ? <PromoQueueAdmin api={props.api} busy={props.busy} run={props.run} />
+      : <WalkAdmin {...props} onDirtyChange={trackDirty} />}
   </>;
 }

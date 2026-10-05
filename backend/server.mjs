@@ -284,6 +284,30 @@ export function createApp({store,provider,osmGeocoder=null,foodIndex=null,yandex
         for(const [name,value] of Object.entries(result.headers))res.setHeader(name,value);
         json(res,result.status,result.body);return;
       }
+      // Promo queue for otgolosok-shorts: same service token as promo walks.
+      const promoService=new RegExp(`^/api/service/promo-queue/(?:claim|(${UUID})(/report)?)$`).exec(url.pathname);
+      if(promoService) {
+        if(!promoEnabled){json(res,404,{error:{message:"Страница не найдена."}});return;}
+        const authorized=authorizePromo(req.headers.authorization);
+        if(authorized===429){res.setHeader("Retry-After","60");json(res,429,{error:{code:"RATE_LIMITED",message:"Too many failed attempts."}});return;}
+        if(authorized!==200){res.setHeader("WWW-Authenticate","Bearer");json(res,401,{error:{code:"UNAUTHORIZED",message:"Service authentication required."}});return;}
+        if(url.search)throw failure("BAD_REQUEST");
+        if(!accountStore){json(res,503,{error:{code:"UNAVAILABLE",message:"Account storage is unavailable."}});return;}
+        const reading=promoService[1]&&!promoService[2];
+        if(req.method!==(reading?"GET":"POST")){res.setHeader("Allow",reading?"GET":"POST");json(res,405,{error:{code:"METHOD_NOT_ALLOWED",message:"Method not allowed."}});return;}
+        try {
+          if(!promoService[1]) {
+            const input=await body(req,1024);
+            if(Object.keys(input).some(key=>key!=="count"))throw failure("BAD_REQUEST");
+            json(res,200,{items:accountStore.claimPromo(input.count)});return;
+          }
+          const item=reading?accountStore.getPromo(promoService[1]):accountStore.reportPromo(promoService[1],await body(req,4096));
+          json(res,item?200:404,item?{item}:{error:{code:"NOT_FOUND",message:"Promo item not found."}});return;
+        } catch(error) {
+          if(error.code==="CONFLICT"){json(res,409,{error:{code:"CONFLICT",message:error.message}});return;}
+          throw error;
+        }
+      }
       const researchMatch=new RegExp(`^/api/walk-research-jobs(?:/(${UUID})(/retry)?)?$`).exec(url.pathname);
       if(researchMatch) {
         if(auth&&(!session||!accountStore)){json(res,401,{error:{code:"UNAUTHORIZED",message:"Войдите, чтобы исследовать прогулку."}});return;}
@@ -351,9 +375,32 @@ export function createApp({store,provider,osmGeocoder=null,foodIndex=null,yandex
         if(await placeFeedback.admin(req,res,url))return;
         if(req.method==="GET"&&url.pathname==="/api/story-admin/walks/shared") {
           const entries=[...url.searchParams];
-          if(entries.some(([key,value])=>!["limit","offset","q","author","mode","access","listing"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
+          if(entries.some(([key,value])=>!["limit","offset","q","author","mode","access","listing","promo"].includes(key)||(["limit","offset"].includes(key)&&!/^\d+$/.test(value)))||new Set(entries.map(([key])=>key)).size!==entries.length)throw failure("BAD_REQUEST");
           if(!accountStore){json(res,503,{error:{code:"UNAVAILABLE",message:"Хранилище прогулок недоступно."}});return;}
-          json(res,200,accountStore.listSharedWalksAdmin({limit:Number(url.searchParams.get("limit")??25),offset:Number(url.searchParams.get("offset")??0),q:url.searchParams.get("q")??"",author:url.searchParams.get("author")??"",mode:url.searchParams.get("mode")??"all",access:url.searchParams.get("access")??"all",listing:url.searchParams.get("listing")??"all"}));return;
+          json(res,200,accountStore.listSharedWalksAdmin({limit:Number(url.searchParams.get("limit")??25),offset:Number(url.searchParams.get("offset")??0),q:url.searchParams.get("q")??"",author:url.searchParams.get("author")??"",mode:url.searchParams.get("mode")??"all",access:url.searchParams.get("access")??"all",listing:url.searchParams.get("listing")??"all",promo:url.searchParams.get("promo")??"all"}));return;
+        }
+        const promoAdmin=new RegExp(`^/api/story-admin/promo-queue(?:/(${UUID})/(remove|up|requeue))?$`).exec(url.pathname);
+        if(promoAdmin) {
+          if(!accountStore){json(res,503,{error:{code:"UNAVAILABLE",message:"Хранилище прогулок недоступно."}});return;}
+          if(url.search)throw failure("BAD_REQUEST");
+          if(!promoAdmin[1]&&req.method==="GET"){json(res,200,accountStore.listPromoQueue());return;}
+          if(req.method!=="POST"){res.setHeader("Allow",promoAdmin[1]?"POST":"GET, POST");json(res,405,{error:{code:"METHOD_NOT_ALLOWED",message:"Method not allowed."}});return;}
+          const input=await body(req);
+          try {
+            if(!promoAdmin[1]) {
+              if(Object.keys(input).some(key=>key!=="walkId"))throw failure("BAD_REQUEST");
+              const item=accountStore.enqueuePromo(input.walkId);
+              json(res,item?201:404,item?{item}:{error:{code:"NOT_FOUND",message:"Прогулка не найдена."}});return;
+            }
+            if(Object.keys(input).some(key=>key!=="revision"))throw failure("BAD_REQUEST");
+            const [, id, action]=promoAdmin;
+            if(action==="remove"){const removed=accountStore.removePromo(id,input.revision);json(res,removed?200:404,removed?{removed:true}:{error:{code:"NOT_FOUND",message:"Выпуск не найден."}});return;}
+            const item=action==="up"?accountStore.movePromoUp(id,input.revision):accountStore.requeuePromo(id,input.revision);
+            json(res,item?200:404,item?{item}:{error:{code:"NOT_FOUND",message:"Выпуск не найден."}});return;
+          } catch(error) {
+            if(error.code==="CONFLICT"){json(res,409,{error:{code:"CONFLICT",message:error.message}});return;}
+            throw error;
+          }
         }
         const walkListing=new RegExp(`^/api/story-admin/walks/shared/(${UUID})/listing$`).exec(url.pathname);
         if(walkListing) {

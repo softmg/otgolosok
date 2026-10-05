@@ -1,6 +1,6 @@
 # Plan: promo queue — walks picked in the admin are published as Shorts + Telegram posts on a fixed schedule
 
-Status: plan, 2026-10-05.
+Status: in progress since 2026-10-05.
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of the date above and may be outdated. Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
