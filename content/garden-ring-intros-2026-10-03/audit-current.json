@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T14:39:13.147343+00:00",
+  "updatedAt": "2026-10-05T14:51:25.012180+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 152,
+    "publishedWithRevoice": 160,
     "reviewedNoChange": 4,
-    "pending": 244
+    "pending": 236
   },
   "entries": [
     {
@@ -85,21 +85,24 @@
       "name": "А. Л. Мясникову",
       "originalTextId": "829e914e-bcbd-41d4-8ef5-7a2567ffb236",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch26/changes.json"
     },
     {
       "placeId": "osm:node:6644719373",
       "name": "А. М. Васнецову",
       "originalTextId": "abb4cbb7-44ac-4df8-a87b-b098723cd609",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch26/changes.json"
     },
     {
       "placeId": "osm:node:7934342888",
       "name": "А. М. Горчакову",
       "originalTextId": "54678831-3fe3-48b0-b43f-729883c47cef",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch26/changes.json"
     },
     {
       "placeId": "osm:node:7667621840",
@@ -113,7 +116,8 @@
       "name": "А. Н. Рыбакову",
       "originalTextId": "1f8022cc-26a3-4ac8-b308-785522f60f10",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch26/changes.json"
     },
     {
       "placeId": "osm:node:1161887274",
@@ -128,28 +132,32 @@
       "name": "А. С. Голубкиной",
       "originalTextId": "637bc468-7612-40a4-8ee5-620862742589",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch26/changes.json"
     },
     {
       "placeId": "osm:node:8702379682",
       "name": "А. С. Иванову",
       "originalTextId": "32b7acc4-a53a-4397-a215-a4820f4240ee",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch26/changes.json"
     },
     {
       "placeId": "osm:node:12471022954",
       "name": "А. С. Пушкину",
       "originalTextId": "b8239f65-1510-4e59-be03-47ae416534e8",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch26/changes.json"
     },
     {
       "placeId": "osm:node:8440787111",
       "name": "А. С. Пушкину",
       "originalTextId": "f215dc7f-ddd8-40b5-813a-3d3c475d6342",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch26/changes.json"
     },
     {
       "placeId": "osm:node:12413738023",
