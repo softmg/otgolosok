@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T15:21:28.332031+00:00",
+  "updatedAt": "2026-10-05T15:33:06.553618+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 176,
+    "publishedWithRevoice": 184,
     "reviewedNoChange": 4,
-    "pending": 220
+    "pending": 212
   },
   "entries": [
     {
@@ -2705,14 +2705,16 @@
       "name": "Храм Михаила Архангела",
       "originalTextId": "8385337f-9aad-4419-afcc-13703173ae29",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch29/changes.json"
     },
     {
       "placeId": "osm:relation:15344965",
       "name": "Храм мученицы Татианы при МГУ",
       "originalTextId": "f248002e-3458-4089-acb7-4155eafe44c3",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch29/changes.json"
     },
     {
       "placeId": "osm:way:53548437",
@@ -2727,14 +2729,16 @@
       "name": "Храм Новомучеников и исповедников Российских на Лубянке",
       "originalTextId": "7498f879-9f0f-4bf8-b109-7888d370c66d",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch29/changes.json"
     },
     {
       "placeId": "osm:relation:7725971",
       "name": "Храм святителей Афанасия и Кирилла на Сивцевом Вражке",
       "originalTextId": "5794fb19-77fd-498a-8483-425a85cfd50b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch29/changes.json"
     },
     {
       "placeId": "osm:way:110894021",
@@ -2749,14 +2753,16 @@
       "name": "Храм Святителя Николая в Старом Ваганькове",
       "originalTextId": "7dfa9f50-5d57-45e1-a840-0ec6008d4e0f",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch29/changes.json"
     },
     {
       "placeId": "osm:relation:8763486",
       "name": "Храм Святого Апостола Иакова Зеведеева в Казенной Слободе",
       "originalTextId": "2bc16eaa-1aea-489e-9f06-94cb4f0d73c5",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch29/changes.json"
     },
     {
       "placeId": "osm:relation:7719252",
@@ -2779,7 +2785,8 @@
       "name": "Храм Священномученика Антипы на Колымажном дворе",
       "originalTextId": "512a36ac-e52a-413e-808e-07371e32fd61",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch29/changes.json"
     },
     {
       "placeId": "osm:relation:9919623",
@@ -2794,7 +2801,8 @@
       "name": "Храм Спаса Преображения",
       "originalTextId": "ead06249-e798-485a-84e2-a6f160a49b5b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch29/changes.json"
     },
     {
       "placeId": "osm:relation:10317488",
