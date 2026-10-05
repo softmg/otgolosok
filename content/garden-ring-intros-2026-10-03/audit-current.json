@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T13:37:57.405409+00:00",
+  "updatedAt": "2026-10-05T13:49:30.988864+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 112,
+    "publishedWithRevoice": 120,
     "reviewedNoChange": 4,
-    "pending": 284
+    "pending": 276
   },
   "entries": [
     {
@@ -270,7 +270,8 @@
       "name": "Бункер-703",
       "originalTextId": "7c45aecf-d04a-4600-a4f0-2db56f736332",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch21/changes.json"
     },
     {
       "placeId": "osm:node:4142944123",
@@ -433,14 +434,16 @@
       "name": "Галеев - галерея",
       "originalTextId": "3f32cb2e-6dfb-4cfd-80ac-20fdc0a83f67",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch21/changes.json"
     },
     {
       "placeId": "osm:node:273354762",
       "name": "Галерея искусства стран Европы и Америки XIX—XX веков",
       "originalTextId": "e44c2a88-61f1-437d-9f64-ea1a62a1fee5",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch21/changes.json"
     },
     {
       "placeId": "osm:node:12314105580",
@@ -599,7 +602,8 @@
       "name": "Дом Высоцкого на Таганке",
       "originalTextId": "07978d96-517b-4b6b-8ef0-9a7e87161a40",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch21/changes.json"
     },
     {
       "placeId": "osm:node:8431704517",
@@ -1138,7 +1142,8 @@
       "name": "Мемориальная квартира Андрея Белого",
       "originalTextId": "3397dd88-297a-4f04-9635-caf8ef01f203",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch21/changes.json"
     },
     {
       "placeId": "osm:node:4088301220",
@@ -1340,7 +1345,8 @@
       "name": "Музей археологии Москвы",
       "originalTextId": "6151b1ce-91e0-4d2b-bb2a-edcded66342b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch21/changes.json"
     },
     {
       "placeId": "osm:way:164210810",
@@ -1386,7 +1392,8 @@
       "name": "Музей международного нумизматического клуба",
       "originalTextId": "b5e986c8-0c67-440c-b7de-9ec175558195",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch21/changes.json"
     },
     {
       "placeId": "osm:node:7810650304",
@@ -1430,7 +1437,8 @@
       "name": "Музей русской иконы",
       "originalTextId": "646d1ec0-201c-4076-8b3a-2d0fd8da60e4",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch21/changes.json"
     },
     {
       "placeId": "osm:node:1161887242",
