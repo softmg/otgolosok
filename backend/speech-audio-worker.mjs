@@ -1,13 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { createNarration } from "./audio.mjs";
+import { failure } from "./domain.mjs";
 
 export const ELEVENLABS_PROFILE_ID = "elevenlabs-v3";
 const LEASE_MS = 600000;
 
 /**
  * Queue profile of catalog voicing through ElevenLabs: the text is normalized once at enqueue time. The ID predates
- * Eleven v4 and is kept because stored texts and jobs refer to it; the model is part of the profile, so a new model
- * voices an already voiced text again instead of reusing the old job.
+ * Eleven v4 and is kept because stored texts and jobs refer to it. The model selects synthesis for new jobs;
+ * ordinary enqueue preserves matching published audio when the configured model changes.
  */
 export function elevenLabsProfile(voice, model) {
   return { engine: "elevenlabs", language: "ru", speaker: voice, model, configVersion: "1", chunking: "elevenlabs-v3", maximumPublicationDurationSec: 300 };
@@ -32,8 +33,16 @@ export function startSpeechAudioWorker({ store, speechProvider, profileId, audio
     try {
       store.heartbeatExternalAudio(claim.id, { ...lease, leaseMs: LEASE_MS, progress: { stage: "synthesis" } });
       const voiced = { ...speechProvider, voice: claim.profile.speaker ?? speechProvider.voice };
+      const deliberate = claim.profile.engine === "elevenlabs" && Boolean(claim.revoiceRequestId);
+      if (deliberate) {
+        // Keep completed retry caches readable after a runtime-model change; a cache miss requires the original model.
+        voiced.ttsModel = claim.profile.model;
+        voiced.scriptVersion = "external-revoice-v1";
+        if (claim.profile.model !== speechProvider.ttsModel) voiced.speech = async () => { throw failure("TTS_MODEL_MISMATCH"); };
+      }
       const artifact = await narrate({ paragraphs: [{ text: claim.spokenText }] }, voiced, audioDirectory, controller.signal,
-        { minDurationSec: 1, maxDurationSec: claim.profile.maximumPublicationDurationSec ?? 300, normalize: prepared });
+        { minDurationSec: 1, maxDurationSec: claim.profile.maximumPublicationDurationSec ?? 300, normalize: prepared,
+          ...(deliberate ? { cacheNamespace: claim.cacheNamespace ?? `external-revoice:${claim.id}` } : {}) });
       store.acceptExternalAudio(claim.id, { ...lease, uploadId: `${profileId}-${claim.id}-${claim.leaseGeneration}`, uploadSha256: artifact.sha256, artifact });
     } catch (error) {
       if (stopped) return;

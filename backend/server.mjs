@@ -519,11 +519,20 @@ export function createApp({store,provider,osmGeocoder=null,foodIndex=null,yandex
           json(res,place?200:404,place?{place}:{error:{code:"NOT_FOUND",message:"Place text not found."}});return;}
         const revoiceContent=/^\/api\/story-admin\/content\/places\/(osm:(?:node|way|relation):\d+)\/audio$/.exec(url.pathname);
         if(revoiceContent&&req.method==="POST"){if(!origin||req.headers.origin!==origin){json(res,403,{error:{code:"FORBIDDEN",message:"Same-origin request required."}});return;}
-          const input=await body(req,4096),place=store.getPlace(revoiceContent[1]);
+          const input=await body(req,4096);
+          if(Object.keys(input).some(key=>!["profileId","requestId"].includes(key)))throw failure("BAD_REQUEST");
+          const place=store.getPlace(revoiceContent[1]);
           if(!place?.text||place.text.verification!=="editorial"){json(res,404,{error:{code:"NOT_FOUND",message:"Approved place text not found."}});return;}
           const profileId=input.profileId??localTts.defaultProfile;
           if(!audioProfiles.some(profile=>profile.id===profileId))throw failure("BAD_REQUEST");
-          const audioJob=await store.enqueueExternalAudio({sourceJobId:`place-text:${place.text.id}`,sourceRevision:0,story:{...place.text.story,address:place.address??place.name},profileId});
+          const deliberate=profileId===ELEVENLABS_PROFILE_ID;
+          if(deliberate&&(typeof input.requestId!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.requestId)))throw failure("BAD_REQUEST");
+          if(!deliberate&&input.requestId!==undefined)throw failure("BAD_REQUEST");
+          let audioJob;
+          try{audioJob=await store.enqueueExternalAudio({sourceJobId:`place-text:${place.text.id}`,sourceRevision:0,story:{...place.text.story,address:place.address??place.name},profileId,
+            ...(deliberate?{revoiceRequestId:input.requestId}:{})});}
+          catch(error){if(error.code!=="CONFLICT")throw error;
+            json(res,409,{error:{code:"CONFLICT",message:"Озвучка уже выполняется или утверждённый текст изменился. Дождитесь завершения задания и обновите место перед новой попыткой."}});return;}
           if(profileId===ELEVENLABS_PROFILE_ID)elevenLabsWorker?.wake();
           json(res,200,{place,audioJob});return;}
         const retryAudio=new RegExp(`^/api/story-admin/content/audio/(${UUID})/retry$`).exec(url.pathname);

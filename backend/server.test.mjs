@@ -4,6 +4,7 @@ import { mkdtemp,readFile,writeFile,rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createStore } from "./store.mjs";
+import { ELEVENLABS_PROFILE_ID, elevenLabsProfile } from "./speech-audio-worker.mjs";
 import { openFoodIndex } from "./food-places.mjs";
 import { foodIndexFixture, foodMeta, foodPlace } from "./test-fixtures/food-index.mjs";
 import { createApp, EDITORIAL_PLACE_IMAGES, setupPlaceImages, workerLeaseSecret } from "./server.mjs";
@@ -25,7 +26,7 @@ async function testAccounts(t,users=["test-user"]) {
 async function fixture(t,options={}) {
   const directory=await mkdtemp(join(tmpdir(),"story-api-"));
   // One active job keeps queue-capacity behaviour observable with a couple of requests.
-  const store=createStore(":memory:",{maxActive:1});
+  const store=createStore(":memory:",{maxActive:1,...(options.elevenLabsTts?{externalTtsProfiles:{[ELEVENLABS_PROFILE_ID]:elevenLabsProfile(options.elevenLabsTts.voice,"eleven_v3")}}:{})});
   const accountStore=options.accountStore??(await testAccounts(t)).accountStore;
   const auth=options.auth??{api:{getSession:async()=>({user:{id:"test-user",email:"test@example.test",name:"Test",role:"editor"},session:{id:"test-session",createdAt:new Date()}})}};
   const app=createApp({store,provider:/** @type {any} */ ({}),origin:"https://otgolosok.test",audioDirectory:directory,workerEnabled:false,auth,accountStore,...options});
@@ -472,10 +473,50 @@ test("place revoicing accepts only configured audio profiles and offers ElevenLa
     for(const profileId of ["unknown-profile",...(profiles.includes("elevenlabs-v3")?[]:["elevenlabs-v3"])])
       assert.equal((await f.post("/api/story-admin/content/places/osm:node:7/audio",{profileId})).status,400,profileId);
     for(const profileId of profiles){
-      const response=await f.post("/api/story-admin/content/places/osm:node:7/audio",{profileId});
+      const response=await f.post("/api/story-admin/content/places/osm:node:7/audio",{profileId,...(profileId===ELEVENLABS_PROFILE_ID?{requestId:crypto.randomUUID()}:{})});
       assert.equal(response.status,200);assert.equal(/** @type {any} */ (await response.json()).audioJob.profileId,profileId);
     }
   }
+});
+
+test("ElevenLabs deliberate catalog actions validate intent, replay the request and preserve ordinary boundaries",async t=>{
+  let speechCalls=0;
+  const elevenLabsTts=/** @type {any} */ ({ttsProvider:"elevenlabs",voice:"RuVoice1",voices:[{id:"RuVoice1",label:"Отголосок"}],speech:async()=>{speechCalls++;throw new Error("Paid calls forbidden in this fixture");}});
+  const f=await fixture(t,{elevenLabsTts});
+  f.store.importPlaces({source:"fixture",sourceSha256:"a".repeat(64),places:[{placeId:"osm:node:7",osmType:"node",osmId:7,name:"Парк",location:{lat:55.75,lon:37.61},tags:{}}]});
+  f.store.createBatch({requestKey:"explicit-revoice-api",placeIds:["osm:node:7"],limit:1,mode:"text-only"});
+  const content=f.store.claimContentJob();
+  const paragraph=("Проверенный рассказ о московском парке и его истории. ").repeat(15).trim();
+  const story={title:"Парк",paragraphs:[{text:paragraph,factIds:[]}]};
+  f.store.completeContentJob(content.id,{story,evidence:{}});
+  const enqueue=f.store.enqueueExternalAudio.bind(f.store),calls=[];
+  f.store.enqueueExternalAudio=async input=>{calls.push(input);return enqueue(input);};
+  const approval=await f.post("/api/story-admin/content/places/osm:node:7/approve",{story,requestId:crypto.randomUUID(),revoiceRequestId:crypto.randomUUID()});
+  assert.equal(approval.status,200);
+  assert.equal(calls.length,0); // Text-only approval cannot be upgraded to deliberate synthesis by extra fields.
+  const path="/api/story-admin/content/places/osm:node:7/audio";
+  const profileId=ELEVENLABS_PROFILE_ID,requestId=crypto.randomUUID();
+  for(const input of [{profileId},{profileId,requestId:null},{profileId,requestId:123},{profileId,requestId:""},{profileId,requestId:"not-a-uuid"},{profileId,requestId:"00000000-0000-0000-0000-000000000000"},{profileId,requestId,revoiceRequestId:requestId},{profileId:"silero-ru-v1",requestId}])
+    assert.equal((await f.post(path,input)).status,400,JSON.stringify(input));
+  assert.equal(calls.length,0);
+  assert.equal((await f.post(path,{profileId,requestId},"https://evil.test")).status,403);
+  const noCsrf=await fetch(f.base+path,{method:"POST",headers:{Origin:"https://otgolosok.test","Content-Type":"application/json"},body:JSON.stringify({profileId,requestId})});
+  assert.equal(noCsrf.status,403);assert.equal(calls.length,0);
+  const first=await f.post(path,{profileId,requestId});assert.equal(first.status,200);
+  const firstJob=/** @type {any} */ (await first.json()).audioJob;
+  assert.equal(calls[0].revoiceRequestId,requestId);
+  const replay=await f.post(path,{profileId,requestId});assert.equal(replay.status,200);
+  assert.equal(/** @type {any} */ (await replay.json()).audioJob.id,firstJob.id);
+  const conflict=await f.post(path,{profileId,requestId:crypto.randomUUID()});assert.equal(conflict.status,409);
+  const error=/** @type {any} */ (await conflict.json()).error;
+  assert.equal(error.code,"CONFLICT");assert.match(error.message,/Озвучка уже выполняется/);
+  assert.equal(f.store.getExternalAudioStats().states.queued,1);
+  assert.equal(speechCalls,0);
+  const source=f.store.createOrGet({key:"ordinary-generated-api",address:"Москва, парк"});
+  for(const extra of [{requestId},{revoiceRequestId:requestId}])
+    assert.equal((await f.post(`/api/story-admin/jobs/${source.id}/external-audio`,{revision:source.revision,profileId,...extra})).status,400);
+  const local=await f.post(path,{profileId:"silero-ru-v1"});assert.equal(local.status,200);
+  assert.equal(calls.at(-1).revoiceRequestId,undefined);
 });
 
 test("deep research API exposes availability and queues only one explicit draft",async t=>{

@@ -86,3 +86,46 @@ test("narration sends ru-normalizr output to the speech provider", async t => {
   } };
   await assert.rejects(createNarration(story, provider, directory, new AbortController().signal, { normalize }), /Normalized text reached synthesis/);
 });
+
+test("explicit narration namespaces isolate ordinary and other deliberate caches while reusing completed retries", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "otgolosok-revoice-cache-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const story = { paragraphs: [{ text: "Рассказ для повторной озвучки." }] };
+  const parameters = { script: story.paragraphs[0].text, model: "eleven_v4", voice: "Отголосок", version: 2, normalizer: "test", provider: "elevenlabs" };
+  const bytes = Buffer.from("previously validated ordinary ElevenLabs audio");
+  const hash = sha256(bytes);
+  const metadata = { sha256: hash, durationSec: 60, provider: "elevenlabs", voice: parameters.voice };
+  await writeFile(join(directory, `${hash}.mp3`), bytes);
+  const ordinaryKey = sha256(JSON.stringify(parameters));
+  await writeFile(join(directory, `${ordinaryKey}.json`), JSON.stringify(metadata));
+  let calls = 0;
+  const provider = { ttsProvider: "elevenlabs", ttsModel: parameters.model, voice: parameters.voice,
+    speech: async () => { calls++; throw new Error("New deliberate synthesis"); } };
+  const options = { normalize: identityNormalizer, cacheNamespace: "external-revoice:job-one" };
+  await assert.rejects(createNarration(story, provider, directory, undefined, options), /New deliberate synthesis/);
+  assert.equal(calls, 1, "an ordinary cache cannot fulfill a deliberate action");
+  const deliberateKey = sha256(JSON.stringify({ ...parameters, cacheNamespace: options.cacheNamespace }));
+  await writeFile(join(directory, `${deliberateKey}.json`), JSON.stringify(metadata));
+  assert.deepEqual(await createNarration(story, provider, directory, undefined, options), metadata);
+  assert.equal(calls, 1, "the completed artifact fulfills retry with the same identity");
+  await assert.rejects(createNarration(story, provider, directory, undefined, { ...options, cacheNamespace: "external-revoice:job-two" }), /New deliberate synthesis/);
+  assert.equal(calls, 2, "a later deliberate action has its own cache");
+  assert.deepEqual(await createNarration(story, provider, directory, undefined, { normalize: identityNormalizer }), metadata);
+  assert.equal(calls, 2, "the legacy ordinary key is byte-for-byte unchanged");
+  await writeFile(join(directory, `${hash}.mp3`), Buffer.from("corrupted"));
+  await assert.rejects(createNarration(story, provider, directory, undefined, options), /New deliberate synthesis/);
+  assert.equal(calls, 3, "corrupted completed bytes cannot fulfill a retry");
+  await rm(join(directory, `${hash}.mp3`));
+  await assert.rejects(createNarration(story, provider, directory, undefined, options), /New deliberate synthesis/);
+  assert.equal(calls, 4, "missing completed bytes cannot fulfill a retry");
+});
+
+test("invalid cache namespaces fail before preparation or paid synthesis", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "otgolosok-invalid-cache-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const provider = { speech: async () => assert.fail("invalid options must not incur paid synthesis") };
+  const normalize = Object.assign(async () => assert.fail("invalid options must fail before preparation"), { version: "test" });
+  for (const cacheNamespace of /** @type {any[]} */ (["", " ", "../outside", "with space", "x".repeat(129), null, 42])) {
+    await assert.rejects(createNarration({ paragraphs: [{ text: "Рассказ." }] }, provider, directory, undefined, { normalize, cacheNamespace }), { code: "BAD_REQUEST" });
+  }
+});

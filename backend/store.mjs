@@ -2,6 +2,7 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { isDeepStrictEqual } from "node:util";
 import { editorialDraft, hasValidStoryText } from "./admin.mjs";
 import { sha256 } from "./domain.mjs";
 import { isTtsProvider, validVoiceId } from "./tts-voices.mjs";
@@ -231,6 +232,47 @@ export function createStore(
       SELECT latest.id FROM place_texts latest WHERE latest.place_id=place_texts.place_id AND latest.approved_story_json IS NOT NULL
       ORDER BY latest.created_at DESC,latest.rowid DESC LIMIT 1)`).get(sourceJobId.slice(11));
     return row?.approved_story_json ? approvedCatalogNarration(row.approved_story_json) : null;
+  }
+
+  function provenanceJson(value) {
+    try { return typeof value === "string" ? JSON.parse(value) : null; }
+    catch { return null; }
+  }
+
+  // Receipts, rather than audio_artifacts.job_id, identify what was actually published.
+  function publishedElevenLabsJob(sourceJobId, sourceTextHash, speaker, catalog) {
+    const owner = catalog ? /** @type {{id: string, approved_story_json: string | null, audio_json: string} | undefined} */ (db.prepare(`SELECT t.id,t.approved_story_json,t.audio_json FROM place_texts t
+      WHERE t.place_id=(SELECT place_id FROM place_texts WHERE id=?) AND t.audio_json IS NOT NULL AND t.audio_json<>'null'
+      ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1`).get(sourceJobId.slice(11))) : null;
+    const artifact = catalog ? (owner ? provenanceJson(owner.audio_json) : null) : decode(findById.get(sourceJobId))?.data?.audio;
+    if (catalog && owner && !artifact) throw codedError("CONFLICT");
+    if (!artifact || artifact.provider !== "elevenlabs" || artifact.voice !== speaker) return null;
+    if (typeof artifact.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(artifact.sha256)
+      || typeof artifact.url !== "string" || !artifact.url || !Number.isFinite(artifact.durationSec) || artifact.durationSec <= 0) throw codedError("CONFLICT");
+    const rows = /** @type {(ExternalAudioJobRow & {approved_story_json?: string | null})[]} */ (catalog ? db.prepare(`SELECT a.*,t.approved_story_json FROM external_audio_jobs a
+      JOIN place_texts t ON a.source_job_id='place-text:'||t.id
+      WHERE t.place_id=(SELECT place_id FROM place_texts WHERE id=?) AND a.state='succeeded'
+      ORDER BY a.updated_at DESC,a.id`).all(sourceJobId.slice(11))
+      : db.prepare("SELECT * FROM external_audio_jobs WHERE source_job_id=? AND state='succeeded' ORDER BY updated_at DESC,id").all(sourceJobId));
+    let knownMismatch = false;
+    for (const row of rows) {
+      const receipt = provenanceJson(row.receipt_json);
+      const recorded = receipt?.artifact;
+      if (!recorded || !isDeepStrictEqual(recorded, artifact) || receipt.uploadSha256 !== artifact.sha256
+        || row.upload_sha256 !== artifact.sha256 || receipt.jobId !== row.id || receipt.uploadId !== row.upload_id) continue;
+      const payload = provenanceJson(row.payload_json);
+      if (payload?.profile?.engine !== "elevenlabs" || payload.profile.speaker !== speaker) continue;
+      if (catalog) {
+        const narration = approvedCatalogNarration(row.approved_story_json);
+        const ownerNarration = approvedCatalogNarration(owner.approved_story_json);
+        if (narration === null || ownerNarration === null || sha256(narration) !== payload.sourceTextHash
+          || sha256(ownerNarration) !== payload.sourceTextHash) continue;
+      }
+      if (payload.sourceTextHash === sourceTextHash) return row;
+      if (typeof payload.sourceTextHash === "string" && /^[a-f0-9]{64}$/.test(payload.sourceTextHash)) knownMismatch = true;
+    }
+    if (!knownMismatch) throw codedError("CONFLICT", "У опубликованной записи нет надёжного подтверждения текста. Используйте «Озвучить заново».");
+    return null;
   }
 
   function publicExternal(row) {
@@ -581,8 +623,8 @@ export function createStore(
       });
     },
 
-    /** @param {{sourceJobId: string, sourceRevision: number, story: any, profileId?: string, signal?: AbortSignal}} options */
-    async enqueueExternalAudio({ sourceJobId, sourceRevision, story, profileId = "silero-ru-v1", signal }) {
+    /** @param {{sourceJobId: string, sourceRevision: number, story: any, profileId?: string, signal?: AbortSignal, revoiceRequestId?: string}} options */
+    async enqueueExternalAudio({ sourceJobId, sourceRevision, story, profileId = "silero-ru-v1", signal, revoiceRequestId }) {
       if (typeof sourceJobId !== "string" || !Number.isSafeInteger(sourceRevision) || sourceRevision < 0
         || typeof profileId !== "string" || !/^[a-z0-9][a-z0-9._-]{0,63}$/.test(profileId)) throw codedError("BAD_REQUEST");
       const catalog = sourceJobId.startsWith("place-text:");
@@ -590,6 +632,10 @@ export function createStore(
       const script = story.paragraphs.map(paragraph => paragraph.text).join("\n\n");
       if (catalog && approvedPlaceNarration(sourceJobId) !== script) throw codedError("BAD_REQUEST");
       const configured=externalTtsProfiles[profileId]??{};
+      const elevenLabs = configured.engine === "elevenlabs";
+      if (revoiceRequestId !== undefined && (!elevenLabs || typeof revoiceRequestId !== "string"
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(revoiceRequestId))) throw codedError("BAD_REQUEST");
+      if (revoiceRequestId !== undefined) revoiceRequestId = revoiceRequestId.toLowerCase();
       const rawContract=configured.textPreparation?.input==="raw";
       const spokenText = rawContract?script:await normalizeExternalText(script,{signal});
       const spokenTextHash = sha256(spokenText);
@@ -601,11 +647,48 @@ export function createStore(
         maximumPublicationDurationSec:configured.maximumPublicationDurationSec??150,
         // Only cloud profiles name a model; adding the key to the others would change the keys of their existing jobs.
         ...(configured.model?{model:configured.model}:{})};
-      const inputKey = sha256(JSON.stringify({version:rawContract?"external-audio-v2":"external-audio-v1",sourceJobId,sourceRevision,spokenTextHash,profileId,normalizer:normalizerVersion,profile}));
+      const inputKey = sha256(JSON.stringify({...(revoiceRequestId ? {revoiceRequestId, revoiceVersion:"external-revoice-v1"} : {}),version:rawContract?"external-audio-v2":"external-audio-v1",sourceJobId,sourceRevision,spokenTextHash,profileId,normalizer:normalizerVersion,profile}));
       return transaction(() => {
         // Normalization is asynchronous: an editor may have changed the approval meanwhile.
         if (catalog && approvedPlaceNarration(sourceJobId) !== script) throw codedError("CONFLICT");
-        if(catalog)db.prepare("UPDATE place_texts SET audio_target_profile=? WHERE id=?").run(profileId,sourceJobId.slice(11));
+        const sourceTextHash = sha256(script);
+        if (elevenLabs && !catalog) {
+          const current = decode(findById.get(sourceJobId));
+          if (!current || current.revision !== sourceRevision || !hasValidStoryText(current.data?.story)
+            || sha256(current.data.story.paragraphs.map(paragraph => paragraph.text).join("\n\n")) !== sourceTextHash) throw codedError("CONFLICT");
+        }
+        const selectTarget = () => { if (catalog) db.prepare("UPDATE place_texts SET audio_target_profile=? WHERE id=?").run(profileId,sourceJobId.slice(11)); };
+        if (elevenLabs) {
+          if (revoiceRequestId) {
+            const replayScope = catalog ? "source_job_id IN (SELECT 'place-text:'||id FROM place_texts WHERE place_id=(SELECT place_id FROM place_texts WHERE id=?))" : "source_job_id=?";
+            const replay = /** @type {ExternalAudioJobRow | undefined} */ (db.prepare(`SELECT * FROM external_audio_jobs WHERE ${replayScope} AND profile_id=?
+              AND json_extract(payload_json,'$.revoiceRequestId')=? ORDER BY created_at,id LIMIT 1`).get(catalog ? sourceJobId.slice(11) : sourceJobId,profileId,revoiceRequestId));
+            if (replay) {
+              const payload = JSON.parse(replay.payload_json);
+              if (payload.sourceTextHash !== sourceTextHash || payload.profile?.engine !== "elevenlabs" || payload.profile.speaker !== profile.speaker) throw codedError("CONFLICT");
+              // A replay acknowledges the original intent; it must not supersede a newer profile selection.
+              return publicExternal(replay);
+            }
+          }
+          const active = /** @type {ExternalAudioJobRow[]} */ (db.prepare(`SELECT * FROM external_audio_jobs WHERE source_job_id=? AND profile_id=?
+            AND state IN ('queued','retry_wait','leased') AND json_extract(payload_json,'$.profile.engine')='elevenlabs'
+            ORDER BY created_at,id`).all(sourceJobId,profileId));
+          if (active.length) {
+            const compatible = active.length === 1 && (() => {
+              const payload = JSON.parse(active[0].payload_json);
+              return payload.sourceTextHash === sourceTextHash && JSON.stringify(payload.profile) === JSON.stringify(profile)
+                && payload.spokenTextHash === spokenTextHash && payload.normalizerVersion === normalizerVersion;
+            })();
+            if (revoiceRequestId || !compatible) throw codedError("CONFLICT", "Озвучивание уже выполняется. Дождитесь завершения текущего задания.");
+            selectTarget();
+            return publicExternal(active[0]);
+          }
+          if (!revoiceRequestId) {
+            const published = publishedElevenLabsJob(sourceJobId,sourceTextHash,profile.speaker,catalog);
+            if (published) { selectTarget(); return publicExternal(published); }
+          }
+        }
+        selectTarget();
         const existing = db.prepare("SELECT * FROM external_audio_jobs WHERE input_key = ?").get(inputKey);
         if (existing) return publicExternal(existing);
         const timestamp = isoNow(now), id = randomUUID();
@@ -613,7 +696,7 @@ export function createStore(
           (id,input_key,source_job_id,source_revision,state,profile_id,profile_version,priority,payload_json,next_attempt_at,created_at,updated_at)
           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(id,inputKey,sourceJobId,sourceRevision,"queued",profileId,profile.configVersion,0,
             encode({textVersion:`${sourceJobId}:${sourceRevision}`,sourceTextHash:sha256(script),spokenText,spokenTextHash,normalizerVersion,
-              profile}),timestamp,timestamp,timestamp);
+              profile,...(revoiceRequestId ? {revoiceRequestId,cacheNamespace:`external-revoice:${id}`} : {})}),timestamp,timestamp,timestamp);
         return publicExternal(externalRow(id));
       });
     },
@@ -719,7 +802,7 @@ export function createStore(
         const row=externalRow(id);
         if(row?.error_json) {const previous=JSON.parse(row.error_json);if(previous.failureId===failureId)return publicExternal(row);}
         requireLease(row,workerId,generation,token);
-        const terminal=Number(row.attempts)>=Number(row.max_attempts),timestamp=isoNow(now);
+        const terminal=code==="TTS_MODEL_MISMATCH"||Number(row.attempts)>=Number(row.max_attempts),timestamp=isoNow(now);
         const baseDelay=Number(row.attempts)<=1?30000:120000,delay=Math.round(baseDelay*(.8+random()*.4));
         db.prepare(`UPDATE external_audio_jobs SET state=?,next_attempt_at=?,lease_token_hash=NULL,lease_expires_at=NULL,
           worker_id=NULL,claim_request_id=NULL,error_json=?,updated_at=? WHERE id=?`).run(terminal?"failed":"retry_wait",
@@ -730,7 +813,25 @@ export function createStore(
       });
     },
 
-    retryExternalAudio(id) {return transaction(()=>{const row=externalRow(id);if(!row||!["failed","cancelled"].includes(row.state))return null;const timestamp=isoNow(now);
+    retryExternalAudio(id) {return transaction(()=>{const row=externalRow(id);if(!row||!["failed","cancelled"].includes(row.state))return null;
+      const payload = JSON.parse(row.payload_json);
+      if (payload.profile?.engine === "elevenlabs") {
+        const catalog = row.source_job_id.startsWith("place-text:");
+        if (catalog) {
+          const narration = approvedPlaceNarration(row.source_job_id);
+          if (narration === null || sha256(narration) !== payload.sourceTextHash) throw codedError("CONFLICT");
+        } else {
+          const source = decode(findById.get(row.source_job_id));
+          if (!source || source.revision !== Number(row.source_revision) || !hasValidStoryText(source.data?.story)
+            || sha256(source.data.story.paragraphs.map(paragraph => paragraph.text).join("\n\n")) !== payload.sourceTextHash) throw codedError("CONFLICT");
+        }
+        const scope = catalog ? "source_job_id IN (SELECT 'place-text:'||id FROM place_texts WHERE place_id=(SELECT place_id FROM place_texts WHERE id=?))" : "source_job_id=?";
+        const active = db.prepare(`SELECT id FROM external_audio_jobs WHERE ${scope} AND profile_id=? AND id<>?
+          AND state IN ('queued','retry_wait','leased') AND json_extract(payload_json,'$.profile.engine')='elevenlabs' LIMIT 1`)
+          .get(catalog ? row.source_job_id.slice(11) : row.source_job_id,row.profile_id,id);
+        if (active) throw codedError("CONFLICT", "Озвучивание уже выполняется. Дождитесь завершения текущего задания.");
+      }
+      const timestamp=isoNow(now);
       db.prepare(`UPDATE external_audio_jobs SET state='queued',attempts=0,next_attempt_at=?,lease_token_hash=NULL,lease_expires_at=NULL,
         worker_id=NULL,claim_request_id=NULL,error_json=NULL,updated_at=? WHERE id=?`).run(timestamp,timestamp,id);return publicExternal(externalRow(id));});},
 

@@ -37,6 +37,7 @@ let transport: "worker" | "http";
 let configuredWorkers: ContentWorker[];
 let audioProfiles: { id: string; label: string }[] | undefined;
 let audioRequests: { path: string; body: unknown }[];
+let audioFailure: Error | null;
 const onDirtyChange = vi.fn();
 
 /** Mirrors the server: items are narrowed by status and error, while the code list follows the status filter alone. */
@@ -57,7 +58,7 @@ function itemsPage(query: URLSearchParams) {
 
 const api: AdminApi = async <T,>(path: string, _signal: AbortSignal, body?: unknown): Promise<T> => {
   if (gate) await gate.promise;
-  if (/^\/content\/places\/[^/]+\/audio$/.test(path)) { audioRequests.push({ path, body }); return { audioJob: {} } as T; }
+  if (/^\/content\/places\/[^/]+\/audio$/.test(path)) { audioRequests.push({ path, body }); if (audioFailure) throw audioFailure; return { audioJob: {} } as T; }
   if (path.endsWith("/approve")) {
     const place = structuredClone(places[0]);
     if (place.text) place.text.verification = "editorial";
@@ -170,6 +171,7 @@ beforeEach(async () => {
   configuredWorkers = [];
   audioProfiles = undefined;
   audioRequests = [];
+  audioFailure = null;
   Object.defineProperty(Element.prototype, "scrollIntoView", {
     configurable: true, value: function (this: Element) { scrolled.push(this); },
   });
@@ -511,7 +513,21 @@ describe("переозвучка места", () => {
     expect(container.textContent).not.toContain("нет online-воркера TTS");
     expect(container.textContent).toContain("аудиотеги в квадратных скобках");
     await click(buttons("Озвучить заново")[0]);
-    expect(audioRequests).toEqual([{ path: "/content/places/osm:node:1/audio", body: { profileId: "elevenlabs-v3" } }]);
+    expect(audioRequests).toEqual([{ path: "/content/places/osm:node:1/audio", body: { profileId: "elevenlabs-v3", requestId: expect.stringMatching(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i) } }]);
+    const firstId = (audioRequests[0].body as { requestId: string }).requestId;
+    await click(buttons("Озвучить заново")[0]);
+    expect((audioRequests[1].body as { requestId: string }).requestId).not.toBe(firstId);
     expect(container.querySelector('[role="status"]')?.textContent).toBe("Озвучка поставлена в очередь.");
+  });
+
+  it("при конфликте объясняет активную озвучку и сохраняет открытый текст", async () => {
+    audioProfiles = [{ id: "elevenlabs-v3", label: "ElevenLabs" }];
+    await remount();
+    audioFailure = Object.assign(new Error("Conflict"), { status: 409 });
+    await click(buttons("Озвучить заново")[0]);
+    expect(container.querySelector('[role="status"]')?.textContent).toContain("Озвучка уже выполняется");
+    expect(container.querySelector('[role="status"]')?.textContent).not.toContain("поставлена в очередь");
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(container.querySelector<HTMLInputElement>("#content-title")?.value).toBe(story.title);
   });
 });

@@ -6,13 +6,22 @@ import { failure, sha256 } from "./domain.mjs";
 import { normalizeForSpeech } from "./text-normalizer.mjs";
 
 const exec = promisify(execFile);
-export async function createNarration(story, provider, directory, signal, { minDurationSec = 45, maxDurationSec = 150, normalize = normalizeForSpeech } = {}) {
+/**
+ * @param {any} story
+ * @param {any} provider
+ * @param {string} directory
+ * @param {AbortSignal | undefined} signal
+ * @param {{minDurationSec?: number, maxDurationSec?: number, normalize?: ((text: string, options?: {signal?: AbortSignal}) => Promise<string>) & {version?: string}, cacheNamespace?: string}} [options]
+ */
+export async function createNarration(story, provider, directory, signal, { minDurationSec = 45, maxDurationSec = 150, normalize = normalizeForSpeech, cacheNamespace } = {}) {
   if (!Number.isFinite(minDurationSec) || !Number.isFinite(maxDurationSec) || minDurationSec <= 0 || maxDurationSec < minDurationSec || maxDurationSec > 600) throw failure("AUDIO_DURATION");
+  if (cacheNamespace !== undefined && (typeof cacheNamespace !== "string" || !/^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(cacheNamespace))) throw failure("BAD_REQUEST");
   const script = story.paragraphs.map((paragraph) => paragraph.text).join("\n\n");
   const spokenScript = await normalize(script, { signal });
   const ttsProvider = provider.ttsProvider ?? "openai";
   const key = sha256(JSON.stringify({script:spokenScript,model:provider.ttsModel,voice:provider.voice,version:2,normalizer:normalize.version ?? "custom",
-    ...(ttsProvider === "openai" ? {} : {provider:ttsProvider}),...(provider.scriptVersion ? {scriptVersion:provider.scriptVersion} : {})}));
+    ...(ttsProvider === "openai" ? {} : {provider:ttsProvider}),...(provider.scriptVersion ? {scriptVersion:provider.scriptVersion} : {}),
+    ...(cacheNamespace === undefined ? {} : {cacheNamespace})}));
   await mkdir(directory, { recursive: true });
   const metadataPath = join(directory, `${key}.json`);
   try {

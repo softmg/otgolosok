@@ -480,11 +480,25 @@ export function ContentAdmin({ api, busy, run, onDirtyChange }: ContentAdminProp
                   {audioProfiles.map(profile => <option key={profile.id} value={profile.id}>{profile.label}</option>)}
                 </select>
               </label>}
-              {place.text?.verification === "editorial" && <button disabled={disabled || dirty} onClick={() => void run("Постановка аудио…", async signal => {
-                await api(`/content/places/${place.id}/audio`, signal, audioProfile ? { profileId: audioProfile } : {});
-                await loadOverview(signal);
-                setNotice("Озвучка поставлена в очередь.");
-              })}>Озвучить заново</button>}
+              {place.text?.verification === "editorial" && <button disabled={disabled || dirty} onClick={() => {
+                // One body belongs to this deliberate action, including any retry of its callback.
+                const body = audioProfile === "elevenlabs-v3"
+                  ? { profileId: audioProfile, requestId: crypto.randomUUID() }
+                  : audioProfile ? { profileId: audioProfile } : {};
+                void run("Постановка аудио…", async signal => {
+                  setNotice("");
+                  try { await api(`/content/places/${place.id}/audio`, signal, body); }
+                  catch (cause) {
+                    if (cause && typeof cause === "object" && "status" in cause && cause.status === 409) {
+                      setNotice("Озвучка уже выполняется или утверждённый текст изменился. Дождитесь завершения задания и обновите место перед новой попыткой.");
+                      return;
+                    }
+                    throw cause;
+                  }
+                  await loadOverview(signal);
+                  setNotice("Озвучка поставлена в очередь.");
+                });
+              }}>Озвучить заново</button>}
             </div>
             {ttsTransport === "worker" && !workerOnline && audioProfile === (audioProfiles[0]?.id ?? "") && <p className="admin-callout">Сейчас нет online-воркера TTS. Поставленная озвучка останется в очереди до его подключения.</p>}
             {audioProfile === "elevenlabs-v3" && <p className="admin-meta">Перед синтезом модель расставит в тексте аудиотеги в квадратных скобках ([warmly], [short pause] и т. п.). Сам текст не меняется. Каждая озвучка расходует кредиты ElevenLabs.</p>}
