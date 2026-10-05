@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T17:53:48.066213+00:00",
+  "updatedAt": "2026-10-05T18:07:09.374293+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 264,
+    "publishedWithRevoice": 272,
     "reviewedNoChange": 4,
-    "pending": 132
+    "pending": 124
   },
   "entries": [
     {
@@ -1158,49 +1158,56 @@
       "name": "М. И. Ульяновой",
       "originalTextId": "1373671d-6ba0-40d1-a742-2693e33cf036",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch40/changes.json"
     },
     {
       "placeId": "osm:node:2157117342",
       "name": "М. Л. Ростроповичу",
       "originalTextId": "e001175b-5169-4b4a-9955-8f495816ac18",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch40/changes.json"
     },
     {
       "placeId": "osm:node:13259551104",
       "name": "М. М. Ботвиннику",
       "originalTextId": "019f8059-6bcc-4d9e-bc2f-8fff8842c009",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch40/changes.json"
     },
     {
       "placeId": "osm:node:8440603117",
       "name": "М. С. Шагинян",
       "originalTextId": "1ba1bc34-0249-4ec0-8c2b-3ea027b0e550",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch40/changes.json"
     },
     {
       "placeId": "osm:node:13245906713",
       "name": "М. Светлову",
       "originalTextId": "01824a37-775e-4492-90a1-e0d86ee0698e",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch40/changes.json"
     },
     {
       "placeId": "osm:node:11335355279",
       "name": "М. Ф. Митькову",
       "originalTextId": "b3b76187-5ba9-4ed9-bc4e-6a22d4512a6c",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch40/changes.json"
     },
     {
       "placeId": "osm:node:7099701420",
       "name": "М.А. Ульянову",
       "originalTextId": "1ad46d07-6736-44b8-b897-d07539385a26",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch40/changes.json"
     },
     {
       "placeId": "osm:relation:3272726",
@@ -1215,7 +1222,8 @@
       "name": "Малороссийское подворье",
       "originalTextId": "192f857e-4493-4f29-aae3-a1f04f2025ff",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch40/changes.json"
     },
     {
       "placeId": "osm:node:4604279417",
