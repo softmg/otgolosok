@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T19:04:19.866817+00:00",
+  "updatedAt": "2026-10-05T19:14:56.774376+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 312,
+    "publishedWithRevoice": 320,
     "reviewedNoChange": 4,
-    "pending": 84
+    "pending": 76
   },
   "entries": [
     {
@@ -1806,35 +1806,40 @@
       "name": "Нехорошая квартира",
       "originalTextId": "937c603d-580f-4f9f-94cc-79fd7bbae729",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch46/changes.json"
     },
     {
       "placeId": "osm:node:1855700832",
       "name": "Низами Гянджеви",
       "originalTextId": "4c3f8e1b-2cb2-4bde-a031-2f7dc3e6cf8c",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch46/changes.json"
     },
     {
       "placeId": "osm:way:31482139",
       "name": "НИИ нормальной физиологии им. П. К. Анохина",
       "originalTextId": "f5d23918-20c9-4ada-943b-ed8c8aa10616",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch46/changes.json"
     },
     {
       "placeId": "osm:way:52613447",
       "name": "НИИ общей реаниматологии им. В. А. Неговского",
       "originalTextId": "80b9b947-2f03-4ac8-84cd-3b742b646c89",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch46/changes.json"
     },
     {
       "placeId": "osm:relation:3366074",
       "name": "Никитский бульвар и память о «Соловьином доме»",
       "originalTextId": "b9ea6efc-77d7-4d50-971c-ded420ba2ac2",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch46/changes.json"
     },
     {
       "placeId": "osm:relation:8675640",
@@ -1857,21 +1862,24 @@
       "name": "О. Э. Мандельштаму",
       "originalTextId": "6185dcea-5cb0-4a6b-91db-03586a947a06",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch46/changes.json"
     },
     {
       "placeId": "osm:node:13305990964",
       "name": "О.И. Далю",
       "originalTextId": "dc8b59f7-bc73-48ee-86a4-6149b4ed0cf0",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch46/changes.json"
     },
     {
       "placeId": "osm:way:32903277",
       "name": "Около дома Станиславского",
       "originalTextId": "d041bf73-ab7a-4f3c-8679-a8fb38b623de",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch46/changes.json"
     },
     {
       "placeId": "osm:relation:1360631",

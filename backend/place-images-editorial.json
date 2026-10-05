@@ -2845,5 +2845,44 @@
     "licenseUrl": "https://commons.wikimedia.org/wiki/File:No-nb_bldsa_1c115.jpg#Licensing",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:31482139": {
+    "thumbnail": "/images/places/way-31482139-899b3c0070cd.jpg",
+    "src": "/images/places/way-31482139-628bc3724734.jpg",
+    "width": 960,
+    "height": 1710,
+    "alt": "Фасад Физиологического и Гистологического институтов с виварием на Моховой, 11, строение 4. Снимок 2017 года.",
+    "author": "Nickolay A. Almayev",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mohovaya11str4.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:13254353233": {
+    "thumbnail": "/images/places/node-13254353233-82f8306cef02.jpg",
+    "src": "/images/places/node-13254353233-fd657eb5bed3.jpg",
+    "width": 960,
+    "height": 720,
+    "alt": "Главное здание усадебного комплекса Литературного института имени Горького на Тверском бульваре. Контекстный снимок 2011 года; мемориальная доска Мандельштаму на флигеле не показана.",
+    "author": "Андрей Бабуров",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%93%D0%BB%D0%B0%D0%B2%D0%BD%D0%BE%D0%B5_%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5_%D0%9B%D0%B8%D1%82%D0%B5%D1%80%D0%B0%D1%82%D1%83%D1%80%D0%BD%D0%BE%D0%B3%D0%BE_%D0%B8%D0%BD%D1%81%D1%82%D0%B8%D1%82%D1%83%D1%82%D0%B0_%D0%B8%D0%BC%D0%B5%D0%BD%D0%B8_%D0%93%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE.JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:13305990964": {
+    "thumbnail": "/images/places/node-13305990964-a126e93ee41b.jpg",
+    "src": "/images/places/node-13305990964-56940a15e5f6.jpg",
+    "width": 960,
+    "height": 641,
+    "alt": "Жилой дом на Смоленском бульваре, 6–8, где жил Олег Даль. Снимок 2016 года, до установки мемориальной доски в 2021 году.",
+    "author": "Gennady Grachev from Moscow, Russia",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Smolensky_Boulevard_6-8_(30995878991).jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
