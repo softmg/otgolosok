@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T12:31:51.563278+00:00",
+  "updatedAt": "2026-10-05T12:44:14.607561+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 82,
+    "publishedWithRevoice": 86,
     "reviewedNoChange": 4,
-    "pending": 314
+    "pending": 310
   },
   "entries": [
     {
@@ -208,7 +208,8 @@
       "name": "Аналитический центр при Правительстве Российской Федерации",
       "originalTextId": "edd6717a-e7e2-446a-b078-ca9686e704d3",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch16/changes.json"
     },
     {
       "placeId": "osm:way:44185735",
@@ -614,7 +615,8 @@
       "name": "Дом Н. Ф. Павлова",
       "originalTextId": "0b7e703b-edb1-4cbd-bb2e-3803f9c0fdac",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch16/changes.json"
     },
     {
       "placeId": "osm:node:1592025111",
@@ -2063,7 +2065,8 @@
       "name": "Росстат",
       "originalTextId": "f03d1b51-c682-42b4-ab8e-ff461028229e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch16/changes.json"
     },
     {
       "placeId": "osm:node:11780094310",
@@ -2748,7 +2751,8 @@
       "name": "Храм Христа Спасителя",
       "originalTextId": "8c65a06f-3eb4-42e6-8c82-173e41fac73e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch16/changes.json"
     },
     {
       "placeId": "osm:way:35814561",

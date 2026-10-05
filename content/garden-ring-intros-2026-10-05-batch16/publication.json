@@ -1,0 +1,276 @@
+{
+  "verifiedAt": "2026-10-05T12:42:32.711Z",
+  "bundleId": "garden-ring-intros-2026-10-05-batch16",
+  "transport": "https-h2",
+  "results": [
+    {
+      "placeId": "osm:way:45892322",
+      "name": "Аналитический центр при Правительстве Российской Федерации",
+      "textId": "ea76916d-9bf1-448b-9643-182b14b6c86c",
+      "audioJobId": "5f642e01-1656-4c4a-b5a5-266a76ad4edf",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46.mp3",
+        "sha256": "c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46",
+        "bytes": 455085,
+        "durationSec": 56.856,
+        "model": "eleven_v3",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/34b6bb31997a5d9def15f9b9bc1b27eb2f935e94787250df0cd0535502de84a3.jpg",
+        "src": "/api/place-images/0030542ba7fbb8b77fca0e0d842c93ff64e23e6409d87894c3872a54788bbfe4.jpg",
+        "width": 500,
+        "height": 507,
+        "alt": "Здание Вычислительного центра Госплана",
+        "author": "This photo was taken by Denis Esakov. If you use one of my photos outside Wikipedia and Commons, please email me (account needed) or leave me a short message on my discussion page. It would be…",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gvc_gosplan_2.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "9fa03ac3-54ed-471c-ae09-e1a3bd24a644",
+          "title": "Прогулка на полчаса от метро «Сретенский бульвар»",
+          "shareToken": "326bc586-4083-4dff-ac35-223ba406265b"
+        },
+        {
+          "id": "a31d3178-92fd-44f5-8cd3-077b039e6966",
+          "title": "Прогулка на час от метро «Чистые пруды»",
+          "shareToken": "b9d7cfea-49e4-4229-8be3-b1b85e2b3977"
+        },
+        {
+          "id": "7e58ab4a-70be-465c-aa36-45b4676133ab",
+          "title": "Прогулка на час от метро «Тургеневская»",
+          "shareToken": "d5b3d13c-9c1e-4b1f-857e-b2febb5d8403"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "9fa03ac3-54ed-471c-ae09-e1a3bd24a644",
+          "title": "Прогулка на полчаса от метро «Сретенский бульвар»",
+          "shareToken": "326bc586-4083-4dff-ac35-223ba406265b",
+          "chapterId": "9fa03ac3-54ed-471c-ae09-e1a3bd24a644-stop-1",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46.mp3",
+            "sha256": "c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46",
+            "durationSec": 56.856
+          },
+          "httpsTextVerified": true
+        },
+        {
+          "id": "a31d3178-92fd-44f5-8cd3-077b039e6966",
+          "title": "Прогулка на час от метро «Чистые пруды»",
+          "shareToken": "b9d7cfea-49e4-4229-8be3-b1b85e2b3977",
+          "chapterId": "a31d3178-92fd-44f5-8cd3-077b039e6966-stop-0",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46.mp3",
+            "sha256": "c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46",
+            "durationSec": 56.856
+          },
+          "httpsTextVerified": true
+        },
+        {
+          "id": "7e58ab4a-70be-465c-aa36-45b4676133ab",
+          "title": "Прогулка на час от метро «Тургеневская»",
+          "shareToken": "d5b3d13c-9c1e-4b1f-857e-b2febb5d8403",
+          "chapterId": "7e58ab4a-70be-465c-aa36-45b4676133ab-stop-0",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46.mp3",
+            "sha256": "c5b7a154863fedcd263917fbd3e026a6c5312254aa9a263b1d6ad43d95720c46",
+            "durationSec": 56.856
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    },
+    {
+      "placeId": "osm:node:13245906707",
+      "name": "Дом Н. Ф. Павлова",
+      "textId": "788bcc52-2bf0-4ce1-a51d-351b2d564b23",
+      "audioJobId": "b8f8213a-3e63-4ca1-901a-4a8970a8aab3",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/7f13db0f7e22dbd1b439bf9b2212a8926d0fd1686b1afa2bb53bae0869caa8b2.mp3",
+        "sha256": "7f13db0f7e22dbd1b439bf9b2212a8926d0fd1686b1afa2bb53bae0869caa8b2",
+        "bytes": 418605,
+        "durationSec": 52.296,
+        "model": "eleven_v3",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/images/places/node-13245906707-347313784710.jpg",
+        "src": "/images/places/node-13245906707-fbd69e199822.jpg",
+        "width": 960,
+        "height": 720,
+        "alt": "Дом Павловых: разговоры по четвергам",
+        "author": "Shuvaev",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Rozhdestvensky_Boulevard_14_2014.JPG",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "6da93da2-7bc4-4d7c-b54d-fb37c6db7d39",
+          "title": "От Трубной через Чистые пруды до Покровских ворот",
+          "shareToken": "4a106748-0443-4066-8bd9-a20ae7d6902f"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "6da93da2-7bc4-4d7c-b54d-fb37c6db7d39",
+          "title": "От Трубной через Чистые пруды до Покровских ворот",
+          "shareToken": "4a106748-0443-4066-8bd9-a20ae7d6902f",
+          "chapterId": "trubnaya-stop-11",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/7f13db0f7e22dbd1b439bf9b2212a8926d0fd1686b1afa2bb53bae0869caa8b2.mp3",
+            "sha256": "7f13db0f7e22dbd1b439bf9b2212a8926d0fd1686b1afa2bb53bae0869caa8b2",
+            "durationSec": 52.296
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    },
+    {
+      "placeId": "osm:relation:8016233",
+      "name": "Росстат",
+      "textId": "99a828d2-4932-4ba6-883b-caaba33b97d6",
+      "audioJobId": "ea40cb1e-0da9-43e1-9053-4604cd487312",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/2fbab91416bde99a364135af2f852d4779f5b3233bc9b1f28248998cd77de5d4.mp3",
+        "sha256": "2fbab91416bde99a364135af2f852d4779f5b3233bc9b1f28248998cd77de5d4",
+        "bytes": 435885,
+        "durationSec": 54.456,
+        "model": "eleven_v3",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/70500a241f90783af24984a2c0bc89d74656fc6ca4770a33d235e7ec62d84729.jpg",
+        "src": "/api/place-images/6f3db2b2300536691a7e446218e35fe4b68e36f307e737649504828c18823407.jpg",
+        "width": 960,
+        "height": 610,
+        "alt": "Здание Центросоюза",
+        "author": "Ludvig14",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_SakharovaStreet37_1468.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "9fa03ac3-54ed-471c-ae09-e1a3bd24a644",
+          "title": "Прогулка на полчаса от метро «Сретенский бульвар»",
+          "shareToken": "326bc586-4083-4dff-ac35-223ba406265b"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "9fa03ac3-54ed-471c-ae09-e1a3bd24a644",
+          "title": "Прогулка на полчаса от метро «Сретенский бульвар»",
+          "shareToken": "326bc586-4083-4dff-ac35-223ba406265b",
+          "chapterId": "9fa03ac3-54ed-471c-ae09-e1a3bd24a644-stop-0",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/2fbab91416bde99a364135af2f852d4779f5b3233bc9b1f28248998cd77de5d4.mp3",
+            "sha256": "2fbab91416bde99a364135af2f852d4779f5b3233bc9b1f28248998cd77de5d4",
+            "durationSec": 54.456
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    },
+    {
+      "placeId": "osm:relation:7314898",
+      "name": "Храм Христа Спасителя",
+      "textId": "b950c85d-f2c5-4850-8353-7ce564030c5b",
+      "audioJobId": "9bd911c4-78ca-4ff2-95cf-754df861ef88",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/099c205214d7d08c06235ac4ea9820625d1b516d7e18ef933d0b2aec615190d4.mp3",
+        "sha256": "099c205214d7d08c06235ac4ea9820625d1b516d7e18ef933d0b2aec615190d4",
+        "bytes": 435885,
+        "durationSec": 54.456,
+        "model": "eleven_v3",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/8c1912bf87777f9839e2d5b43dae9af918f537013e60b2754efec2aae74145b5.jpg",
+        "src": "/api/place-images/d20c2f122e8b07f2bba8512feca551cc3ea48066c738abb527f0e469dee5cd51.jpg",
+        "width": 960,
+        "height": 878,
+        "alt": "Храм Христа Спасителя",
+        "author": "Alvesgaspar",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_July_2011-7a.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "5295c72b-5d9f-4142-9d26-fb4f367b8865",
+          "title": "По бульварному кольцу от Кропоткинской до Тверской",
+          "shareToken": "b2823a83-f861-46f2-834b-b7873960882a"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "5295c72b-5d9f-4142-9d26-fb4f367b8865",
+          "title": "По бульварному кольцу от Кропоткинской до Тверской",
+          "shareToken": "b2823a83-f861-46f2-834b-b7873960882a",
+          "chapterId": "boulevard-stop-4",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/099c205214d7d08c06235ac4ea9820625d1b516d7e18ef933d0b2aec615190d4.mp3",
+            "sha256": "099c205214d7d08c06235ac4ea9820625d1b516d7e18ef933d0b2aec615190d4",
+            "durationSec": 54.456
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "publishedTexts": 4,
+    "revoiced": 4,
+    "f5": 0,
+    "elevenlabs": 4,
+    "newPhotos": 0,
+    "preservedPhotos": 4,
+    "totalCandidatesCompleted": 86
+  }
+}
