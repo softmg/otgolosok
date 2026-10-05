@@ -9,6 +9,15 @@ export const ELEVENLABS_MODEL = "eleven_v4";
 // Eleven v4 accepts up to 10,000 characters per request (v3, still selectable, 5,000); a margin keeps tags and long paragraphs inside both.
 const MAX_REQUEST_CHARS = 3000;
 const RETRY = { attempts: 3, baseMs: 1000, maxMs: 10000 };
+// An exhausted key is skipped for a while instead of being asked first on every request; credits return with the
+// next billing period or a top-up, and the key is tried again after the pause.
+const EXHAUSTED_KEY_PAUSE_MS = 3600000;
+
+/** Keys from ELEVENLABS_API_KEYS (comma-separated, in order of use) or the single ELEVENLABS_API_KEY. */
+export function elevenLabsApiKeys(env) {
+  const listed = env.ELEVENLABS_API_KEYS?.trim() ? env.ELEVENLABS_API_KEYS : env.ELEVENLABS_API_KEY ?? "";
+  return [...new Set(listed.split(",").map(key => key.trim()).filter(Boolean))];
+}
 
 /** Paragraphs grouped into requests; an oversized paragraph is split between sentences. */
 export function speechChunks(script, limit = MAX_REQUEST_CHARS) {
@@ -91,11 +100,34 @@ export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, p
 
 /**
  * Speech through ElevenLabs (Eleven v4 by default). The narration first gets audio tags ([warmly], [short pause]…) from `tagNarration`.
- * @param {{apiKey: string, voice: string, tagNarration: ((script: string, options: {signal?: AbortSignal}) => Promise<string>) & {version?: string},
- *   voices?: {id: string, label: string}[], model?: string, baseUrl?: string, proxyToken?: string, fetchImpl?: typeof fetch}} options
+ * Several keys are used in order: a key whose credits ran out hands the request to the next one.
+ * @param {{apiKeys: string[], voice: string, tagNarration: ((script: string, options: {signal?: AbortSignal}) => Promise<string>) & {version?: string},
+ *   voices?: {id: string, label: string}[], model?: string, baseUrl?: string, proxyToken?: string, fetchImpl?: typeof fetch, now?: () => number}} options
  */
-export function createElevenLabsTts({ apiKey, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = fetch }) {
-  if (typeof apiKey !== "string" || !apiKey.trim() || !validVoiceId(voice) || typeof tagNarration !== "function") throw failure("PROVIDER_CONFIG");
+export function createElevenLabsTts({ apiKeys, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = fetch, now = Date.now }) {
+  if (!Array.isArray(apiKeys) || !apiKeys.length || apiKeys.some(key => typeof key !== "string" || !key.trim())
+    || !validVoiceId(voice) || typeof tagNarration !== "function") throw failure("PROVIDER_CONFIG");
+  const exhaustedUntil = apiKeys.map(() => 0);
+
+  /** One chunk through the first key that still has credits. */
+  async function synthesize(text, selectedVoice, signal) {
+    for (const [index, apiKey] of apiKeys.entries()) {
+      if (exhaustedUntil[index] > now()) continue;
+      const response = await request(fetchImpl, `${baseUrl}/text-to-speech/${selectedVoice}?output_format=mp3_44100_128`, {
+        method: "POST", signal,
+        headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg", ...proxyHeaders(proxyToken) },
+        body: JSON.stringify({ text, model_id: model, language_code: "ru" }),
+      });
+      if (response.ok) return response;
+      const error = await rejection(response);
+      if (error.code !== "TTS_QUOTA_EXCEEDED") throw error;
+      exhaustedUntil[index] = now() + EXHAUSTED_KEY_PAUSE_MS;
+      // The position, never the key: logs and job errors must not carry it.
+      console.warn(`ElevenLabs key #${index + 1} of ${apiKeys.length} is out of credits`);
+    }
+    throw failure("TTS_QUOTA_EXCEEDED");
+  }
+
   /** @param {string} script @param {{signal?: AbortSignal, voice?: string}} [options] */
   async function speech(script, { signal, voice: selectedVoice = voice } = {}) {
     if (!validVoiceId(selectedVoice)) throw failure("TTS_FAILED");
@@ -104,12 +136,7 @@ export function createElevenLabsTts({ apiKey, voice, tagNarration, voices = [], 
     const audio = [];
     let size = 0;
     for (const text of speechChunks(tagged)) {
-      const response = await request(fetchImpl, `${baseUrl}/text-to-speech/${selectedVoice}?output_format=mp3_44100_128`, {
-        method: "POST", signal: deadline,
-        headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg", ...proxyHeaders(proxyToken) },
-        body: JSON.stringify({ text, model_id: model, language_code: "ru" }),
-      });
-      if (!response.ok) throw await rejection(response);
+      const response = await synthesize(text, selectedVoice, deadline);
       if (!response.headers.get("content-type")?.startsWith("audio/")) { await response.body?.cancel(); throw failure("TTS_FAILED"); }
       const bytes = await boundedBody(response, 15000000, deadline);
       size += bytes.length;
