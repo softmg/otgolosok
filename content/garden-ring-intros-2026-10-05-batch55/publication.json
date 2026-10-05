@@ -1,0 +1,354 @@
+{
+  "verifiedAt": "2026-10-05T20:49:02.639Z",
+  "bundleId": "garden-ring-intros-2026-10-05-batch55",
+  "transport": "https-h2",
+  "results": [
+    {
+      "placeId": "osm:way:52673166",
+      "name": "Федеральное агентство по рыболовству",
+      "textId": "421fd250-1f8b-4bd6-a3a7-3bdc17aec39d",
+      "audioJobId": "239778b8-10d1-45b0-a070-a65b72019c11",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/465ba2d1c4a71b7975a9c7fca3bde972391771822d60365c0be9c2fc8da0d0ac.mp3",
+        "sha256": "465ba2d1c4a71b7975a9c7fca3bde972391771822d60365c0be9c2fc8da0d0ac",
+        "bytes": 471021,
+        "durationSec": 58.848,
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/894bf2347fcde7e0d564a30522d0d650c1eb843864b2e751f615b90df00b67d0.jpg",
+        "src": "/api/place-images/fbe7dee178a548364b4a92443db142dfd0fd8d06da35ee53050401fc468a1412.jpg",
+        "width": 500,
+        "height": 375,
+        "alt": "Дом братьев Фонвизиных",
+        "author": "DeerChum",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Rozhdestvensky_Boulevard_12-8c1_2012.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "6da93da2-7bc4-4d7c-b54d-fb37c6db7d39",
+          "title": "От Трубной через Чистые пруды до Покровских ворот",
+          "shareToken": "4a106748-0443-4066-8bd9-a20ae7d6902f"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "6da93da2-7bc4-4d7c-b54d-fb37c6db7d39",
+          "title": "От Трубной через Чистые пруды до Покровских ворот",
+          "shareToken": "4a106748-0443-4066-8bd9-a20ae7d6902f",
+          "chapterId": "trubnaya-stop-10",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/465ba2d1c4a71b7975a9c7fca3bde972391771822d60365c0be9c2fc8da0d0ac.mp3",
+            "sha256": "465ba2d1c4a71b7975a9c7fca3bde972391771822d60365c0be9c2fc8da0d0ac",
+            "durationSec": 58.848
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:225157172",
+      "name": "ФЕСКО Транспортная группа",
+      "textId": "d701d149-444b-4d61-a0a9-e66b2c38892a",
+      "audioJobId": "79f5417f-f656-40ed-9ae5-f39e13bc5932",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/b7e998fb610821140819d0aa53ff1383455ed01d2064d5623af4a538d02c7f80.mp3",
+        "sha256": "b7e998fb610821140819d0aa53ff1383455ed01d2064d5623af4a538d02c7f80",
+        "bytes": 506349,
+        "durationSec": 63.264,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "7458be50bbefa0927eb9a0d5ae15c21cfc065ec0e3130dee688f753a95dfee24",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/images/places/way-225157172-b3ea2bf568c2.jpg",
+        "src": "/images/places/way-225157172-dc98ad09689f.jpg",
+        "width": 960,
+        "height": 539,
+        "alt": "Офисный комплекс по Садовнической улице, 75, со двора. 1 сентября 2024 года.",
+        "author": "Александр Сигачёв",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_-_Sadovnicheskaya_75_-_2024-09-01_-_p1.jpg",
+        "license": "CC0",
+        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:way:79980545",
+      "name": "Филиал Государственного музея Л.Н. Толстого",
+      "textId": "af2b79c3-5334-45d1-ae9d-3fb91ee23bc2",
+      "audioJobId": "9cecd629-c319-42a0-b1c7-c2845f185ba5",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/9824bf9696e12cae312d34781eaa9d450ada105d809674d5926b81928f8bfa9a.mp3",
+        "sha256": "9824bf9696e12cae312d34781eaa9d450ada105d809674d5926b81928f8bfa9a",
+        "bytes": 465261,
+        "durationSec": 58.128,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "19c5c8d9e92665945022d6ba716b9af22b7d6c99581afa19ac093a3a04c37a0a",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/images/places/way-79980545-f0c22ebe78ad.jpg",
+        "src": "/images/places/way-79980545-31ac54335a25.jpg",
+        "width": 960,
+        "height": 640,
+        "alt": "Толстовский центр на Пятницкой, 12. Август 2024 года.",
+        "author": "Retired electrician",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Pyatnitskaya_12_Aug_2024_01.jpg",
+        "license": "CC0",
+        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:node:4142945438",
+      "name": "Философский камень",
+      "textId": "805b3b0f-bd7d-413e-8634-880138f6437a",
+      "audioJobId": "a68f9f7f-8b17-4d1f-9def-a1df5aa36c4a",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/7aabf15b61457cbd1a052f6e25a77fff586549f409ebcfbf8217eaf594f236d6.mp3",
+        "sha256": "7aabf15b61457cbd1a052f6e25a77fff586549f409ebcfbf8217eaf594f236d6",
+        "bytes": 472941,
+        "durationSec": 59.088,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "52c3ac95441246b46cb477a2befffe1dd484d24feb3d7584267a294a6c24fce2",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": null,
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": false,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:node:916076746",
+      "name": "Фридриху Энгельсу",
+      "textId": "d31298bd-79f6-4bfd-b914-19f79b4d9ade",
+      "audioJobId": "cf2b9cac-c530-49c4-a602-5132b6991b06",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/9bab3773a6ad0d63b04b982768e0b474030619721280060536d188ae5dca0062.mp3",
+        "sha256": "9bab3773a6ad0d63b04b982768e0b474030619721280060536d188ae5dca0062",
+        "bytes": 473709,
+        "durationSec": 59.184,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "a992c4c44fcc8c5e2d7c3eab85c43ec9f06c84fa44606671da0f3b15b576fa7a",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/8196bd6360e08dbdc1d24eda9205aa45aad62990c4c45460b9d7d3679592ace1.jpg",
+        "src": "/api/place-images/9f3b34254d3e0efd5ad6ee616b0e4c5038edd3d4c9313b65dd334bcfa096ae46.jpg",
+        "width": 500,
+        "height": 549,
+        "alt": "Памятник Фридриху Энгельсу",
+        "author": "Oleg Yu.Novikov",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BC%D1%8F%D1%82%D0%BD%D0%B8%D0%BA_%D0%A4.%D0%AD%D0%BD%D0%B3%D0%B5%D0%BB%D1%8C%D1%81%D1%83,_%D0%BC.%D0%9A%D1%80%D0%BE%D0%BF%D0%BE%D1%82%D0%BA%D0%B8%D0%BD%D1%81%D0%BA%D0%B0%D1%8F._Moscow,_Russia_-_panoramio.jpg",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:way:317918942",
+      "name": "Центральная избирательная комиссия Российской Федерации",
+      "textId": "c9f3b83d-4ccc-4960-bbcf-c71148bc13b0",
+      "audioJobId": "18fe4afe-5987-442c-9527-56cdf4037adb",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/0e20748c2f11b72b121e528adbd9bad8a8a692417876acb9b434a1727ed43e2e.mp3",
+        "sha256": "0e20748c2f11b72b121e528adbd9bad8a8a692417876acb9b434a1727ed43e2e",
+        "bytes": 497901,
+        "durationSec": 62.208,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "cac65bbc76c54d7a18e808156fb9b895873fce0aa90b63e42e637538200075c6",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/9ca103c5b9c8c99471fc3cf8ced0d342dc8be6783edb92129fdc1dc0ffdd794b.jpg",
+        "src": "/api/place-images/a401c500ced455c2740ed9c5e399ccf3a64724d00bb3fc1a4ab91e9b31606906.jpg",
+        "width": 500,
+        "height": 668,
+        "alt": "Здание Центральной избирательной комиссии Российской Федерации",
+        "author": "Anton Sumtsov",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A2%D0%BE%D1%80%D0%B3%D0%BE%D0%B2%D1%8B%D0%B9_%D0%B4%D0%BE%D0%BC_%D0%BA%D0%BD%D1%8F%D0%B7%D1%8F_%D0%90._%D0%9D._%D0%93%D0%BE%D0%BB%D0%B8%D1%86%D1%8B%D0%BD%D0%B0.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:way:84632785",
+      "name": "Церковь Ильи Пророка на Новгородском подворье",
+      "textId": "a985148e-9074-400e-b90f-00b62110245a",
+      "audioJobId": "43bc296e-c94f-4793-adb5-cd678df1c46a",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/3141830a88158867130177e948518ec57dc728746a307866dfd6ce3f330f6dfe.mp3",
+        "sha256": "3141830a88158867130177e948518ec57dc728746a307866dfd6ce3f330f6dfe",
+        "bytes": 503469,
+        "durationSec": 62.904,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "844923e0020434db8cd5a8d6e31cfa102087ca60d540d39ddeb1c86c8e689f48",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/images/places/way-84632785-0890a9db5db3.jpg",
+        "src": "/images/places/way-84632785-c00a8336c8b6.jpg",
+        "width": 960,
+        "height": 1280,
+        "alt": "Церковь Ильи Пророка на Ильинке, исторический вид до реставрации. Фотография shakko, 2012 год.",
+        "author": "shakko",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Church_of_Elijah_the_Prophet_in_Ilyinka_by_shakko_01.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:way:136577481",
+      "name": "Церковь Покрова Пресвятой Богородицы",
+      "textId": "83c2a81b-94fe-4ebc-9efb-ab4b2fe476fc",
+      "audioJobId": "fc413f8a-3241-4775-8290-6f2f4e7d1a0c",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/5a65e7686e0624d6c6f125c69668bdd147e682ea0ac43b2a814fdeed285f83f8.mp3",
+        "sha256": "5a65e7686e0624d6c6f125c69668bdd147e682ea0ac43b2a814fdeed285f83f8",
+        "bytes": 438381,
+        "durationSec": 54.768,
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/3c3d9bb1610b1ec2d7c0774b482170341fd55dd2e5bb23f44afd67e2ff3124c3.jpg",
+        "src": "/api/place-images/d0e2bbd27ff4be74c650f5d60dd7bc330b1769810d9ae4253d7dc82f1c94dcc8.jpg",
+        "width": 960,
+        "height": 726,
+        "alt": "Церковь Покрова Пресвятой Богородицы на Лыщиковой горе",
+        "author": "Sergey Ashmarin",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Church_of_The_Protection_of_Our_Lady_-_Moscow,_Russia_-_panoramio.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "4a546b25-81af-493b-805a-174c64ff4c0e",
+          "title": "Прогулка на час от метро «Марксистская»",
+          "shareToken": "69f00305-a8f3-4d7f-9def-6f7621018a71"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "4a546b25-81af-493b-805a-174c64ff4c0e",
+          "title": "Прогулка на час от метро «Марксистская»",
+          "shareToken": "69f00305-a8f3-4d7f-9def-6f7621018a71",
+          "chapterId": "4a546b25-81af-493b-805a-174c64ff4c0e-stop-4",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/5a65e7686e0624d6c6f125c69668bdd147e682ea0ac43b2a814fdeed285f83f8.mp3",
+            "sha256": "5a65e7686e0624d6c6f125c69668bdd147e682ea0ac43b2a814fdeed285f83f8",
+            "durationSec": 54.768
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "publishedTexts": 8,
+    "firstPublications": 1,
+    "revoiced": 8,
+    "f5": 6,
+    "elevenlabs": 2,
+    "newPhotos": 3,
+    "preservedPhotos": 4,
+    "photoNotFound": 1,
+    "totalCandidatesCompleted": 392
+  }
+}

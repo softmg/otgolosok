@@ -3391,5 +3391,44 @@
     "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:225157172": {
+    "thumbnail": "/images/places/way-225157172-b3ea2bf568c2.jpg",
+    "src": "/images/places/way-225157172-dc98ad09689f.jpg",
+    "width": 960,
+    "height": 539,
+    "alt": "Офисный комплекс по Садовнической улице, 75, со двора. 1 сентября 2024 года.",
+    "author": "Александр Сигачёв",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_-_Sadovnicheskaya_75_-_2024-09-01_-_p1.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:79980545": {
+    "thumbnail": "/images/places/way-79980545-f0c22ebe78ad.jpg",
+    "src": "/images/places/way-79980545-31ac54335a25.jpg",
+    "width": 960,
+    "height": 640,
+    "alt": "Толстовский центр на Пятницкой, 12. Август 2024 года.",
+    "author": "Retired electrician",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Pyatnitskaya_12_Aug_2024_01.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:84632785": {
+    "thumbnail": "/images/places/way-84632785-0890a9db5db3.jpg",
+    "src": "/images/places/way-84632785-c00a8336c8b6.jpg",
+    "width": 960,
+    "height": 1280,
+    "alt": "Церковь Ильи Пророка на Ильинке, исторический вид до реставрации. Фотография shakko, 2012 год.",
+    "author": "shakko",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Church_of_Elijah_the_Prophet_in_Ilyinka_by_shakko_01.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }

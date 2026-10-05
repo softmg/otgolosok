@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T20:40:56.684174+00:00",
+  "updatedAt": "2026-10-05T20:49:51.099643+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 384,
+    "publishedWithRevoice": 392,
     "reviewedNoChange": 4,
-    "pending": 12
+    "pending": 4
   },
   "entries": [
     {
@@ -2798,35 +2798,40 @@
       "name": "Федеральное агентство по рыболовству",
       "originalTextId": "4ca3e280-5090-4d69-bb51-5cade7057b78",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch55/changes.json"
     },
     {
       "placeId": "osm:way:225157172",
       "name": "ФЕСКО Транспортная группа",
       "originalTextId": "21caa7d1-b21f-49dd-bdfb-45e5d3b6faad",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch55/changes.json"
     },
     {
       "placeId": "osm:way:79980545",
       "name": "Филиал Государственного музея Л.Н. Толстого",
       "originalTextId": "722b27c2-7f3c-4480-a7bc-2b0745c0ce6f",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch55/changes.json"
     },
     {
       "placeId": "osm:node:4142945438",
       "name": "Философский камень",
       "originalTextId": "805b3b0f-bd7d-413e-8634-880138f6437a",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch55/changes.json"
     },
     {
       "placeId": "osm:node:916076746",
       "name": "Фридриху Энгельсу",
       "originalTextId": "cc22ef9b-1a2a-4be5-990e-b2e966eb1dba",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch55/changes.json"
     },
     {
       "placeId": "osm:way:32045644",
@@ -3065,7 +3070,8 @@
       "name": "Центральная избирательная комиссия Российской Федерации",
       "originalTextId": "07cfa08e-98ca-4d64-ae82-017822863131",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch55/changes.json"
     },
     {
       "placeId": "osm:way:31497220",
@@ -3112,7 +3118,8 @@
       "name": "Церковь Ильи Пророка на Новгородском подворье",
       "originalTextId": "0f4806cd-9f85-4d76-aa97-4f8850404d04",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch55/changes.json"
     },
     {
       "placeId": "osm:relation:1359281",
@@ -3143,7 +3150,8 @@
       "name": "Церковь Покрова Пресвятой Богородицы",
       "originalTextId": "fbd9c36b-3283-42ed-9815-9879486d9b48",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch55/changes.json"
     },
     {
       "placeId": "osm:relation:7688144",
