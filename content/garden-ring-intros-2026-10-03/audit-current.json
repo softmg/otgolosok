@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T20:17:43.464697+00:00",
+  "updatedAt": "2026-10-05T20:30:02.542439+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 368,
+    "publishedWithRevoice": 376,
     "reviewedNoChange": 4,
-    "pending": 28
+    "pending": 20
   },
   "entries": [
     {
@@ -2558,49 +2558,56 @@
       "name": "ТВ Центр",
       "originalTextId": "e3c14e6f-9d58-4788-a96f-dc7d251cdff3",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch53/changes.json"
     },
     {
       "placeId": "osm:way:224225490",
       "name": "Театр им. Евгения Вахтангова",
       "originalTextId": "29fff717-c1da-4c7c-b615-ffc61955bd1f",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch53/changes.json"
     },
     {
       "placeId": "osm:relation:16682982",
       "name": "Театр имени Моссовета",
       "originalTextId": "62138a22-8b47-4a97-950d-1f0da341ffcd",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch53/changes.json"
     },
     {
       "placeId": "osm:relation:9341259",
       "name": "Театр на Бронной",
       "originalTextId": "c1a40e59-88ae-43b4-9f69-af682618d719",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch53/changes.json"
     },
     {
       "placeId": "osm:node:13190696077",
       "name": "Театр Скатуве",
       "originalTextId": "1b94ec24-6988-4167-8f65-6dea598c68b4",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch53/changes.json"
     },
     {
       "placeId": "osm:node:4139540604",
       "name": "Театральная галерея на Малой Ордынке",
       "originalTextId": "7c343085-a91f-4c90-8aa6-510314f3564f",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch53/changes.json"
     },
     {
       "placeId": "osm:relation:6233742",
       "name": "Торговый комплекс «Охотный ряд»",
       "originalTextId": "49085b1a-38db-4037-ac79-924a5972cbcd",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch53/changes.json"
     },
     {
       "placeId": "osm:relation:1907261",
@@ -2615,7 +2622,8 @@
       "name": "Третьяковская галерея на Кадашёвской набережной",
       "originalTextId": "9b2fe2e6-718c-4bf8-81d6-7127557e520b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch53/changes.json"
     },
     {
       "placeId": "osm:relation:1360627",
