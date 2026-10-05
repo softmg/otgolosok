@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T15:09:35.527301+00:00",
+  "updatedAt": "2026-10-05T15:21:28.332031+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 168,
+    "publishedWithRevoice": 176,
     "reviewedNoChange": 4,
-    "pending": 228
+    "pending": 220
   },
   "entries": [
     {
@@ -977,7 +977,8 @@
       "name": "Константино-Еленинская башня",
       "originalTextId": "71bf177e-129c-4004-b834-1712d79dbdcd",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch28/changes.json"
     },
     {
       "placeId": "osm:relation:15449241",
@@ -1900,7 +1901,8 @@
       "name": "Петровская башня",
       "originalTextId": "ecca892a-5550-454f-b9b3-e41c9af66b1d",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch28/changes.json"
     },
     {
       "placeId": "osm:node:4948141391",
@@ -2452,7 +2454,8 @@
       "name": "Угловая Арсенальная башня",
       "originalTextId": "d74439b5-d699-4e38-9544-43f001b9e3f1",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch28/changes.json"
     },
     {
       "placeId": "osm:way:48172547",
@@ -2638,7 +2641,8 @@
       "name": "Храм Большое Вознесение у Никитских ворот",
       "originalTextId": "64c5f2dc-b246-4d20-8a9a-70820b303544",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch28/changes.json"
     },
     {
       "placeId": "osm:relation:19079948",
@@ -2653,21 +2657,24 @@
       "name": "Храм Великомученика Никиты",
       "originalTextId": "ac92517b-3124-4b44-aa5f-40a1e3a74e39",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch28/changes.json"
     },
     {
       "placeId": "osm:relation:8463582",
       "name": "Храм Вознесения Господня на Никитской",
       "originalTextId": "0267b328-ccee-4944-af6d-21e76e4a9bf3",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch28/changes.json"
     },
     {
       "placeId": "osm:relation:7259659",
       "name": "Храм Воскресения Словущего на Успенском Вражке",
       "originalTextId": "9a0533a1-9d0b-47c1-a646-fa2299c9dec7",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch28/changes.json"
     },
     {
       "placeId": "osm:relation:7483246",
@@ -2682,7 +2689,8 @@
       "name": "Храм иконы Божией Матери «Знамение»",
       "originalTextId": "35e6e45a-f2a1-4716-97cd-7615421047ad",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch28/changes.json"
     },
     {
       "placeId": "osm:relation:19083613",

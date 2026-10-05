@@ -1714,5 +1714,18 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:relation:1360660": {
+    "thumbnail": "/images/places/relation-1360660-97e3510e72f9.jpg",
+    "src": "/images/places/relation-1360660-b7dd44c6cd2e.jpg",
+    "width": 960,
+    "height": 1280,
+    "alt": "Петровская башня Московского Кремля на переднем плане. Справа вдали Беклемишевская башня.",
+    "author": "Bernard MARTI",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscou-Kremlin-%D0%9F%D0%B5%D1%82%D1%80%D0%BE%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D0%B0%D1%88%D0%BD%D1%8F.jpg",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
