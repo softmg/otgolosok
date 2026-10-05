@@ -13,10 +13,19 @@ const RETRY = { attempts: 3, baseMs: 1000, maxMs: 10000 };
 // next billing period or a top-up, and the key is tried again after the pause.
 const EXHAUSTED_KEY_PAUSE_MS = 3600000;
 
-/** Keys from ELEVENLABS_API_KEYS (comma-separated, in order of use) or the single ELEVENLABS_API_KEY. */
+/**
+ * Keys from ELEVENLABS_API_KEYS (comma-separated, in order of use) or the single ELEVENLABS_API_KEY. A key of another
+ * account names its own copy of the default voice after a colon (`key:voiceId`): voice IDs are per account.
+ * @returns {{apiKey: string, voice: string | null}[]}
+ */
 export function elevenLabsApiKeys(env) {
   const listed = env.ELEVENLABS_API_KEYS?.trim() ? env.ELEVENLABS_API_KEYS : env.ELEVENLABS_API_KEY ?? "";
-  return [...new Set(listed.split(",").map(key => key.trim()).filter(Boolean))];
+  const keys = new Map();
+  for (const entry of listed.split(",").map(value => value.trim()).filter(Boolean)) {
+    const [apiKey, voice = null] = entry.split(":").map(value => value.trim());
+    if (!keys.has(apiKey)) keys.set(apiKey, { apiKey, voice });
+  }
+  return [...keys.values()];
 }
 
 /** Paragraphs grouped into requests; an oversized paragraph is split between sentences. */
@@ -100,20 +109,21 @@ export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, p
 
 /**
  * Speech through ElevenLabs (Eleven v4 by default). The narration first gets audio tags ([warmly], [short pause]…) from `tagNarration`.
- * Several keys are used in order: a key whose credits ran out hands the request to the next one.
- * @param {{apiKeys: string[], voice: string, tagNarration: ((script: string, options: {signal?: AbortSignal}) => Promise<string>) & {version?: string},
+ * Several keys are used in order: a key whose credits ran out hands the request to the next one. A key with its own
+ * voice speaks the default voice with it and does not serve the other voices of the first account.
+ * @param {{apiKeys: {apiKey: string, voice?: string | null}[], voice: string, tagNarration: ((script: string, options: {signal?: AbortSignal}) => Promise<string>) & {version?: string},
  *   voices?: {id: string, label: string}[], model?: string, baseUrl?: string, proxyToken?: string, fetchImpl?: typeof fetch, now?: () => number}} options
  */
 export function createElevenLabsTts({ apiKeys, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = fetch, now = Date.now }) {
-  if (!Array.isArray(apiKeys) || !apiKeys.length || apiKeys.some(key => typeof key !== "string" || !key.trim())
-    || !validVoiceId(voice) || typeof tagNarration !== "function") throw failure("PROVIDER_CONFIG");
+  if (!Array.isArray(apiKeys) || !apiKeys.length || apiKeys.some(key => typeof key?.apiKey !== "string" || !key.apiKey.trim()
+    || (key.voice != null && !validVoiceId(key.voice))) || !validVoiceId(voice) || typeof tagNarration !== "function") throw failure("PROVIDER_CONFIG");
   const exhaustedUntil = apiKeys.map(() => 0);
 
   /** One chunk through the first key that still has credits. */
   async function synthesize(text, selectedVoice, signal) {
-    for (const [index, apiKey] of apiKeys.entries()) {
-      if (exhaustedUntil[index] > now()) continue;
-      const response = await request(fetchImpl, `${baseUrl}/text-to-speech/${selectedVoice}?output_format=mp3_44100_128`, {
+    for (const [index, { apiKey, voice: ownVoice }] of apiKeys.entries()) {
+      if (exhaustedUntil[index] > now() || (ownVoice && selectedVoice !== voice)) continue;
+      const response = await request(fetchImpl, `${baseUrl}/text-to-speech/${ownVoice ?? selectedVoice}?output_format=mp3_44100_128`, {
         method: "POST", signal,
         headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg", ...proxyHeaders(proxyToken) },
         body: JSON.stringify({ text, model_id: model, language_code: "ru" }),

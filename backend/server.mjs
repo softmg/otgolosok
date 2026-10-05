@@ -7,7 +7,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { createStore } from "./store.mjs";
 import { createProvider } from "./provider.mjs";
 import { createYandexTts } from "./yandex-tts.mjs";
-import { isTtsProvider, ttsVoiceOptions } from "./tts-voices.mjs";
+import { isTtsProvider, ttsVoiceOptions, validVoiceId } from "./tts-voices.mjs";
 import { createElevenLabsTts, elevenLabsApi, elevenLabsApiKeys, listElevenLabsVoices } from "./elevenlabs-tts.mjs";
 import { createAudioTagger } from "./audio-tags.mjs";
 import { ELEVENLABS_PROFILE_ID, elevenLabsProfile, startSpeechAudioWorker } from "./speech-audio-worker.mjs";
@@ -800,8 +800,9 @@ export function createApp({store,provider,osmGeocoder=null,foodIndex=null,yandex
  * @param {NodeJS.ProcessEnv} env @param {ReturnType<typeof createProvider> | null} provider @param {ReturnType<typeof createBackendLogger>} logs
  */
 export async function loadElevenLabsTts(env,provider,logs,fetchImpl=fetch) {
-  const apiKeys=elevenLabsApiKeys(env),[apiKey]=apiKeys;
+  const apiKeys=elevenLabsApiKeys(env),apiKey=apiKeys[0]?.apiKey;
   if(!apiKey)return null;
+  if(apiKeys.some(key=>key.voice!==null&&!validVoiceId(key.voice))){console.warn("ElevenLabs is disabled: ELEVENLABS_API_KEYS has a malformed voice id; use key:voiceId");return null;}
   if(!provider){console.warn("ElevenLabs is disabled: audio tags require OPENAI_API_KEY and OPENAI_BASE_URL");return null;}
   const baseUrl=elevenLabsApi(env.ELEVENLABS_BASE_URL?.trim()),proxyToken=env.ELEVENLABS_PROXY_TOKEN?.trim()||undefined;
   let voices=[];
@@ -816,7 +817,8 @@ export async function loadElevenLabsTts(env,provider,logs,fetchImpl=fetch) {
   // A spare key of another account may lack the voice: it would fail only when the first key runs out of credits.
   for(const [index,key] of apiKeys.entries()) {
     if(!index)continue;
-    try {if(!(await listElevenLabsVoices({apiKey:key,baseUrl,proxyToken,fetchImpl})).some(item=>item.id===voice))console.warn(`ElevenLabs key #${index+1} does not see the voice ${voice}`);}
+    const expected=key.voice??voice;
+    try {if(!(await listElevenLabsVoices({apiKey:key.apiKey,baseUrl,proxyToken,fetchImpl})).some(item=>item.id===expected))console.warn(`ElevenLabs key #${index+1} does not see the voice ${expected}`);}
     catch(error) {console.warn(`ElevenLabs key #${index+1}: voices are unavailable (${error?.code??"error"})`);}
   }
   return createElevenLabsTts({apiKeys,voice,voices,tagNarration:createAudioTagger(provider),model:env.ELEVENLABS_MODEL?.trim()||undefined,baseUrl,proxyToken,fetchImpl});
