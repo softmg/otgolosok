@@ -41,19 +41,19 @@ Run it in the background (render takes ~10 min). After the `script` step finishe
 `$DATA/runs/<id>/prepared.json` (`stops[].photo`) and `script.json`. If edits are needed (steps 3–4),
 stop the run before the render to save time — the render is redone once at the end.
 
-## 3. Rewrite the hook (always)
+## 3. Check the hook
 
-The generator's hook is fixed text («Идея для … прогулки от метро …», `src/templates/walk/script.ts`
-`fixedLines`) and repeats in every video; the user asked to replace it every time. Write a short
-route-specific hook (≈ 8–12 words, e.g. «От «Спартака» до «Тушинской»: по бывшему аэродрому и под
-каналом.»), facts only from the walk. Save the original as `script-before-new-hook.json`, set
-`hook.text` and `hook.display`. Check with `validateScript` from `src/text/validate.ts` and
-`evidenceOf` from `src/templates/walk/script.ts` (put the hook into `description`, since the hook
-itself is not validated); expect an empty list.
+Since `walk-v7` the model writes the opening (`script.json` → `hook`) and `validateScript` checks it;
+if it fails, one of the fallback openings (`HOOKS` in `src/templates/walk/script.ts`) is used.
+Read the hook: it must name this route, not be generic, and differ from the previous videos' openings
+(see the last journals). If it is weak, edit it by hand: save `script-before-new-hook.json`, set
+`hook.text`/`hook.display`, check with `validateScript` + `evidenceOf` (expect an empty list), then
+update checkpoints (step 5).
 
-## 4. Photos for all four episodes (always)
+## 4. Photos for all four episodes
 
-The automatic search usually finds 1–2 of 4. For every stop without `photo`:
+`findPhoto` uses the place's tags and then the story's Wikidata/Wikipedia sources, skipping items about
+people. If some episodes are still without `photo`:
 
 1. Search Commons (`list=search&srnamespace=6`), category or file names; send a `User-Agent`
    and pause ~3 s between calls — Commons rate-limits (`You are making too many requests`).
@@ -64,15 +64,20 @@ The automatic search usually finds 1–2 of 4. For every stop without `photo`:
 4. Save the original as `prepared-before-photos.json`, set `stops[i].photo =
    {path, sha1, width, height, attribution}` from the downloaded `<sha1>.json`.
 
-## 5. Update checkpoints and render
+## 5. Update checkpoints and render (only after manual edits)
 
 In `$DATA/state/shorts.sqlite` (`run_steps`): set `output_sha256` of `prepare` and `script` to the
 new `shasum -a 256` of the edited files; delete the `voice` and `render` rows; **keep `mix`** —
 `render --run` refuses to start without `mix=done`, and the redone `voice` step invalidates it itself.
-Unchanged lines come from the TTS cache; only the new hook is synthesised.
+Unchanged lines come from the TTS cache; only changed lines are synthesised.
 
 ```bash
 SHORTS_DATA_DIR=$DATA pnpm shorts render --run <id>          # background
+```
+
+Always (with or without edits):
+
+```bash
 SHORTS_DATA_DIR=$DATA pnpm shorts stills --run <id> --at 1.5,8,15,23,31,39,47 --debug-safe
 ```
 
@@ -121,16 +126,26 @@ Telegram cover, exact title spelling on the YouTube cover. Regenerate on errors.
 Report in Russian: run id, video duration/loudness, the four episodes and photo credits, the post text
 and its length, paths of both covers, and anything done by hand. Then wait for the user's command.
 
-## 9. Publish (only on the user's explicit command)
+## 9. Publish (only on the user's explicit command; ask for the time if not given)
 
-- YouTube: mark the run publishable and continue it in the same isolated data dir, the way the last
-  journal describes (`createYoutubePublisher`, resumable upload); confirm `public / processed /
-  succeeded`, then `thumbnails.set` with `youtube-cover.png` and check `maxresdefault.jpg`.
-  `thumbnails.set` does **not** change the Shorts-feed thumbnail — tell the user it must be picked in
-  YouTube Studio by hand.
-- Telegram: finalize `telegram-post.json` with the video URL, copy it with the cover into the run
-  dir and run `SHORTS_DATA_DIR=$DATA pnpm shorts telegram:send --run <id>`; the command is
-  idempotent (`telegram-delivery.json`).
+- YouTube — the generator's `publish` command (token of the main data dir, since `$DATA` is isolated);
+  the cover must be ≤ 2 MB, so convert it: `ffmpeg -i youtube-cover.png -q:v 2 youtube-cover.jpg`.
+
+  ```bash
+  YOUTUBE_TOKEN_FILE=data/secrets/youtube-token.json SHORTS_DATA_DIR=$DATA \
+    pnpm shorts publish --run <id> [--publish-at 2026-10-05T19:00+03:00] --thumbnail $OUT/youtube-cover.jpg
+  ```
+
+  With `--publish-at` the video is uploaded private and YouTube makes it public itself; the URL is
+  known at once. Confirm via `videos.list` (`privacyStatus`, `publishAt`). `thumbnails.set` does **not**
+  change the Shorts-feed thumbnail — tell the user to pick it in YouTube Studio.
+- Telegram: finalize `telegram-post.json` with the video URL, copy it with the cover into the run dir.
+  Now: `SHORTS_DATA_DIR=$DATA pnpm shorts telegram:send --run <id>` (idempotent via
+  `telegram-delivery.json`). At a time: the Bot API cannot schedule — reuse the one-off server cron job
+  described in the latest shorts journal (copy the previous job directory with the new post, cover and
+  `schedule.json`, run its `--check` in the container, add the cron line in UTC). This is a production
+  change: do it only because the user asked for a scheduled post, and never write server addresses into
+  this public repo.
 
 Helper scripts (Commons check, `validateScript` run) are throwaway: `pnpm check` lints every `.ts`
 under the repo including `tmp/`, so delete them (or keep them outside the repo with absolute imports)
