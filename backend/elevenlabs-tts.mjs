@@ -5,8 +5,8 @@ import { validVoiceId } from "./tts-voices.mjs";
 
 // https://elevenlabs.io/docs/api-reference/text-to-speech/convert
 export const ELEVENLABS_API = "https://api.elevenlabs.io/v1";
-export const ELEVENLABS_MODEL = "eleven_v3";
-// Eleven v3 accepts up to 5,000 characters per request; a margin keeps tags and long paragraphs inside it.
+export const ELEVENLABS_MODEL = "eleven_v4";
+// Eleven v4 accepts up to 10,000 characters per request (v3, still selectable, 5,000); a margin keeps tags and long paragraphs inside both.
 const MAX_REQUEST_CHARS = 3000;
 const RETRY = { attempts: 3, baseMs: 1000, maxMs: 10000 };
 
@@ -90,7 +90,7 @@ export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, p
 }
 
 /**
- * Speech through ElevenLabs v3. The narration first gets audio tags ([warmly], [short pause]…) from `tagNarration`.
+ * Speech through ElevenLabs (Eleven v4 by default). The narration first gets audio tags ([warmly], [short pause]…) from `tagNarration`.
  * @param {{apiKey: string, voice: string, tagNarration: ((script: string, options: {signal?: AbortSignal}) => Promise<string>) & {version?: string},
  *   voices?: {id: string, label: string}[], model?: string, baseUrl?: string, proxyToken?: string, fetchImpl?: typeof fetch}} options
  */

@@ -504,7 +504,7 @@ describe("переозвучка места", () => {
   });
 
   it("переозвучивает через ElevenLabs и предупреждает об аудиотегах и расходе кредитов", async () => {
-    audioProfiles = [{ id: "f5-ru-v1", label: "F5 (локальный TTS)" }, { id: "elevenlabs-v3", label: "ElevenLabs v3 (с аудиотегами)" }];
+    audioProfiles = [{ id: "f5-ru-v1", label: "F5 (локальный TTS)" }, { id: "elevenlabs-v3", label: "ElevenLabs (с аудиотегами)" }];
     await remount();
     expect(container.textContent).toContain("нет online-воркера TTS");
     await choose("content-audio-profile", "elevenlabs-v3");

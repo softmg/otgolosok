@@ -37,7 +37,7 @@ const TERMINAL_STAGES = ["ready", "insufficient_evidence", "review_required", "f
  * @typedef {{id: string, place_id: string, approved_story_json: string | null, audio_target_profile: string | null}} PlaceTextStoryRow
  * @typedef {{engine?: string, language?: string, modelSha256?: string | null, speaker?: string | null, configVersion?: string,
  *   configSha256?: string | null, referenceSha256?: string | null, textPreparation?: {input?: string, version?: string} | null,
- *   chunking?: string, maximumPublicationDurationSec?: number}} ExternalTtsProfile
+ *   chunking?: string, maximumPublicationDurationSec?: number, model?: string}} ExternalTtsProfile
  * @typedef {((text: string, options?: {signal?: AbortSignal}) => Promise<string>) & {version?: string}} ExternalTextNormalizer
  */
 
@@ -598,7 +598,9 @@ export function createStore(
         modelSha256:configured.modelSha256??null,speaker:configured.speaker??null,configVersion:configured.configVersion??"1",
         configSha256:configured.configSha256??null,referenceSha256:configured.referenceSha256??null,textPreparation:configured.textPreparation??null,
         chunking:configured.chunking??"sentence-v1",maximumBytes:64*1024*1024,maximumDurationSec:600,
-        maximumPublicationDurationSec:configured.maximumPublicationDurationSec??150};
+        maximumPublicationDurationSec:configured.maximumPublicationDurationSec??150,
+        // Only cloud profiles name a model; adding the key to the others would change the keys of their existing jobs.
+        ...(configured.model?{model:configured.model}:{})};
       const inputKey = sha256(JSON.stringify({version:rawContract?"external-audio-v2":"external-audio-v1",sourceJobId,sourceRevision,spokenTextHash,profileId,normalizer:normalizerVersion,profile}));
       return transaction(() => {
         // Normalization is asynchronous: an editor may have changed the approval meanwhile.

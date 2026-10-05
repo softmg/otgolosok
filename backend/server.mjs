@@ -145,10 +145,10 @@ export function createApp({store,provider,osmGeocoder=null,foodIndex=null,yandex
   const speechProviders={openai:provider,yandex:yandexTts,elevenlabs:elevenLabsTts};
   const ttsProviders=[{id:"openai",label:"OpenAI",available:Boolean(provider),...ttsVoiceOptions("openai",provider?.voice)},
     {id:"yandex",label:"Яндекс SpeechKit",available:Boolean(yandexTts),...ttsVoiceOptions("yandex",yandexTts?.voice)},
-    {id:"elevenlabs",label:"ElevenLabs v3 (с аудиотегами)",available:Boolean(elevenLabsTts),...ttsVoiceOptions("elevenlabs",elevenLabsTts?.voice,elevenLabsTts?.voices??[])}];
+    {id:"elevenlabs",label:"ElevenLabs (с аудиотегами)",available:Boolean(elevenLabsTts),...ttsVoiceOptions("elevenlabs",elevenLabsTts?.voice,elevenLabsTts?.voices??[])}];
   // Catalog texts are voiced through the queue: the local TTS profile, or ElevenLabs when it is configured.
   const audioProfiles=[{id:localTts.defaultProfile,label:localTts.engine==="f5"?"F5 (локальный TTS)":"Silero (локальный TTS)"},
-    ...(elevenLabsTts?[{id:ELEVENLABS_PROFILE_ID,label:"ElevenLabs v3 (с аудиотегами)"}]:[])];
+    ...(elevenLabsTts?[{id:ELEVENLABS_PROFILE_ID,label:"ElevenLabs (с аудиотегами)"}]:[])];
   const worker=(provider||yandexTts)&&workerEnabled?startWorker({store,provider,speechProviders,audioDirectory,discoverResearch,planResearchWalk,logs}):null;
   const contentWorker=provider&&workerEnabled?startContentWorker({store,provider,logs,resolveLocation:osmGeocoder ? place=>osmGeocoder.resolve(place) : null,concurrency:Number(process.env.CONTENT_WORKER_CONCURRENCY??1),autoApprove:process.env.CONTENT_AUTO_APPROVE==="true",placeImages}):null;
   const placeImageWorker=workerEnabled&&placeImages?startPlaceImageWorker({service:placeImages,logs}):null;
@@ -795,7 +795,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   const logs=createBackendLogger();
   const elevenLabsTts=await loadElevenLabsTts(process.env,provider,logs);
   const store=createStore(join(directory,"jobs.sqlite"),{maxActive:2,workerLeaseSecret:workerLeaseSecret({transport:localTts.transport}),normalizeExternalText:normalizeForSpeech,
-    externalTtsProfiles:{...localTts.profiles,...(elevenLabsTts?{[ELEVENLABS_PROFILE_ID]:elevenLabsProfile(elevenLabsTts.voice)}:{})}});
+    externalTtsProfiles:{...localTts.profiles,...(elevenLabsTts?{[ELEVENLABS_PROFILE_ID]:elevenLabsProfile(elevenLabsTts.voice,elevenLabsTts.ttsModel)}:{})}});
   store.recoverInterrupted();
   store.recoverContentJobs();
   const port=Number(process.env.PORT??4175);

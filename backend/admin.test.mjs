@@ -233,7 +233,7 @@ test("Yandex selection is persisted, audited and reused after an audio-only retr
   assert.equal(response.status, 200);
   const { job } = /** @type {any} */ (await response.json());
   assert.equal(job.data.ttsProvider, "yandex");
-  assert.deepEqual(job.ttsProviders.map(({ id, label, available }) => ({ id, label, available })), [{ id: "openai", label: "OpenAI", available: true }, { id: "yandex", label: "Яндекс SpeechKit", available: true }, { id: "elevenlabs", label: "ElevenLabs v3 (с аудиотегами)", available: false }]);
+  assert.deepEqual(job.ttsProviders.map(({ id, label, available }) => ({ id, label, available })), [{ id: "openai", label: "OpenAI", available: true }, { id: "yandex", label: "Яндекс SpeechKit", available: true }, { id: "elevenlabs", label: "ElevenLabs (с аудиотегами)", available: false }]);
   assert.equal(job.data.ttsVoice, "kirill");
   assert.equal(job.ttsProviders[1].defaultVoice, "marina");
   assert.ok(job.ttsProviders[1].voices.some(voice => voice.id === "kirill"));
@@ -448,7 +448,7 @@ test("ElevenLabs revoicing offers the account voices and narrates with the selec
   const approved = f.store.approveAdmin(saved.id, saved.revision);
   const ready = await runJob(f.store.claimNext(), { store: f.store, provider: {}, narrate: async () => ({ url: "openai-audio", durationSec: 100, provider: "openai" }) });
   const detail = /** @type {any} */ (await (await f.request(`/${approved.id}`)).json()).job;
-  assert.deepEqual(detail.ttsProviders.find(option => option.id === "elevenlabs"), { id: "elevenlabs", label: "ElevenLabs v3 (с аудиотегами)", available: true,
+  assert.deepEqual(detail.ttsProviders.find(option => option.id === "elevenlabs"), { id: "elevenlabs", label: "ElevenLabs (с аудиотегами)", available: true,
     defaultVoice: "RuVoice1", voices: elevenLabsTts.voices });
   assert.equal((await f.request(`/${ready.id}/revoice`, { revision: ready.revision, ttsProvider: "elevenlabs", ttsVoice: "marin" })).status, 400);
   const response = await f.request(`/${ready.id}/revoice`, { revision: ready.revision, ttsProvider: "elevenlabs", ttsVoice: "EnVoice1" });

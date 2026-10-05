@@ -4,9 +4,13 @@ import { createNarration } from "./audio.mjs";
 export const ELEVENLABS_PROFILE_ID = "elevenlabs-v3";
 const LEASE_MS = 600000;
 
-/** Queue profile of catalog voicing through ElevenLabs: the text is normalized once at enqueue time. */
-export function elevenLabsProfile(voice) {
-  return { engine: "elevenlabs", language: "ru", speaker: voice, configVersion: "1", chunking: "elevenlabs-v3", maximumPublicationDurationSec: 300 };
+/**
+ * Queue profile of catalog voicing through ElevenLabs: the text is normalized once at enqueue time. The ID predates
+ * Eleven v4 and is kept because stored texts and jobs refer to it; the model is part of the profile, so a new model
+ * voices an already voiced text again instead of reusing the old job.
+ */
+export function elevenLabsProfile(voice, model) {
+  return { engine: "elevenlabs", language: "ru", speaker: voice, model, configVersion: "1", chunking: "elevenlabs-v3", maximumPublicationDurationSec: 300 };
 }
 
 // The queued text is already normalized for speech; normalizing again would change it.

@@ -1,12 +1,12 @@
 import { failure } from "./domain.mjs";
 
-// Audio tags of ElevenLabs v3 (https://elevenlabs.io/docs/best-practices/prompting/eleven-v3) that suit a calm
+// Audio tags of ElevenLabs v3 and v4 (https://elevenlabs.io/docs/best-practices/prompting/eleven-v3) that suit a calm
 // walking-tour narrator. Anything else (laughter, sound effects, accents) is rejected as a model error.
 export const AUDIO_TAGS = Object.freeze(["warmly", "softly", "calm", "curious", "thoughtful", "storytelling", "inviting",
   "upbeat", "excited", "amazed", "serious", "nostalgic", "reflective", "sad", "whispers", "sighs", "short pause", "long pause"]);
 const ALLOWED = new Set(AUDIO_TAGS);
 const TAG = /\[([^[\]\n]{1,40})\]/g;
-export const AUDIO_TAGS_VERSION = "elevenlabs-v3-tags-v1";
+export const AUDIO_TAGS_VERSION = "elevenlabs-tags-v2";
 
 const compact = value => value.replace(/\s+/g, " ").trim();
 
@@ -16,7 +16,7 @@ export function plainNarration(text) {
 }
 
 export function audioTagsPrompt(text) {
-  return `Ты готовишь русский текст экскурсии к озвучке моделью ElevenLabs v3. Расставь в нём аудиотеги в квадратных скобках, которые подсказывают диктору интонацию и паузы.
+  return `Ты готовишь русский текст экскурсии к озвучке моделью ElevenLabs. Расставь в нём аудиотеги в квадратных скобках, которые подсказывают диктору интонацию и паузы.
 Разрешены только эти теги: ${AUDIO_TAGS.map(tag => `[${tag}]`).join(", ")}.
 Правила:
 - Не меняй, не добавляй и не удаляй ни одного слова, знака препинания или абзаца. Только вставляй теги.

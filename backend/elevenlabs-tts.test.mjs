@@ -7,7 +7,7 @@ const audio = (bytes = "mp3") => new Response(bytes, { headers: { "Content-Type"
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json", "Retry-After": "0" } });
 const tagNarration = Object.assign(async script => `[warmly] ${script}`, { version: "tags-test" });
 
-test("speech sends the tagged narration to eleven_v3 with the selected voice", async () => {
+test("speech sends the tagged narration to eleven_v4 with the selected voice", async () => {
   const calls = [];
   const tts = createElevenLabsTts({ apiKey: "PRIVATE_KEY", voice: "Bw26i86XOp3C5sMhVUnX", tagNarration, fetchImpl: async (url, init) => {
     calls.push({ url, headers: init.headers, body: JSON.parse(String(init.body)) }); return audio("first");
@@ -16,7 +16,8 @@ test("speech sends the tagged narration to eleven_v3 with the selected voice", a
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, "https://api.elevenlabs.io/v1/text-to-speech/WTn2eCRCpoFAC50VD351?output_format=mp3_44100_128");
   assert.equal(calls[0].headers["xi-api-key"], "PRIVATE_KEY");
-  assert.deepEqual(calls[0].body, { text: "[warmly] Памятник Гаазу.", model_id: "eleven_v3", language_code: "ru" });
+  assert.deepEqual(calls[0].body, { text: "[warmly] Памятник Гаазу.", model_id: "eleven_v4", language_code: "ru" });
+  assert.equal(tts.ttsModel, "eleven_v4");
   assert.equal(tts.scriptVersion, "tags-test");
 });
 
