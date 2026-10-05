@@ -2065,5 +2065,44 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:7906582329": {
+    "thumbnail": "/images/places/node-7906582329-fa5e13a68219.jpg",
+    "src": "/images/places/node-7906582329-1b3df380a3e3.jpg",
+    "width": 960,
+    "height": 1306,
+    "alt": "Уличный корпус жилого владения в Малом Лёвшинском переулке, 14/9, в 2012 году. Мемориальная доска Иванову находится на закрытой территории; здесь показан контекст дома.",
+    "author": "Shakko",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Maly_Levshinsky_Lane_14-9_(2012)_by_shakko_01.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:10090116527": {
+    "thumbnail": "/images/places/node-10090116527-edfa8cc8b485.jpg",
+    "src": "/images/places/node-10090116527-aff8b7b3bffa.jpg",
+    "width": 960,
+    "height": 640,
+    "alt": "Особняк Боля — Гутхейля в Денежном переулке, 13, апрель 2024 года.",
+    "author": "Alexxx1979",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow._Mansion_of_N._K._Bol_-_K._A._Gutheil_P4141889_2600.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:12729053257": {
+    "thumbnail": "/images/places/node-12729053255-66d373e8f557.jpg",
+    "src": "/images/places/node-12729053255-66eafa5f5e77.jpg",
+    "width": 960,
+    "height": 641,
+    "alt": "Большой Кисловский переулок: дом 5–7 в отдалённой части кадра, дом 13 слева на переднем плане. Общий вид улицы в контексте рассказа о «Последнем адресе»; табличка Грум-Гржимайло не показана.",
+    "author": "Gennady Grachev from Moscow, Russia",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshoy_Kislovsky_Lane_5-7_and_13_(31072765450).jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }

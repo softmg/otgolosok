@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T16:59:17.613967+00:00",
+  "updatedAt": "2026-10-05T17:12:05.070796+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 232,
+    "publishedWithRevoice": 240,
     "reviewedNoChange": 4,
-    "pending": 164
+    "pending": 156
   },
   "entries": [
     {
@@ -814,56 +814,64 @@
       "name": "Дуэль",
       "originalTextId": "4631bd6b-56c9-406d-9cb8-55e330630e24",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch36/changes.json"
     },
     {
       "placeId": "osm:node:7906582329",
       "name": "Е. А. Иванову",
       "originalTextId": "c5cec7e1-73e8-48b7-a37e-90f2129e9908",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch36/changes.json"
     },
     {
       "placeId": "osm:node:9976724415",
       "name": "Е. В. Вучетичу",
       "originalTextId": "fc4d24f0-1985-4ab8-9abc-532b98587edf",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch36/changes.json"
     },
     {
       "placeId": "osm:node:640142003",
       "name": "Е. Е. Лансере",
       "originalTextId": "3b9d2474-d9fa-443c-ae69-5f9d0968a0c7",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch36/changes.json"
     },
     {
       "placeId": "osm:node:8104894066",
       "name": "Е. Л. Дзигану",
       "originalTextId": "3f83e8b2-2e84-49bb-8fd6-cb35ba617df4",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch36/changes.json"
     },
     {
       "placeId": "osm:node:4142944125",
       "name": "Жертвоприношение",
       "originalTextId": "9919a960-bca8-46e4-aa35-e8e762b88df0",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch36/changes.json"
     },
     {
       "placeId": "osm:node:10090116527",
       "name": "Жилой дом Н. К. Боля — К. А. Гутхейля",
       "originalTextId": "869d961b-ac08-45ef-9ac3-5352f2ed0f98",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch36/changes.json"
     },
     {
       "placeId": "osm:node:12729053257",
       "name": "Заседателев Борис Федорович",
       "originalTextId": "8d204ea8-2fd0-4cd7-a3a4-c3daf55308d4",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch36/changes.json"
     },
     {
       "placeId": "osm:node:6551722694",
