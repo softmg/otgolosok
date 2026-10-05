@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T20:30:02.542439+00:00",
+  "updatedAt": "2026-10-05T20:40:56.684174+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 376,
+    "publishedWithRevoice": 384,
     "reviewedNoChange": 4,
-    "pending": 20
+    "pending": 12
   },
   "entries": [
     {
@@ -2646,7 +2646,8 @@
       "name": "Университет Российской академии образования",
       "originalTextId": "10db1853-5198-4a04-b529-ccf6f91008f9",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch54/changes.json"
     },
     {
       "placeId": "osm:way:47853856",
@@ -2677,7 +2678,8 @@
       "name": "Усадьба Давыдова",
       "originalTextId": "82ce4662-1c90-4ffb-8d67-b4e8e83263f5",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch54/changes.json"
     },
     {
       "placeId": "osm:relation:2156225",
@@ -2740,28 +2742,32 @@
       "name": "Ф. В. Токареву",
       "originalTextId": "d0135fdb-a2be-4bbf-937e-b06421cb61d9",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch54/changes.json"
     },
     {
       "placeId": "osm:node:8898082930",
       "name": "Ф. Платтену",
       "originalTextId": "458594d1-935f-4142-85b9-c2a59b81e423",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch54/changes.json"
     },
     {
       "placeId": "osm:node:4142854541",
       "name": "Ф. Э. Дзержинскому",
       "originalTextId": "698e65ee-6a9f-410c-80f2-913476b9963e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch54/changes.json"
     },
     {
       "placeId": "osm:relation:15344966",
       "name": "Факультет журналистики МГУ",
       "originalTextId": "bb66d57a-be9e-4258-8ed8-91926a427241",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch54/changes.json"
     },
     {
       "placeId": "osm:way:31482156",
@@ -2776,14 +2782,16 @@
       "name": "Факультет психологии МГУ — лабораторный корпус",
       "originalTextId": "fbd6473c-4cf6-46b1-9c07-1329ea85f7c4",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch54/changes.json"
     },
     {
       "placeId": "osm:relation:9241422",
       "name": "Федеральная служба государственной регистрации, кадастра и картографии",
       "originalTextId": "f34eaacf-6d1b-4d52-96aa-4e174bc56c50",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch54/changes.json"
     },
     {
       "placeId": "osm:way:52673166",

@@ -3339,5 +3339,57 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:way:48172547": {
+    "thumbnail": "/images/places/way-48172547-7101235729a3.jpg",
+    "src": "/images/places/way-48172547-8da9d88a2574.jpg",
+    "width": 960,
+    "height": 640,
+    "alt": "Охранная доска доходного дома Николая Воробьёва на Большой Полянке, 58. Фрагмент здания, 3 апреля 2025 года.",
+    "author": "Retired electrician",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Polyanka_58_April_2025_01.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:6617755692": {
+    "thumbnail": "/images/places/node-6617755692-0ffb2b8e2aed.jpg",
+    "src": "/images/places/node-6617755692-2840b0f4dce2.jpg",
+    "width": 960,
+    "height": 969,
+    "alt": "Дом на Большой Полянке, 7/10, где жил Фёдор Токарев. Общий вид здания 9 мая 2010 года, не крупный план мемориальной доски.",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:B_Polyanka_7_May_2010_03.JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:8898082930": {
+    "thumbnail": "/images/places/node-8898082930-5de97571ea68.jpg",
+    "src": "/images/places/node-8898082930-95f0f179f22f.jpg",
+    "width": 960,
+    "height": 720,
+    "alt": "Здание МГЛУ на Остоженке, 38, ночью в ноябре 2009 года. Общий вид, не крупный план доски Фрицу Платтену.",
+    "author": "Elisa.rolle",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Ostozhenka_38_November_2009_(5).jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:4142854541": {
+    "thumbnail": "/images/places/node-4142854541-903b0aa61f07.jpg",
+    "src": "/images/places/node-4142854541-725d97aed1e8.jpg",
+    "width": 960,
+    "height": 1242,
+    "alt": "Памятник Феликсу Дзержинскому в парке «Музеон», 9 апреля 2022 года.",
+    "author": "KirillQQ",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BC%D1%8F%D1%82%D0%BD%D0%B8%D0%BA_%D0%A4._%D0%94%D0%B7%D0%B5%D1%80%D0%B6%D0%B8%D0%BD%D1%81%D0%BA%D0%BE%D0%BC%D1%83.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }

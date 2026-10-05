@@ -1,0 +1,364 @@
+{
+  "verifiedAt": "2026-10-05T20:40:15.884Z",
+  "bundleId": "garden-ring-intros-2026-10-05-batch54",
+  "transport": "https-h2",
+  "results": [
+    {
+      "placeId": "osm:way:48172547",
+      "name": "Университет Российской академии образования",
+      "textId": "1e95e1f7-2a5a-4425-badb-3c9f187df5e5",
+      "audioJobId": "85fb8cc8-c96f-4d94-b685-aa439c941306",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/fcacf7b1a68ea03a9cdf5befb183221092d53054e6d8d335246d96f59d70c952.mp3",
+        "sha256": "fcacf7b1a68ea03a9cdf5befb183221092d53054e6d8d335246d96f59d70c952",
+        "bytes": 518445,
+        "durationSec": 64.776,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "55287533d61af2f7498073ca9f3eb96e7d5b41620b03e9fc9b219bc06e0ccf2a",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/images/places/way-48172547-7101235729a3.jpg",
+        "src": "/images/places/way-48172547-8da9d88a2574.jpg",
+        "width": 960,
+        "height": 640,
+        "alt": "Охранная доска доходного дома Николая Воробьёва на Большой Полянке, 58. Фрагмент здания, 3 апреля 2025 года.",
+        "author": "Retired electrician",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Polyanka_58_April_2025_01.jpg",
+        "license": "CC0",
+        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:way:412738928",
+      "name": "Усадьба Давыдова",
+      "textId": "ef08f347-47e6-4247-8825-583896bf010c",
+      "audioJobId": "ba2822fe-ba4a-43fc-bb11-6581828334b3",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/07f6a28785fa12393af7ea55190678bc8188052b01f07adbec5491ee7918ac38.mp3",
+        "sha256": "07f6a28785fa12393af7ea55190678bc8188052b01f07adbec5491ee7918ac38",
+        "bytes": 591213,
+        "durationSec": 73.872,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "fe88b0934e3f4c6084ebd91958db61af8040d37aa71ac48d40d36b7173070b0e",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/fe7778d0456e79dd9517d6ce1cf108711d7a4a346874483b05e93e8eeb0c2e4a.jpg",
+        "src": "/api/place-images/1a7dccad3c48ba7941a5fb1ece707bed0d1dee234f8ea049b1513b1dfea1d8ba.jpg",
+        "width": 500,
+        "height": 536,
+        "alt": "Флигель городской усадьбы Бибиковых — Д. В. Давыдова",
+        "author": "NVO",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Prechistenka_17-10_Aug_2008_01.JPG",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:node:6617755692",
+      "name": "Ф. В. Токареву",
+      "textId": "d0135fdb-a2be-4bbf-937e-b06421cb61d9",
+      "audioJobId": "fe627b7a-d502-4d40-ac53-03050611c065",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/8d64e96621d0f27d9c57ce14ed8922b2220dbd5d149b8aac322d86793ff71ade.mp3",
+        "sha256": "8d64e96621d0f27d9c57ce14ed8922b2220dbd5d149b8aac322d86793ff71ade",
+        "bytes": 498669,
+        "durationSec": 62.304,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "1cc55ce9ded34f3108c4807027d8b4ad1a39927ceec68b567859ef0b7d7015ca",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/images/places/node-6617755692-0ffb2b8e2aed.jpg",
+        "src": "/images/places/node-6617755692-2840b0f4dce2.jpg",
+        "width": 960,
+        "height": 969,
+        "alt": "Дом на Большой Полянке, 7/10, где жил Фёдор Токарев. Общий вид здания 9 мая 2010 года, не крупный план мемориальной доски.",
+        "author": "NVO",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:B_Polyanka_7_May_2010_03.JPG",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:node:8898082930",
+      "name": "Ф. Платтену",
+      "textId": "458594d1-935f-4142-85b9-c2a59b81e423",
+      "audioJobId": "bda621cb-2825-451c-b941-78db9e4208a7",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/c178ee37fa9147aaac2f892a7b6bb497d763e5a62e4459a45aaf3dc1bc8fa7ae.mp3",
+        "sha256": "c178ee37fa9147aaac2f892a7b6bb497d763e5a62e4459a45aaf3dc1bc8fa7ae",
+        "bytes": 518253,
+        "durationSec": 64.752,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "ce3bee0df19c52f40d96e24345008037dea578b7eab78dc021e5e3199ac91e8c",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/images/places/node-8898082930-5de97571ea68.jpg",
+        "src": "/images/places/node-8898082930-95f0f179f22f.jpg",
+        "width": 960,
+        "height": 720,
+        "alt": "Здание МГЛУ на Остоженке, 38, ночью в ноябре 2009 года. Общий вид, не крупный план доски Фрицу Платтену.",
+        "author": "Elisa.rolle",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Ostozhenka_38_November_2009_(5).jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:node:4142854541",
+      "name": "Ф. Э. Дзержинскому",
+      "textId": "2a0fd14d-73aa-48f0-9385-e23c01ba5380",
+      "audioJobId": "65dffaa3-1077-4b9c-abe8-2529b4db7dab",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/f9acff80cd5c439108039c0e4b5d49928d1e79482dd74cd2ef311ce7a911422a.mp3",
+        "sha256": "f9acff80cd5c439108039c0e4b5d49928d1e79482dd74cd2ef311ce7a911422a",
+        "bytes": 509805,
+        "durationSec": 63.696,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "232cd3524be17bdb113022aa5562709e4b29b2f517fa6f27245a6bda7e4fc58a",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/images/places/node-4142854541-903b0aa61f07.jpg",
+        "src": "/images/places/node-4142854541-725d97aed1e8.jpg",
+        "width": 960,
+        "height": 1242,
+        "alt": "Памятник Феликсу Дзержинскому в парке «Музеон», 9 апреля 2022 года.",
+        "author": "KirillQQ",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BC%D1%8F%D1%82%D0%BD%D0%B8%D0%BA_%D0%A4._%D0%94%D0%B7%D0%B5%D1%80%D0%B6%D0%B8%D0%BD%D1%81%D0%BA%D0%BE%D0%BC%D1%83.jpg",
+        "license": "CC0",
+        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:relation:15344966",
+      "name": "Факультет журналистики МГУ",
+      "textId": "fdfe2ec8-a279-425c-9bf8-f47515c05b0b",
+      "audioJobId": "867a56bf-56a2-44ad-8de0-1195449e785b",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/f3eb4a416e1fc9cdc53caa5b797f9329a65cc52e122d9de3daa6979c56f546a1.mp3",
+        "sha256": "f3eb4a416e1fc9cdc53caa5b797f9329a65cc52e122d9de3daa6979c56f546a1",
+        "bytes": 458925,
+        "durationSec": 57.336,
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/19ea1756baade3d565d98d16fbad0336faf4369d40caf55703c837ab958f9980.jpg",
+        "src": "/api/place-images/1cc07e59b534db93ad42bb30a388b4befe2e549718b51e6a4f5560571953ef8b.jpg",
+        "width": 960,
+        "height": 650,
+        "alt": "Аудиторный корпус МГУ (Факультет журналистики МГУ)",
+        "author": "A.Savin",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_05-2012_Mokhovaya_02.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "54a95a49-bc09-4622-b52b-446e87dd1395",
+          "title": "Прогулка от метро «Боровицкая» · 60 минут",
+          "shareToken": "f8ce0130-51ae-42bf-b971-f6c0bc18785c"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "54a95a49-bc09-4622-b52b-446e87dd1395",
+          "title": "Прогулка от метро «Боровицкая» · 60 минут",
+          "shareToken": "f8ce0130-51ae-42bf-b971-f6c0bc18785c",
+          "chapterId": "54a95a49-bc09-4622-b52b-446e87dd1395-stop-0",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/f3eb4a416e1fc9cdc53caa5b797f9329a65cc52e122d9de3daa6979c56f546a1.mp3",
+            "sha256": "f3eb4a416e1fc9cdc53caa5b797f9329a65cc52e122d9de3daa6979c56f546a1",
+            "durationSec": 57.336
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    },
+    {
+      "placeId": "osm:way:52444324",
+      "name": "Факультет психологии МГУ — лабораторный корпус",
+      "textId": "57ee126e-638e-43ee-96de-11670f054948",
+      "audioJobId": "88b0dd46-7352-470a-a89b-7612a54045ff",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/ba7af5b6a12d5125a1080ebb41b38df2c5221009942f699de6eacd34b34f525f.mp3",
+        "sha256": "ba7af5b6a12d5125a1080ebb41b38df2c5221009942f699de6eacd34b34f525f",
+        "bytes": 486189,
+        "durationSec": 60.744,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "92015fb3cf755eac6bccfd105f205438921a87aae47414d20c0f29dd5e042d9c",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/de662ac9ead9c8769e7dc56aef4fe17f14bbf839d4898fca788d10823a258813.jpg",
+        "src": "/api/place-images/5bb655f8bb6712cbc258f7f1c1ba931d880230e361e8535bd51ac079e961d9c0.jpg",
+        "width": 960,
+        "height": 720,
+        "alt": "Лабораторный корпус факультета психологии МГУ",
+        "author": "Stanislav Kozlovskiy",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:MSU_Faculty_of_Psychology.jpg",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:relation:9241422",
+      "name": "Федеральная служба государственной регистрации, кадастра и картографии",
+      "textId": "99deb219-9062-4976-8fbc-140b1db30899",
+      "audioJobId": "8a88ded4-d5b0-4bfe-b540-54c40e846e1a",
+      "audioProfile": "elevenlabs-v3",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/3f9a4349060397fd5b1647e1f665b80fc0dd8c90ed750b31ff03bb4c54addb80.mp3",
+        "sha256": "3f9a4349060397fd5b1647e1f665b80fc0dd8c90ed750b31ff03bb4c54addb80",
+        "bytes": 488301,
+        "durationSec": 61.008,
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "provider": "elevenlabs",
+        "synthetic": true
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/358b5ec64aa2ad2976c9daf91141b667723a053e5d2e8e41d62def8ef651d1d2.jpg",
+        "src": "/api/place-images/7385b67e1fec94580f9b91bac250022853220d946c8d871522f5f224d2c96d26.jpg",
+        "width": 960,
+        "height": 540,
+        "alt": "Здание Правления Курско-Киевской (Воронежской) железной дороги",
+        "author": "Rakoon",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:20190219_153034_Federal_Service_for_State_Registration,_Cadastre_and_Mapping.jpg",
+        "license": "CC0",
+        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [
+        {
+          "id": "a31d3178-92fd-44f5-8cd3-077b039e6966",
+          "title": "Прогулка на час от метро «Чистые пруды»",
+          "shareToken": "b9d7cfea-49e4-4229-8be3-b1b85e2b3977"
+        }
+      ],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": [
+        {
+          "id": "a31d3178-92fd-44f5-8cd3-077b039e6966",
+          "title": "Прогулка на час от метро «Чистые пруды»",
+          "shareToken": "b9d7cfea-49e4-4229-8be3-b1b85e2b3977",
+          "chapterId": "a31d3178-92fd-44f5-8cd3-077b039e6966-stop-5",
+          "status": "ready",
+          "audio": {
+            "url": "/api/story-audio/3f9a4349060397fd5b1647e1f665b80fc0dd8c90ed750b31ff03bb4c54addb80.mp3",
+            "sha256": "3f9a4349060397fd5b1647e1f665b80fc0dd8c90ed750b31ff03bb4c54addb80",
+            "durationSec": 61.008
+          },
+          "httpsTextVerified": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "publishedTexts": 8,
+    "firstPublications": 2,
+    "revoiced": 8,
+    "f5": 6,
+    "elevenlabs": 2,
+    "newPhotos": 4,
+    "preservedPhotos": 4,
+    "photoNotFound": 0,
+    "totalCandidatesCompleted": 384
+  }
+}
