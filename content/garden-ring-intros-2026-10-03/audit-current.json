@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T18:07:09.374293+00:00",
+  "updatedAt": "2026-10-05T18:18:41.688147+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 272,
+    "publishedWithRevoice": 280,
     "reviewedNoChange": 4,
-    "pending": 124
+    "pending": 116
   },
   "entries": [
     {
@@ -1230,7 +1230,8 @@
       "name": "Мартышка и очки;Осёл;Волк и ягнёнок",
       "originalTextId": "c56c0c24-51fa-4911-98d0-2d541722da05",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch41/changes.json"
     },
     {
       "placeId": "osm:node:14096310201",
@@ -1253,14 +1254,16 @@
       "name": "Мемориальная квартира-музей Е. Б. Вахтангова",
       "originalTextId": "1ee7befd-8cbc-4495-ae63-4c4060d86f64",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch41/changes.json"
     },
     {
       "placeId": "osm:node:6303242526",
       "name": "Мемориальная музей-квартира Г.М. Кржижановского",
       "originalTextId": "68f5362a-0e39-490c-a835-aa377d754de9",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch41/changes.json"
     },
     {
       "placeId": "osm:node:4692951498",
@@ -1283,21 +1286,24 @@
       "name": "Мемориальный музей-квартира А.И. Сумбатова-Южина",
       "originalTextId": "d6619f69-a13a-4fd8-ae81-4beabcbb53af",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch41/changes.json"
     },
     {
       "placeId": "osm:node:10572977039",
       "name": "Мемориальный музей-квартира Тимирязева Климента Аркадьевича",
       "originalTextId": "23beeb6b-2c74-4e88-98d7-5f8199477875",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch41/changes.json"
     },
     {
       "placeId": "osm:node:9181274057",
       "name": "Место церкви Ржевской иконы Божией Матери",
       "originalTextId": "c5da4c3f-57c1-498e-8069-b437c1a3a676",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch41/changes.json"
     },
     {
       "placeId": "osm:relation:85761",
@@ -1320,14 +1326,16 @@
       "name": "Минаев-Каневский Сергей Владимирович",
       "originalTextId": "47b23c96-5462-465e-acd9-f8b1d1d1e8f8",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch41/changes.json"
     },
     {
       "placeId": "osm:way:52132608",
       "name": "Министерство культуры РФ",
       "originalTextId": "94780af1-7019-481a-9e87-730bda21848d",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch41/changes.json"
     },
     {
       "placeId": "osm:way:60453478",
