@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T13:49:30.988864+00:00",
+  "updatedAt": "2026-10-05T13:58:44.209540+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 120,
+    "publishedWithRevoice": 128,
     "reviewedNoChange": 4,
-    "pending": 276
+    "pending": 268
   },
   "entries": [
     {
@@ -647,7 +647,8 @@
       "name": "Дом Пашкова",
       "originalTextId": "be82ddca-7a64-4314-a49a-7215ce0efd64",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch22/changes.json"
     },
     {
       "placeId": "osm:way:274909164",
@@ -1201,14 +1202,16 @@
       "name": "Метрополь",
       "originalTextId": "80c9b876-f3c6-4b74-842b-fa21aed315a9",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch22/changes.json"
     },
     {
       "placeId": "osm:relation:3881262",
       "name": "МИД России центральное здание",
       "originalTextId": "26744b7f-a090-4738-b10e-581dc83b9b0e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch22/changes.json"
     },
     {
       "placeId": "osm:node:12729053253",
@@ -1307,7 +1310,8 @@
       "name": "Московский дом художника",
       "originalTextId": "5500a691-021b-486a-9abc-35143324884a",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch22/changes.json"
     },
     {
       "placeId": "osm:node:12803628465",
@@ -1651,7 +1655,8 @@
       "name": "Националь",
       "originalTextId": "f72ec93e-5618-4d3c-b413-0b4183c8cb64",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch22/changes.json"
     },
     {
       "placeId": "osm:node:11741417323",
@@ -1693,7 +1698,8 @@
       "name": "Новый манеж",
       "originalTextId": "1b290889-ff3e-45ff-bfd6-26aff7db071e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch22/changes.json"
     },
     {
       "placeId": "osm:node:7428358400",
@@ -2061,7 +2067,8 @@
       "name": "Российский государственный архив социально-политической истории",
       "originalTextId": "a7fb974d-340b-47ee-a72f-79cc7c3d9d5f",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch22/changes.json"
     },
     {
       "placeId": "osm:way:53830818",
@@ -2139,7 +2146,8 @@
       "name": "Савой",
       "originalTextId": "441e366e-7a18-4f12-b2d1-81ee778d632b",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch22/changes.json"
     },
     {
       "placeId": "osm:way:471223526",
