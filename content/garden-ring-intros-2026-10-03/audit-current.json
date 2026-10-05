@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T12:58:04.583314+00:00",
+  "updatedAt": "2026-10-05T13:12:25.239790+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 94,
+    "publishedWithRevoice": 100,
     "reviewedNoChange": 4,
-    "pending": 302
+    "pending": 296
   },
   "entries": [
     {
@@ -36,28 +36,32 @@
       "name": "А. А. Фадееву",
       "originalTextId": "fc36c942-8bea-432d-bd51-58044b736923",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch18/changes.json"
     },
     {
       "placeId": "osm:node:9106236034",
       "name": "А. А. Яблочкиной",
       "originalTextId": "7c4204d3-2f1c-4b2b-b951-226dc926f572",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch18/changes.json"
     },
     {
       "placeId": "osm:node:6225259086",
       "name": "А. В. Луначарскому",
       "originalTextId": "199ecb85-73fb-48f3-87eb-2c58b0d2964b",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch18/changes.json"
     },
     {
       "placeId": "osm:node:6655953290",
       "name": "А. Д. Дикому",
       "originalTextId": "b94e8d84-c99c-4508-b66f-a2f937f39f66",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch18/changes.json"
     },
     {
       "placeId": "osm:node:2585233691",
@@ -72,7 +76,8 @@
       "name": "А. И. Южину-Сумбатову",
       "originalTextId": "16594024-3df0-4e9b-b5e2-b28956dd241f",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch18/changes.json"
     },
     {
       "placeId": "osm:node:1096235294",
@@ -164,7 +169,8 @@
       "name": "А.П. Маресьеву",
       "originalTextId": "204dc5a1-11fe-423e-afdc-abde9708a43b",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch18/changes.json"
     },
     {
       "placeId": "osm:node:5057733049",
