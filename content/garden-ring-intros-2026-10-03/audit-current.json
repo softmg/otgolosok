@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T17:22:41.714776+00:00",
+  "updatedAt": "2026-10-05T17:38:07.030331+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 248,
+    "publishedWithRevoice": 256,
     "reviewedNoChange": 4,
-    "pending": 148
+    "pending": 140
   },
   "entries": [
     {
@@ -982,21 +982,24 @@
       "name": "К.Е. Ворошилову",
       "originalTextId": "8f92fe40-ace2-4400-9081-6db8488d0519",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch38/changes.json"
     },
     {
       "placeId": "osm:node:13155862702",
       "name": "Каллистову А.Н.",
       "originalTextId": "c8a7b165-722b-4250-9ebb-763d2870d309",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch38/changes.json"
     },
     {
       "placeId": "osm:node:784052411",
       "name": "Карлу Марксу",
       "originalTextId": "c8a4021f-b204-486a-8fd7-7a898af5d20e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch38/changes.json"
     },
     {
       "placeId": "osm:relation:7524307",
@@ -1011,14 +1014,16 @@
       "name": "Квадрига Аполлона",
       "originalTextId": "7e406cb5-47c1-436b-b094-3996e5584f03",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch38/changes.json"
     },
     {
       "placeId": "osm:node:8849289628",
       "name": "Ключ счастья",
       "originalTextId": "9a14acc5-deab-4050-a744-e1450095a90a",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch38/changes.json"
     },
     {
       "placeId": "osm:relation:1360645",
@@ -1065,21 +1070,24 @@
       "name": "Л. Г. Полищук",
       "originalTextId": "09a8585e-5676-45df-87d8-34f7ceebe897",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch38/changes.json"
     },
     {
       "placeId": "osm:node:4142863819",
       "name": "Лев",
       "originalTextId": "cc05cfda-23d6-49e4-b1cd-dd5b3ec12e34",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch38/changes.json"
     },
     {
       "placeId": "osm:node:1691951977",
       "name": "Ленин-гимназист",
       "originalTextId": "947459d0-8068-4038-ae7c-8438c9e35f32",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch38/changes.json"
     },
     {
       "placeId": "osm:way:52673205",
