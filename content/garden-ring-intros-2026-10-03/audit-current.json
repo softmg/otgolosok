@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T19:56:37.678382+00:00",
+  "updatedAt": "2026-10-05T20:09:53.517347+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 352,
+    "publishedWithRevoice": 360,
     "reviewedNoChange": 4,
-    "pending": 44
+    "pending": 36
   },
   "entries": [
     {
@@ -2390,56 +2390,64 @@
       "name": "Сквер Генерала армии А.В.Хрулёва",
       "originalTextId": "42f325f2-5223-4e34-8980-54d4183b28ef",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch51/changes.json"
     },
     {
       "placeId": "osm:way:174929171",
       "name": "сквер им. Муслима Магомаева",
       "originalTextId": "005aab5f-b6de-44e3-a43a-348041241594",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch51/changes.json"
     },
     {
       "placeId": "osm:way:307795782",
       "name": "Сквер Киселева",
       "originalTextId": "a5c6db49-1d04-460e-b1b9-3770a13f7d83",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch51/changes.json"
     },
     {
       "placeId": "osm:node:9106236033",
       "name": "Сквер Майи Плисецкой",
       "originalTextId": "32992a2c-bd4e-47e2-b4de-1cd2860d8b36",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch51/changes.json"
     },
     {
       "placeId": "osm:relation:7520849",
       "name": "Сквер Мандельштама",
       "originalTextId": "0dac2ef4-156f-468e-a421-49b3e13ce95c",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch51/changes.json"
     },
     {
       "placeId": "osm:way:205734958",
       "name": "сквер Мстислава Ростроповича",
       "originalTextId": "f4fed30b-54b9-49c3-a34c-95b9b0785fcc",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch51/changes.json"
     },
     {
       "placeId": "osm:relation:7672227",
       "name": "сквер Ополченцев Замоскворечья",
       "originalTextId": "e287829f-ad8d-424d-ae6b-79a108018c79",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch51/changes.json"
     },
     {
       "placeId": "osm:way:251330231",
       "name": "сквер Строителей Москвы",
       "originalTextId": "4713641b-e95e-4e15-97de-13ca5e5cc651",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch51/changes.json"
     },
     {
       "placeId": "osm:way:289507858",
