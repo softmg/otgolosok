@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T18:41:28.079735+00:00",
+  "updatedAt": "2026-10-05T18:51:53.053637+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 296,
+    "publishedWithRevoice": 304,
     "reviewedNoChange": 4,
-    "pending": 100
+    "pending": 92
   },
   "entries": [
     {
@@ -1598,7 +1598,8 @@
       "name": "Музей холодной войны (экспозиционный комплекс Бункер-42)",
       "originalTextId": "3340b387-1e5a-4eda-b139-eeafefcfbcd1",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch44/changes.json"
     },
     {
       "placeId": "osm:node:3794298653",
@@ -1613,7 +1614,8 @@
       "name": "Музей экслибриса и миниатюрной книги",
       "originalTextId": "d2a6f34f-b7f7-4f20-b42c-358a822973d9",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch44/changes.json"
     },
     {
       "placeId": "osm:node:5181346005",
@@ -1628,7 +1630,8 @@
       "name": "Музей-квартира А. М. Горького",
       "originalTextId": "7b036479-ce53-42e4-afac-4ff75771dcfd",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch44/changes.json"
     },
     {
       "placeId": "osm:node:703628600",
@@ -1651,7 +1654,8 @@
       "name": "Музей-квартира актерской семьи М. В., А. А. Мироновых — А. С. Менакера",
       "originalTextId": "0670c46c-982f-463e-86e2-675b5430cfe3",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch44/changes.json"
     },
     {
       "placeId": "osm:node:2590877091",
@@ -1690,28 +1694,32 @@
       "name": "Музей-мастерская Людмилы Гурченко",
       "originalTextId": "23ff6a89-d0b6-4c00-9147-af03f2de3533",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch44/changes.json"
     },
     {
       "placeId": "osm:relation:7750047",
       "name": "Музейный парк",
       "originalTextId": "6bb6e1de-0529-46a5-a1f2-4355182c7813",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch44/changes.json"
     },
     {
       "placeId": "osm:relation:456961",
       "name": "Музыкальный театр им. Станиславского и Немировича-Данченко",
       "originalTextId": "8b1dd3c4-a24e-404b-a65e-57dbdbcb15b9",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch44/changes.json"
     },
     {
       "placeId": "osm:node:7903427569",
       "name": "Н. А. Островскому",
       "originalTextId": "a05df7a9-6bbe-42fd-802c-a8c9223631af",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch44/changes.json"
     },
     {
       "placeId": "osm:node:489814793",
