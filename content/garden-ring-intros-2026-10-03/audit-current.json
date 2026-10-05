@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T16:44:22.585178+00:00",
+  "updatedAt": "2026-10-05T16:59:17.613967+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 224,
+    "publishedWithRevoice": 232,
     "reviewedNoChange": 4,
-    "pending": 172
+    "pending": 164
   },
   "entries": [
     {
@@ -654,21 +654,24 @@
       "name": "Дом дворцового ведомства",
       "originalTextId": "b662581f-f80a-4f7e-9502-8f5300895f2a",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch35/changes.json"
     },
     {
       "placeId": "osm:node:3466483914",
       "name": "Дом И.С. Остроухова в Трубниках",
       "originalTextId": "253888ea-5344-4f9d-9369-7f8effceabc9",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch35/changes.json"
     },
     {
       "placeId": "osm:node:5218469188",
       "name": "Дом Коллекционера",
       "originalTextId": "20825ec8-37b8-4dc3-a43d-19518f0d1550",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch35/changes.json"
     },
     {
       "placeId": "osm:node:13245906707",
@@ -723,7 +726,8 @@
       "name": "Дом Толстого",
       "originalTextId": "2d1a7d40-72f6-42e3-866e-f680a5dc5d66",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch35/changes.json"
     },
     {
       "placeId": "osm:relation:10319256",
@@ -746,14 +750,16 @@
       "name": "Дом-музей А.Н. Островского",
       "originalTextId": "139e26bb-a534-4fe0-9c94-3e95ecff78d1",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch35/changes.json"
     },
     {
       "placeId": "osm:node:10015992717",
       "name": "Дом-музей и экспедиционный штаб Федора Конюхова",
       "originalTextId": "3c69aaa3-5ccf-459c-84be-eadc2c3338d8",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch35/changes.json"
     },
     {
       "placeId": "osm:way:312412195",
@@ -776,7 +782,8 @@
       "name": "Доходное владение Г. Е. и А. Г. Бройдо — В. Я. Бурдакова. Жилой дом",
       "originalTextId": "d6f69ecd-652e-4814-8970-86bbc236fdc8",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch35/changes.json"
     },
     {
       "placeId": "osm:way:47978268",
@@ -791,7 +798,8 @@
       "name": "Доходный жилой дом (З. А. Перцевой)",
       "originalTextId": "9bdcd376-79cf-4a3d-9660-8f5440001c5f",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch35/changes.json"
     },
     {
       "placeId": "osm:relation:12344757",
