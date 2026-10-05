@@ -1,0 +1,133 @@
+{
+  "verifiedAt": "2026-10-05T09:43:12.836Z",
+  "bundleId": "garden-ring-intros-2026-10-05-batch12",
+  "transport": "https-h2",
+  "results": [
+    {
+      "placeId": "osm:relation:19077852",
+      "name": "Палаты бояр Романовых",
+      "textId": "00e84d54-883d-4144-8855-b72aed3fea25",
+      "audioJobId": "dc40fba4-c00b-4433-86c3-4637703df35f",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/6f1c799b605e6b48193859f570f076ec97acc35d192e81a959f2d298abe72da5.mp3",
+        "sha256": "6f1c799b605e6b48193859f570f076ec97acc35d192e81a959f2d298abe72da5",
+        "bytes": 466797,
+        "durationSec": 58.32,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "93971522b7416044e62f36c5f184be0dc043a207f1a888b9ba9844a8c36d28fc",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/12f0b74071a6f5b6c400cc40f2f4996c924f26c370c0839e83f67f6fef5ada9c.jpg",
+        "src": "/api/place-images/0ac79db0278d4ca3fc9d71b5ae5507f9e2fb7acf570c3176685a0ca2291d71a1.jpg",
+        "width": 500,
+        "height": 428,
+        "alt": "Палаты бояр Романовых",
+        "author": "Ludvig14",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_ZnamenskyMonRomanovChambers_D49.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:way:53016616",
+      "name": "Палаты Голицыных",
+      "textId": "e629471b-e9d7-4142-b39d-d08bbfbacc7f",
+      "audioJobId": "4ce47b36-eea1-4736-a127-99c6ac7a0d87",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/5c5c9ca085b29e8f52957ef6f633d57c8db9d114f2dabdf8cdd6d13df0497794.mp3",
+        "sha256": "5c5c9ca085b29e8f52957ef6f633d57c8db9d114f2dabdf8cdd6d13df0497794",
+        "bytes": 443181,
+        "durationSec": 55.368,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "73e943c41f83007929cba8c89e06f665aea4bdcebaa8ff0c1c5ab1af59ec0155",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/cd6b7f8f1ea9443527fb85262ec9310c43433c79d7679c8a659414fa225d4865.jpg",
+        "src": "/api/place-images/7c80d78ce7dfa552127323bb92a3cccacfe6631f106d21424aceab1214bdc59b.jpg",
+        "width": 500,
+        "height": 518,
+        "alt": "Палаты Голицыных",
+        "author": "NVO",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Krivokolenny_10C1_June_2008_03.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:way:53854158",
+      "name": "Палаты в Овчинниках",
+      "textId": "7ae0cf32-070a-445e-ac3f-fdc52bfcb6c0",
+      "audioJobId": "d816dc6c-2da2-4ff1-a3f3-b6c2637a8cbe",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/19ec3a05dff441309610b8533c8bf0e16265e84df90d7f9c9013da620b6d4c87.mp3",
+        "sha256": "19ec3a05dff441309610b8533c8bf0e16265e84df90d7f9c9013da620b6d4c87",
+        "bytes": 490413,
+        "durationSec": 61.272,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "264ade3a8ce78839f0cfad9a9405cb9c4695039b8ae3c01a3e52636add7e2910",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/94e2a2b3b8888242b24ec8173ef28d468fe6ee545efc319eb8c6628872dd6d07.jpg",
+        "src": "/api/place-images/16191f31a7d3306df9c65205e6d92b3df23e2d83924a96d64c7dcf6b52ccff33.jpg",
+        "width": 960,
+        "height": 733,
+        "alt": "Палаты в Среднем Овчинниковском переулке",
+        "author": "Ludvig14",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_SrednyiOvchinnikovskyLane10b.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    }
+  ],
+  "summary": {
+    "publishedTexts": 3,
+    "revoiced": 3,
+    "f5": 3,
+    "elevenlabs": 0,
+    "newPhotos": 0,
+    "preservedPhotos": 3,
+    "totalCandidatesCompleted": 68
+  }
+}
