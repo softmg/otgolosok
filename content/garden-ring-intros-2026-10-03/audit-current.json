@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T18:35:28.164078+00:00",
+  "updatedAt": "2026-10-05T18:41:28.079735+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 288,
+    "publishedWithRevoice": 296,
     "reviewedNoChange": 4,
-    "pending": 108
+    "pending": 100
   },
   "entries": [
     {
@@ -1422,7 +1422,8 @@
       "name": "Московский дом Ахматовой",
       "originalTextId": "d92ad585-b2a4-4cfc-82de-dd73994fca31",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch43/changes.json"
     },
     {
       "placeId": "osm:relation:2669510",
@@ -1437,7 +1438,8 @@
       "name": "Московский музей Рахманинова",
       "originalTextId": "fd77b815-1e4a-40dc-89c5-1dae153e6481",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch43/changes.json"
     },
     {
       "placeId": "osm:relation:418691",
@@ -1484,7 +1486,8 @@
       "name": "Музей Императорского православного палестинского общества",
       "originalTextId": "30f6607b-2b49-44f3-9197-9c7d755a7089",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch43/changes.json"
     },
     {
       "placeId": "osm:node:2613597034",
@@ -1539,21 +1542,24 @@
       "name": "Музей Павла и Сергея Третьяковых",
       "originalTextId": "1b9cf9f7-0832-4611-8ec3-ef0eaadb43b9",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch43/changes.json"
     },
     {
       "placeId": "osm:node:11809152313",
       "name": "Музей ПАО \"Лукойл\"",
       "originalTextId": "45a6a608-7e1e-456a-8263-00e0f617fada",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch43/changes.json"
     },
     {
       "placeId": "osm:way:36358910",
       "name": "Музей русского лубка и наивного искусства",
       "originalTextId": "81eeff8f-a07f-413c-94e2-7a4410b4602a",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch43/changes.json"
     },
     {
       "placeId": "osm:way:151077489",
@@ -1568,7 +1574,8 @@
       "name": "Музей С. С. Прокофьева",
       "originalTextId": "60e220e4-630a-4a30-a444-b40c4f3ba57a",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch43/changes.json"
     },
     {
       "placeId": "osm:node:7887532120",
@@ -1583,7 +1590,8 @@
       "name": "Музей уникальных кукол",
       "originalTextId": "d30ddb5a-41cb-4062-9073-f9c1a9724507",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch43/changes.json"
     },
     {
       "placeId": "osm:node:1733057309",

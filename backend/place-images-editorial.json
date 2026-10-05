@@ -2572,5 +2572,83 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:2587146329": {
+    "thumbnail": "/images/places/node-2587146329-3da1185a9db5.jpg",
+    "src": "/images/places/node-2587146329-12492001fd26.jpg",
+    "width": 960,
+    "height": 1181,
+    "alt": "Портрет Анны Ахматовой работы Кузьмы Петрова-Водкина, 1922 год. Биографическая иллюстрация; интерьер московского музея не показан.",
+    "author": "Kuzma Petrov-Vodkin",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kuzma_Petrov-Vodkin._Portrait_of_Anna_Akhmatova._1922.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Kuzma_Petrov-Vodkin._Portrait_of_Anna_Akhmatova._1922.jpg#Licensing",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:12803628465": {
+    "thumbnail": "/images/places/node-12803628465-3882f2c4a85e.jpg",
+    "src": "/images/places/node-12803628465-752cf4e8a588.jpg",
+    "width": 960,
+    "height": 554,
+    "alt": "Начало Большой Ордынки в 2007 году, до открытия музея Рахманинова. Контекстный вид квартала с домами 12, 10, 8 и 6; музейный интерьер не показан.",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Ordynka_12-10-8-6.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:3500887936": {
+    "thumbnail": "/images/places/node-3500887936-9d421635b0f4.jpg",
+    "src": "/images/places/node-3500887936-f688af99c9ad.jpg",
+    "width": 960,
+    "height": 704,
+    "alt": "Усадебный дом с палатами на улице Забелина, 3, строение 2, где расположен музей истории ИППО. Снимок 2017 года.",
+    "author": "Olga Kom",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%93%D0%BB%D0%B0%D0%B2%D0%BD%D1%8B%D0%B9_%D0%B4%D0%BE%D0%BC_%D0%97%D0%B0%D0%B1%D0%B5%D0%BB%D0%B8%D0%BD%D0%B0_%D1%83%D0%BB.,_%D0%B4%D0%BE%D0%BC_3,_%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5_2.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:9610774317": {
+    "thumbnail": "/images/places/node-9610774317-77f42aa411db.jpg",
+    "src": "/images/places/node-9610774317-943404b1958a.jpg",
+    "width": 960,
+    "height": 710,
+    "alt": "Дом семьи Третьяковых в Голутвине. Снимок 2020 года, до открытия музея братьев.",
+    "author": "Katia Sparks",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%93%D0%BE%D0%BB%D1%83%D1%82%D0%B2%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B9_1-%D0%B9_%D0%BF%D0%B5%D1%80_%D0%B4%D0%BE%D0%BC_16_%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5_1.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:11809152313": {
+    "thumbnail": "/images/places/node-11809152313-17920b5dacc3.jpg",
+    "src": "/images/places/node-11809152313-b4b30d817cc6.jpg",
+    "width": 960,
+    "height": 1446,
+    "alt": "Штаб-квартира ЛУКОЙЛа в Москве, 2017 год. Контекстный снимок комплекса; экспозиция корпоративного музея не показана.",
+    "author": " Dmitry Ivanov.",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Building_of_Lukoil_headquarters_in_Moscow_1.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:1161887242": {
+    "thumbnail": "/images/places/node-1161887242-b5677d346df3.jpg",
+    "src": "/images/places/node-1161887242-87a8bd451965.jpg",
+    "width": 960,
+    "height": 1298,
+    "alt": "Вход в музей Сергея Прокофьева и мемориальная доска композитору. Снимок 2011 года.",
+    "author": "Vladimir OKC",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sergey_Prokofiev_Muzeum_Moscow.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
