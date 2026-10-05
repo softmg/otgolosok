@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T13:58:44.209540+00:00",
+  "updatedAt": "2026-10-05T14:10:48.238914+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 128,
+    "publishedWithRevoice": 136,
     "reviewedNoChange": 4,
-    "pending": 268
+    "pending": 260
   },
   "entries": [
     {
@@ -874,7 +874,8 @@
       "name": "Исторический музей",
       "originalTextId": "29ccd14a-3f8e-43c7-88e3-0fe7f7dc2d06",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch23/changes.json"
     },
     {
       "placeId": "osm:node:10572977040",
@@ -966,7 +967,8 @@
       "name": "Концертный зал «Зарядье»",
       "originalTextId": "11221a3c-f980-475a-b3e7-f7174e5d0cbb",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch23/changes.json"
     },
     {
       "placeId": "osm:way:52387428",
@@ -981,7 +983,8 @@
       "name": "Красная площадь",
       "originalTextId": "7d43c1c4-017d-4dc0-a42d-fdf21faca865",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch23/changes.json"
     },
     {
       "placeId": "osm:node:5932638885",
@@ -1114,7 +1117,8 @@
       "name": "Мавзолей В. И. Ленина",
       "originalTextId": "2c9c3396-0210-4798-b7d8-26fa80174175",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch23/changes.json"
     },
     {
       "placeId": "osm:relation:7259801",
@@ -1281,7 +1285,8 @@
       "name": "Морозовский сад",
       "originalTextId": "22d6fd4b-51e9-4d62-8045-9f11ff007c53",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch23/changes.json"
     },
     {
       "placeId": "osm:node:9866186555",
@@ -1856,7 +1861,8 @@
       "name": "парк «Зарядье»",
       "originalTextId": "b6b1210a-c84e-4278-9f86-dc7fce9c4f07",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch23/changes.json"
     },
     {
       "placeId": "osm:node:13258938689",
@@ -2168,7 +2174,8 @@
       "name": "Сандуновские бани",
       "originalTextId": "569cd153-7e7a-4951-be9e-f096c5a28254",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch23/changes.json"
     },
     {
       "placeId": "osm:relation:7839823",
@@ -2267,7 +2274,8 @@
       "name": "Собор Василия Блаженного",
       "originalTextId": "c52cfee9-eb0f-416c-aa16-4a7fa0c2fad6",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch23/changes.json"
     },
     {
       "placeId": "osm:way:52613460",
