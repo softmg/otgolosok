@@ -1636,5 +1636,83 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:7667621840": {
+    "thumbnail": "/images/places/node-7667621840-a095a0a87887.jpg",
+    "src": "/images/places/node-7667621840-81f7684dddf5.jpg",
+    "width": 960,
+    "height": 684,
+    "alt": "Дом-музей Александра Островского на Малой Ордынке. Бюст драматурга находится во дворе усадьбы.",
+    "author": "Ludvig14",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:OstrovskyMuseum_I55.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:12413738023": {
+    "thumbnail": "/images/places/node-12413738023-aca00cf6c7da.jpg",
+    "src": "/images/places/node-12413738023-61fddb1305cc.jpg",
+    "width": 960,
+    "height": 640,
+    "alt": "Дом Лоськова в Мансуровском переулке, где жил Алексей Брусилов. Мемориальная доска установлена на фасаде здания.",
+    "author": "Andrey Filippov 安德烈 from Moscow, Russia",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Embassy_of_Syria_in_Moscow_(42681709425).jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:6449794072": {
+    "thumbnail": "/images/places/node-6449794072-b651787bdf4d.jpg",
+    "src": "/images/places/node-6449794072-10b4764aa71e.jpg",
+    "width": 960,
+    "height": 638,
+    "alt": "Фрагмент фасада комплекса «5-й Дом Советов» в Романовом переулке. Доска Андрееву находится на одном из корпусов комплекса.",
+    "author": "AnotherLizard",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:5-%D0%B9_%D0%94%D0%BE%D0%BC_%D0%A1%D0%BE%D0%B2%D0%B5%D1%82%D0%BE%D0%B2.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:6731731188": {
+    "thumbnail": "/images/places/node-6731731188-623e869b9048.jpg",
+    "src": "/images/places/node-6731731188-88457e07f5c5.jpg",
+    "width": 960,
+    "height": 1280,
+    "alt": "Мемориальная доска Валентину Серову в Староваганьковском переулке.",
+    "author": "Книжная пыль",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D1%82%D0%B0%D1%80%D0%BE%D0%B2%D0%B0%D0%B3%D0%B0%D0%BD%D1%8C%D0%BA%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%BF%D0%B5%D1%80._%D0%94%D0%BE%D0%BC,_%D0%B3%D0%B4%D0%B5_%D0%B6%D0%B8%D0%BB_%D0%A1%D0%B5%D1%80%D0%BE%D0%B2._%D0%94%D0%B5%D1%82%D0%B0%D0%BB%D0%B8_02.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:2322476565": {
+    "thumbnail": "/images/places/node-2322476565-c938403c49e3.jpg",
+    "src": "/images/places/node-2322476565-b2ecf5d023ee.jpg",
+    "width": 960,
+    "height": 640,
+    "alt": "Дом на Волхонке, 9, с мемориальной доской Василию Тропинину. Общий вид фасада.",
+    "author": "Mos.ru",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Volhonka,_9.jpg",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:9117500930": {
+    "thumbnail": "/images/places/node-9117500930-6c284b69f344.jpg",
+    "src": "/images/places/node-9117500930-7abf342f4c5f.jpg",
+    "width": 960,
+    "height": 960,
+    "alt": "«Дом полярников» на Никитском бульваре, 9, где жил Виталий Соломин. Общий вид здания.",
+    "author": "Tsy1980",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0_-_%D0%96%D0%B8%D0%BB%D0%BE%D0%B9_%D0%B4%D0%BE%D0%BC_%D0%93%D0%BB%D0%B0%D0%B2%D1%81%D0%B5%D0%B2%D0%BC%D0%BE%D1%80%D0%BF%D1%83%D1%82%D0%B8.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
