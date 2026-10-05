@@ -1,0 +1,133 @@
+{
+  "verifiedAt": "2026-10-05T10:06:45.746Z",
+  "bundleId": "garden-ring-intros-2026-10-05-batch13",
+  "transport": "https-h2",
+  "results": [
+    {
+      "placeId": "osm:relation:9037250",
+      "name": "Палаты Мазепы",
+      "textId": "dba52f52-c899-4770-acdd-40578190f4b7",
+      "audioJobId": "2fc49483-1f63-4b5a-8300-4fe9059bd718",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/69f85f81560f635a83f9efb26d98cf3ac3b1b2d127d88938a511c93cb31be000.mp3",
+        "sha256": "69f85f81560f635a83f9efb26d98cf3ac3b1b2d127d88938a511c93cb31be000",
+        "bytes": 429549,
+        "durationSec": 53.664,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "57f6a1b766471ca161514de6bf326f27256b7cb2cf534c9857fea12a9160b119",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/10d011b32c6a6747145dcea908710117406f84ecff0d1d166526ca2e96cc17a6.jpg",
+        "src": "/api/place-images/cc46b4d5a0f8c235b5c80422e9113b4df9f3fa8d5b8d87315bb44f45f7ad7b6f.jpg",
+        "width": 960,
+        "height": 643,
+        "alt": "Палаты Мазепы",
+        "author": "Martisha",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BB%D0%B0%D1%82%D1%8B_%D0%9C%D0%B0%D0%B7%D0%B5%D0%BF%D1%8B_4.JPG",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:way:163742857",
+      "name": "Особняк Новиковых",
+      "textId": "7f449fdb-0a04-4aef-8149-a3f6fda6bcd4",
+      "audioJobId": "26071962-795e-40f1-a56c-db0d6e991e1f",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/06ca3c7c15d51f2372ee8784aa6877f05ff99f77debed4912890da35b314f7b6.mp3",
+        "sha256": "06ca3c7c15d51f2372ee8784aa6877f05ff99f77debed4912890da35b314f7b6",
+        "bytes": 466989,
+        "durationSec": 58.344,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "4289bff71d9efc8f1e74725b971d0d88250002000073c636f8f76a4dc0f95489",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/00434b05e4b52eb92110591f2034eefb5c1409f8e8d36d2067efe47b31471081.jpg",
+        "src": "/api/place-images/6df2e0aa180a7077b71db10a2f630c676cbd20ef751f15054b0fe6193a11308f.jpg",
+        "width": 960,
+        "height": 899,
+        "alt": "Особняк Новиковых",
+        "author": "Svetlov Artem",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Bolshaya_Polyanka_45_20150904_033_ShiftN.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    },
+    {
+      "placeId": "osm:relation:1850015",
+      "name": "Особняк Всеволожских",
+      "textId": "e61f66d7-3aa8-44a3-b575-87b954b62037",
+      "audioJobId": "257760bd-c949-445f-b3f9-a1ae3fb2ce45",
+      "audioProfile": "f5-ru-v1",
+      "state": "succeeded",
+      "audio": {
+        "url": "/api/story-audio/1655a29f5cf9b602a324be4fd3dd327a4cd713c35326346df7e117433f465af2.mp3",
+        "sha256": "1655a29f5cf9b602a324be4fd3dd327a4cd713c35326346df7e117433f465af2",
+        "bytes": 422637,
+        "durationSec": 52.8,
+        "model": "f5",
+        "voice": "obrazec6",
+        "provider": "external",
+        "synthetic": true,
+        "preparationVersion": "html-unescape-v1_ru-normalizr-0.3.0_silero-stress-1.5_typography-v1",
+        "preparedTextSha256": "94a76d78dea149236797a588ffb1e944ce6a8c58b2203f88622fc2238a40486a",
+        "configSha256": "624d35a2b26de992a02c3082cda768775d77c5190eec3d839f7206623d35e86c"
+      },
+      "photo": {
+        "thumbnail": "/api/place-images/fec7477071fe8133a975c97a39f41cd18c8c8aaedc03dd8e77989fb40833a54f.jpg",
+        "src": "/api/place-images/1a962499356511d4c688faaffbefd81e7b93d5d981abea332a6b0b0c0f0cee5a.jpg",
+        "width": 960,
+        "height": 575,
+        "alt": "Дом Всеволожского (особняк Всеволожских)",
+        "author": "Shakko",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Ostozhenka_49_(2013)_by_shakko_02.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "storyVerified": true,
+      "audioHttpVerified": true,
+      "promoWalks": [],
+      "httpsTextVerified": true,
+      "httpsPhotoVerified": true,
+      "httpsAudioVerified": true,
+      "promoWalkVerification": []
+    }
+  ],
+  "summary": {
+    "publishedTexts": 3,
+    "revoiced": 3,
+    "f5": 3,
+    "elevenlabs": 0,
+    "newPhotos": 0,
+    "preservedPhotos": 3,
+    "totalCandidatesCompleted": 71
+  }
+}
