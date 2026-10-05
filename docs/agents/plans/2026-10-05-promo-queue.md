@@ -27,9 +27,16 @@ Two repos are involved:
 External services (all already used by Shorts, except the image endpoint):
 
 - AIrouter (OpenAI-compatible, `AIROUTER_BASE_URL`, `AIROUTER_API_KEY`): text via `/responses`
-  (existing `src/text/airouter.ts`); **images via `POST /images/generations`** with
-  `model: "openai/gpt-image-2"`, `size: "1024x1536"`, `n: 1` → `data[0].b64_json` (PNG, ~3 MB). Verified
-  2026-10-05 with the Shorts key: HTTP 200, one image in ~1 min.
+  (existing `src/text/airouter.ts`). **Images the Codex way** (owner's decision): `POST /responses` with
+  the Codex text model (`AIROUTER_MODEL`, e.g. `codex/gpt-6-sol-medium`), `input` = the image prompt,
+  `tools: [{type: "image_generation", model: "gpt-image-2.5-flare", size}]`,
+  `tool_choice: {type: "image_generation"}` → `output[]` item `type: "image_generation_call"`,
+  `status: "completed"`, `result` = base64 PNG, plus `size`, `quality`, `revised_prompt`. Verified
+  2026-10-05: HTTP 200, 1024×1536 PNG in 40–65 s. **Caveat:** the router ignores the tool's `model`
+  (a made-up model name also succeeded), so the Codex backend picks its own image model; the response
+  does not say which. `/images/generations` rejects `cs/gpt-image-2.5-flare` ("Invalid image model");
+  `openai/gpt-image-2.5-flare` on `/images/generations` (sizes 1024x1024, 1024x1792, 1792x1024) is the
+  explicit-model alternative if the owner later wants a guaranteed model.
 - YouTube Data API v3 (resumable upload, `thumbnails.set` ≤ 2 MB), ElevenLabs, Wikimedia, Telegram Bot API
   (`sendMessage`, `sendPhoto`, `sendVideo` ≤ 50 MB, `getUpdates`, `answerCallbackQuery`,
   `editMessageReplyMarkup`). The Bot API cannot schedule messages.
@@ -50,7 +57,8 @@ External services (all already used by Shorts, except the image endpoint):
 6. **Failure or cancel:** the slot is taken by the next queue item that is already built (the night build
    prepares **two** items ahead). A failed or cancelled item leaves the queue with status `failed` /
    `cancelled` and the reason; the owner can re-queue it in the admin.
-7. Image provider: AIrouter (`openai/gpt-image-2`). Voice: Alex Bell narrator + «Отголосок2» stories
+7. Image provider: AIrouter, Codex image generation (`/responses` + `image_generation` tool, requested
+   model `gpt-image-2.5-flare`; see the caveat in Context). Voice: Alex Bell narrator + «Отголосок2» stories
    (current Shorts defaults for `--voice alex-bell`).
 8. The existing Shorts `auto` (3 random videos per day) stays **disabled**; only the queue publishes.
 
@@ -157,7 +165,7 @@ at most one of these, by time (MSK):
   `PROMO_SLOT_MISSED`, owner notified. YouTube failure → TG post is not sent.
 
 2.4 Config (`src/core/config.ts`, `.env.example`): `TELEGRAM_OWNER_CHAT_ID`, `PROMO_IMAGE_MODEL`
-(default `openai/gpt-image-2`), `PROMO_BUILD_HOUR`/`PROMO_PREVIEW_HOUR` constants (not env). Helper CLI
+(tool model, default `gpt-image-2.5-flare`), `PROMO_BUILD_HOUR`/`PROMO_PREVIEW_HOUR` constants (not env). Helper CLI
 `telegram:whoami` prints chat ids from `getUpdates` so the owner can set `TELEGRAM_OWNER_CHAT_ID` after
 sending /start to the bot.
 
@@ -173,8 +181,12 @@ walking time / total listening time from the walk JSON, 🎧 walk link, «Обл
 
 ### 4. Shorts — covers
 
-4.1 `src/images/airouter-image.ts`: `generateImage(prompt, size)` → PNG bytes; timeout 300 s, retries on
-5xx/429/timeouts (bounded backoff), permanent on 4xx; log model, size, duration (never the key).
+4.1 `src/images/airouter-image.ts`: `generateImage(prompt, size)` → PNG bytes via `/responses` with the
+`image_generation` tool (Context). Validate the answer with zod: exactly one `image_generation_call`
+with `status: "completed"` and a base64 `result` that decodes to PNG of the requested size; otherwise
+`permanent` `IMAGE_CONTRACT`. Timeout 300 s, retries on 5xx/429/timeouts (bounded backoff), permanent on
+4xx; log requested model, size, `quality`, duration and `revised_prompt` length (never the key or the
+image). Do not use `src/text/airouter.ts` caching for images.
 
 4.2 `src/promo/covers.ts`: LLM writes two text-free image prompts from the cover-art template
 (`docs/agents/cover-art.md`): Telegram 4:5 (`1024x1280` or nearest supported) about the post's story
