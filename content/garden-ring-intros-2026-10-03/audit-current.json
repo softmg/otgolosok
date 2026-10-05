@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T16:14:51.555530+00:00",
+  "updatedAt": "2026-10-05T16:30:05.557150+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 208,
+    "publishedWithRevoice": 216,
     "reviewedNoChange": 4,
-    "pending": 188
+    "pending": 180
   },
   "entries": [
     {
@@ -30,7 +30,8 @@
       "name": "Sistema gallery",
       "originalTextId": "d5defc15-f69b-457f-8aee-565652c41a5c",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch33/changes.json"
     },
     {
       "placeId": "osm:node:5244167436",
@@ -197,7 +198,8 @@
       "name": "Адамово яблоко",
       "originalTextId": "b26c86d0-7e0f-425d-80ff-1f5fc74ad884",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch33/changes.json"
     },
     {
       "placeId": "osm:relation:1362325",
@@ -220,7 +222,8 @@
       "name": "Алексию I",
       "originalTextId": "adc77997-e9ba-4581-9626-064d0321c2f8",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch33/changes.json"
     },
     {
       "placeId": "osm:way:45892322",
@@ -275,7 +278,8 @@
       "name": "Броненосец",
       "originalTextId": "6068459a-dfff-4fa7-8889-f797dc7c576d",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch33/changes.json"
     },
     {
       "placeId": "osm:node:7804955746",
@@ -290,7 +294,8 @@
       "name": "Буратино",
       "originalTextId": "20650f42-e84f-46ce-b7dd-118e84242f00",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch33/changes.json"
     },
     {
       "placeId": "osm:node:7643484540",
@@ -337,21 +342,24 @@
       "name": "В. И. Ленину",
       "originalTextId": "67a3480c-a56c-4618-ab97-c5880e49d496",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch33/changes.json"
     },
     {
       "placeId": "osm:node:6731731189",
       "name": "В. И. Ленину",
       "originalTextId": "dd64c3e9-4c8e-4b35-9801-06675cec1479",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch33/changes.json"
     },
     {
       "placeId": "osm:node:7644098498",
       "name": "В. И. Ленину и А. М. Горькому",
       "originalTextId": "11cb99e5-8989-4eeb-b71e-78f7659692c7",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch33/changes.json"
     },
     {
       "placeId": "osm:node:9117500930",
