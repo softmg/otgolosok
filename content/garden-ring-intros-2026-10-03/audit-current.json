@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T19:46:58.247601+00:00",
+  "updatedAt": "2026-10-05T19:56:37.678382+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 344,
+    "publishedWithRevoice": 352,
     "reviewedNoChange": 4,
-    "pending": 52
+    "pending": 44
   },
   "entries": [
     {
@@ -2310,28 +2310,32 @@
       "name": "С. М. Соловьёву и И. А. Гончарову",
       "originalTextId": "02443509-7ee5-46bf-9312-e90222bf6012",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch50/changes.json"
     },
     {
       "placeId": "osm:node:12236419787",
       "name": "С. И. Мицкевичу",
       "originalTextId": "cc1093fd-ab21-4526-b697-2f20b5832810",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch50/changes.json"
     },
     {
       "placeId": "osm:node:6449794071",
       "name": "С.А. Оруджеву",
       "originalTextId": "ac3a2d34-17f1-4dcc-a8b0-991491a3692c",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch50/changes.json"
     },
     {
       "placeId": "osm:node:6449794069",
       "name": "С.К. Тимошенко",
       "originalTextId": "2493cd61-bb8b-4489-97b0-8a82d7df949f",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch50/changes.json"
     },
     {
       "placeId": "osm:relation:6210567",
@@ -2346,14 +2350,16 @@
       "name": "Садовый павильон с садом",
       "originalTextId": "d31a0397-bac4-4c04-95a6-841ec84113ef",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch50/changes.json"
     },
     {
       "placeId": "osm:node:4142941912",
       "name": "Самурай",
       "originalTextId": "71dfedad-f84b-4805-8532-8f0d64edefd4",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch50/changes.json"
     },
     {
       "placeId": "osm:relation:6812723",
@@ -2368,14 +2374,16 @@
       "name": "Сквер Аргентинской Республики",
       "originalTextId": "457ba28b-2fc9-4d46-95e6-e29f22fdf288",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch50/changes.json"
     },
     {
       "placeId": "osm:way:211651325",
       "name": "Сквер Булгакова",
       "originalTextId": "f5d39d5a-24d6-4ce6-9758-1a363827c863",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch50/changes.json"
     },
     {
       "placeId": "osm:way:758586236",
