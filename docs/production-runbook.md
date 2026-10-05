@@ -145,9 +145,16 @@ The planner retains its 12-second deadline and concurrency limit. No automatic
 multi-provider retries or fabricated route fallbacks are used. Refresh the
 catalog alongside the Valhalla extract; see `content/walk-builder.md`.
 
-The generator deployment builds/waits for Valhalla before replacing the backend,
-waits at most ten minutes for existing jobs to become idle, stops the single
-generator, archives its data/configuration (SQLite as consistent snapshots), then recreates it. Never use
+Выкладка генератора загружает исходники в уникальный временный каталог и
+удерживает серверную `.deploy.lock` на весь этап изменений. Она ждёт готовности
+Valhalla и не более десяти минут ждёт завершения `jobs` и `content_jobs`,
+останавливает единственный backend, фиксирует проверенный несжатый архив
+данных/конфигурации (SQLite — согласованными снимками), затем запускает новый
+backend. После `healthy` режим обслуживания снимается; сжатие и проверка
+архива идут уже при работающем сайте. Если сжатие не удалось, деплой возвращает
+ошибку, сайт остаётся доступным, а подготовленный tar сохраняется для повтора
+под блокировкой; см. [двухэтапный бэкап](agents/generator-backup-snapshots.md).
+Never use
 `down -v`, prune, or launch another worker on the same SQLite database.
 
 ## Фото мест из Wikidata и Commons
