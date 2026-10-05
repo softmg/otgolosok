@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T19:38:21.631134+00:00",
+  "updatedAt": "2026-10-05T19:46:58.247601+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 336,
+    "publishedWithRevoice": 344,
     "reviewedNoChange": 4,
-    "pending": 60
+    "pending": 52
   },
   "entries": [
     {
@@ -2230,21 +2230,24 @@
       "name": "Р. Я. Плятту",
       "originalTextId": "c3ac70ab-8ccd-4ce0-88a4-40c63e9f92e8",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch49/changes.json"
     },
     {
       "placeId": "osm:relation:13626693",
       "name": "Росатом",
       "originalTextId": "f0278ef4-6737-4ff1-8a62-eb51e9d0f82d",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch49/changes.json"
     },
     {
       "placeId": "osm:relation:15671457",
       "name": "Российская Академия живописи, ваяния и зодчества Ильи Глазунова",
       "originalTextId": "c924aa8e-b924-4e11-a127-79e704f63883",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch49/changes.json"
     },
     {
       "placeId": "osm:relation:456962",
@@ -2259,21 +2262,24 @@
       "name": "Российский музей леса",
       "originalTextId": "3b8e9d7b-8f45-4537-9dff-1913ef591514",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch49/changes.json"
     },
     {
       "placeId": "osm:node:8664353717",
       "name": "Российский музей медицины",
       "originalTextId": "df421ad2-680a-4bf6-988f-c6cf57550a91",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch49/changes.json"
     },
     {
       "placeId": "osm:relation:19558831",
       "name": "Российский федеральный центр судебной экспертизы",
       "originalTextId": "87311a9e-afb7-4e9b-8e7d-e40c25e6a08a",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch49/changes.json"
     },
     {
       "placeId": "osm:relation:8016233",
@@ -2288,14 +2294,16 @@
       "name": "Рудно-петрографический музей",
       "originalTextId": "4264b80b-2d67-4c3c-b906-de55fff0a436",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch49/changes.json"
     },
     {
       "placeId": "osm:node:4143539655",
       "name": "Русское Поле",
       "originalTextId": "1cd56e8c-257d-468e-bd39-5297f4b4b520",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch49/changes.json"
     },
     {
       "placeId": "osm:node:8898082923",

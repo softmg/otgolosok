@@ -3014,5 +3014,57 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "retrievedAt": "2026-10-05",
     "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:11012889362": {
+    "thumbnail": "/images/places/node-11012889362-6a69217e7481.jpg",
+    "src": "/images/places/node-11012889362-185a297a7cf5.jpg",
+    "width": 960,
+    "height": 1004,
+    "alt": "Мемориальная доска Ростиславу Плятту на Большой Бронной, 2/6.",
+    "author": "Vladimir OKC",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Commemorative_Plaque_of_Soviet_Actor_Rostislav_Plyatt,_Moscow,_Bolshaya_Bronnaya_Str.2.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Commemorative_Plaque_of_Soviet_Actor_Rostislav_Plyatt,_Moscow,_Bolshaya_Bronnaya_Str.2.jpg#Licensing",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:relation:15671457": {
+    "thumbnail": "/images/places/relation-15671457-085963fb61c8.jpg",
+    "src": "/images/places/relation-15671457-bd8a52ef5fe9.jpg",
+    "width": 960,
+    "height": 674,
+    "alt": "Главный дом Юшкова с угловой колоннадой в комплексе академии. Контекстный вид: отдельный учебный корпус Машкова, строение 2, не показан.",
+    "author": "Vladimir OKC",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_School_of_Painting,_Sculpture_and_Architecture.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Moscow_School_of_Painting,_Sculpture_and_Architecture.jpg",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:8664353717": {
+    "thumbnail": "/images/places/node-8664353717-7571c94dcfee.jpg",
+    "src": "/images/places/node-8664353717-a923dba451c6.jpg",
+    "width": 960,
+    "height": 1317,
+    "alt": "Особняк усадьбы Вогау-Марк в Большом Николоворобинском переулке. Исторический снимок 2008 года, до создания Российского музея медицины.",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:B_Nikolovorobinsky_7_back_01.JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
+  },
+  "osm:node:11780094310": {
+    "thumbnail": "/images/places/node-11780094310-e1e02b68987b.jpg",
+    "src": "/images/places/node-11780094310-f5a40ee627f6.jpg",
+    "width": 960,
+    "height": 640,
+    "alt": "Витрины и образцы горных пород Рудно-петрографического музея ИГЕМ РАН.",
+    "author": "Filippfilipovich",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A0%D1%83%D0%B4%D0%BD%D0%BE-%D0%BF%D0%B5%D1%82%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D1%84%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D1%83%D0%B7%D0%B5%D0%B9.%D0%AD%D0%BA%D1%81%D0%BF%D0%BE%D0%B7%D0%B8%D1%86%D0%B8%D1%8F.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "retrievedAt": "2026-10-05",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
