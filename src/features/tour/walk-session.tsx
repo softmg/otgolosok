@@ -135,7 +135,7 @@ export function WalkSession({ notice = "", route, chapters, index, stage = "stop
   const [foodStatus, setFoodStatus] = useState("");
   const addController = useRef<AbortController | null>(null);
   useEffect(() => () => addController.current?.abort(), []);
-  const foodButton = geometry.length > 1 && food.manifest && !food.unavailable ? <button type="button" className={foodStyles.button} aria-label="Поесть рядом" aria-expanded={foodVisible} onClick={() => { setSelectedFood(null); setFoodStatus(""); setDrawer(foodVisible ? null : "food"); }}><ExploreIcon name="cup" /><span>Поесть рядом</span></button> : null;
+  const foodButton = geometry.length > 1 && food.manifest && !food.unavailable ? <button type="button" className={foodStyles.button} aria-label="Поесть рядом" aria-expanded={foodVisible} onClick={() => { setSelectedFood(null); setFoodStatus(""); setDrawer(foodVisible ? null : "food"); }}><ExploreIcon name="cup" /></button> : null;
   const [foodFit, setFoodFit] = useState<MapFitTarget | null>(null);
   useLayoutEffect(() => { if (drawer === "food" && drawerRef.current) drawerRef.current.scrollTop = 0; }, [drawer, selectedFood?.id]);
   const foodManifestError = geometry.length > 1 && food.error && !food.manifest && !food.unavailable;

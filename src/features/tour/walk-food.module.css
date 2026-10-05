@@ -3,15 +3,15 @@
   container-type: inline-size;
 }
 
+/* An icon of the footer's size: a label would not fit beside «Назад» and the main action in a phone-wide panel. */
 .button {
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xs);
-  min-width: var(--control-min);
-  min-height: var(--control-min);
-  padding: var(--space-xs);
+  width: var(--walk-action, var(--control-min));
+  height: var(--walk-action, var(--control-min));
+  padding: 0;
   border: 1px solid var(--control-border);
   border-radius: var(--radius-pill);
   background: transparent;
@@ -39,12 +39,6 @@
 .actions:has(.button) > :last-child {
   min-width: 0;
   padding-inline: var(--space-sm);
-}
-
-@container (width <= 320px) {
-  .button span {
-    display: none;
-  }
 }
 
 /* Food states can scroll fixed content as a last resort; the footer stays outside. */

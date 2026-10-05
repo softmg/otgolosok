@@ -68,7 +68,6 @@ for (const [width, height] of [[390, 844], [1440, 900], [568, 400], [320, 568]])
     await insideWindow(page.locator('[data-sheet-part="footer"]'), width, height);
     await insideWindow(foodButton(page), width, height);
     expect(await page.locator(".walk-session-panel").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
-    if (width <= 360) await expect(foodButton(page).locator("span")).toBeHidden();
     const shot = (name: string) => width === 390 ? page.screenshot({ path: process.env.FOOD_SHOTS_DIR ? `${process.env.FOOD_SHOTS_DIR}/${name}.png` : info.outputPath(`${name}.png`) }) : Promise.resolve();
     await shot("food-before-start");
     await foodButton(page).click();
@@ -115,6 +114,40 @@ test("стрелка назад стоит в футере перед «Поес
   await expect(page.getByRole("button", { name: "Предыдущая остановка", exact: true })).toBeVisible();
   expect(await order()).toEqual(["Предыдущая остановка", "Поесть рядом", "Дальше"]);
 });
+
+/** The footer as a user sees it: the main label on one line, round icons as tall as the action beside them, nothing past the edge. */
+const footerShape = (page: Page) => page.locator('[data-sheet-part="footer"]').evaluate(footer => {
+  const primary = footer.querySelector<HTMLElement>(".walk-session-primary")!;
+  const label = document.createRange();
+  label.selectNodeContents(primary.firstChild!);
+  const box = (el: Element) => el.getBoundingClientRect();
+  const icons = [...footer.children].filter(el => el !== primary).map(box);
+  const action = box(primary), frame = box(footer);
+  return {
+    label: primary.textContent,
+    lines: new Set([...label.getClientRects()].map(rect => Math.round(rect.top))).size,
+    round: icons.every(rect => Math.abs(rect.width - rect.height) < 1),
+    // Beside the icons the action is exactly as tall as they are; alone on its row it may not be taller either.
+    stretched: icons.some(rect => Math.round(rect.height) !== Math.round(action.height)),
+    inside: action.left >= frame.left - 0.5 && action.right <= frame.right + 0.5,
+  };
+});
+
+// 393×852 — iPhone 16: there «Начать прогулку» and «К финишу» broke into two lines and stretched «Назад» into an oval.
+for (const [width, height] of [[393, 852], [390, 844], [360, 640], [320, 568], [1440, 900]]) {
+  test(`футер прогулки не переносит подпись и не растягивает значки ${width}×${height}`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await open(page);
+    await expect(foodButton(page)).toBeVisible();
+    const tidy = { lines: 1, round: true, stretched: false, inside: true };
+    await expect.poll(() => footerShape(page)).toEqual({ label: "Начать прогулку", ...tidy });
+    await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+    await page.getByRole("button", { name: "Дальше", exact: true }).click();
+    await expect.poll(() => footerShape(page)).toEqual({ label: "Дальше", ...tidy });
+    await page.getByRole("button", { name: "Дальше", exact: true }).click();
+    await expect.poll(() => footerShape(page)).toEqual({ label: "К финишу", ...tidy });
+  });
+}
 
 test("значок «Поесть рядом» — контурный, как стрелка назад", async ({ page }) => {
   await open(page);

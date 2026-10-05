@@ -23,14 +23,17 @@
 .walk-session-tools svg{width:18px;height:18px}
 .walk-session-tools [aria-expanded=true]{text-decoration:underline;text-underline-offset:4px}
 .walk-session-tools .walk-session-position{color:#775130}
-.walk-session-actions{display:flex;flex:none;gap:10px;margin-top:16px}
-.walk-session-primary{display:flex;align-items:center;justify-content:center;gap:12px;flex:1;min-height:50px;padding:12px 18px;border:0;border-radius:999px;background:#b64b28;color:#fffaf0;font:inherit;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer}
+/* One row of round 50 px icons and the main action. The action never breaks its label: when the row is too narrow for it, it takes a row of its own (flex-wrap). */
+.walk-session-actions{--walk-action:50px;display:flex;flex:none;flex-wrap:wrap;gap:10px;margin-top:16px}
+.walk-session-primary{display:flex;align-items:center;justify-content:center;gap:12px;flex:1 0 auto;min-height:var(--walk-action,50px);white-space:nowrap;padding:12px 18px;border:0;border-radius:999px;background:#b64b28;color:#fffaf0;font:inherit;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer}
 .walk-session-primary:disabled{opacity:.5;cursor:default}
 /* After the walk the review is the main action and the way back to the map is secondary. */
 .walk-session-actions--finish{flex-direction:column}
 .walk-session-secondary{display:flex;align-items:center;justify-content:center;min-height:44px;padding:10px 18px;border:1px solid #203e3833;border-radius:999px;color:inherit;font:inherit;font-size:15px;font-weight:700;text-decoration:none}
-.walk-session-previous{display:grid;place-items:center;flex:none;width:50px;border:1px solid #203e3833;border-radius:50%;background:none;color:inherit;text-decoration:none;cursor:pointer}
+.walk-session-previous{display:grid;place-items:center;flex:none;width:var(--walk-action);height:var(--walk-action);border:1px solid #203e3833;border-radius:50%;background:none;color:inherit;text-decoration:none;cursor:pointer}
 .walk-session-previous svg{transform:rotate(180deg)}
+/* A phone-wide panel keeps «Продолжить прогулку» beside both icons by dropping the decorative arrow. */
+@container (width < 360px){.walk-session-actions .walk-session-primary svg{display:none}}
 .walk-session-drawer{flex:0 1 auto;min-height:64px;margin-top:12px;border-top:1px solid #203e3818;padding-top:12px;max-height:26dvh;overflow-y:auto;overscroll-behavior:contain;font-size:15px;line-height:1.6}
 .walk-session-stops{margin:0;padding:0;list-style:none}
 .walk-session-endpoint{margin:0;padding:4px 8px;font-size:14px;line-height:1.4;color:#687770;overflow-wrap:anywhere}
@@ -62,4 +65,4 @@
 .walk-session :is(button,a,select,input):focus-visible{outline:3px solid #246b90;outline-offset:3px}
 .walk-session .story-text p{font-size:15px;line-height:1.65;margin-bottom:12px}
 /* Short screens (up to 600 px, the 320×568 phone among them): a denser card, so the open drawer and the main action fit under the header row. */
-@media(max-height:600px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-actions{margin-top:8px}.walk-session-primary{min-height:42px;padding:8px 14px}.walk-session-tools:has(button,a){margin-top:4px}.walk-session-photo{margin:-12px -16px 10px}}
+@media(max-height:600px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-actions{--walk-action:44px;margin-top:8px}.walk-session-primary{padding:8px 14px}.walk-session-tools:has(button,a){margin-top:4px}.walk-session-photo{margin:-12px -16px 10px}}
