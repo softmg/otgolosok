@@ -64,6 +64,15 @@ test("missing or partial address never invents a street or a house number", () =
   assert.doesNotMatch(researchPrompt("Москва, Арбат, 1"), /OSM PLACE CONTEXT/);
 });
 
+test("a tagged OSM city replaces the Moscow default, as in Zelenograd", () => {
+  const zelenograd = { "addr:city": "Зеленоград", "addr:street": "улица Юности", "addr:housenumber": "6" };
+  assert.equal(osmPostalAddress(zelenograd), "Зеленоград, улица Юности, 6");
+  const context = contextOf(researchPrompt(null, { name: "Ведогонь-театр", tags: zelenograd }));
+  assert.equal(context.postalAddress, "Зеленоград, улица Юности, 6");
+  assert.equal(context.locationHint, "Зеленоград, улица Юности, 6");
+  assert.ok(context.searchQueries.every(query => !query.includes("Москва, улица Юности")));
+});
+
 test("nearby OSM addresses are bounded search landmarks, never the object's address", () => {
   const place = { id: "osm:node:1", name: "Г. Галилею", location: { lat: 55.75, lon: 37.61 }, tags: { historic: "memorial" } };
   const element = (id, lat, street) => /** @type {any} */ ({ type: "node", id, center: { lat, lon: 37.61 }, tags: { "addr:street": street, "addr:housenumber": "1" } });
