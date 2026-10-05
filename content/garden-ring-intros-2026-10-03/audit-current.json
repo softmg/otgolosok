@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T13:24:10.358128+00:00",
+  "updatedAt": "2026-10-05T13:37:57.405409+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 104,
+    "publishedWithRevoice": 112,
     "reviewedNoChange": 4,
-    "pending": 292
+    "pending": 284
   },
   "entries": [
     {
@@ -2265,7 +2265,8 @@
       "name": "Собор Спаса Нерукотворного Образа в Заиконоспасском монастыре",
       "originalTextId": "5ff7d47a-c24f-436f-9c03-8840a840e877",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch20/changes.json"
     },
     {
       "placeId": "osm:node:5906743571",
@@ -2588,7 +2589,8 @@
       "name": "Храм Варвары Великомученицы на Варварке",
       "originalTextId": "86681d67-a368-4110-ac70-4157395f7b91",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch20/changes.json"
     },
     {
       "placeId": "osm:way:151077511",
@@ -2616,7 +2618,8 @@
       "name": "Храм Иверской иконы Божьей Матери на Всполье",
       "originalTextId": "38f4c96b-5b68-4a62-ac43-28261f7de338",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch20/changes.json"
     },
     {
       "placeId": "osm:way:252370791",
@@ -2630,7 +2633,8 @@
       "name": "Храм Максима Блаженного на Варварке",
       "originalTextId": "d5844755-c2cd-49de-8e9d-e562c814cf2f",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch20/changes.json"
     },
     {
       "placeId": "osm:relation:8443298",
@@ -2673,7 +2677,8 @@
       "name": "Храм Святителя Николая в Кузнецкой Слободе",
       "originalTextId": "7c69805a-10fd-4aa6-9289-1cd66f16bd9a",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch20/changes.json"
     },
     {
       "placeId": "osm:way:165740280",
@@ -2830,7 +2835,8 @@
       "name": "Церковь Григория Неокесарийского в Дербицах",
       "originalTextId": "db075dcf-058d-490e-9c9c-9660c22d5b5e",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch20/changes.json"
     },
     {
       "placeId": "osm:way:84632785",
@@ -2859,7 +2865,8 @@
       "name": "Церковь Николая Чудотворца в Пыжах",
       "originalTextId": "c3a03bb5-83a7-43b3-8481-1bbdc5e215b7",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch20/changes.json"
     },
     {
       "placeId": "osm:way:136577481",
@@ -2887,7 +2894,8 @@
       "name": "Церковь Троицы в Никитниках",
       "originalTextId": "b6e48a46-79c2-4ab8-bb28-31e9faebd365",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch20/changes.json"
     },
     {
       "placeId": "osm:relation:9539448",
