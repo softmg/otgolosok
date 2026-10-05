@@ -1,12 +1,12 @@
 {
   "auditAt": "2026-10-05T12:16:46.251Z",
-  "updatedAt": "2026-10-05T19:14:56.774376+00:00",
+  "updatedAt": "2026-10-05T19:26:16.144526+00:00",
   "scope": "Все 400 исходных кандидатов, включая 149 автоматических черновиков без опубликованной версии.",
   "summary": {
     "total": 400,
-    "publishedWithRevoice": 320,
+    "publishedWithRevoice": 328,
     "reviewedNoChange": 4,
-    "pending": 76
+    "pending": 68
   },
   "entries": [
     {
@@ -1894,14 +1894,16 @@
       "name": "Оружейный подвал",
       "originalTextId": "e8f5786a-f403-441a-97e9-66c9862a3f51",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch47/changes.json"
     },
     {
       "placeId": "osm:way:46931798",
       "name": "Особняк А. К. Ферстер — Михельсона",
       "originalTextId": "38866c01-05a9-45c8-b263-d7f77c30e7fd",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch47/changes.json"
     },
     {
       "placeId": "osm:relation:5371125",
@@ -1940,35 +1942,40 @@
       "name": "Особняк-Небылица",
       "originalTextId": "1aaeff21-bec4-448d-9eb5-e32d0cb75416",
       "hadPublishedVersionAtAudit": true,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch47/changes.json"
     },
     {
       "placeId": "osm:node:7442048631",
       "name": "П. Г. Лисициану",
       "originalTextId": "8211d8eb-3fd4-4dda-bf86-8d5e1f049a4c",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch47/changes.json"
     },
     {
       "placeId": "osm:node:916076772",
       "name": "П. Н. Лебедеву",
       "originalTextId": "eaaf2e16-87f1-446e-88c5-8cb802b3ed3f",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch47/changes.json"
     },
     {
       "placeId": "osm:node:13294163587",
       "name": "П.А. Кропоткину",
       "originalTextId": "f8ff8e49-9e71-4ce4-af4a-4cbe84db632b",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch47/changes.json"
     },
     {
       "placeId": "osm:node:13324750787",
       "name": "П.И. Чайковскому",
       "originalTextId": "79db6be8-2b68-45ee-b1c7-8838bcaf83d3",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch47/changes.json"
     },
     {
       "placeId": "osm:relation:19077852",
@@ -2015,7 +2022,8 @@
       "name": "Патриарху Иову",
       "originalTextId": "8b7312ed-099a-4c36-b6d9-1df382072332",
       "hadPublishedVersionAtAudit": false,
-      "status": "pending"
+      "status": "published_with_revoice",
+      "report": "content/garden-ring-intros-2026-10-05-batch47/changes.json"
     },
     {
       "placeId": "osm:relation:1360660",
