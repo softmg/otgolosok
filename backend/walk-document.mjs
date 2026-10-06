@@ -5,7 +5,12 @@ const object = value => value !== null && typeof value === "object" && !Array.is
 const fields = (value, allowed) => object(value) && Object.keys(value).every(key => allowed.includes(key));
 const string = (value, limit, empty = false) => typeof value === "string" && value.length <= limit && (empty || value.trim().length > 0) && !/[\p{Cc}\p{Cf}<>]/u.test(value);
 const uuid = value => typeof value === "string" && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value);
-const point = value => fields(value, ["lat", "lon"]) && Number.isFinite(value.lat) && Number.isFinite(value.lon) && value.lat >= 55.48 && value.lat <= 55.98 && value.lon >= 37.30 && value.lon <= 37.95;
+/** Coordinates a walk may use: Moscow. */
+export const WALK_BOUNDS = Object.freeze({ south: 55.48, north: 55.98, west: 37.30, east: 37.95 });
+/** @param {unknown} lat @param {unknown} lon */
+export const inWalkBounds = (lat, lon) => typeof lat === "number" && typeof lon === "number" && Number.isFinite(lat) && Number.isFinite(lon)
+  && lat >= WALK_BOUNDS.south && lat <= WALK_BOUNDS.north && lon >= WALK_BOUNDS.west && lon <= WALK_BOUNDS.east;
+const point = value => fields(value, ["lat", "lon"]) && inWalkBounds(value.lat, value.lon);
 const place = value => fields(value, ["address", "location"]) && string(value.address, 180) && point(value.location);
 const reference = value => value === null || (fields(value, ["kind", "id"]) && ((value.kind === "job" && uuid(value.id)) || (value.kind === "osm" && /^osm:(node|way|relation):\d+$/.test(value.id)) || (value.kind === "catalog" && /^[a-z0-9][a-z0-9-]{0,127}$/.test(value.id))));
 // placeId: the map catalog place at the stop, independent of its story; the walk shows that place's photo.

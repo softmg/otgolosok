@@ -12,7 +12,7 @@ export type TopWalk = {
   rating: ReviewSummary;
 };
 
-const record = (value: unknown): Record<string, unknown> => {
+export const record = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError("Ожидался объект.");
   return value as Record<string, unknown>;
 };
@@ -20,13 +20,11 @@ const positive = (value: unknown) => {
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) throw new TypeError("Ожидалось положительное число.");
   return value;
 };
+export const CATALOG_WALK_ID = /^[a-z0-9][a-z0-9-]{0,127}$/;
+export const WALK_UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 
-function validateTopWalk(raw: unknown): TopWalk {
-  const item = record(raw);
-  if (item.kind !== "catalog" && item.kind !== "shared") throw new TypeError("Неверный вид прогулки.");
-  const id = item.id;
-  if (typeof id !== "string" || !(item.kind === "catalog" ? /^[a-z0-9][a-z0-9-]{0,127}$/ : /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/).test(id))
-    throw new TypeError("Неверный идентификатор прогулки.");
+/** Fields every walk card shares; the caller validates kind and id. */
+export function validateWalkCard(item: Record<string, unknown>): Omit<TopWalk, "kind" | "id"> {
   if (typeof item.title !== "string" || !item.title.trim()) throw new TypeError("Нет названия прогулки.");
   if (!Number.isSafeInteger(item.stopCount) || (item.stopCount as number) < 0) throw new TypeError("Неверное число историй.");
   const rating = record(item.rating);
@@ -34,10 +32,18 @@ function validateTopWalk(raw: unknown): TopWalk {
   const count = rating.count as number;
   if (count === 0 ? rating.average !== null : typeof rating.average !== "number" || rating.average < 1 || rating.average > 5) throw new TypeError("Неверная средняя оценка.");
   return {
-    kind: item.kind, id, title: item.title,
+    title: item.title,
     walkingMinutes: positive(item.walkingMinutes), distanceM: positive(item.distanceM), stopCount: item.stopCount as number,
     rating: { average: rating.average as number | null, count },
   };
+}
+
+function validateTopWalk(raw: unknown): TopWalk {
+  const item = record(raw);
+  if (item.kind !== "catalog" && item.kind !== "shared") throw new TypeError("Неверный вид прогулки.");
+  const id = item.id;
+  if (typeof id !== "string" || !(item.kind === "catalog" ? CATALOG_WALK_ID : WALK_UUID).test(id)) throw new TypeError("Неверный идентификатор прогулки.");
+  return { kind: item.kind, id, ...validateWalkCard(item) };
 }
 
 export function validateTopWalks(value: unknown): TopWalk[] {

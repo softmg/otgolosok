@@ -10,6 +10,8 @@ import { creationReducer } from "./creation-state";
 import { AddressInput } from "./address-input";
 import { validStops, type Place } from "./model";
 import { ResearchPanel } from "./research-panel";
+import { NearbyWalks } from "./nearby-walks";
+import { useGrantedPosition, useNearbyWalks } from "./use-nearby-walks";
 import { describeLocateError, locateOnce } from "@/lib/position/locate";
 import { Sheet } from "../shell/sheet";
 import styles from "./walk-creation-panel.module.css";
@@ -71,6 +73,11 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
   // A built route opens on the walk page; the builder keeps only the form.
   async function build() { setPicker(null); await w.build(); }
   const built = Boolean(w.draft.route) && !state.picking;
+  // Without a chosen start, walks near the user are suggested — only if geolocation is already allowed.
+  const suggest = w.loaded && !w.draft.route && !state.picking;
+  const device = useGrantedPosition(suggest && !w.draft.start);
+  const nearbyOrigin = w.draft.start ? "start" : "you";
+  const nearby = useNearbyWalks(w.draft.start?.location ?? device, w.editing, suggest);
 
   function selectAddress(place: Place, target = w.target) {
     if (target === "start") w.edit({ start: place });
@@ -122,6 +129,7 @@ export function WalkCreationPanel({ onClose, onMap, picked }: { onClose: () => v
         </details>}
         <ResearchPanel draft={w.draft} current={w.current} persist={w.persist} offered={w.researchOffered} disabled={busy || !!w.storageError} chooseStartDisabled={busy} action={w.action} setBusy={w.setBusy} onApply={() => void w.openWalk()} onChooseStart={() => { w.setTarget("start"); w.edit({}); }} />
         {w.draft.submitting && <div className="ui-notice"><p>Результат отправки неизвестен. Введите ID истории из раздела запросов профиля.</p><label className="ui-field">ID истории<input value={w.recoveryId} onChange={e => w.setRecoveryId(e.target.value)} /></label><button className="ui-button secondary" onClick={() => void w.recoverJob()}>Восстановить</button></div>}
+        {!state.picking && !picker && nearby.length > 0 && <NearbyWalks walks={nearby} origin={nearbyOrigin} />}
       </>}
       {w.storageError && <div role="alert" className="ui-notice">{w.storageError}<button className={styles.textButton} onClick={w.download}>Скачать черновик</button></div>}
       {w.error && <p className="ui-notice" role="alert">{w.error}</p>}

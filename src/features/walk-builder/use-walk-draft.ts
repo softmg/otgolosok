@@ -342,6 +342,8 @@ export function useWalkDraft() {
     } catch(caught) { setError(toUserMessage(caught, "Не удалось сохранить прогулку.")); return null; }
     finally {setBusy("");}
   }
+  // The walk open in the builder; nearby suggestions never offer it to itself.
+  const editing = serverWalk ? { kind: "account" as const, id: serverWalk.id } : localIdForView ? { kind: "local" as const, id: localIdForView } : null;
   const openHref = serverWalk ? `/walk?id=${serverWalk.id}` : localIdForView ? `/walk?local=${localIdForView}` : null;
   /**
    * Opens the walk page for the built route. An edited account walk is saved first.
@@ -353,5 +355,5 @@ export function useWalkDraft() {
     router.push(openHref);
   }
   async function build() { if (await plan()) await openWalk(); }
-  return {initialMode,draft,current,persist,edit,loaded,storageError,message,error,busy,action,candidate,setCandidate,target,setTarget,query,setQuery,focus,selection,setSelection,reviewed,setReviewed,researchOffered,pollId,setPollId,recoveryId,setRecoveryId,resolve,confirmPlace,plan,build,openWalk,prepareNext,recoverJob,download,saveToAccount,serverWalk,openHref,nextPlace,activeJob,setBusy,setError};
+  return {initialMode,draft,current,persist,edit,loaded,storageError,message,error,busy,action,candidate,setCandidate,target,setTarget,query,setQuery,focus,selection,setSelection,reviewed,setReviewed,researchOffered,pollId,setPollId,recoveryId,setRecoveryId,resolve,confirmPlace,plan,build,openWalk,prepareNext,recoverJob,download,saveToAccount,serverWalk,editing,openHref,nextPlace,activeJob,setBusy,setError};
 }

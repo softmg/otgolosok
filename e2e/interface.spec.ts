@@ -338,6 +338,53 @@ test("ручной адрес подтверждается кнопкой без
   expect(attempts).toBe(2);
 });
 
+test("после выбора старта предлагает готовые прогулки рядом и открывает выбранную", async ({ page }) => {
+  const card = { walkingMinutes: 45, distanceM: 3200, stopCount: 6, rating: { average: 4.6, count: 12 }, finish: "Москва, Садовническая улица, 5" };
+  const walks = [
+    { ...card, kind: "catalog", id: "msk-kozhevniki-zindel-short", title: "Кожевники", startDistanceM: 350 },
+    { ...card, kind: "shared", id: "22222222-2222-4222-8222-222222222222", title: "Арбат", startDistanceM: 0 },
+    { ...card, kind: "own", id: "33333333-3333-4333-8333-333333333333", title: "Моя прогулка", rating: { average: null, count: 0 }, startDistanceM: 100 },
+  ];
+  const queries: string[] = [];
+  await page.route("**/api/walks/nearby?*", route => { queries.push(new URL(route.request().url()).search); return route.fulfill({ json: { walks } }); });
+  await page.route("**/api/story-place?*", route => route.fulfill({ json: { address: "Москва, Дербеневская улица, 3", location: { lat: 55.7254969, lon: 37.6513112 } } }));
+  await page.goto("/?walk=create");
+  await page.getByRole("button", { name: "Откуда", exact: true }).click();
+  await page.getByRole("button", { name: "Ввести адрес", exact: true }).click();
+  await page.getByRole("textbox", { name: "Откуда", exact: true }).fill("Дербеневская 3");
+  await page.getByRole("textbox", { name: "Откуда", exact: true }).press("Enter");
+  const nearby = page.locator('[data-sheet="creation"] [data-sheet-part="body"] [data-creation="nearby"]');
+  const summary = nearby.getByText("Прогулки рядом · 3", { exact: true });
+  await expect(summary).toBeVisible();
+  // Collapsed until clicked, so the sheet keeps its height.
+  await expect(nearby.getByRole("link").first()).toBeHidden();
+  await summary.click();
+  await expect(nearby.getByRole("link")).toHaveCount(3);
+  await expect(nearby.getByRole("link").first()).toBeVisible();
+  expect(queries).toEqual(["?lat=55.72550&lon=37.65131"]);
+  await expect(nearby.getByRole("link", { name: /Моя прогулка/ })).toContainText("Ваша");
+  await expect(nearby.getByRole("link", { name: /Кожевники/ })).toContainText("старт в 350 м");
+  await expect(nearby.getByRole("link", { name: /Кожевники/ })).toContainText("до Садовническая улица, 5");
+  await nearby.getByRole("link", { name: /Кожевники/ }).click();
+  await expect(page).toHaveURL(/\/walk\?catalog=msk-kozhevniki-zindel-short$/);
+});
+
+test("без старта при разрешённой геолокации предлагает прогулки близко к пользователю", async ({ page, context }) => {
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ latitude: 55.7262, longitude: 37.6485, accuracy: 30 });
+  const queries: string[] = [];
+  await page.route("**/api/walks/nearby?*", route => {
+    queries.push(new URL(route.request().url()).search);
+    return route.fulfill({ json: { walks: [{ kind: "catalog", id: "msk-kozhevniki-zindel-short", title: "Кожевники", walkingMinutes: 45, distanceM: 3200, stopCount: 6,
+      rating: { average: null, count: 0 }, startDistanceM: 350, finish: "Москва, Садовническая улица, 5" }] } });
+  });
+  await page.goto("/?walk=create");
+  const nearby = page.locator('[data-sheet="creation"] [data-creation="nearby"]');
+  await nearby.getByText("Близко к вам · 1", { exact: true }).click();
+  await expect(nearby.getByRole("link", { name: /Кожевники/ })).toContainText("в 350 м от вас");
+  expect(queries).toEqual(["?lat=55.72620&lon=37.64850"]);
+});
+
 test("время имеет мягкий акцент и сразу позволяет построить прогулку", async ({ page }) => {
   await page.goto("/?walk=create");
   await page.getByRole("button", { name: "Куда", exact: true }).click();

@@ -1,0 +1,86 @@
+/* «Прогулки рядом» in the creation sheet; follows the «Топ прогулок» cards. */
+.section {
+  margin: 0;
+}
+
+/* Matches the «Остановки · N» disclosure of the creation sheet. */
+.summary {
+  min-height: var(--control-min);
+  padding: var(--space-sm) 0;
+  font-size: var(--text-secondary);
+  cursor: pointer;
+}
+
+.summary:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-xs);
+  padding: 0;
+  margin: 0 0 var(--space-xs);
+  list-style: none;
+}
+
+.card {
+  display: grid;
+  gap: 0.125rem;
+  padding: var(--space-sm) var(--space-md);
+  color: inherit;
+  text-decoration: none;
+  background: var(--surface-island);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-md);
+}
+
+.card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.titleRow {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.title {
+  min-width: 0;
+  color: var(--map-green);
+  font-size: var(--text-control);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.card:hover .title {
+  text-decoration: underline;
+}
+
+.badge {
+  flex: none;
+  padding: 0 var(--space-xs);
+  color: var(--map-green);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  background: var(--control-soft);
+  border-radius: var(--radius-pill);
+}
+
+.finish {
+  font-size: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.rating,
+.meta {
+  color: var(--map-muted);
+  font-size: var(--text-secondary);
+}
+
+.rating {
+  color: var(--map-green);
+  font-weight: var(--weight-medium);
+}

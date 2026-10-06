@@ -2,7 +2,7 @@ import { catalogWalkView } from "./walk-catalog.mjs";
 
 export const TOP_LIMIT = 20;
 export const TOP_PRIOR_WEIGHT = 5;
-const CATALOG_LISTED_AT = new Date(0).toISOString();
+export const CATALOG_LISTED_AT = new Date(0).toISOString();
 
 /** Bayesian-smoothed rating multiplied by ln(1 + launches); zero launches score zero. */
 export function topScore({ ratingSum, ratingCount, launches }, { priorMean, priorWeight = TOP_PRIOR_WEIGHT }) {
@@ -29,9 +29,20 @@ export function rankTopWalks(candidates, { priorMean, priorWeight = TOP_PRIOR_WE
     .map(item => item.candidate);
 }
 
-const details = document => document?.route
+/** Card details of a walk document, or null for a draft without a route. */
+export const walkDetails = document => document?.route
   ? { walkingMinutes: document.route.walkingMinutes, distanceM: document.route.distanceM, stopCount: document.stops.length }
   : null;
+
+/** The walk document of a catalog route, or null when its editorial data does not form a valid walk. */
+export const catalogDocument = route => { try { return catalogWalkView(route).document; } catch { return null; } };
+
+/** Card details of a catalog walk, or null when its editorial data does not form a valid walk. */
+export const catalogDetails = route => walkDetails(catalogDocument(route));
+
+/** Public rating summary: the average rounded to hundredths, null without reviews. */
+export const ratingSummary = ({ ratingSum, ratingCount }) =>
+  ({ average: ratingCount ? Math.round(ratingSum / ratingCount * 100) / 100 : null, count: ratingCount });
 
 /**
  * Public ranking of catalog walks and editor-approved public account walks. Launch counts,
@@ -61,12 +72,9 @@ export function createTopWalks({ accountStore, store, builtinRoutes, limit = TOP
         const documents = accountStore.getTopDocuments(batch.filter(item => item.kind === "shared").map(item => item.walkId));
         for (const item of batch) {
           if (result.length >= limit) break;
-          let meta = null;
-          if (item.kind === "catalog") { try { meta = details(catalogWalkView(item.route).document); } catch { meta = null; } }
-          else meta = details(documents.get(item.walkId));
+          const meta = item.kind === "catalog" ? catalogDetails(item.route) : walkDetails(documents.get(item.walkId));
           if (!meta) continue;
-          result.push({ kind: item.kind, id: item.id, title: item.title, ...meta,
-            rating: { average: item.ratingCount ? Math.round(item.ratingSum / item.ratingCount * 100) / 100 : null, count: item.ratingCount } });
+          result.push({ kind: item.kind, id: item.id, title: item.title, ...meta, rating: ratingSummary(item) });
         }
       }
       return result;
