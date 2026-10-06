@@ -43,10 +43,6 @@ Whenever you identify a workaround, defect, or reliability risk, please highligh
 - Retry transient failures (network, 5xx, 429, timeouts) with bounded exponential backoff; no retries for deterministic 4xx/logic errors.
 - Keep it proportional — don't wrap every line in try/catch; handle errors at the boundary where you can actually act on them.
 
-# Implementation plans
-
-- Implementation plans live in `docs/agents/plans/` — create them via the `make-plan` skill, implement via `implement-plan`; those skills define the file format and `Status:` line rules.
-
 # Gotchas and observations
 
 Record important observations from your work (results of long test runs, API behavior, environment quirks, etc.) as `docs/agents/<topic>.md` files, each listed in `docs/agents/README.md` with a short two-sentence description.
