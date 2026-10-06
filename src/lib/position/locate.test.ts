@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { locateOnce, type LocateUpdate } from "./locate";
+import { locateOnce, positionIfGranted, type LocateUpdate } from "./locate";
 
 type Channel = { success?: PositionCallback; error?: PositionErrorCallback };
 
@@ -191,5 +191,44 @@ describe("locateOnce", () => {
     const geolocation = { getCurrentPosition: () => { throw new Error("blocked"); } } as unknown as Geolocation;
     locateOnce((update) => updates.push(update), { geolocation, permissions: null });
     expect(updates).toEqual([{ type: "error", code: "position-unavailable" }]);
+  });
+});
+
+describe("positionIfGranted", () => {
+  const granted = (state: PermissionState) => ({ query: vi.fn(async () => ({ state }) as PermissionStatus) });
+
+  it("returns a coarse fix when access is already granted", async () => {
+    const mock = createGeolocationMock();
+    const result = positionIfGranted(new AbortController().signal, { geolocation: mock.geolocation, permissions: granted("granted") });
+    await vi.waitFor(() => expect(mock.coarse.success).toBeTypeOf("function"));
+    mock.coarse.success?.(position(40));
+    await expect(result).resolves.toEqual({ lat: 55.75, lon: 37.6, accuracyM: 40, timestampMs: 1_000 });
+  });
+
+  it.each(["prompt", "denied"] as const)("never asks for access when it is %s", async state => {
+    const mock = createGeolocationMock();
+    await expect(positionIfGranted(new AbortController().signal, { geolocation: mock.geolocation, permissions: granted(state) })).resolves.toBeNull();
+    expect(mock.coarse.success).toBeUndefined();
+  });
+
+  it("does not ask without the Permissions API or geolocation", async () => {
+    const mock = createGeolocationMock();
+    await expect(positionIfGranted(new AbortController().signal, { geolocation: mock.geolocation, permissions: null })).resolves.toBeNull();
+    await expect(positionIfGranted(new AbortController().signal, { geolocation: null, permissions: granted("granted") })).resolves.toBeNull();
+    expect(mock.coarse.success).toBeUndefined();
+  });
+
+  it("returns null when the query fails, the device errs or the request is aborted", async () => {
+    const mock = createGeolocationMock();
+    await expect(positionIfGranted(new AbortController().signal, { geolocation: mock.geolocation, permissions: { query: async () => { throw new TypeError(); } } })).resolves.toBeNull();
+    const failed = positionIfGranted(new AbortController().signal, { geolocation: mock.geolocation, permissions: granted("granted") });
+    await vi.waitFor(() => expect(mock.coarse.error).toBeTypeOf("function"));
+    mock.coarse.error?.(failure(2));
+    await expect(failed).resolves.toBeNull();
+    const controller = new AbortController();
+    const aborted = positionIfGranted(controller.signal, { geolocation: createGeolocationMock().geolocation, permissions: granted("granted") });
+    await Promise.resolve();
+    controller.abort();
+    await expect(aborted).resolves.toBeNull();
   });
 });

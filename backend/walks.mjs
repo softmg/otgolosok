@@ -11,7 +11,7 @@ const clean = (v, max) => typeof v === 'string' && v.length <= max && !/[\p{Cc}\
 const DISCOVERY_TAGS = ['[historic]', '[heritage]', '[tourism=museum]', '[wikidata]', '[wikipedia]', '[architect]'];
 const notable = (t) => Boolean(t.historic && t.historic !== 'no' || t.heritage && t.heritage !== 'no' || t.tourism === 'museum'
   || /^Q[1-9]\d{0,15}$/.test(t.wikidata ?? '') || clean(t.wikipedia, 300) || clean(t.architect, 300));
-const distance = (a,b) => {
+export const distance = (a,b) => {
   const rad = Math.PI / 180;
   const h = Math.sin((b.lat-a.lat)*rad/2)**2 + Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin((b.lon-a.lon)*rad/2)**2;
   return 12742000 * Math.asin(Math.sqrt(Math.min(1,h)));

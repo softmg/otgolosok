@@ -179,3 +179,33 @@ export function locateOnce(listener: (update: LocateUpdate) => void, options: Lo
     if (!done) cleanup();
   };
 }
+
+/**
+ * Одна грубая точка без окна разрешения: только если доступ к геолокации уже выдан.
+ * null — разрешения нет, его состояние узнать нельзя, устройство не ответило или запрос отменён.
+ */
+export async function positionIfGranted(signal: AbortSignal, options: Pick<LocateOptions, "geolocation" | "permissions"> = {}): Promise<PositionFix | null> {
+  const geolocation = Object.hasOwn(options, "geolocation")
+    ? (options.geolocation ?? null)
+    : (typeof navigator === "undefined" ? null : navigator.geolocation ?? null);
+  const permissions = Object.hasOwn(options, "permissions")
+    ? (options.permissions ?? null)
+    : (typeof navigator === "undefined" ? null : navigator.permissions ?? null);
+  // Без Permissions API нельзя узнать, покажет ли getCurrentPosition окно разрешения, поэтому не спрашиваем.
+  if (!geolocation || !permissions) return null;
+  try {
+    if ((await permissions.query({ name: "geolocation" })).state !== "granted" || signal.aborted) return null;
+  } catch {
+    return null;
+  }
+  return new Promise(resolve => {
+    const onAbort = () => resolve(null);
+    signal.addEventListener("abort", onAbort, { once: true });
+    const settle = (fix: PositionFix | null) => { signal.removeEventListener("abort", onAbort); resolve(signal.aborted ? null : fix); };
+    try {
+      geolocation.getCurrentPosition(position => settle(toFix(position)), () => settle(null), COARSE_OPTIONS);
+    } catch {
+      settle(null);
+    }
+  });
+}

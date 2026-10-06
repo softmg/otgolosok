@@ -38,6 +38,16 @@ const storageLimit = message => Object.assign(new Error(message), { code: "STORA
 export const MAX_WALKS_PER_USER = 200;
 export const MAX_FAVORITES_PER_USER = 1000;
 const uuid = value => typeof value === "string" && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value);
+/** Start columns of a normalized walk document; a draft without a start stores NULLs. */
+const startOf = document => {
+  const location = document?.start?.location;
+  return location ? [location.lat, location.lon] : [null, null];
+};
+// Walks in the public top: editor-approved, public and linkable.
+const PUBLISHED_WALK = "w.visibility='public' AND w.listing_status='approved' AND w.share_token IS NOT NULL";
+const ACCOUNT_RATINGS = "LEFT JOIN (SELECT walk_id,SUM(rating) AS sum,count(*) AS count FROM walk_reviews WHERE walk_kind='account' AND status='published' GROUP BY walk_id) r ON r.walk_id=w.id";
+const EARTH_RADIUS_M = 6371000;
+const METERS_PER_DEGREE = EARTH_RADIUS_M * Math.PI / 180;
 
 export function createAccountStore(db, now = Date.now) {
   db.exec(`PRAGMA foreign_keys = ON;
@@ -113,6 +123,25 @@ export function createAccountStore(db, now = Date.now) {
     }
   });
   db.exec("CREATE INDEX IF NOT EXISTS user_walks_public_listing ON user_walks(listing_status,listing_updated_at DESC,id DESC) WHERE visibility='public'");
+  // Start coordinates mirror snapshot_json for the nearby-walks query. The ALTER and the one-time
+  // backfill share a transaction; a damaged or startless snapshot keeps NULLs.
+  if(!columns.includes("start_lat"))transaction(()=>{
+    db.exec(`ALTER TABLE user_walks ADD COLUMN start_lat REAL;
+      ALTER TABLE user_walks ADD COLUMN start_lon REAL;`);
+    const fill=db.prepare("UPDATE user_walks SET start_lat=?,start_lon=? WHERE id=?");
+    for(const row of db.prepare("SELECT id,snapshot_json FROM user_walks").all()){
+      const [lat,lon]=startOf(documentOf(row));
+      if(lat!==null)fill.run(lat,lon,row.id);
+    }
+  });
+  db.exec("CREATE INDEX IF NOT EXISTS user_walks_start ON user_walks(start_lat,start_lon) WHERE start_lat IS NOT NULL");
+  /** Published catalog rating sums and the global rating prior shared by the top and nearby rankings. */
+  const ratingContext = () => {
+    const catalogRatings=new Map(db.prepare("SELECT walk_id,SUM(rating) AS sum,count(*) AS count FROM walk_reviews WHERE walk_kind='catalog' AND status='published' GROUP BY walk_id").all()
+      .map(row=>[row.walk_id,{ratingSum:Number(row.sum),ratingCount:Number(row.count)}]));
+    const prior=db.prepare("SELECT avg(rating) AS average FROM walk_reviews WHERE status='published'").get().average;
+    return {catalogRatings,priorMean:prior===null?4:Number(prior)};
+  };
   const viewWalk = row => {
     if (!row) return null;
     const access = { visibility: row.visibility, shareToken: linked(row.visibility) ? row.share_token : null,
@@ -169,7 +198,7 @@ export function createAccountStore(db, now = Date.now) {
         const id=requested&&(owner===undefined||owner===userId)?requested:randomUUID();
         const time=timestamp(),normalized=normalizeWalk(snapshot?.version===2&&snapshot.id!==id?{...snapshot,id}:snapshot,id);
         try {
-          db.prepare("INSERT INTO user_walks(id,user_id,title,snapshot_json,revision,created_at,updated_at,visibility,share_token) VALUES(?,?,?,?,0,?,?,?,?)").run(id,userId,clean,encode(normalized),time,time,"private",null);
+          db.prepare("INSERT INTO user_walks(id,user_id,title,snapshot_json,revision,created_at,updated_at,visibility,share_token,start_lat,start_lon) VALUES(?,?,?,?,0,?,?,?,?,?,?)").run(id,userId,clean,encode(normalized),time,time,"private",null,...startOf(normalized));
           db.prepare("INSERT INTO user_walk_idempotency VALUES(?,?,?)").run(userId,idempotencyKey,id);
         } catch(error) {
           if(String(error?.code??"").startsWith("SQLITE_CONSTRAINT")) throw conflict();
@@ -189,7 +218,7 @@ export function createAccountStore(db, now = Date.now) {
       if(normalized.id!==id)throw Object.assign(new Error("Walk ID does not match the account record"),{code:"BAD_REQUEST"});
       const clean=cleanTitle(title);
       return transaction(()=>{
-        const time=timestamp(),result=db.prepare("UPDATE user_walks SET title=?,snapshot_json=?,revision=revision+1,updated_at=? WHERE id=? AND user_id=? AND revision=?").run(clean,encode(normalized),time,id,userId,revision);
+        const time=timestamp(),result=db.prepare("UPDATE user_walks SET title=?,snapshot_json=?,start_lat=?,start_lon=?,revision=revision+1,updated_at=? WHERE id=? AND user_id=? AND revision=?").run(clean,encode(normalized),...startOf(normalized),time,id,userId,revision);
         if(!result.changes){if(!this.getWalk(userId,id))return null;throw conflict();}
         // Changed moderated texts send an approved public walk back to the editors; pending and
         // hidden walks keep their state, and a route-only rebuild keeps the approval.
@@ -236,13 +265,34 @@ export function createAccountStore(db, now = Date.now) {
     /** Approved public walks and catalog walks with their published rating sums, plus the global rating prior. */
     listTopCandidates() {
       const walks=db.prepare(`SELECT w.id,w.title,w.share_token,w.listing_updated_at,COALESCE(r.sum,0) AS rating_sum,COALESCE(r.count,0) AS rating_count
-        FROM user_walks w LEFT JOIN (SELECT walk_id,SUM(rating) AS sum,count(*) AS count FROM walk_reviews WHERE walk_kind='account' AND status='published' GROUP BY walk_id) r ON r.walk_id=w.id
-        WHERE w.visibility='public' AND w.listing_status='approved' AND w.share_token IS NOT NULL`).all()
+        FROM user_walks w ${ACCOUNT_RATINGS} WHERE ${PUBLISHED_WALK}`).all()
         .map(row=>({id:row.id,title:row.title,shareToken:row.share_token,listedAt:row.listing_updated_at,ratingSum:Number(row.rating_sum),ratingCount:Number(row.rating_count)}));
-      const catalogRatings=new Map(db.prepare("SELECT walk_id,SUM(rating) AS sum,count(*) AS count FROM walk_reviews WHERE walk_kind='catalog' AND status='published' GROUP BY walk_id").all()
-        .map(row=>[row.walk_id,{ratingSum:Number(row.sum),ratingCount:Number(row.count)}]));
-      const prior=db.prepare("SELECT avg(rating) AS average FROM walk_reviews WHERE status='published'").get().average;
-      return {walks,catalogRatings,priorMean:prior===null?4:Number(prior)};
+      return {walks,...ratingContext()};
+    },
+    /**
+     * Account walks whose start lies within radiusM of the point: published walks plus, for a
+     * signed-in user, all of their own walks (each walk comes once; own=true marks the user's).
+     * Callers must never pass other people's start coordinates or owners to a client.
+     * @param {{lat: number, lon: number, radiusM: number, userId?: string | null}} options
+     */
+    listNearbyCandidates({lat,lon,radiusM,userId=null}) {
+      if(!Number.isFinite(lat)||!Number.isFinite(lon)||!Number.isFinite(radiusM)||radiusM<=0)throw Object.assign(new Error("Invalid nearby query"),{code:"BAD_REQUEST"});
+      // The prefilter box uses the same sphere as the haversine, so it never cuts a start inside the radius.
+      const latDelta=radiusM/METERS_PER_DEGREE,lonDelta=radiusM/(METERS_PER_DEGREE*Math.cos(lat*Math.PI/180));
+      const distanceSql=`${EARTH_RADIUS_M}*2*asin(min(1,sqrt(pow(sin(radians(w.start_lat-?)/2),2)+cos(radians(?))*cos(radians(w.start_lat))*pow(sin(radians(w.start_lon-?)/2),2))))`;
+      const walks=db.prepare(`SELECT * FROM (SELECT w.id,w.title,w.share_token,w.listing_updated_at,w.updated_at,w.user_id=? AS own,${distanceSql} AS distance_m,
+          COALESCE(r.sum,0) AS rating_sum,COALESCE(r.count,0) AS rating_count
+        FROM user_walks w ${ACCOUNT_RATINGS}
+        WHERE w.start_lat BETWEEN ? AND ? AND w.start_lon BETWEEN ? AND ? AND ((${PUBLISHED_WALK}) OR w.user_id=?)) WHERE distance_m<=?`)
+        .all(userId,lat,lat,lon,lat-latDelta,lat+latDelta,lon-lonDelta,lon+lonDelta,userId,radiusM)
+        .map(row=>({id:row.id,title:row.title,shareToken:row.share_token,own:Boolean(row.own),listedAt:row.listing_updated_at,updatedAt:row.updated_at,
+          distanceM:Number(row.distance_m),ratingSum:Number(row.rating_sum),ratingCount:Number(row.rating_count)}));
+      return {walks,...ratingContext()};
+    },
+    /** Decoded documents of nearby account walks visible to userId (published or own), null for damaged ones. */
+    getNearbyDocuments(ids,userId=null) {
+      const select=db.prepare(`SELECT w.id,w.title,w.snapshot_json FROM user_walks w WHERE w.id=? AND ((${PUBLISHED_WALK}) OR w.user_id=?)`);
+      return new Map(ids.map(id=>{const row=select.get(id,userId);return [id,row?documentOf(row):null];}));
     },
     /** Decoded documents of the given account walks (public top details), skipping damaged ones. */
     getTopDocuments(ids) {

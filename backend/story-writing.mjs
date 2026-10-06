@@ -4,6 +4,23 @@ import { requestStructured } from "./model-output.mjs";
 
 const limits = profile => profile === "description-v1" ? {minWords:20,maxWords:100,minParagraphs:1,maxParagraphs:3} : {minWords:100,maxWords:250,minParagraphs:2,maxParagraphs:6};
 
+// The card shows the address on its own; in a text heard on the spot a postal address is filler.
+// A place named in words (a park, a square, a street without a house number) stays allowed.
+// A house number is at most three digits and is not followed by a unit, a date or a year.
+const HOUSE=/\d{1,3}[а-яё]?(?:\/\d{1,3}[а-яё]?)?(?![\d\-–—])(?!\s*(?:год|лет|век|этаж|дом|метр|км|м(?![а-яё])|раз|человек|тыс|%|час|мин|январ|феврал|март|апрел|ма[яй]|июн|июл|август|сентябр|октябр|ноябр|декабр))/u.source;
+const STREET=/(?:улиц[а-яё]*|ул\.|переул[а-яё]*|пер\.|проспект[а-яё]*|просп\.|пр-т|шоссе|бульвар[а-яё]*|б-р|набережн[а-яё]*|наб\.|площад[а-яё]*|пл\.|проезд[а-яё]*|тупик[а-яё]*|алле[а-яё]*|вал[а-яё]{0,2}|лини[а-яё]*)/u.source;
+const BUILDING=/(?:дом|доме|д\.|владени[а-яё]*|вл\.|строени[а-яё]*|стр\.|корпус[а-яё]*|корп\.)/u.source;
+const POSTAL_ADDRESS=new RegExp([
+  /по\s+адресу/u.source,
+  `(?<![а-яё])${STREET}(?![а-яё])[^.!?;\\n,]{0,40},\\s*(?:д\\.|дом)?\\s*${HOUSE}`,
+  `(?<![а-яё])${BUILDING}\\s*№?\\s*${HOUSE}`,
+].join("|"),"iu");
+
+/** @returns {string | null} the first postal-address fragment in the text */
+export function postalAddressIn(text) {
+  return POSTAL_ADDRESS.exec(text)?.[0].trim() ?? null;
+}
+
 export function parseStoryText(text,{profile="story-v1"}={}) {
   if(typeof text!=="string")throw failure("INVALID_DRAFT","Writer returned no text.");
   const paragraphs=text.replace(/\r\n?/g,"\n").split(/\n\s*\n/u).map(value=>value.trim()).filter(Boolean);
@@ -11,6 +28,8 @@ export function parseStoryText(text,{profile="story-v1"}={}) {
   if(paragraphs.length<rule.minParagraphs||paragraphs.length>rule.maxParagraphs)throw failure("INVALID_DRAFT",`Expected ${rule.minParagraphs}-${rule.maxParagraphs} paragraphs; got ${paragraphs.length}.`);
   if(paragraphs.some(value=>value.length>2000))throw failure("INVALID_DRAFT","A paragraph exceeds 2000 characters.");
   if(wordCount<rule.minWords||wordCount>rule.maxWords)throw failure("INVALID_DRAFT",`Expected ${rule.minWords}-${rule.maxWords} words; got ${wordCount}.`);
+  const address=postalAddressIn(text);
+  if(address)throw failure("INVALID_DRAFT",`Remove the postal address «${address}»: the card shows the address separately.`);
   return {paragraphs:paragraphs.map(value=>({text:value,factIds:[]})),wordCount};
 }
 
@@ -19,14 +38,14 @@ function acceptReview(value,paragraphs,evidence) {
       !Array.isArray(value.claims)||!value.checks||typeof value.checks!=="object")throw failure("INVALID_MODEL_OUTPUT");
   if(!value.approved||value.issues.length)throw Object.assign(failure("REVIEW_REQUIRED"),{issues:value.issues});
   if(value.checks.substantive!==true||value.checks.subjectAligned!==true||value.checks.audioClear!==true)throw failure("INVALID_MODEL_OUTPUT");
-  const facts=new Map(evidence.facts.map(fact=>[fact.id,fact])),available=new Set(facts.keys()),byParagraph=new Map();
+  const available=new Set(evidence.facts.map(fact=>fact.id)),byParagraph=new Map();
   for(const item of value.paragraphFacts){if(!Number.isInteger(item?.paragraph)||item.paragraph<1||item.paragraph>paragraphs.length||byParagraph.has(item.paragraph)||!Array.isArray(item.factIds)||!item.factIds.length||item.factIds.some(id=>!available.has(id)))throw failure("INVALID_MODEL_OUTPUT");byParagraph.set(item.paragraph,[...new Set(item.factIds)]);}
   if(byParagraph.size!==paragraphs.length||!value.claims.length)throw failure("INVALID_MODEL_OUTPUT");
   const claimCounts=new Map();
   for(const claim of value.claims){
     if(!Number.isInteger(claim?.paragraph)||claim.paragraph<1||claim.paragraph>paragraphs.length||typeof claim.text!=="string"||!claim.text.trim()||
         !paragraphs[claim.paragraph-1].text.includes(claim.text)||claim.supported!==true||!Array.isArray(claim.factIds)||!claim.factIds.length||
-        claim.factIds.some(id=>!available.has(id))||(claim.address===true&&!claim.factIds.some(id=>facts.get(id)?.kind==="address")))throw failure("INVALID_MODEL_OUTPUT");
+        claim.factIds.some(id=>!available.has(id)))throw failure("INVALID_MODEL_OUTPUT");
     claimCounts.set(claim.paragraph,(claimCounts.get(claim.paragraph)??0)+1);
   }
   if(paragraphs.some((_,index)=>!claimCounts.has(index+1)))throw failure("INVALID_MODEL_OUTPUT");

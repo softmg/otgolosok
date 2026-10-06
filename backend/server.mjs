@@ -30,6 +30,8 @@ import { favoriteSummary } from "./favorite-summary.mjs";
 import { createAccountStore } from "./account-store.mjs";
 import { createWalkLaunchRoutes } from "./walk-launch-routes.mjs";
 import { createTopWalks } from "./walk-top.mjs";
+import { createNearbyWalks } from "./walk-nearby.mjs";
+import { inWalkBounds } from "./walk-document.mjs";
 import { createReviewRateLimiter } from "./walk-reviews.mjs";
 import { createWalkReviewRoutes } from "./walk-review-routes.mjs";
 import { createPlaceFeedbackRoutes } from "./place-feedback-routes.mjs";
@@ -164,6 +166,7 @@ export function createApp({store,provider,osmGeocoder=null,foodIndex=null,yandex
   const improvements=createWalkImprovementRoutes({store,accountStore,origin,authSecret,limiter:improvementLimiter,json,body});
   const launches=createWalkLaunchRoutes({store,accountStore,authSecret,limiter:launchLimiter,walkLimiter:launchWalkLimiter,json,body});
   const topWalks=accountStore?createTopWalks({accountStore,store,builtinRoutes}):null;
+  const nearbyWalks=accountStore?createNearbyWalks({accountStore,store,builtinRoutes}):null;
   const legacyAdminEnabled=allowLegacyAdminToken??(!auth||process.env.ALLOW_LEGACY_ADMIN_TOKEN==="true");
   const server=httpServer(async(req,res)=>{
     try {
@@ -685,6 +688,17 @@ export function createApp({store,provider,osmGeocoder=null,foodIndex=null,yandex
         if(url.search)throw failure("BAD_REQUEST");
         if(!topWalks){json(res,503,{error:{code:"UNAVAILABLE",message:"Топ прогулок временно недоступен."}});return;}
         json(res,200,{walks:topWalks.list()});return;
+      }
+      if(url.pathname==="/api/walks/nearby") {
+        if(!["GET","HEAD"].includes(req.method)){res.setHeader("Allow","GET, HEAD");json(res,405,{error:{code:"METHOD_NOT_ALLOWED",message:"Method not allowed."}});return;}
+        // Exactly one lat and one lon, plain decimals inside the walk area.
+        const entries=[...url.searchParams],decimal=/^-?\d{1,3}(?:\.\d{1,12})?$/;
+        if(entries.length!==2||new Set(entries.map(([key])=>key)).size!==2||entries.some(([key,value])=>!["lat","lon"].includes(key)||!decimal.test(value)))throw failure("BAD_REQUEST");
+        const lat=Number(url.searchParams.get("lat")),lon=Number(url.searchParams.get("lon"));
+        if(!inWalkBounds(lat,lon))throw failure("BAD_REQUEST");
+        if(!nearbyWalks){json(res,503,{error:{code:"UNAVAILABLE",message:"Подборка прогулок временно недоступна."}});return;}
+        // The response depends on the session (own walks), so json() keeps it out of every cache.
+        json(res,200,{walks:nearbyWalks.list({lat,lon,userId:session?.user?.id??null})});return;
       }
       const publishedWalk=/^\/api\/story-walks\/([a-z0-9][a-z0-9-]{0,127})$/.exec(url.pathname);
       if(req.method==="GET"&&url.pathname==="/api/story-walks"){json(res,200,{walks:builtinRoutes.filter(route=>route.walk?.steps?.length).map(route=>({id:route.id,title:route.title,subtitle:route.subtitle,durationMin:route.duration_min}))});return;}
