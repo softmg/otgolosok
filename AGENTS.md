@@ -59,4 +59,5 @@ One fact per bullet, max two lines; details go to `docs/agents/<topic>.md` with 
 Never add bullets to AGENTS.md on your own — propose the wording and get the user's explicit approval first; if you hesitate whether it's important enough, it isn't.
 
 ## Gotchas:
+- `generator-data/ops-backups` растёт ~409 МБ на пакетную операцию и попадает в tar деплойного бэкапа генератора — перед деплоем чистить с удержанием последних партий, иначе ENOSPC на VPS (см. docs/agents/zelenograd-labels-2026-10-05.md).
 - Delete Gotchas that are no longer true or are now covered by a test.
