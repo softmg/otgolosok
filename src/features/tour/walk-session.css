@@ -5,8 +5,9 @@
    the open drawer scrolls inside itself and the photo yields height, so the footer with the main action stays visible.
    The panel still scrolls as a last resort when the fixed parts alone do not fit. */
 /* The stop photo spans the panel above the title, as on a place card; the panel's rounded corners clip it.
-   As in the card's media slot, it yields height first on a short screen, to a meaningful preview; if necessary the panel scrolls above the pinned actions. */
-.walk-session-photo{container-type:inline-size;display:flex;flex:0 1 auto;flex-direction:column;min-height:7.5rem;overflow:hidden;margin:-20px -20px 16px}
+   As in the card's media slot, it yields height first on a short screen, down to a strip that still shows the place and is a finger-sized
+   target, so a desktop window of 720 px fits photo, player, tools and actions without the panel scrolling; only a landscape phone scrolls. */
+.walk-session-photo{container-type:inline-size;display:flex;flex:0 1 auto;flex-direction:column;min-height:4.5rem;overflow:hidden;margin:-20px -20px 16px}
 .walk-session-photo:empty{display:none}
 .walk-session-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .walk-session-heading>div{min-width:0}
@@ -40,6 +41,9 @@
 .walk-session-tools a{display:flex;align-items:center;min-height:var(--control-min);color:inherit;font-size:14px;text-underline-offset:4px}
 .walk-session-tools button{display:flex;align-items:center;gap:6px;min-height:var(--control-min);padding:0;border:0;background:none;color:inherit;font:inherit;font-size:14px;cursor:pointer}
 .walk-session-tools svg{width:18px;height:18px}
+/* A panel narrower than the three tools in a row shows «Настройки» as its icon alone (the button keeps its aria-label):
+   a second row of tools pushed the panel into scrolling on a 720 px desktop window. */
+@container (width < 32rem){.walk-session-settings-label{display:none}.walk-session-tools .walk-session-settings-toggle{justify-content:center;min-width:var(--control-min)}}
 .walk-session-read svg{flex:none}
 .walk-session-read span{text-decoration:underline;text-underline-offset:4px}
 .walk-session-tools [aria-expanded=true]{text-decoration:underline;text-underline-offset:4px}

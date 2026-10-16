@@ -634,6 +634,35 @@ for (const [width, height] of [[390, 844], [320, 568], [667, 375], [568, 320], [
   });
 }
 
+// Панель прогулки прокручивается только в крайнем случае (низкий телефон в альбомной ориентации). На обычном
+// настольном окне с фото, плеером и всеми инструментами она помещается целиком: боковой полосы прокрутки нет.
+for (const [width, height] of [[1280, 720], [1366, 768], [1440, 900]]) {
+  test(`остановка с фото и плеером помещается в панель без прокрутки на ${width}×${height}`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height });
+    await page.route("**/api/food/**", route => route.fulfill({ status: 503, json: { error: "FOOD_INDEX_UNAVAILABLE" } }));
+    await page.route("**/api/content/places/**", route => route.fulfill({ json: { place: { id: photoPlace,
+      text: { story: { paragraphs: [{ text: "Рассказ о месте." }] }, audio: null }, photo: placePhoto } } }));
+    // Остановка каталожной прогулки у места с фото: так выглядит любая промопрогулка, у каждой остановки есть превью.
+    // Название в три строки, как у «Церкви святых апостолов Петра и Павла в Лефортове» на снимке из отчёта.
+    const withPhoto = { ...longStop, document: { ...longStop.document, stops: longStop.document.stops.map(stop => ({ ...stop, placeId: photoPlace })) },
+      chapters: longStop.chapters.map(chapter => ({ ...chapter, story: chapter.story && { ...chapter.story, title: "Церковь святых апостолов Петра и Павла в Лефортове" } })) };
+    await page.route("**/api/story-walks/paveletskaya/view", route => route.fulfill({ json: withPhoto }));
+    await page.goto("/walk?catalog=paveletskaya");
+    await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
+    await expect(page.locator(".walk-session-photo img")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Читать историю", exact: true })).toBeVisible();
+    // Плашка загрузки карты занимает место над панелью только до готовности карты.
+    await expect(page.getByText("Загружаем карту…", { exact: true })).toHaveCount(0, { timeout: 20000 });
+    const panel = page.locator(".walk-session-panel");
+    const overflow = await panel.evaluate(element => element.scrollHeight - element.clientHeight);
+    await page.screenshot({ path: info.outputPath(`walk-photo-${width}x${height}.png`) });
+    expect(overflow, "панель не прокручивается").toBeLessThanOrEqual(0);
+    // Ни один инструмент не уходит под закреплённые кнопки.
+    const tools = await page.locator(".walk-session-tools").boundingBox(), actions = await page.locator(".walk-session-actions").boundingBox();
+    expect(tools!.y + tools!.height).toBeLessThanOrEqual(actions!.y);
+  });
+}
+
 test.describe("отзывы к каталожной прогулке", () => {
   const oneStop = routeToWalkView({ ...catalog, walk: { ...catalog.walk!, steps: catalog.walk!.steps.slice(0, 1) } });
   const page0 = { summary: { average: 4.6, count: 12 }, reviews: [{ id: "r1", author: "Анна", rating: 5, text: "Очень понравилось.\nВернусь ещё.", createdAt: "2026-09-30T10:00:00Z" }], nextCursor: null, mine: null };

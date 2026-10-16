@@ -285,8 +285,8 @@ export function WalkSession({ carAction = null, notice = "", route, chapters, in
         {active && chapter ? <PlaceVideo key={chapter.id} compact placeId={chapter.place_id} title={chapter.title} /> : null}
         {active && chapter ? <HistoricalPhotos key={`photos-${chapter.id}`} walkId={route.id} stopId={chapter.id} /> : null}
         {/* Settings sit with the walk's other tools: in the heading a second button left a gap under a one-line title. */}
-        {active ? <button type="button" aria-label={t("Настройки прогулки")} aria-expanded={drawer === "settings"} onClick={() => setDrawer(drawer === "settings" ? null : "settings")}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor"/><circle cx="15" cy="17" r="3" fill="currentColor"/></svg>{t("Настройки")}
+        {active ? <button type="button" className="walk-session-settings-toggle" aria-label={t("Настройки прогулки")} aria-expanded={drawer === "settings"} onClick={() => setDrawer(drawer === "settings" ? null : "settings")}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor"/><circle cx="15" cy="17" r="3" fill="currentColor"/></svg><span className="walk-session-settings-label">{t("Настройки")}</span>
         </button> : null}
         {!active && reviews ? ratingCount === 0
           ? <button type="button" aria-haspopup="dialog" onClick={rate}>{t(hasReview ? "Изменить отзыв" : "Оставить отзыв")}</button>
