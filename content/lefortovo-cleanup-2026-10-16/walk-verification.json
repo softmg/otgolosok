@@ -1,10 +1,10 @@
 {
-  "verifiedAt": "2026-10-16T13:58:15.998Z",
+  "verifiedAt": "2026-10-16T14:45:12.908Z",
   "title": "Лефортово: дворцы, авиация и Елохово",
-  "distanceM": 6450,
-  "walkingMinutes": 81,
-  "stops": 14,
-  "audioSec": 1206.2,
+  "distanceM": 6059,
+  "walkingMinutes": 76,
+  "stops": 12,
+  "audioSec": 1083.3,
   "chapters": [
     {
       "placeId": "osm:node:5864314211",
@@ -87,16 +87,6 @@
       }
     },
     {
-      "placeId": "osm:node:5083895963",
-      "title": "Памятник Н. Е. Жуковскому",
-      "words": 109,
-      "audio": {
-        "sha256": "545556c9e0c50dcff5502aa9088a4867a492678516c89b8c38b595a9b00064ce",
-        "bytes": 507501,
-        "durationSec": 63.408
-      }
-    },
-    {
       "placeId": "osm:relation:5886854",
       "title": "Российский новый университет",
       "words": 147,
@@ -104,16 +94,6 @@
         "sha256": "71c8772017345a9ca1f817d791523e760cdc658f81a184e9428e2fca6a1cf461",
         "bytes": 698349,
         "durationSec": 87.264
-      }
-    },
-    {
-      "placeId": "osm:way:1169646321",
-      "title": "Сквер имени А. Н. Туполева",
-      "words": 106,
-      "audio": {
-        "sha256": "a279bd5a268573ea61d84080fcf6a36548b788c0630da3ea714a669c32cef025",
-        "bytes": 476205,
-        "durationSec": 59.496
       }
     },
     {
