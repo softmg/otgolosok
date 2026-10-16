@@ -1,0 +1,396 @@
+{
+  "verifiedAt": "2026-10-16T13:25:15.652Z",
+  "bundleId": "lefortovo-cleanup-2026-10-16",
+  "results": [
+    {
+      "placeId": "osm:way:349741206",
+      "status": "changed",
+      "textId": "193bad3a-7568-4d68-abb3-ac4e6d548343",
+      "wordCount": 128,
+      "audio": {
+        "sha256": "639590458add26c7d58d05793ba9615ed63143c27313d87a74eb38ccce9d8922",
+        "bytes": 317229,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:node:6684329185",
+      "status": "unchanged",
+      "textId": "0cea1c4b-4f2b-4351-994e-7241bc11d0ba",
+      "wordCount": 110,
+      "audio": {
+        "sha256": "f82d2ed15052d0d1fc28b2de85ba2ddf34a9162a1ec386c50835a082799ff476",
+        "bytes": 506541,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:way:52313291",
+      "status": "unchanged",
+      "textId": "32bc0861-6ea9-41ff-b47a-297e81bdfbc0",
+      "wordCount": 110,
+      "audio": {
+        "sha256": "01b77dfede29b063739f1007d92bd6d1ca59b47b2410cff3d83e50eaee4e9094",
+        "bytes": 636525,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:node:5864314211",
+      "status": "unchanged",
+      "textId": "1c310e15-a421-41b8-8892-7350da694e9d",
+      "wordCount": 130,
+      "audio": {
+        "sha256": "77c2b3bd2d3f06a3bf4df93e77b738bd56c73ee27193d3e1416601d5e55675a2",
+        "bytes": 558765,
+        "durationSec": null,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:relation:454411",
+      "status": "changed",
+      "textId": "a3624b38-dcc1-4e80-8a85-bedc8b186215",
+      "wordCount": 155,
+      "audio": {
+        "sha256": "891b91c75a511d9bd10f8d413e758ec8d0b244dc2126908d8d935d26f2fc57de",
+        "bytes": 466605,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:way:131110261",
+      "status": "changed",
+      "textId": "d1181ffc-3f9d-4baa-8fbe-daa16b5ac0f7",
+      "wordCount": 155,
+      "audio": {
+        "sha256": "a127b9615c1b876f99d1043e10787d5e6b837b8b1cca3270c45b01e0ac5240ff",
+        "bytes": 533229,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:way:49591154",
+      "status": "changed",
+      "textId": "d12d5345-f96b-41a6-9ca8-482ee9966c54",
+      "wordCount": 119,
+      "audio": {
+        "sha256": "0fa63d20c76ee2b9e1c86e5ea4149e3c7f2d2795e95d1954ae4d098ff3c34280",
+        "bytes": 508077,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:relation:3944428",
+      "status": "unchanged",
+      "textId": "6c27acb5-1d95-43b6-9e25-77d27d9994b4",
+      "wordCount": 108,
+      "audio": {
+        "sha256": "bc3035d2842850869bc757cd47b12bb2926253ae3fc05393bb5806b48097410d",
+        "bytes": 561837,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:node:380403043",
+      "status": "changed",
+      "textId": "55724529-afc9-440d-ae91-0be9a20d1d64",
+      "wordCount": 106,
+      "audio": {
+        "sha256": "7349e14a02a068e2644482f6a1b18f2bd9d3a6151917f4b004f5af1329bccee8",
+        "bytes": 550509,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:relation:64496",
+      "status": "changed",
+      "textId": "d8ddbe66-b915-4720-8f57-fc67192de2dd",
+      "wordCount": 125,
+      "audio": {
+        "sha256": "ef5999f3d92748f768bf50b505598beef223cfbdcab9cae1f3599bec315fbd90",
+        "bytes": 650925,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:way:628029259",
+      "status": "changed",
+      "textId": "a58e63cc-7a94-440c-9fa0-f0e538497d7f",
+      "wordCount": 145,
+      "audio": {
+        "sha256": "7e4d47141c07d41fb2573a3a42b2715f6dbd708044eedc90f6690c6cdd45e94a",
+        "bytes": 397869,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:way:139526078",
+      "status": "unchanged",
+      "textId": "a5d41b63-4285-42f0-889b-3e99cbbee6a1",
+      "wordCount": 113,
+      "audio": {
+        "sha256": "6f4db310d5c338ea7546273ea066e6e5079813a80c6d5a49c4830e1904110870",
+        "bytes": 610029,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:way:412742914",
+      "status": "changed",
+      "textId": "ab2ce812-44cc-444f-bc44-dd167a6a9342",
+      "wordCount": 111,
+      "audio": {
+        "sha256": "5a26683756f053171fe61ffb21b1ab38cd52c383061c912d5c180700f30ee1b4",
+        "bytes": 499245,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:node:1933730593",
+      "status": "changed",
+      "textId": "17ef1c44-a05a-4313-a7e9-e61ffb6439f5",
+      "wordCount": 117,
+      "audio": {
+        "sha256": "a6d273893c508ce1a36fdfdaff87f2449036621f32ca164eed5e36b8a6e6b855",
+        "bytes": 368301,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:node:5083895963",
+      "status": "unchanged",
+      "textId": "deccad85-20c5-4fe5-b497-64bb2eee129c",
+      "wordCount": 109,
+      "audio": {
+        "sha256": "545556c9e0c50dcff5502aa9088a4867a492678516c89b8c38b595a9b00064ce",
+        "bytes": 507501,
+        "durationSec": null,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:node:364081958",
+      "status": "unchanged",
+      "textId": "2e4ab054-adbf-40aa-b897-c4e37f47406b",
+      "wordCount": 116,
+      "audio": {
+        "sha256": "038dca5d8a5893dbdf7f483fbe5d701b77c0774bb19ce3b54ccb1bb478da09cc",
+        "bytes": 469101,
+        "durationSec": null,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:node:2820078760",
+      "status": "changed",
+      "textId": "c67d8b28-b284-48f5-a49e-10099d2581a3",
+      "wordCount": 114,
+      "audio": {
+        "sha256": "5894c6b5351e60541cdd9404d8872258423b061e46ba961653d708107f2fe378",
+        "bytes": 649581,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:relation:8478776",
+      "status": "changed",
+      "textId": "ea64b852-4fd7-439f-a138-063ed205da00",
+      "wordCount": 127,
+      "audio": {
+        "sha256": "3dbd7e3f65f879162f28085d4799467fcb49edcd8e80b713e429733d9ec125b4",
+        "bytes": 500013,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:relation:5886854",
+      "status": "changed",
+      "textId": "b4a8942a-bccc-4335-9e0a-16671ad88ae2",
+      "wordCount": 117,
+      "audio": {
+        "sha256": "afa7e9dd95673a9c54f7357fa5dcc5e3d0ca69d0ecfa186a4f396103f2b3fbe4",
+        "bytes": 305709,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:relation:13590832",
+      "status": "unchanged",
+      "textId": "899e8a46-1f47-479d-aa0c-95001c4d7957",
+      "wordCount": 105,
+      "audio": {
+        "sha256": "5bf47d948bd07b5f73394ddfe4d4f250db7bdbb4e8fec11ec59f88e39b94b5b6",
+        "bytes": 555885,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:way:1169646321",
+      "status": "unchanged",
+      "textId": "3770a081-9a08-4c29-80bc-fc2ee7ebb982",
+      "wordCount": 106,
+      "audio": {
+        "sha256": "a279bd5a268573ea61d84080fcf6a36548b788c0630da3ea714a669c32cef025",
+        "bytes": 476205,
+        "durationSec": null,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:way:39254926",
+      "status": "unchanged",
+      "textId": "43c2395f-9047-4d95-b394-64baaf700f08",
+      "wordCount": 105,
+      "audio": {
+        "sha256": "fbb592bfc0527dfdaa440f09ef4c2517b70b1319449ce74bbc1c8c58c24c5233",
+        "bytes": 284013,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision-unchanged"
+      }
+    },
+    {
+      "placeId": "osm:way:130538871",
+      "status": "changed",
+      "textId": "5468dc8d-41d5-457c-a19f-e2b79bd772e9",
+      "wordCount": 139,
+      "audio": {
+        "sha256": "07e782e050c5a845b32d3fe6a2632677958ea18c6119df10e4b654d8582206eb",
+        "bytes": 515181,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:way:133254630",
+      "status": "changed",
+      "textId": "ca3698f1-857e-45ea-9808-322400c7a571",
+      "wordCount": 124,
+      "audio": {
+        "sha256": "9e3a58ec7c4e9e56375be5d974c65089172eca4727d6d17d187f9c1e38f34dcf",
+        "bytes": 535725,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:way:1056583221",
+      "status": "changed",
+      "textId": "3064cf1c-5f9c-4d19-9252-207a00f20c45",
+      "wordCount": 113,
+      "audio": {
+        "sha256": "328aa5a85f106bfb8e34843dd105662a9f5137160fc5049aa9b467250196656e",
+        "bytes": 554541,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision"
+      }
+    },
+    {
+      "placeId": "osm:way:48894240",
+      "status": "unchanged",
+      "textId": "a15540e4-e5b3-470f-b7a7-8c6acef07ce6",
+      "wordCount": 110,
+      "audio": {
+        "sha256": "1855ebbc17aaf13446a4439e399575fe28a8aa6bf26704c1eaad29af2a9a0de2",
+        "bytes": 444141,
+        "durationSec": null,
+        "provider": "external",
+        "model": "f5",
+        "voice": "obrazec6",
+        "matchesText": "previous-revision-unchanged"
+      }
+    }
+  ]
+}
