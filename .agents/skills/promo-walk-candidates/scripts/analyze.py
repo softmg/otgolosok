@@ -148,7 +148,11 @@ def build_option(
                 or bool(membership[place["id"]]) == fresh
             ):
                 continue
-            if any(haversine(place, c) <= SAME_POINT_M for c in chosen):
+            # A long street or park is split into several OSM objects, each with its own story.
+            if any(
+                haversine(place, c) <= SAME_POINT_M or c["name"] == place["name"]
+                for c in chosen
+            ):
                 continue
             trial = chosen + [place]
             if not fresh and max_overlap(trial, membership)[0] > args.max_overlap * max(
