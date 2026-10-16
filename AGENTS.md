@@ -22,6 +22,8 @@ Whenever you identify a workaround, defect, or reliability risk, please highligh
 
 Все записи ElevenLabs создавать только моделью v4 (`provider: elevenlabs`, `model: eleven_v4`), голос «Отголосок2». Модель `eleven_v3` запрещена для новых записей и переозвучки. Существующие записи v3 и F5 в промопрогулках заменять на v4, сохраняя текущий текст и доступность прежнего звука до готовности замены. Перед публикацией проверять провайдера, модель и голос каждой записи: статус `ready`, доступность MP3 и длительность сами по себе недостаточны.
 
+У каждой остановки промопрогулки должно быть фото-превью: снимок именно этого объекта со свободной лицензией и указанным автором (Wikimedia Commons, Flickr с CC), опубликованный через редакционный каталог `backend/place-images-editorial.json` или автоматическую синхронизацию. Если свободного снимка нет, остановку в промопрогулку не включать; лицензию не додумывать, снимки PastVu и сайтов без явной свободной лицензии не использовать. Перед публикацией проверять, что превью загружается у всех остановок.
+
 ## Commits and branches
 
 - Please make git atomic commits by yourself when a task or phase is finished. Follow the repository's existing commit conventions and contribution guidelines, if present (for example, CONTRIBUTING.md, AGENTS.md, or conventions evident from recent commit history). If the repository does not define its own commit-message convention, use Conventional Commits. 

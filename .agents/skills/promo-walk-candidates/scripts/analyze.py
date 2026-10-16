@@ -284,6 +284,7 @@ def main() -> None:
                     "walk": titles.get(option["worstWalk"]),
                 },
                 "needsRevoice": [p["name"] for p in stops if not p["v4"]],
+                "needsPhoto": [p["name"] for p in stops if not p.get("photo")],
                 "points": [
                     {
                         "id": p["id"],
@@ -315,8 +316,8 @@ def main() -> None:
         encoding="utf-8",
     )
     lines = [
-        "| № | Старт → финиш (метро) | Точек | Аудио, мин | Путь, км | Новых | Макс. пересечение | Переозвучка |",
-        "|---|---|---|---|---|---|---|---|",
+        "| № | Старт → финиш (метро) | Точек | Аудио, мин | Путь, км | Новых | Макс. пересечение | Переозвучка | Без фото |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for r in result:
         worst = (
@@ -326,7 +327,7 @@ def main() -> None:
         )
         lines.append(
             f"| {r['n']} | {r['start']['name']} → {r['finish']['name']} | {r['stops']} | {r['audioMin']} | "
-            f"{r['routeKmEstimate']} | {r['freshStops']} | {worst} | {len(r['needsRevoice'])} |"
+            f"{r['routeKmEstimate']} | {r['freshStops']} | {worst} | {len(r['needsRevoice'])} | {len(r['needsPhoto'])} |"
         )
     (out / "candidates.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(

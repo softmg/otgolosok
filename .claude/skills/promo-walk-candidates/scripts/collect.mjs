@@ -34,6 +34,7 @@ function minorKind(name, tags) {
 // The same selection as listWalkCandidates({published: true}): the latest approved text of each
 // live place, with its latest approved audio when one exists.
 const places = jobs.prepare(`SELECT p.id, p.name, p.address, p.lat, p.lon, p.tags_json,
+    EXISTS(SELECT 1 FROM place_images i WHERE i.place_id = p.id AND i.status = 'ready') has_photo,
     (SELECT approved_story_json FROM place_texts t WHERE t.place_id = p.id AND t.approved_story_json IS NOT NULL
       ORDER BY t.created_at DESC, t.rowid DESC LIMIT 1) story_json,
     (SELECT audio_json FROM place_texts t WHERE t.place_id = p.id AND t.approved_story_json IS NOT NULL
@@ -48,6 +49,8 @@ const places = jobs.prepare(`SELECT p.id, p.name, p.address, p.lat, p.lon, p.tag
     id: row.id, name: row.name, address: row.address, lat: row.lat, lon: row.lon,
     storyTitle: story?.title ?? null,
     kind: minorKind(row.name, tags),
+    // A promo walk publishes only stops with a preview photo (AGENTS.md).
+    photo: Boolean(row.has_photo),
     // Spoken words: a non-v4 recording must be re-voiced, and its new length follows the text.
     words: (story?.paragraphs ?? []).reduce((sum, paragraph) => sum + (paragraph?.text?.split(/\s+/).filter(Boolean).length ?? 0), 0),
     audio: audio && Number.isFinite(audio.durationSec) ? {
