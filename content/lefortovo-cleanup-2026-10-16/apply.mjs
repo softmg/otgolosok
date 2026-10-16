@@ -8,13 +8,15 @@ import { DatabaseSync } from "node:sqlite";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const BUNDLE_ID = "lefortovo-cleanup-2026-10-16";
+// Both batches of this package: the cleanup itself and the extension of the walk's stories on top of it.
+const BATCHES = { "lefortovo-cleanup-2026-10-16": 15, "lefortovo-walk-2026-10-16": 10 };
 const [bundlePath, mode, backupPath] = process.argv.slice(2);
 assert.ok(["dry-run", "apply"].includes(mode), "Режим: dry-run или apply");
 const bundle = JSON.parse(readFileSync(bundlePath, "utf8"));
-assert.equal(bundle.id, BUNDLE_ID);
+const BUNDLE_ID = bundle.id;
+assert.ok(Object.hasOwn(BATCHES, BUNDLE_ID), `Неизвестная партия ${BUNDLE_ID}`);
 const changed = bundle.entries.filter((entry) => entry.status === "changed");
-assert.equal(changed.length, 15);
+assert.equal(changed.length, BATCHES[BUNDLE_ID]);
 const backend = process.env.BACKEND_DIR ?? "/app/backend";
 const databasePath = process.env.DATABASE_PATH ?? "/data/jobs.sqlite";
 const { createContentStore } = await import(pathToFileURL(join(backend, "content-store.mjs")).href);

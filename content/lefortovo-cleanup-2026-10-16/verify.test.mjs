@@ -54,3 +54,33 @@ test("пример: исходный рассказ о дворце содерж
   assert.match(before, INITIALS);
   assert.match(before, POSTAL);
 });
+
+const walkBundle = JSON.parse(readFileSync(new URL("./walk-changes.json", import.meta.url), "utf8"));
+
+test("вторая партия дополняет десять рассказов прогулки поверх первой", () => {
+  assert.equal(walkBundle.id, "lefortovo-walk-2026-10-16");
+  assert.equal(walkBundle.entries.length, 10);
+  const cleaned = new Map(bundle.entries.filter((entry) => entry.status === "changed").map((entry) => [entry.placeId, entry.story]));
+  for (const entry of walkBundle.entries) {
+    // A story edited by the first batch is extended from exactly that published revision.
+    if (cleaned.has(entry.placeId)) assert.deepEqual(entry.expected.story.paragraphs, cleaned.get(entry.placeId).paragraphs, entry.name);
+    // Every earlier paragraph survives: the second batch only adds text.
+    for (const paragraph of entry.expected.story.paragraphs) assert.ok(entry.story.paragraphs.some((next) => next.text === paragraph.text), entry.name);
+  }
+});
+
+for (const entry of walkBundle.entries) {
+  test(`${entry.name}: дополненный рассказ без инициалов и адресов, 140+ слов`, () => {
+    const text = entry.story.paragraphs.map(({ text: paragraph }) => paragraph).join(" ");
+    assert.doesNotMatch(text, INITIALS);
+    assert.doesNotMatch(text, POSTAL);
+    assert.ok(realWords(entry.story.paragraphs) >= 140, `${realWords(entry.story.paragraphs)} слов`);
+    assert.equal(entry.story.wordCount, tokens(entry.story.paragraphs));
+    assert.equal(entry.story.title, entry.expected.story.title);
+    const facts = new Set(entry.story.facts.map(({ id }) => id));
+    const sources = new Set(entry.story.sources.map(({ id }) => id));
+    assert.equal(facts.size, entry.story.facts.length);
+    for (const fact of entry.story.facts) for (const sourceId of fact.sourceIds) assert.ok(sources.has(sourceId), sourceId);
+    for (const paragraph of entry.story.paragraphs) for (const factId of paragraph.factIds) assert.ok(facts.has(factId), factId);
+  });
+}

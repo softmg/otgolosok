@@ -1,0 +1,150 @@
+{
+  "verifiedAt": "2026-10-16T13:58:15.998Z",
+  "title": "Лефортово: дворцы, авиация и Елохово",
+  "distanceM": 6450,
+  "walkingMinutes": 81,
+  "stops": 14,
+  "audioSec": 1206.2,
+  "chapters": [
+    {
+      "placeId": "osm:node:5864314211",
+      "title": "Городская усадьба Ф. Е. Сычева — Калининых, главный дом",
+      "words": 130,
+      "audio": {
+        "sha256": "77c2b3bd2d3f06a3bf4df93e77b738bd56c73ee27193d3e1416601d5e55675a2",
+        "bytes": 558765,
+        "durationSec": 69.816
+      }
+    },
+    {
+      "placeId": "osm:way:39254926",
+      "title": "Бизнес-центр «Елоховский пассаж»",
+      "words": 105,
+      "audio": {
+        "sha256": "394c8d1ae0ba56074c7fcc72e2a39b4e81c88c2f728333aaf728b4360ee70faf",
+        "bytes": 446061,
+        "durationSec": 55.728
+      }
+    },
+    {
+      "placeId": "osm:way:412742914",
+      "title": "Московский театр кукол",
+      "words": 154,
+      "audio": {
+        "sha256": "c06e5815bb5cf63057ca37d3df259289e2d5e9ce582367bffeb8026b829e6ac1",
+        "bytes": 703341,
+        "durationSec": 87.888
+      }
+    },
+    {
+      "placeId": "osm:way:52313291",
+      "title": "Богоявленский кафедральный собор в Елохове",
+      "words": 196,
+      "audio": {
+        "sha256": "9a9bf7b4db76a1e38e09e2c46350098cca4a67fdf04990ce25575db5402389d4",
+        "bytes": 915309,
+        "durationSec": 114.384
+      }
+    },
+    {
+      "placeId": "osm:way:1056583221",
+      "title": "Центральная универсальная научная библиотека имени Н. А. Некрасова",
+      "words": 182,
+      "audio": {
+        "sha256": "8f0ecc045a1f37b436e8f3ceb2456108469f526d7784816f546e5a5635cb71d3",
+        "bytes": 764205,
+        "durationSec": 95.496
+      }
+    },
+    {
+      "placeId": "osm:node:364081958",
+      "title": "Памятник Н. Э. Бауману",
+      "words": 116,
+      "audio": {
+        "sha256": "038dca5d8a5893dbdf7f483fbe5d701b77c0774bb19ce3b54ccb1bb478da09cc",
+        "bytes": 469101,
+        "durationSec": 58.608
+      }
+    },
+    {
+      "placeId": "osm:relation:64496",
+      "title": "Главный учебный корпус МГТУ им. Н. Э. Баумана",
+      "words": 191,
+      "audio": {
+        "sha256": "74a091686d161b41c3ce7536b68d10b1eccc01b16f3ca1288a4503b57b1da364",
+        "bytes": 922221,
+        "durationSec": 115.248
+      }
+    },
+    {
+      "placeId": "osm:node:2820078760",
+      "title": "Научно-мемориальный музей профессора Н. Е. Жуковского",
+      "words": 159,
+      "audio": {
+        "sha256": "9878fc4859c8cce026349445bbfde8621f07a346e729a3e9881bfdae6b47b1ed",
+        "bytes": 750765,
+        "durationSec": 93.816
+      }
+    },
+    {
+      "placeId": "osm:node:5083895963",
+      "title": "Памятник Н. Е. Жуковскому",
+      "words": 109,
+      "audio": {
+        "sha256": "545556c9e0c50dcff5502aa9088a4867a492678516c89b8c38b595a9b00064ce",
+        "bytes": 507501,
+        "durationSec": 63.408
+      }
+    },
+    {
+      "placeId": "osm:relation:5886854",
+      "title": "Российский новый университет",
+      "words": 147,
+      "audio": {
+        "sha256": "71c8772017345a9ca1f817d791523e760cdc658f81a184e9428e2fca6a1cf461",
+        "bytes": 698349,
+        "durationSec": 87.264
+      }
+    },
+    {
+      "placeId": "osm:way:1169646321",
+      "title": "Сквер имени А. Н. Туполева",
+      "words": 106,
+      "audio": {
+        "sha256": "a279bd5a268573ea61d84080fcf6a36548b788c0630da3ea714a669c32cef025",
+        "bytes": 476205,
+        "durationSec": 59.496
+      }
+    },
+    {
+      "placeId": "osm:relation:454411",
+      "title": "Екатерининский дворец",
+      "words": 185,
+      "audio": {
+        "sha256": "39ecb4142911ac691852b949331b3446ed6e4970be0de0acc9208dad62d7aa5d",
+        "bytes": 818541,
+        "durationSec": 102.288
+      }
+    },
+    {
+      "placeId": "osm:relation:3944428",
+      "title": "Лефортовский парк",
+      "words": 216,
+      "audio": {
+        "sha256": "193e6707d0aadaab033f0dcfe70cb353f32cb188e12e9a1164e24f1b6db0473c",
+        "bytes": 919149,
+        "durationSec": 114.864
+      }
+    },
+    {
+      "placeId": "osm:way:133254630",
+      "title": "Церковь святых апостолов Петра и Павла в Лефортове",
+      "words": 163,
+      "audio": {
+        "sha256": "f43a016fca0d8503fc10f0bffa3d330cb124c6a37c6908b6e6a4d927f3e7ef5c",
+        "bytes": 703341,
+        "durationSec": 87.888
+      }
+    }
+  ]
+}

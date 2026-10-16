@@ -1,0 +1,349 @@
+{
+  "mode": "status",
+  "at": "2026-10-16T13:57:31.045Z",
+  "count": 19,
+  "results": [
+    {
+      "placeId": "osm:way:349741206",
+      "name": "АО «Атомэнергопроект»",
+      "textId": "14be866f-d47f-483a-80ad-602c685994ef",
+      "job": {
+        "id": "2bf2501f-1ec7-48d7-9daa-e2af0cafb433",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "dfa7227b778c37d34e92554fe71065704c9db898cee6c4750204483dee91d8ff",
+        "durationSec": 89.976,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:454411",
+      "name": "Екатерининский дворец",
+      "textId": "9e95b165-609a-4155-8124-cd24180a43eb",
+      "job": {
+        "id": "39c5a8f1-2c8e-497f-9b6c-a6e8af97d386",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "39ecb4142911ac691852b949331b3446ed6e4970be0de0acc9208dad62d7aa5d",
+        "durationSec": 102.288,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:131110261",
+      "name": "Институт Св. Фомы",
+      "textId": "d1181ffc-3f9d-4baa-8fbe-daa16b5ac0f7",
+      "job": {
+        "id": "93cfccfe-5ef6-43d0-a3fc-b3c55ea9a871",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "dee6d47e61e450ea2830597c8912121016d10ecd19e7d82fcd9e99a39ce6d8d8",
+        "durationSec": 81.888,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:49591154",
+      "name": "Институт проблем комплексного освоения недр",
+      "textId": "d12d5345-f96b-41a6-9ca8-482ee9966c54",
+      "job": {
+        "id": "b335ed75-78cd-4513-bc19-b7eb4ce6fe4a",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "db248098b4439ea60d663098ff1ef8a8b3a32eb775189c3a08f99f6293a48324",
+        "durationSec": 70.536,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:node:380403043",
+      "name": "М.И. Калинину",
+      "textId": "55724529-afc9-440d-ae91-0be9a20d1d64",
+      "job": {
+        "id": "0fc50235-8e16-41f2-893b-e3475de8f499",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "06845242de5f1f3883e14a6d419dffacd66de435cee57caf42546ac0c260936a",
+        "durationSec": 58.296,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:64496",
+      "name": "МГТУ им. Н. Э. Баумана (Главный учебный корпус)",
+      "textId": "f147dc08-d872-4fa0-9e45-e736e1141b38",
+      "job": {
+        "id": "182e2df9-7f72-4a3a-a2f3-3132dd684898",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "74a091686d161b41c3ce7536b68d10b1eccc01b16f3ca1288a4503b57b1da364",
+        "durationSec": 115.248,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:628029259",
+      "name": "Мавзолей Эрлангеров",
+      "textId": "a58e63cc-7a94-440c-9fa0-f0e538497d7f",
+      "job": {
+        "id": "07e372b7-7be9-4c7e-940f-7314b3f7dbeb",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "7ee40801f5b034e00f48b6bcffaaddb760cdcce89a6d7a5ee07deb44046bc476",
+        "durationSec": 77.904,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:412742914",
+      "name": "Московский театр кукол",
+      "textId": "698bb550-6a77-45fd-a42f-1e10a7baee75",
+      "job": {
+        "id": "d36ba18b-1616-4bf7-bef6-b3b9c34ffdc3",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "c06e5815bb5cf63057ca37d3df259289e2d5e9ce582367bffeb8026b829e6ac1",
+        "durationSec": 87.888,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:node:1933730593",
+      "name": "Музей истории Лефортово",
+      "textId": "17ef1c44-a05a-4313-a7e9-e61ffb6439f5",
+      "job": {
+        "id": "ee52f7cc-28e3-468e-afe8-9b6520075fe5",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "8b567d00d62056b513b7c213a3a7faf237fef5c0741005454bf11b6a6f1a0c44",
+        "durationSec": 62.616,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:node:2820078760",
+      "name": "Научно-мемориальный музей профессора Н.Е. Жуковского",
+      "textId": "1958f841-6ff2-49b0-aa25-e0bc2300f57e",
+      "job": {
+        "id": "86966922-ebb8-44ee-985b-84dbd4223905",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "9878fc4859c8cce026349445bbfde8621f07a346e729a3e9881bfdae6b47b1ed",
+        "durationSec": 93.816,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:8478776",
+      "name": "Парк Казачьей славы",
+      "textId": "ea64b852-4fd7-439f-a138-063ed205da00",
+      "job": {
+        "id": "3fa227ad-7c60-42b5-b615-dadc4ccf6146",
+        "state": "succeeded",
+        "attempts": 2,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "b16de37db848f2c04b34090852957d263b8830c9f9bb607d19a849375273cacc",
+        "durationSec": 65.424,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:5886854",
+      "name": "Российский новый университет",
+      "textId": "896b6ae5-5b33-4ae3-b37c-633ba2eb3c2f",
+      "job": {
+        "id": "22bb4635-57d5-42de-aed9-dfa86be6ff1d",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "71c8772017345a9ca1f817d791523e760cdc658f81a184e9428e2fca6a1cf461",
+        "durationSec": 87.264,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:130538871",
+      "name": "Храм Ирины (Троицы Живоначальной)",
+      "textId": "5468dc8d-41d5-457c-a19f-e2b79bd772e9",
+      "job": {
+        "id": "5c3490c7-6cd2-4763-85a0-afa11f854ca6",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "6974c4e8e84225a6209b2c970d5404c060dfdb5e6ee015c3081bde424c08f383",
+        "durationSec": 78.048,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:133254630",
+      "name": "Храм святых апостолов Петра и Павла",
+      "textId": "343de51e-a7b7-4c26-9bce-e227d75a590b",
+      "job": {
+        "id": "8d4b2118-9c9a-4d31-bbe8-c688e13b8e90",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "f43a016fca0d8503fc10f0bffa3d330cb124c6a37c6908b6e6a4d927f3e7ef5c",
+        "durationSec": 87.888,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:1056583221",
+      "name": "Центральная универсальная научная библиотека им. Н. А. Некрасова",
+      "textId": "85adaa72-68a8-4220-b954-01710a31fcf3",
+      "job": {
+        "id": "0abf380f-3029-40b8-8f3c-e22cfadd3d62",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "8f0ecc045a1f37b436e8f3ceb2456108469f526d7784816f546e5a5635cb71d3",
+        "durationSec": 95.496,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:52313291",
+      "name": "Богоявленский кафедральный собор в Елохове",
+      "textId": "04065919-cf41-488f-b8ba-89ee15bf60de",
+      "job": {
+        "id": "02e8cb53-3f23-474e-9bdc-7ed117baedea",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "9a9bf7b4db76a1e38e09e2c46350098cca4a67fdf04990ce25575db5402389d4",
+        "durationSec": 114.384,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:3944428",
+      "name": "Лефортовский парк",
+      "textId": "d1fc4e4b-7fc0-4b3e-aea1-3662bb5e30dc",
+      "job": {
+        "id": "fb008d6f-8cf2-4196-8352-71fde9594f90",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "193e6707d0aadaab033f0dcfe70cb353f32cb188e12e9a1164e24f1b6db0473c",
+        "durationSec": 114.864,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:39254926",
+      "name": "Торговый центр \"Елоховский Пассаж\"",
+      "textId": "43c2395f-9047-4d95-b394-64baaf700f08",
+      "job": {
+        "id": "253d4350-f948-4167-a5af-32be73684df1",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "394c8d1ae0ba56074c7fcc72e2a39b4e81c88c2f728333aaf728b4360ee70faf",
+        "durationSec": 55.728,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:48894240",
+      "name": "Центральный российский дом знаний",
+      "textId": "a15540e4-e5b3-470f-b7a7-8c6acef07ce6",
+      "job": {
+        "id": "16a94787-0461-4df2-a55a-89dc9378f6f7",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "f15a07e78a6ede53498a6357e773702af068b06dcecf943cdb7ab2724aa39cdd",
+        "durationSec": 60.768,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    }
+  ]
+}

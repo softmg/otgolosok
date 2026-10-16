@@ -1,0 +1,178 @@
+{
+  "mode": "enqueue",
+  "at": "2026-10-16T13:40:22.498Z",
+  "count": 19,
+  "results": [
+    {
+      "placeId": "osm:way:349741206",
+      "name": "АО «Атомэнергопроект»",
+      "textId": "14be866f-d47f-483a-80ad-602c685994ef",
+      "requestId": "ba298c03-5b20-5693-87f2-c601d93cf01d",
+      "audioJobId": "2bf2501f-1ec7-48d7-9daa-e2af0cafb433",
+      "state": "queued",
+      "previousAudioSha256": "639590458add26c7d58d05793ba9615ed63143c27313d87a74eb38ccce9d8922"
+    },
+    {
+      "placeId": "osm:relation:454411",
+      "name": "Екатерининский дворец",
+      "textId": "9e95b165-609a-4155-8124-cd24180a43eb",
+      "requestId": "01358cda-5ea9-502b-95bc-eedabc6e94a1",
+      "audioJobId": "39c5a8f1-2c8e-497f-9b6c-a6e8af97d386",
+      "state": "queued",
+      "previousAudioSha256": "891b91c75a511d9bd10f8d413e758ec8d0b244dc2126908d8d935d26f2fc57de"
+    },
+    {
+      "placeId": "osm:way:131110261",
+      "name": "Институт Св. Фомы",
+      "textId": "d1181ffc-3f9d-4baa-8fbe-daa16b5ac0f7",
+      "requestId": "4051da47-330c-506d-95b0-ecb0cd308719",
+      "audioJobId": "93cfccfe-5ef6-43d0-a3fc-b3c55ea9a871",
+      "state": "queued",
+      "previousAudioSha256": "a127b9615c1b876f99d1043e10787d5e6b837b8b1cca3270c45b01e0ac5240ff"
+    },
+    {
+      "placeId": "osm:way:49591154",
+      "name": "Институт проблем комплексного освоения недр",
+      "textId": "d12d5345-f96b-41a6-9ca8-482ee9966c54",
+      "requestId": "768adee4-31ec-50e4-875f-f7589e57e02f",
+      "audioJobId": "b335ed75-78cd-4513-bc19-b7eb4ce6fe4a",
+      "state": "queued",
+      "previousAudioSha256": "0fa63d20c76ee2b9e1c86e5ea4149e3c7f2d2795e95d1954ae4d098ff3c34280"
+    },
+    {
+      "placeId": "osm:node:380403043",
+      "name": "М.И. Калинину",
+      "textId": "55724529-afc9-440d-ae91-0be9a20d1d64",
+      "requestId": "9680c2de-2311-582a-93e0-7e379555689f",
+      "audioJobId": "0fc50235-8e16-41f2-893b-e3475de8f499",
+      "state": "queued",
+      "previousAudioSha256": "7349e14a02a068e2644482f6a1b18f2bd9d3a6151917f4b004f5af1329bccee8"
+    },
+    {
+      "placeId": "osm:relation:64496",
+      "name": "МГТУ им. Н. Э. Баумана (Главный учебный корпус)",
+      "textId": "f147dc08-d872-4fa0-9e45-e736e1141b38",
+      "requestId": "f4b404da-ec46-5dbe-8dfb-afff271d2840",
+      "audioJobId": "182e2df9-7f72-4a3a-a2f3-3132dd684898",
+      "state": "queued",
+      "previousAudioSha256": "ef5999f3d92748f768bf50b505598beef223cfbdcab9cae1f3599bec315fbd90"
+    },
+    {
+      "placeId": "osm:way:628029259",
+      "name": "Мавзолей Эрлангеров",
+      "textId": "a58e63cc-7a94-440c-9fa0-f0e538497d7f",
+      "requestId": "5956d060-5f0a-578f-9fbe-8b959cee4bd9",
+      "audioJobId": "07e372b7-7be9-4c7e-940f-7314b3f7dbeb",
+      "state": "queued",
+      "previousAudioSha256": "7e4d47141c07d41fb2573a3a42b2715f6dbd708044eedc90f6690c6cdd45e94a"
+    },
+    {
+      "placeId": "osm:way:412742914",
+      "name": "Московский театр кукол",
+      "textId": "698bb550-6a77-45fd-a42f-1e10a7baee75",
+      "requestId": "df055a62-bb86-5d5b-9032-7f00e3b9d470",
+      "audioJobId": "d36ba18b-1616-4bf7-bef6-b3b9c34ffdc3",
+      "state": "queued",
+      "previousAudioSha256": "5a26683756f053171fe61ffb21b1ab38cd52c383061c912d5c180700f30ee1b4"
+    },
+    {
+      "placeId": "osm:node:1933730593",
+      "name": "Музей истории Лефортово",
+      "textId": "17ef1c44-a05a-4313-a7e9-e61ffb6439f5",
+      "requestId": "6da64fb9-be27-59cf-874d-2707f0d384b3",
+      "audioJobId": "ee52f7cc-28e3-468e-afe8-9b6520075fe5",
+      "state": "queued",
+      "previousAudioSha256": "a6d273893c508ce1a36fdfdaff87f2449036621f32ca164eed5e36b8a6e6b855"
+    },
+    {
+      "placeId": "osm:node:2820078760",
+      "name": "Научно-мемориальный музей профессора Н.Е. Жуковского",
+      "textId": "1958f841-6ff2-49b0-aa25-e0bc2300f57e",
+      "requestId": "ef832d23-1938-52f4-95d4-872fc3df5ab9",
+      "audioJobId": "86966922-ebb8-44ee-985b-84dbd4223905",
+      "state": "queued",
+      "previousAudioSha256": "5894c6b5351e60541cdd9404d8872258423b061e46ba961653d708107f2fe378"
+    },
+    {
+      "placeId": "osm:relation:8478776",
+      "name": "Парк Казачьей славы",
+      "textId": "ea64b852-4fd7-439f-a138-063ed205da00",
+      "requestId": "877bb736-cd2c-5b05-ae69-c919ce9518ee",
+      "audioJobId": "3fa227ad-7c60-42b5-b615-dadc4ccf6146",
+      "state": "queued",
+      "previousAudioSha256": "3dbd7e3f65f879162f28085d4799467fcb49edcd8e80b713e429733d9ec125b4"
+    },
+    {
+      "placeId": "osm:relation:5886854",
+      "name": "Российский новый университет",
+      "textId": "896b6ae5-5b33-4ae3-b37c-633ba2eb3c2f",
+      "requestId": "6fd9d845-35e2-5112-9818-78cb1812d15b",
+      "audioJobId": "22bb4635-57d5-42de-aed9-dfa86be6ff1d",
+      "state": "queued",
+      "previousAudioSha256": "afa7e9dd95673a9c54f7357fa5dcc5e3d0ca69d0ecfa186a4f396103f2b3fbe4"
+    },
+    {
+      "placeId": "osm:way:130538871",
+      "name": "Храм Ирины (Троицы Живоначальной)",
+      "textId": "5468dc8d-41d5-457c-a19f-e2b79bd772e9",
+      "requestId": "34fdfd46-4199-51ff-af88-d323bcf2a32a",
+      "audioJobId": "5c3490c7-6cd2-4763-85a0-afa11f854ca6",
+      "state": "queued",
+      "previousAudioSha256": "07e782e050c5a845b32d3fe6a2632677958ea18c6119df10e4b654d8582206eb"
+    },
+    {
+      "placeId": "osm:way:133254630",
+      "name": "Храм святых апостолов Петра и Павла",
+      "textId": "343de51e-a7b7-4c26-9bce-e227d75a590b",
+      "requestId": "de897e30-63b7-5e69-a21c-f370c937b2da",
+      "audioJobId": "8d4b2118-9c9a-4d31-bbe8-c688e13b8e90",
+      "state": "queued",
+      "previousAudioSha256": "9e3a58ec7c4e9e56375be5d974c65089172eca4727d6d17d187f9c1e38f34dcf"
+    },
+    {
+      "placeId": "osm:way:1056583221",
+      "name": "Центральная универсальная научная библиотека им. Н. А. Некрасова",
+      "textId": "85adaa72-68a8-4220-b954-01710a31fcf3",
+      "requestId": "b8b9b87e-3aa0-507c-90ff-4f00a7d6be6e",
+      "audioJobId": "0abf380f-3029-40b8-8f3c-e22cfadd3d62",
+      "state": "queued",
+      "previousAudioSha256": "328aa5a85f106bfb8e34843dd105662a9f5137160fc5049aa9b467250196656e"
+    },
+    {
+      "placeId": "osm:way:52313291",
+      "name": "Богоявленский кафедральный собор в Елохове",
+      "textId": "04065919-cf41-488f-b8ba-89ee15bf60de",
+      "requestId": "d7f443ac-975b-5c3c-8322-3ab6dbdfa9ea",
+      "audioJobId": "02e8cb53-3f23-474e-9bdc-7ed117baedea",
+      "state": "queued",
+      "previousAudioSha256": "01b77dfede29b063739f1007d92bd6d1ca59b47b2410cff3d83e50eaee4e9094"
+    },
+    {
+      "placeId": "osm:relation:3944428",
+      "name": "Лефортовский парк",
+      "textId": "d1fc4e4b-7fc0-4b3e-aea1-3662bb5e30dc",
+      "requestId": "f7c00af3-ee76-5641-a460-d817847cb60a",
+      "audioJobId": "fb008d6f-8cf2-4196-8352-71fde9594f90",
+      "state": "queued",
+      "previousAudioSha256": "bc3035d2842850869bc757cd47b12bb2926253ae3fc05393bb5806b48097410d"
+    },
+    {
+      "placeId": "osm:way:39254926",
+      "name": "Торговый центр \"Елоховский Пассаж\"",
+      "textId": "43c2395f-9047-4d95-b394-64baaf700f08",
+      "requestId": "01abf92b-d2d1-5726-b349-718701f309c2",
+      "audioJobId": "253d4350-f948-4167-a5af-32be73684df1",
+      "state": "queued",
+      "previousAudioSha256": "fbb592bfc0527dfdaa440f09ef4c2517b70b1319449ce74bbc1c8c58c24c5233"
+    },
+    {
+      "placeId": "osm:way:48894240",
+      "name": "Центральный российский дом знаний",
+      "textId": "a15540e4-e5b3-470f-b7a7-8c6acef07ce6",
+      "requestId": "94d90b54-1a19-50db-bc50-d3310bc5ab23",
+      "audioJobId": "16a94787-0461-4df2-a55a-89dc9378f6f7",
+      "state": "queued",
+      "previousAudioSha256": "1855ebbc17aaf13446a4439e399575fe28a8aa6bf26704c1eaad29af2a9a0de2"
+    }
+  ]
+}
