@@ -24,6 +24,8 @@ Whenever you identify a workaround, defect, or reliability risk, please highligh
 
 У каждой остановки промопрогулки должно быть фото-превью: снимок именно этого объекта со свободной лицензией и указанным автором (Wikimedia Commons, Flickr с CC), опубликованный через редакционный каталог `backend/place-images-editorial.json` или автоматическую синхронизацию. Если свободного снимка нет, остановку в промопрогулку не включать; лицензию не додумывать, снимки PastVu и сайтов без явной свободной лицензии не использовать. Перед публикацией проверять, что превью загружается у всех остановок.
 
+В Shorts об одной истории показывать не меньше трёх разных свободно лицензированных фото места и менять их по ходу рассказа; один снимок на весь рассказ недопустим (проверка `STORY_PHOTOS` в `otgolosok-shorts`).
+
 ## Commits and branches
 
 - Please make git atomic commits by yourself when a task or phase is finished. Follow the repository's existing commit conventions and contribution guidelines, if present (for example, CONTRIBUTING.md, AGENTS.md, or conventions evident from recent commit history). If the repository does not define its own commit-message convention, use Conventional Commits. 

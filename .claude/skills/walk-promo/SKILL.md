@@ -68,6 +68,13 @@ people. If some episodes are still without `photo`:
 4. Save the original as `prepared-before-photos.json`, set `stops[i].photo =
    {path, sha1, width, height, attribution}` from the downloaded `<sha1>.json`.
 
+**Single-story format (`format: "story"`, every queue slot since 2026-10-13): at least 3 different
+photos of the place, never one picture for the whole story.** `prepare` takes up to four from the
+place's own sources and its Commons category (`stops[i].photos`); the storyboard fails with
+`STORY_PHOTOS` below three. For an editorial sequence set `prepared.storyPhotos` (≥ 3 entries,
+`fromSentence` on the story's sentences, `label`/`fit: "contain"` for archive shots or interiors) and
+match each photo to its sentence; a modern facade must not pose as a specific archive shot.
+
 ## 5. Update checkpoints and render (only after manual edits)
 
 In `$DATA/state/shorts.sqlite` (`run_steps`): set `output_sha256` of `prepare` and `script` to the
