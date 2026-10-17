@@ -28,7 +28,7 @@ curl -sI --http2 -H 'If-None-Match: "<etag>"' https://otgolosok.online/api/conte
 
 ## TLS и HTTP/2
 
-Для `otgolosok.online` на HTTPS разрешены TLS 1.2 и 1.3; запросы HTTP/1.1 получают 505, сайт и `/api/` обслуживаются по HTTP/2. Порт 80 сохраняет HTTP-перенаправление и проверку сертификата Let's Encrypt. Конфигурация, расположение исходника middleware, резервная копия и результаты проверок описаны в [заметке о TLS и HTTP/2](agents/production-tls-http2.md).
+Для `otgolosok.online` на HTTPS разрешены TLS 1.2 и 1.3. Браузеры получают сайт и `/api/` по HTTP/2, а HTTP/1.1 оставлен для поисковых роботов и верификаторов Google и Яндекса. Порт 80 сохраняет HTTP-перенаправление и проверку сертификата Let's Encrypt. Конфигурация, расположение исходника middleware, резервная копия и результаты проверок описаны в [заметке о TLS и HTTP/2](agents/production-tls-http2.md).
 
 Production: https://otgolosok.online
 
