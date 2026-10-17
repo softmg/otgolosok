@@ -636,7 +636,7 @@ for (const [width, height] of [[390, 844], [320, 568], [667, 375], [568, 320], [
 
 // Панель прогулки прокручивается только в крайнем случае (низкий телефон в альбомной ориентации). На обычном
 // настольном окне с фото, плеером и всеми инструментами она помещается целиком: боковой полосы прокрутки нет.
-for (const [width, height] of [[1280, 720], [1366, 768], [1440, 900]]) {
+for (const [width, height] of [[1280, 720], [1366, 768], [1440, 900], [1280, 640], [1440, 600], [1280, 520]]) {
   test(`остановка с фото и плеером помещается в панель без прокрутки на ${width}×${height}`, async ({ page }, info) => {
     await page.setViewportSize({ width, height });
     await page.route("**/api/food/**", route => route.fulfill({ status: 503, json: { error: "FOOD_INDEX_UNAVAILABLE" } }));
@@ -660,6 +660,10 @@ for (const [width, height] of [[1280, 720], [1366, 768], [1440, 900]]) {
     // Ни один инструмент не уходит под закреплённые кнопки.
     const tools = await page.locator(".walk-session-tools").boundingBox(), actions = await page.locator(".walk-session-actions").boundingBox();
     expect(tools!.y + tools!.height).toBeLessThanOrEqual(actions!.y);
+    // Панель уже трёх инструментов в ряд: «Настройки» остаются иконкой, и инструменты не уходят во вторую строку.
+    await expect(page.locator(".walk-session-settings-label")).toBeHidden();
+    const rows = await page.locator(".walk-session-tools > *").evaluateAll(items => new Set(items.map(item => Math.round(item.getBoundingClientRect().top))).size);
+    expect(rows, "инструменты в одну строку").toBe(1);
   });
 }
 

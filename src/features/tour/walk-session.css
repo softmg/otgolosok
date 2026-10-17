@@ -5,9 +5,9 @@
    the open drawer scrolls inside itself and the photo yields height, so the footer with the main action stays visible.
    The panel still scrolls as a last resort when the fixed parts alone do not fit. */
 /* The stop photo spans the panel above the title, as on a place card; the panel's rounded corners clip it.
-   As in the card's media slot, it yields height first on a short screen, down to a strip that still shows the place and is a finger-sized
-   target, so a desktop window of 720 px fits photo, player, tools and actions without the panel scrolling; only a landscape phone scrolls. */
-.walk-session-photo{container-type:inline-size;display:flex;flex:0 1 auto;flex-direction:column;min-height:4.5rem;overflow:hidden;margin:-20px -20px 16px}
+   It is the one decorative part of the card, so on a short screen it yields height first and, if need be, all of it:
+   any floor under it pushed the panel into scrolling on a desktop window of 600–640 px. The story and its photos stay in «Читать историю». */
+.walk-session-photo{container-type:inline-size;display:flex;flex:0 1 auto;flex-direction:column;min-height:0;overflow:hidden;margin:-20px -20px 16px}
 .walk-session-photo:empty{display:none}
 .walk-session-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .walk-session-heading>div{min-width:0}
@@ -100,4 +100,4 @@
 .walk-session :is(button,a,select,input):focus-visible{outline:3px solid #246b90;outline-offset:3px}
 .walk-session .story-text p{font-size:15px;line-height:1.65;margin-bottom:12px}
 /* Short screens (up to 600 px, the 320×568 phone among them): a denser card, so the open drawer and the main action fit under the header row. */
-@media(max-height:600px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-heading h1.walk-session-title--long{font-size:1rem}.walk-session-actions{margin-top:8px}.walk-session-primary{padding:0 14px}.walk-session-tools:has(button,a){margin-top:4px}.walk-session-photo{min-height:6rem;margin:-12px -16px 10px}}
+@media(max-height:600px){.walk-session-panel{padding:12px 16px}.walk-session-heading h1{font-size:18px}.walk-session-heading h1.walk-session-title--long{font-size:1rem}.walk-session-actions{margin-top:8px}.walk-session-primary{padding:0 14px}.walk-session-tools:has(button,a){margin-top:4px}.walk-session-photo{margin:-12px -16px 10px}}
