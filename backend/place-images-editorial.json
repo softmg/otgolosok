@@ -2730,16 +2730,16 @@
     "modifications": "Размер уменьшен; превью обрезается при показе."
   },
   "osm:relation:456961": {
-    "thumbnail": "/images/places/relation-456961-27ad2ad00bae.jpg",
-    "src": "/images/places/relation-456961-bc1e6fe5848c.jpg",
-    "width": 960,
-    "height": 638,
-    "alt": "Зрительный зал музыкального театра Станиславского и Немировича-Данченко перед спектаклем «Война и мир». Снимок 2013 года.",
-    "author": "Gerarus",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Music_Theatre,_2013.1.jpg",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "retrievedAt": "2026-10-05",
+    "thumbnail": "/images/places/relation-456961-68a455e6601d.jpg",
+    "src": "/images/places/relation-456961-1d02b8426fe9.jpg",
+    "width": 801,
+    "height": 960,
+    "alt": "Фасад Музыкального театра Станиславского и Немировича-Данченко на Большой Дмитровке",
+    "author": "NVO",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_B_Dmitrovka_17_Aug_2009_02.JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "retrievedAt": "2026-10-17",
     "modifications": "Размер уменьшен; превью обрезается при показе."
   },
   "osm:node:7903427569": {
@@ -4786,5 +4786,18 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "retrievedAt": "2026-10-20",
     "modifications": "Размер уменьшен Wikimedia Commons; кадрирование при показе в карточке."
+  },
+  "osm:relation:3138566": {
+    "thumbnail": "/images/places/relation-3138566-9664f9ef8526.jpg",
+    "src": "/images/places/relation-3138566-4dea979214f6.jpg",
+    "width": 960,
+    "height": 720,
+    "alt": "Нарышкинские палаты Высоко-Петровского монастыря со стороны Петровки",
+    "author": "Екатерина Борисова",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%92%D1%8B%D1%81%D0%BE%D0%BA%D0%BE-%D0%9F%D0%B5%D1%82%D1%80%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D0%BD%D0%B0%D1%81%D1%82%D1%8B%D1%80%D1%8C._%D0%9D%D0%B0%D1%80%D1%8B%D1%88%D0%BA%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B5_%D0%BF%D0%B0%D0%BB%D0%B0%D1%82%D1%8B.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-17",
+    "modifications": "Размер уменьшен; превью обрезается при показе."
   }
 }
