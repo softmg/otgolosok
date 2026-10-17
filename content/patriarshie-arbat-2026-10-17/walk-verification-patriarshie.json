@@ -1,0 +1,298 @@
+{
+  "verifiedAt": "2026-10-17T16:15:58.146Z",
+  "title": "Патриаршие и Спиридоновка: модерн, театр и литература",
+  "distanceM": 6601,
+  "walkingMinutes": 86,
+  "stops": 18,
+  "audioSec": 1168.9,
+  "chapters": [
+    {
+      "placeId": "osm:way:52582022",
+      "title": "Особняк Шехтеля на Большой Садовой",
+      "words": 111,
+      "audio": {
+        "sha256": "7ddfd0df110525878ca2a4d5740a838fd39d21012b24f30d488e14c58ad52d64",
+        "bytes": 473709,
+        "durationSec": 59.184
+      },
+      "photo": {
+        "thumbnailBytes": 18181,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Sadovaya_4_May_2009_01.JPG"
+      }
+    },
+    {
+      "placeId": "osm:node:5538400321",
+      "title": "Музей-мастерская Людмилы Гурченко",
+      "words": 109,
+      "audio": {
+        "sha256": "cf755ff0ead4f835a182fb80dee1510484ae4de6ba5b2a01e1ce8136ba7d8db0",
+        "bytes": 468525,
+        "durationSec": 58.536
+      },
+      "photo": {
+        "thumbnailBytes": 22311,
+        "author": "Valera N. Trubin",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Memorial_plaque_of_Lyudmila_Gurchenko.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:18530505",
+      "title": "Типография Левенсона",
+      "words": 152,
+      "audio": {
+        "sha256": "2404a8cfaabcac52a0b56b6774afa4090dd6a5c9adbe35c5a2b546eabdb3f214",
+        "bytes": 723309,
+        "durationSec": 90.384
+      },
+      "photo": {
+        "thumbnailBytes": 18605,
+        "author": "Andreykor",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A2%D1%80%D0%B5%D1%85%D0%BF%D1%80%D1%83%D0%B4%D0%BD%D1%8B%D0%B9_%D0%BF%D0%B5%D1%80._9.JPG"
+      }
+    },
+    {
+      "placeId": "osm:node:6294334620",
+      "title": "Мемориальная квартира А.И. Сумбатова-Южина",
+      "words": 110,
+      "audio": {
+        "sha256": "d7ea9c6be34c9949244ff2ac9f948613f8c3e0ebbb89f95616bcfc9df629380c",
+        "bytes": 450669,
+        "durationSec": 56.304
+      },
+      "photo": {
+        "thumbnailBytes": 14204,
+        "author": "Andreykor",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%91%D0%BE%D0%BB%D1%8C%D1%88%D0%BE%D0%B9_%D0%9F%D0%B0%D0%BB%D0%B0%D1%88%D0%B5%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%BF%D0%B5%D1%80._5.JPG"
+      }
+    },
+    {
+      "placeId": "osm:way:211651325",
+      "title": "Сквер Булгакова",
+      "words": 112,
+      "audio": {
+        "sha256": "ffd8953ce7f98be81bac1bc4bf6085000bb37b7bcc1c3bb37f68c036baa43663",
+        "bytes": 437229,
+        "durationSec": 54.624
+      },
+      "photo": {
+        "thumbnailBytes": 13674,
+        "author": "Gennady Grachev from Moscow, Russia",
+        "license": "CC BY 2.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshoy_Kozikhinsky_Lane_and_Spiridonyevsky_Lane_(23355751444).jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:1334562944",
+      "title": "Памятник И. А. Крылову",
+      "words": 105,
+      "audio": {
+        "sha256": "60edca1c57a3a5706ad22701d8b3b6b13ec1927a9d59b109914ad19e0022c3b5",
+        "bytes": 471789,
+        "durationSec": 58.944
+      },
+      "photo": {
+        "thumbnailBytes": 24762,
+        "author": "salech hcelas",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9A%D0%A0%D0%AB%D0%9B%D0%9E%D0%92_%D0%BF%D0%BE%D0%B1%D0%BB%D0%B8%D0%B6%D0%B5_-_panoramio.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:6897180",
+      "title": "Патриаршие пруды",
+      "words": 166,
+      "audio": {
+        "sha256": "2f5a99346488ce1c59515173d26cbf715558699786cb3a989fa5c4513470c3b0",
+        "bytes": 670701,
+        "durationSec": 83.808
+      },
+      "photo": {
+        "thumbnailBytes": 15717,
+        "author": "Dimа",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Patriarch_Ponds.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:16682979",
+      "title": "Дом Г. А. Тарасова",
+      "words": 102,
+      "audio": {
+        "sha256": "e4132cbd88ca87505bc392ea68ae958ed98aeb39a2f71a0a43555783521d4625",
+        "bytes": 422445,
+        "durationSec": 52.776
+      },
+      "photo": {
+        "thumbnailBytes": 22263,
+        "author": "A.Savin",
+        "license": "FAL",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Spiridonovka_Tarasov_Mansion_asv2021-07_img32.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:51049346",
+      "title": "Особняк Зинаиды Морозовой",
+      "words": 120,
+      "audio": {
+        "sha256": "6abcd95b2ff49a7ea6b7a54e161cf750c8f3905230c7ad678fb260ea984258f5",
+        "bytes": 495405,
+        "durationSec": 61.896
+      },
+      "photo": {
+        "thumbnailBytes": 14028,
+        "author": "A.Savin",
+        "license": "FAL",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_SpiridonovkaStreet_Morozova_Palace_01-2017.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:52106130",
+      "title": "Центральный Дом архитектора",
+      "words": 182,
+      "audio": {
+        "sha256": "947aaf1389dba57ffb1defcf15eb00f5319c4c0f083a40aa1bcdda1bdfa249d3",
+        "bytes": 772461,
+        "durationSec": 96.528
+      },
+      "photo": {
+        "thumbnailBytes": 32011,
+        "author": "Andreykor",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%94%D0%BE%D0%BC_%D0%B0%D1%80%D1%85%D0%B8%D1%82%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B0_%D0%B2_%D0%93%D1%80%D0%B0%D0%BD%D0%B0%D1%82%D0%BD%D0%BE%D0%BC_%D0%BF%D0%B5%D1%80.JPG"
+      }
+    },
+    {
+      "placeId": "osm:way:46931798",
+      "title": "Особняк А. К. Ферстер — Михельсона",
+      "words": 113,
+      "audio": {
+        "sha256": "09db09f11b4c5406dbc359b19fa2fdc97f5d062fd3a90e914577e8ba60f0f482",
+        "bytes": 475629,
+        "durationSec": 59.424
+      },
+      "photo": {
+        "thumbnailBytes": 26603,
+        "author": "Shakko",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_M._Nikitskaya_st,_18_-_Laos%27_embassy_(2010s)_by_shakko_02.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:131491845",
+      "title": "Усадьба Васильчиковых",
+      "words": 109,
+      "audio": {
+        "sha256": "698edf8ed40701a7702bf5bdf75c65cceb83e01cb1711c5f3685038f1943db1b",
+        "bytes": 490989,
+        "durationSec": 61.344
+      },
+      "photo": {
+        "thumbnailBytes": 20236,
+        "author": "Татьяна Краснова",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D1%83%D0%B7%D0%B5%D0%B9_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D0%BE%D0%B9_%D1%84%D0%BE%D1%80%D0%BC%D1%8B_%D0%A3%D1%81%D0%B0%D0%B4%D1%8C%D0%B1%D0%B0_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D1%87%D0%B8%D0%BA%D0%BE%D0%B2%D1%8B%D1%85.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:131491830",
+      "title": "Городская усадьба Черкасской — Баскакова",
+      "words": 108,
+      "audio": {
+        "sha256": "cf3d742435380be9bb964276b54d41b13ef40f9c9639548e8ee0419424ef613f",
+        "bytes": 476205,
+        "durationSec": 59.496
+      },
+      "photo": {
+        "thumbnailBytes": 20034,
+        "author": "NVO",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Nikitskaya_46_44_42_July_2008_01.JPG"
+      }
+    },
+    {
+      "placeId": "osm:way:32045642",
+      "title": "Палаты («Гранатный двор»)",
+      "words": 130,
+      "audio": {
+        "sha256": "eb3c71be5738868bc8360e9e9b13ee4761b5695deb4c5905eac09ce8bee5c341",
+        "bytes": 528621,
+        "durationSec": 66.048
+      },
+      "photo": {
+        "thumbnailBytes": 15431,
+        "author": "Shakko",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Granatny_Dvor_(2012)_by_shakko_02.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:2219502268",
+      "title": "Музей-квартира А. Н. Толстого",
+      "words": 126,
+      "audio": {
+        "sha256": "819c6a01e0f9507fad81fcec874d595cc45e51e98e5727b88afe0a23abe0d270",
+        "bytes": 553005,
+        "durationSec": 69.096
+      },
+      "photo": {
+        "thumbnailBytes": 12023,
+        "author": "Mos.ru",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Musey_kvartira_Alexey_Tolstoy.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:4692951498",
+      "title": "Мемориальный музей-квартира А. М. Горького",
+      "words": 109,
+      "audio": {
+        "sha256": "a5d6ef18e11099a582db90de017eebf1585a1c2a6a7253ba33a63a1d6fe00ff5",
+        "bytes": 454509,
+        "durationSec": 56.784
+      },
+      "photo": {
+        "thumbnailBytes": 21277,
+        "author": "shakko",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ryabushinsky_House_02_by_shakko.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:9341259",
+      "title": "Театр на Бронной",
+      "words": 103,
+      "audio": {
+        "sha256": "ec04f06d70962e080393a2a2d051b11e291099f57e13818d26aa3baa4dc65cd8",
+        "bytes": 431469,
+        "durationSec": 53.904
+      },
+      "photo": {
+        "thumbnailBytes": 16497,
+        "author": "Sealle",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Drama_Theater_on_Malaya_Bronnaya_001.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:9535897",
+      "title": "Церковь Иоанна Богослова на Бронной",
+      "words": 110,
+      "audio": {
+        "sha256": "5b5e990ec5582651601b3a8f6c6f5da57dbb3da23377dbdde9f8d4d25959f99e",
+        "bytes": 558765,
+        "durationSec": 69.816
+      },
+      "photo": {
+        "thumbnailBytes": 29819,
+        "author": "NVO",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bogoslovsky_Lane_church_(2).jpg"
+      }
+    }
+  ]
+}

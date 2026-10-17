@@ -1,0 +1,282 @@
+{
+  "verifiedAt": "2026-10-17T16:16:06.455Z",
+  "title": "Арбат и Сивцев Вражек: поэты, актёры, музыканты",
+  "distanceM": 6084,
+  "walkingMinutes": 79,
+  "stops": 17,
+  "audioSec": 1101.8,
+  "chapters": [
+    {
+      "placeId": "osm:relation:9539448",
+      "title": "Храм-часовня святых благоверных князей Бориса и Глеба",
+      "words": 116,
+      "audio": {
+        "sha256": "026f953df6c3b1e58f469e75124af70827c8905f56d4274042bb6b23809c1c7a",
+        "bytes": 512109,
+        "durationSec": 63.984
+      },
+      "photo": {
+        "thumbnailBytes": 13770,
+        "author": "Panther",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Boris_and_Gleb_chapel_at_the_Arbat_square_in_Moscow.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:166222246",
+      "title": "Храм Воскресения Словущего на Арбате",
+      "words": 103,
+      "audio": {
+        "sha256": "2a5a11b2aa84667d098b40dcdad0534cb06d0e0e5e1de4d029371a2080dadb12",
+        "bytes": 496749,
+        "durationSec": 62.064
+      },
+      "photo": {
+        "thumbnailBytes": 28728,
+        "author": "Solundir",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Church_of_Apostle_Philipp.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:274909164",
+      "title": "Дом Пороховщикова",
+      "words": 125,
+      "audio": {
+        "sha256": "74eaea5b66d1e0731b7f8731c7998b79404d0a2e1c8a7d726c7c7c6163892ec0",
+        "bytes": 524205,
+        "durationSec": 65.496
+      },
+      "photo": {
+        "thumbnailBytes": 22032,
+        "author": "Lite",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dom_porohovschikova.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:224225490",
+      "title": "Государственный академический театр имени Евгения Вахтангова",
+      "words": 151,
+      "audio": {
+        "sha256": "07dc058f4cf408046c03cfd7d3585867c2674bcd55ef40f1e14330ede319febf",
+        "bytes": 667629,
+        "durationSec": 83.424
+      },
+      "photo": {
+        "thumbnailBytes": 18190,
+        "author": "A.Savin",
+        "license": "FAL",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Vakhtangov_Theatre_asv2018-09_img1.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:343180316",
+      "title": "Мемориальный музей А. Н. Скрябина",
+      "words": 123,
+      "audio": {
+        "sha256": "71fc79011ca77ae36b276c25580d58a2152510e49bf746da41fdbb51a3db1b0f",
+        "bytes": 569709,
+        "durationSec": 71.184
+      },
+      "photo": {
+        "thumbnailBytes": 24086,
+        "author": "A.Savin",
+        "license": "FAL",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_BNikolopeskovsky11_asv2018-09.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7688144",
+      "title": "Церковь Преображения Господня, что на Песках",
+      "words": 115,
+      "audio": {
+        "sha256": "98cd4d54cb9120dc9b9c4b18a938c89c2bc934f281d48c4123739b8301523cc8",
+        "bytes": 545901,
+        "durationSec": 68.208
+      },
+      "photo": {
+        "thumbnailBytes": 35179,
+        "author": "A.Savin",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:MOW_Church_of_Saviour_on_Sand_02.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:703628600",
+      "title": "Мемориальная квартира А. С. Пушкина на Арбате",
+      "words": 121,
+      "audio": {
+        "sha256": "91297b4e05892140694807d7c206835dff93bca0c3685dca0ecb8998b3abe92a",
+        "bytes": 543981,
+        "durationSec": 67.968
+      },
+      "photo": {
+        "thumbnailBytes": 25665,
+        "author": "Olga-lisenkova",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%94%D0%BE%D0%BC_%D0%9F%D1%83%D1%88%D0%BA%D0%B8%D0%BD%D0%B0_%D0%BD%D0%B0_%D0%90%D1%80%D0%B1%D0%B0%D1%82%D0%B5.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:3500710699",
+      "title": "Мемориальная квартира Андрея Белого",
+      "words": 117,
+      "audio": {
+        "sha256": "0012ee495e27b366dc7025b98ccfc6778aad9c20ae4e26c2179ea8e323e3bd05",
+        "bytes": 510765,
+        "durationSec": 63.816
+      },
+      "photo": {
+        "thumbnailBytes": 27450,
+        "author": "NVO",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Arbat_55.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:471223526",
+      "title": "Садовый павильон с садом",
+      "words": 151,
+      "audio": {
+        "sha256": "572b4d8cd4ed8f7067f78b1e3a3fe89e61dd40a950969ba23e1902379c0911ef",
+        "bytes": 559341,
+        "durationSec": 69.888
+      },
+      "photo": {
+        "thumbnailBytes": 17364,
+        "author": "Svetlov Artem",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%B0%D0%B4%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%B0%D0%B2%D0%B8%D0%BB%D1%8C%D0%BE%D0%BD_%D1%81_%D1%81%D0%B0%D0%B4%D0%BE%D0%BC_2023-03.tiff"
+      }
+    },
+    {
+      "placeId": "osm:way:120727145",
+      "title": "Главный дом городской усадьбы А. Д. Негуневой — Е. А. Ивановой — П. Н. Иванова",
+      "words": 119,
+      "audio": {
+        "sha256": "ab74691449f60a709802e9b5a8d102169014166986d9cf12a8b69cf5abb41e1f",
+        "bytes": 512685,
+        "durationSec": 64.056
+      },
+      "photo": {
+        "thumbnailBytes": 14846,
+        "author": "NVO",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Sivtsev_Vrazhek_34.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:224146643",
+      "title": "Дом Мельникова",
+      "words": 118,
+      "audio": {
+        "sha256": "274880d93cebbaf8c2d28497f97282c4c3137c8aeeca5355f9e82aef7b86367c",
+        "bytes": 505005,
+        "durationSec": 63.096
+      },
+      "photo": {
+        "thumbnailBytes": 29762,
+        "author": "Paulkuz",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Melnikov_House,_May_2021.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:2624695929",
+      "title": "Стена Цоя",
+      "words": 111,
+      "audio": {
+        "sha256": "ebb245b2ae200aa6e52b5368421897648063d3d94a83448fe56ee506d315e5ce",
+        "bytes": 442221,
+        "durationSec": 55.248
+      },
+      "photo": {
+        "thumbnailBytes": 18243,
+        "author": "Superchilum",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tsoi_Wall_01.JPG"
+      }
+    },
+    {
+      "placeId": "osm:node:3500729458",
+      "title": "Дом-музей А. И. Герцена",
+      "words": 110,
+      "audio": {
+        "sha256": "d65fe7a84fd5b759c3f0fa2ed7d4ca04dde9234de2c411cbe5659bbbb3e8cd3d",
+        "bytes": 493485,
+        "durationSec": 61.656
+      },
+      "photo": {
+        "thumbnailBytes": 16300,
+        "author": "Ivengo(RUS)",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:27_Sivtsev_Vrazhek_Lane,_Moscow,_Russia.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:176241685",
+      "title": "Храм священномученика Власия в Старой Конюшенной слободе",
+      "words": 108,
+      "audio": {
+        "sha256": "7c1880547b03d536f617bdb6dd7cd4d196a8acf148f0ca263a00199150ff9c93",
+        "bytes": 503085,
+        "durationSec": 62.856
+      },
+      "photo": {
+        "thumbnailBytes": 35343,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gagarinsky_20_Mar_2009_04.JPG"
+      }
+    },
+    {
+      "placeId": "osm:way:173172365",
+      "title": "Московский государственный музей «Дом Бурганова»",
+      "words": 125,
+      "audio": {
+        "sha256": "98105aa7fcc327cdf4aaee5eae863b9149ca2470f70a2a6d4f579e1376d2d0c8",
+        "bytes": 490989,
+        "durationSec": 61.344
+      },
+      "photo": {
+        "thumbnailBytes": 33310,
+        "author": "Apr1",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%94%D0%BE%D0%BC_%D0%91%D1%83%D1%80%D0%B3%D0%B0%D0%BD%D0%BE%D0%B2%D0%B0.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7725971",
+      "title": "Храм Святителей Афанасия и Кирилла на Сивцевом Вражке",
+      "words": 113,
+      "audio": {
+        "sha256": "b7059c7ec49dc80d54281d41fcbb344acc0f92821e7f00720761963484ddbe1b",
+        "bytes": 506349,
+        "durationSec": 63.264
+      },
+      "photo": {
+        "thumbnailBytes": 30029,
+        "author": "Alexander Grebenkov",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Athanasius_Cyril_Church_Moscow_2018.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:2156516",
+      "title": "Московская удельная контора",
+      "words": 102,
+      "audio": {
+        "sha256": "ebf50145bdae0f8b9c05c2eeb2c4ca1af893c4420a48975e657dd7f7776f55f4",
+        "bytes": 434541,
+        "durationSec": 54.288
+      },
+      "photo": {
+        "thumbnailBytes": 20097,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gogolevsky_12_Apr_2009_08.JPG"
+      }
+    }
+  ]
+}

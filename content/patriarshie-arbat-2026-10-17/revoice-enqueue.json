@@ -1,0 +1,237 @@
+{
+  "mode": "enqueue",
+  "at": "2026-10-17T16:00:48.984Z",
+  "count": 23,
+  "results": [
+    {
+      "placeId": "osm:node:5538400321",
+      "name": "Музей-мастерская Людмилы Гурченко",
+      "textId": "98e7e249-555d-4af4-a259-b717d211f2ce",
+      "reason": "external/f5",
+      "requestId": "b82a25a9-4a24-509a-a672-313d2270205f",
+      "audioJobId": "53132103-9177-42fa-bd7e-a594bea32d5e",
+      "state": "queued",
+      "previousAudioSha256": "4d7fec1d4bb05f05692b5824b3c346633c8fd73c0f7578a1919809eaae9dc770"
+    },
+    {
+      "placeId": "osm:relation:18530505",
+      "name": "Типография Левенсона",
+      "textId": "1be63b61-554d-4acb-983b-9ac458560576",
+      "reason": "старый текст",
+      "requestId": "d95aa13e-a0aa-5b6a-a9cb-953273b427a8",
+      "audioJobId": "db66b82b-c3a0-4d2a-bc72-91d73ceec99d",
+      "state": "queued",
+      "previousAudioSha256": "b69e0e6912bbd7a554b2f6fce12175313dec4dca1fa53503698278294f5a468c"
+    },
+    {
+      "placeId": "osm:node:6294334620",
+      "name": "Мемориальный музей-квартира А.И. Сумбатова-Южина",
+      "textId": "0621bd6e-c6f0-453a-8e43-ab1c17f3dd70",
+      "reason": "external/f5",
+      "requestId": "fa045eae-8edd-59bd-a701-b6a5f6e1b76d",
+      "audioJobId": "1f5224d7-f40e-4ab1-a1c5-3ede2dfb6364",
+      "state": "queued",
+      "previousAudioSha256": "4766beabc8d6a2b05a99fdacfb433fc881b5832270b4ee44a4d2ae54acd829ae"
+    },
+    {
+      "placeId": "osm:relation:6897180",
+      "name": "Патриаршие пруды",
+      "textId": "0f9c50c1-c35c-412c-b282-167869211d8e",
+      "reason": "external/f5",
+      "requestId": "3b8ea2fb-dbf4-5540-94bb-96b793775241",
+      "audioJobId": "3c0c24c6-28c3-4a9f-926d-4490cbc0f17c",
+      "state": "queued",
+      "previousAudioSha256": "73f77d49b2d40ff45e2e2046a6827cd59327995d32e5806cfe5e6b76381d8e3e"
+    },
+    {
+      "placeId": "osm:way:52106130",
+      "name": "Центральный дом архитектора",
+      "textId": "42cb0305-09f2-49d2-86b9-6869aa79f6fe",
+      "reason": "external/f5",
+      "requestId": "cba89eed-b150-5755-b7aa-67556d65b2cd",
+      "audioJobId": "f5020f29-d827-4a89-a065-ad9e7594c856",
+      "state": "queued",
+      "previousAudioSha256": "195f86a369c6d3d1a439b2d2173219349301a3e43c53b8d62efad4c25ccaa76e"
+    },
+    {
+      "placeId": "osm:way:46931798",
+      "name": "Особняк А. К. Ферстер — Михельсона",
+      "textId": "f0610681-8902-4385-9317-00cfb651477d",
+      "reason": "external/f5",
+      "requestId": "1377e3ac-b028-53dd-b410-9c1089662035",
+      "audioJobId": "712351cd-7df5-4dce-b1b9-2c3675f66fa6",
+      "state": "queued",
+      "previousAudioSha256": "fcb8257b71fea57723884fea1469cb51e078769b471968f6d3ca0447a1c2f374"
+    },
+    {
+      "placeId": "osm:way:131491830",
+      "name": "Городская усадьба Черкасской — Баскакова",
+      "textId": "7403ab0f-03ab-4d6f-906f-50ab9e81bdeb",
+      "reason": "external/f5",
+      "requestId": "9b8a38ff-0230-5703-9209-22aa9086cfb3",
+      "audioJobId": "861d0470-acf7-4337-af52-1bc6e81a6156",
+      "state": "queued",
+      "previousAudioSha256": "5eedd52b0baf73b106b3bfa2a2fd9399290c6d9263522df6ad29b2010d78f0c7"
+    },
+    {
+      "placeId": "osm:way:32045642",
+      "name": "Жилые палаты Гранатного двора",
+      "textId": "df240b6e-9e87-4c06-9266-e94fb00f1446",
+      "reason": "external/f5",
+      "requestId": "183026d7-cc35-5f39-b0d4-90c40de1ae23",
+      "audioJobId": "91104c37-567c-4056-b074-d4d134db26bf",
+      "state": "queued",
+      "previousAudioSha256": "fb2f3ff7a5c0eefa660d2770cd1ad452bcb2dff39dfadfef5c69f9e3d6cb5489"
+    },
+    {
+      "placeId": "osm:relation:9535897",
+      "name": "Церковь Иоанна Богослова на Бронной",
+      "textId": "9a528f12-e29a-4385-8737-0ef9909ba40f",
+      "reason": "старый текст",
+      "requestId": "43c551d8-a9d0-5642-9b5e-ac1de6f34d61",
+      "audioJobId": "517f96d3-fb05-4cc2-98ee-4b581e627b9a",
+      "state": "queued",
+      "previousAudioSha256": "7872ad974b86d006785c66dea7141885d9ac69ef68d81b264538838719baaf78"
+    },
+    {
+      "placeId": "osm:relation:9539448",
+      "name": "Часовня Бориса и Глеба",
+      "textId": "1cb3fe64-47f8-4898-a520-f947829c8763",
+      "reason": "external/f5",
+      "requestId": "7d3e0619-7aeb-56d0-b646-065960136c60",
+      "audioJobId": "689eadcf-074b-42d3-a28e-d40f49bc3c49",
+      "state": "queued",
+      "previousAudioSha256": "8d303f20c2d052f6c0024ad6ee37e6cab11ca9e9e7dc328222197b7347c93aa4"
+    },
+    {
+      "placeId": "osm:way:166222246",
+      "name": "Церковь Воскресения Словущего (апостола Филиппа)",
+      "textId": "e325c155-edad-4c6d-87bc-640bce9da9cf",
+      "reason": "external/f5",
+      "requestId": "fef83845-26aa-5d43-bb53-841c4a4e1c57",
+      "audioJobId": "b28246e4-797a-4a28-aba8-1d5439558b40",
+      "state": "queued",
+      "previousAudioSha256": "a52921c8da94248555e4a7093e6af9b9b48a9c86a853f33c77626c790ef6e997"
+    },
+    {
+      "placeId": "osm:way:274909164",
+      "name": "Дом Пороховщикова",
+      "textId": "c76f4bc8-e2d6-4f5d-bbf5-2843cc52884f",
+      "reason": "external/f5",
+      "requestId": "a011ac9f-716d-5e0b-ba01-d1dc3dcaa535",
+      "audioJobId": "cb0fa14f-0a41-4e1c-954e-fd34b7dec02c",
+      "state": "queued",
+      "previousAudioSha256": "1e4717967688a80eb89a225a266c9d292d323d4df178625cf1388413944ee42f"
+    },
+    {
+      "placeId": "osm:way:224225490",
+      "name": "Театр им. Евгения Вахтангова",
+      "textId": "9ae9fb94-9756-4968-a652-b868c971229d",
+      "reason": "старый текст",
+      "requestId": "08733991-9893-5305-849c-d3d2c16bc0de",
+      "audioJobId": "67840bc5-6f90-4a46-aee0-9891e0f36e8d",
+      "state": "queued",
+      "previousAudioSha256": "8466d9834e9780cab9d16dd2154df13fe59642b4b997b42f9d8c0fd3690abc4a"
+    },
+    {
+      "placeId": "osm:way:343180316",
+      "name": "Мемориальный музей А. Н. Скрябина",
+      "textId": "d3fcc401-d395-4e4d-81a6-29b4e22ac525",
+      "reason": "external/f5",
+      "requestId": "f07e9ef1-2f44-5ee2-baf8-c71b068b7d72",
+      "audioJobId": "f93fc37c-e697-417b-85a6-4f8cfbcce65a",
+      "state": "queued",
+      "previousAudioSha256": "d32ca5882d614a9aaf7279a7b0706973af3b846f9aa29b8c72fe1dd2d2f92f43"
+    },
+    {
+      "placeId": "osm:relation:7688144",
+      "name": "Церковь Преображения Господня, что на Песках",
+      "textId": "2d425f01-7aa0-4da1-ae71-f5067f9282c1",
+      "reason": "external/f5",
+      "requestId": "0f0632b5-bcc8-5293-9905-350c7e84702b",
+      "audioJobId": "49443f0c-398d-4538-b06a-06dfbf256966",
+      "state": "queued",
+      "previousAudioSha256": "4a77dfd7365c773d73e8da0813e111a92ebd291de060068c620a2009be1a757e"
+    },
+    {
+      "placeId": "osm:node:3500710699",
+      "name": "Мемориальная квартира Андрея Белого",
+      "textId": "fd657faf-4458-4ff8-8646-f4f72ae7697c",
+      "reason": "external/f5",
+      "requestId": "489e4c8d-2231-5434-9f6a-cd45e5dd356f",
+      "audioJobId": "e59845c3-fc1b-4304-b902-137448bb1c01",
+      "state": "queued",
+      "previousAudioSha256": "b7d67d981f329d8c8bfcbe61821fcc1fab16e7c841de5920cc27aaa16da7e813"
+    },
+    {
+      "placeId": "osm:way:471223526",
+      "name": "Садовый павильон с садом",
+      "textId": "e3811960-288e-4194-bec7-0257ec90029e",
+      "reason": "старый текст",
+      "requestId": "c20f1b94-637e-50ea-89cd-ef9c2ad6d663",
+      "audioJobId": "31491a1f-26fc-4174-9e3e-ff72044a19c9",
+      "state": "queued",
+      "previousAudioSha256": "cf797ab622569655f132ba78ad2240e6323256044d88b4c165dbaa8db02ea352"
+    },
+    {
+      "placeId": "osm:way:120727145",
+      "name": "Дом Толстого",
+      "textId": "121f24e4-4918-4182-8c54-fb6a36ecc584",
+      "reason": "external/f5",
+      "requestId": "7aae3ddf-e2a7-5d1f-a8f5-e2241a0d52c6",
+      "audioJobId": "68a08e98-8939-406d-b7ff-a32552ba4df7",
+      "state": "queued",
+      "previousAudioSha256": "bd3293d7e04c03379e4b2ccbb399b446997dfeb64d03cc5908271363380019ef"
+    },
+    {
+      "placeId": "osm:way:224146643",
+      "name": "Дом архитектора Мельникова",
+      "textId": "2ece206f-58a2-49fd-adcc-da9869fe4608",
+      "reason": "external/f5",
+      "requestId": "12881f7e-5f3a-521f-ab19-ddc2c0948f8a",
+      "audioJobId": "97a64935-9171-4720-9f4c-d31cdda95ea4",
+      "state": "queued",
+      "previousAudioSha256": "30ce2d7a8140697eff1f751a6c84d8060ebae591e3b43b11f4ca64c835955b27"
+    },
+    {
+      "placeId": "osm:node:5332088685",
+      "name": "Музей-квартира актерской семьи М. В., А. А. Мироновых — А. С. Менакера",
+      "textId": "36ecd934-b2ed-4093-913c-7bc98d42efd7",
+      "reason": "external/f5",
+      "requestId": "fd754ca2-9bb2-573f-89ac-cdddbcaa5e2a",
+      "audioJobId": "354ad2e3-9a7e-4364-ab93-9f47831b0e35",
+      "state": "queued",
+      "previousAudioSha256": "0471628adb251a87f87bd28719b902f3f1e32cf3bbc6b1934fbfb87e867fec5f"
+    },
+    {
+      "placeId": "osm:way:173172365",
+      "name": "Дом Бурганова",
+      "textId": "e278eead-9cae-4a47-a9b1-b83bb79adb80",
+      "reason": "external/f5",
+      "requestId": "b3c28b3b-dbc9-5e85-b291-7fe9a85d0638",
+      "audioJobId": "07b3e9d9-edc6-49fa-9a19-5862dc5ee79b",
+      "state": "queued",
+      "previousAudioSha256": "506528e659b6afdef0ab8c564da7da204faeca5925c98a8f4ece8be2aa75839a"
+    },
+    {
+      "placeId": "osm:relation:7725971",
+      "name": "Храм святителей Афанасия и Кирилла на Сивцевом Вражке",
+      "textId": "99047387-87cb-4af8-ae17-a5b78c371320",
+      "reason": "external/f5",
+      "requestId": "c440f176-da47-5e5f-9e53-767119571c31",
+      "audioJobId": "da342426-8600-4af2-b6a0-83a7ac31e614",
+      "state": "queued",
+      "previousAudioSha256": "50168797bf96db53c7d6609945aeee8e6130c357d19d97aab7260bab045f8839"
+    },
+    {
+      "placeId": "osm:node:3387496562",
+      "name": "Дом-музей А.П. Чехова",
+      "textId": "c5662ecb-b2a0-467e-8af7-e86b5b6c3f25",
+      "reason": "старый текст",
+      "requestId": "e3f90655-fa61-530f-898b-92515a2b0b13",
+      "audioJobId": "9e094389-745f-48fb-8255-9881b4e717b6",
+      "state": "queued",
+      "previousAudioSha256": "8453c4aae770efaae88ba610d93a437c2648579e7aa7811176a9508a0807b87d"
+    }
+  ]
+}
