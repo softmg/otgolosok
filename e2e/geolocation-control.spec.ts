@@ -13,7 +13,7 @@ test("значок обновляется после выдачи и отзыв�
   await expect(control).toHaveAttribute("data-location-state", "denied");
   await context.grantPermissions(["geolocation"]);
   await expect(control).toHaveAttribute("data-location-state", "idle");
-  await expect(page.getByText("Нет доступа к геолокации. Можно разрешить его в настройках или выбрать место на карте.")).toHaveCount(0);
+  await expect(page.getByText("Нет доступа к геолокации. Можно разрешить его в настройках, выбрать город или место на карте.")).toHaveCount(0);
   await control.click();
   await expect(control).toHaveAttribute("data-location-state", "ready");
   const session = await context.newCDPSession(page);
@@ -52,6 +52,7 @@ for (const [code, message] of [[2, "Устройство не смогло оп�
     const control = page.getByRole("button", { name: "Моё местоположение", exact: true });
     await control.click();
     await expect(page.getByText(message, { exact: false })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Город" }).getByRole("button", { name: "Казань", exact: true })).toBeVisible();
     await expect(control).toHaveAttribute("data-location-state", "weak");
     await expect(control).toHaveAccessibleDescription("Не удаётся определить точное местоположение.");
     await expect(control).toHaveCSS("color", "rgb(115, 83, 19)");

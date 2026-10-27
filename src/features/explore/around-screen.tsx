@@ -312,7 +312,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
         locating.current=null;
         const denied=update.code==="permission-denied";
         setGeo(denied?"denied":"error");setGeoError(update.code);setUser(null);
-        setGeoMessage(`${t(describeLocateError(update.code))} ${t(denied?"Можно разрешить его в настройках или выбрать место на карте.":"Выберите дом на карте или повторите попытку.")}`);
+        setGeoMessage(`${t(describeLocateError(update.code))} ${t(denied?"Можно разрешить его в настройках, выбрать город или место на карте.":"Выберите город, дом на карте или повторите попытку.")}`);
         if(denied)setPrompt(false);
         return;
       }
@@ -412,7 +412,7 @@ export function AroundScreen({route,onStart,updateAvailable,openChapter,startRef
     !creating&&linkedId&&linked.status==="loading"?<LinkNotice key="link" message={t("Открываем историю…")} onClose={()=>leavePlace({replace:true})} />
     :!creating&&linkedId&&(linked.status==="error"||(linked.status==="ready"&&!linkedHeader))?<LinkNotice key="link" message={t("Не удалось открыть историю.")} alert onRetry={linked.status==="error"?linked.retry:undefined} onClose={()=>leavePlace({replace:true})} />
     :!creating&&linkNotice?<LinkNotice key="link" message={linkNotice} onClose={()=>setLinkNotice("")} />:null,
-    !creating&&geoMessage?<GeoNotice key="geo" message={geoMessage} outside={geoOutside} denied={geo==="denied"} onCity={showCity} onRetry={locate} onClose={()=>{setGeoMessage("");setGeoOutside(false);}} />:null,
+    !creating&&geoMessage?<GeoNotice key="geo" message={geoMessage} outside={geoOutside} failed={geo==="denied"||geo==="error"} denied={geo==="denied"} onCity={showCity} onRetry={locate} onClose={()=>{setGeoMessage("");setGeoOutside(false);}} />:null,
     !creating&&!sheet&&mapHintVisible?<MapHintNotice key="hint" onClose={()=>setMapHintVisible(false)} />:null,
     !creating&&updateAvailable?<a key="update" className={a.notice} href={`/update.html?lang=${locale}`}>{t("Доступна новая версия · обновить")}</a>:null,
   ].filter(Boolean);

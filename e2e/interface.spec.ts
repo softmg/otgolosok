@@ -644,7 +644,7 @@ test("кнопка «Моё местоположение» объясняет з
   await page.goto("/");
   await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
   await page.getByRole("button", { name: "Моё местоположение", exact: true }).click();
-  await expect(page.getByText("Нет доступа к геолокации. Можно разрешить его в настройках или выбрать место на карте.")).toBeVisible();
+  await expect(page.getByText("Нет доступа к геолокации. Можно разрешить его в настройках, выбрать город или место на карте.")).toBeVisible();
   const control = page.getByRole("button", { name: "Моё местоположение", exact: true });
   await expect(control).toHaveAttribute("data-location-state", "denied");
   await expect(control).toHaveAccessibleDescription("Нет доступа к геолокации.");
@@ -652,6 +652,21 @@ test("кнопка «Моё местоположение» объясняет з
   // Закрытая подсказка не означает, что разрешение восстановилось.
   await page.getByRole("button", { name: "Скрыть сообщение" }).first().click();
   await expect(control).toHaveAttribute("data-location-state", "denied");
+});
+
+test("без доступа к геолокации можно выбрать город", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Загружаем карту…")).toHaveCount(0);
+  await page.getByRole("button", { name: "Моё местоположение", exact: true }).click();
+  const cities = page.getByRole("group", { name: "Город" });
+  for (const name of ["Москва", "Казань"]) {
+    const box = (await cities.getByRole("button", { name, exact: true }).boundingBox())!;
+    expect(Math.min(box.width, box.height), `${name}: цель касания`).toBeGreaterThanOrEqual(44);
+  }
+  await cities.getByRole("button", { name: "Казань", exact: true }).click();
+  expect(await page.evaluate(() => localStorage.getItem("otgolosok:city:v1"))).toBe("kazan");
+  await expect(page.getByText(/выбрать город или место на карте/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Моё местоположение", exact: true })).toHaveAttribute("data-location-state", "denied");
 });
 
 for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 1280, height: 800 }]) {

@@ -229,15 +229,16 @@ export function LinkNotice({ message, alert = false, onRetry, onClose }: { messa
 }
 
 /** Result of locating the user; when access is denied it explains how to allow it. */
-export function GeoNotice({ message, outside, denied, onCity, onRetry, onClose }: {
-  message: string; outside: boolean; denied: boolean; onCity: (city: City) => void; onRetry: () => void; onClose: () => void;
+/** `failed`: the position is unknown, so a city is offered as the way to open the map without it. */
+export function GeoNotice({ message, outside, failed, denied, onCity, onRetry, onClose }: {
+  message: string; outside: boolean; failed: boolean; denied: boolean; onCity: (city: City) => void; onRetry: () => void; onClose: () => void;
 }) {
   const { t } = useI18n();
   return <div className={a.notice}>
     <div>
       <p role="status">{message}{outside ? <> {t("Истории есть в городах:")}</> : null}</p>
       {/* Full touch targets: a city is the next step here, not a link inside a sentence. */}
-      {outside ? <div className={styles.cities} role="group" aria-label={t("Город")}>
+      {outside || failed ? <div className={styles.cities} role="group" aria-label={t("Город")}>
         {CITIES.map(city => <button key={city.id} type="button" onClick={() => onCity(city)}>{t(city.name)}</button>)}
       </div> : null}
       {denied ? <GeoHelp onRetry={onRetry} /> : null}
