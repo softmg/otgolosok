@@ -1,5 +1,27 @@
 [
- {"placeId": "osm:node:4740630721", "file": "File:Бюст Ф.П.Гааза.jpg", "alt": "Памятник Фёдору Гаазу в Малом Казённом переулке"},
- {"placeId": "osm:node:4595636713", "file": "File:Moscow Trees of Love Деревья Любви Лужков мост (6634728723).jpg", "alt": "«Деревья любви» на Лужковом мосту"},
- {"placeId": "osm:way:37130963", "file": "File:City Estate of Tretyakov Suschevskaya St. (1).jpg", "alt": "Городская усадьба Третьякова на Сущёвской улице — Библиотека искусств имени Боголюбова"}
+ {
+  "placeId": "osm:node:4740630721",
+  "file": "File:Бюст Ф.П.Гааза.jpg",
+  "alt": "Памятник Фёдору Гаазу в Малом Казённом переулке"
+ },
+ {
+  "placeId": "osm:node:4595636713",
+  "file": "File:Moscow Trees of Love Деревья Любви Лужков мост (6634728723).jpg",
+  "alt": "«Деревья любви» на Лужковом мосту"
+ },
+ {
+  "placeId": "osm:way:37130963",
+  "file": "File:City Estate of Tretyakov Suschevskaya St. (1).jpg",
+  "alt": "Городская усадьба Третьякова на Сущёвской улице — Библиотека искусств имени Боголюбова"
+ },
+ {
+  "placeId": "osm:node:3955565253",
+  "file": "File:Moscow - Petrovsko-Razumovskaya alley 12A - 2025-10 - p1.jpg",
+  "alt": "Памятник собаке Лайке на Петровско-Разумовской аллее"
+ },
+ {
+  "placeId": "osm:node:7643406849",
+  "file": "File:WWII plaque in Moscow.jpg",
+  "alt": "Мемориальная плита в память о формировании 2-й Московской — 129-й Орловской стрелковой дивизии"
+ }
 ]
