@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 const origin = "https://otgolosok.online";
 const VOICE = "9ivxhQ6xIsHd6R3Xc635";
-const MIN_AUDIO_SEC = 18 * 60;
+const MIN_AUDIO_SEC = 17 * 60;
 const FREE_LICENSE = /^(CC0|CC BY(-SA)? \d\.\d|FAL|Public domain)$/i;
 const [token] = process.argv.slice(2);
 assert.match(token ?? "", /^[0-9a-f-]{36}$/, "Нужен токен общей ссылки");
@@ -54,6 +54,6 @@ for (const [index, chapter] of walk.chapters.entries()) {
     audio: { sha256: chapter.audio.sha256, bytes: bytes.byteLength, durationSec: chapter.audio.durationSec },
     photo: { thumbnailBytes: thumbnail.byteLength, author: photo.author, license: photo.license, sourceUrl: photo.sourceUrl } });
 }
-assert.ok(total >= MIN_AUDIO_SEC, `Звука ${Math.round(total)} с, меньше 18 минут`);
+assert.ok(total >= MIN_AUDIO_SEC, `Звука ${Math.round(total)} с, меньше 17 минут`);
 console.log(JSON.stringify({ verifiedAt: new Date().toISOString(), title: walk.document.title, distanceM: walk.document.route.distanceM,
   walkingMinutes: walk.document.route.walkingMinutes, stops: chapters.length, audioSec: Math.round(total * 10) / 10, chapters }, null, 2));

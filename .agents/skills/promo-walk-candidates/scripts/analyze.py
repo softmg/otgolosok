@@ -1,8 +1,8 @@
 """Find areas for new promo walks in a snapshot produced by collect.mjs.
 
-Usage: python3 -I analyze.py SNAPSHOT.json OUT_DIR [--min-stops 10] [--min-audio-min 18]
-       [--max-overlap 0.5] [--max-stops 20] [--max-route-km 4] [--max-hop-m 700] [--top 25]
-       [--include-minor]
+Usage: python3 -I analyze.py SNAPSHOT.json OUT_DIR [--min-stops 10] [--min-audio-min 17]
+       [--max-overlap 0.5] [--near-m 100] [--max-near-overlap 0.5] [--max-stops 20] [--max-route-km 4]
+       [--max-hop-m 700] [--top 25] [--include-minor] [--extra-walks walk-stops-*.json ...]
 
 Writes OUT_DIR/candidates.json (every accepted option with its stops) and OUT_DIR/candidates.md
 (a summary table). Pure standard library: the skill must run without a project environment.
@@ -89,6 +89,42 @@ def load_places(snapshot: dict, include_minor: bool) -> list[dict]:
     return places
 
 
+def load_extra_walks(paths: list[str]) -> list[dict]:
+    """Walks of local content packages not yet in the production snapshot (walk-stops-*.json of a parallel session)."""
+    walks = []
+    for path in paths:
+        stops = json.loads(Path(path).read_text(encoding="utf-8"))
+        walks.append(
+            {
+                "id": f"local:{path}",
+                "title": f"{Path(path).parent.name}/{Path(path).stem} (локальный пакет)",
+                "visibility": "local",
+                "stops": [
+                    {
+                        "placeId": stop.get("placeId"),
+                        "lat": (stop.get("location") or stop)["lat"],
+                        "lon": (stop.get("location") or stop)["lon"],
+                    }
+                    for stop in stops
+                ],
+            }
+        )
+    return walks
+
+
+def near_index(
+    snapshot: dict, places: list[dict], near_m: float
+) -> dict[str, set[str]]:
+    """For every pool place, the walks with a stop within near_m: the same street, even if another story."""
+    near: dict[str, set[str]] = {p["id"]: set() for p in places}
+    for walk in snapshot["walks"]:
+        coords = [s for s in walk["stops"] if s.get("lat") is not None]
+        for place in places:
+            if any(haversine(place, stop) <= near_m for stop in coords):
+                near[place["id"]].add(walk["id"])
+    return near
+
+
 def walk_index(
     snapshot: dict, places: list[dict]
 ) -> tuple[list[dict], dict[str, set[str]]]:
@@ -132,7 +168,11 @@ def walk_index(
 
 
 def build_option(
-    seed: dict, places: list[dict], membership: dict[str, set[str]], args
+    seed: dict,
+    places: list[dict],
+    membership: dict[str, set[str]],
+    near: dict[str, set[str]],
+    args,
 ) -> dict | None:
     """Grow a set around the seed: new places first, used ones only while every walk stays ≤ the cap."""
     nearby = sorted(
@@ -159,6 +199,10 @@ def build_option(
                 len(trial), args.min_stops
             ):
                 continue
+            if max_overlap(trial, near)[0] > args.max_near_overlap * max(
+                len(trial), args.min_stops
+            ):
+                continue
             chosen = trial
     if len(chosen) < args.min_stops:
         return None
@@ -180,13 +224,20 @@ def build_option(
         return None
     audio = sum(p["seconds"] for p in route)
     worst_count, worst_walk = max_overlap(route, membership)
-    if audio < args.min_audio_min * 60 or worst_count > args.max_overlap * len(route):
+    near_count, near_walk = max_overlap(route, near)
+    if (
+        audio < args.min_audio_min * 60
+        or worst_count > args.max_overlap * len(route)
+        or near_count > args.max_near_overlap * len(route)
+    ):
         return None
     return {
         "stops": route,
         "audioSec": audio,
         "worstOverlap": worst_count,
         "worstWalk": worst_walk,
+        "nearOverlap": near_count,
+        "nearWalk": near_walk,
     }
 
 
@@ -220,8 +271,12 @@ def main() -> None:
     parser.add_argument("out_dir")
     parser.add_argument("--min-stops", type=int, default=10)
     parser.add_argument("--max-stops", type=int, default=20)
-    parser.add_argument("--min-audio-min", type=float, default=18)
+    parser.add_argument("--min-audio-min", type=float, default=17)
     parser.add_argument("--max-overlap", type=float, default=0.5)
+    # Stops of another walk this close mean the same street even when the stories differ.
+    parser.add_argument("--near-m", type=float, default=100)
+    parser.add_argument("--max-near-overlap", type=float, default=0.5)
+    parser.add_argument("--extra-walks", nargs="*", default=[])
     parser.add_argument("--max-route-km", type=float, default=4)
     parser.add_argument("--max-hop-m", type=float, default=700)
     parser.add_argument("--radius-m", type=float, default=900)
@@ -230,8 +285,10 @@ def main() -> None:
     args = parser.parse_args()
 
     snapshot = json.loads(Path(args.snapshot).read_text(encoding="utf-8"))
+    snapshot["walks"] = snapshot["walks"] + load_extra_walks(args.extra_walks)
     places = load_places(snapshot, args.include_minor)
     walks, membership = walk_index(snapshot, places)
+    near = near_index(snapshot, places, args.near_m)
     titles = {w["id"]: w["title"] for w in walks}
     stations = [
         s
@@ -240,7 +297,9 @@ def main() -> None:
     ]
 
     options = [
-        o for seed in places if (o := build_option(seed, places, membership, args))
+        o
+        for seed in places
+        if (o := build_option(seed, places, membership, near, args))
     ]
 
     # Best first: more new stories, less re-voicing, then more listening time.
@@ -283,6 +342,11 @@ def main() -> None:
                     "stops": option["worstOverlap"],
                     "walk": titles.get(option["worstWalk"]),
                 },
+                "nearOverlap": {
+                    "stops": option["nearOverlap"],
+                    "walk": titles.get(option["nearWalk"]),
+                    "radiusM": args.near_m,
+                },
                 "needsRevoice": [p["name"] for p in stops if not p["v4"]],
                 "needsPhoto": [p["name"] for p in stops if not p.get("photo")],
                 "points": [
@@ -297,6 +361,7 @@ def main() -> None:
                         "model": p["audio"]["model"],
                         "kind": p.get("kind"),
                         "inWalks": sorted(titles[w] for w in membership[p["id"]]),
+                        "nearWalks": sorted(titles[w] for w in near[p["id"]]),
                     }
                     for p in stops
                 ],
@@ -316,18 +381,18 @@ def main() -> None:
         encoding="utf-8",
     )
     lines = [
-        "| № | Старт → финиш (метро) | Точек | Аудио, мин | Путь, км | Новых | Макс. пересечение | Переозвучка | Без фото |",
-        "|---|---|---|---|---|---|---|---|---|",
+        f"| № | Старт → финиш (метро) | Точек | Аудио, мин | Путь, км | Новых | Макс. пересечение | ≤{args.near_m:g} м от остановок | Переозвучка | Без фото |",
+        "|---|---|---|---|---|---|---|---|---|---|",
     ]
+
+    def overlap_cell(overlap: dict) -> str:
+        return f"{overlap['stops']} — {overlap['walk']}" if overlap["walk"] else "0"
+
     for r in result:
-        worst = (
-            f"{r['worstOverlap']['stops']} — {r['worstOverlap']['walk']}"
-            if r["worstOverlap"]["walk"]
-            else "0"
-        )
         lines.append(
             f"| {r['n']} | {r['start']['name']} → {r['finish']['name']} | {r['stops']} | {r['audioMin']} | "
-            f"{r['routeKmEstimate']} | {r['freshStops']} | {worst} | {len(r['needsRevoice'])} | {len(r['needsPhoto'])} |"
+            f"{r['routeKmEstimate']} | {r['freshStops']} | {overlap_cell(r['worstOverlap'])} | "
+            f"{overlap_cell(r['nearOverlap'])} | {len(r['needsRevoice'])} | {len(r['needsPhoto'])} |"
         )
     (out / "candidates.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(

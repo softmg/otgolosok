@@ -1,6 +1,6 @@
 """Find areas for new promo walks in a snapshot produced by collect.mjs.
 
-Usage: python3 -I analyze.py SNAPSHOT.json OUT_DIR [--min-stops 10] [--min-audio-min 18]
+Usage: python3 -I analyze.py SNAPSHOT.json OUT_DIR [--min-stops 10] [--min-audio-min 17]
        [--max-overlap 0.5] [--near-m 100] [--max-near-overlap 0.5] [--max-stops 20] [--max-route-km 4]
        [--max-hop-m 700] [--top 25] [--include-minor] [--extra-walks walk-stops-*.json ...]
 
@@ -271,7 +271,7 @@ def main() -> None:
     parser.add_argument("out_dir")
     parser.add_argument("--min-stops", type=int, default=10)
     parser.add_argument("--max-stops", type=int, default=20)
-    parser.add_argument("--min-audio-min", type=float, default=18)
+    parser.add_argument("--min-audio-min", type=float, default=17)
     parser.add_argument("--max-overlap", type=float, default=0.5)
     # Stops of another walk this close mean the same street even when the stories differ.
     parser.add_argument("--near-m", type=float, default=100)

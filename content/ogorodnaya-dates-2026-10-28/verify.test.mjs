@@ -24,7 +24,7 @@ test("до правки скилл находил перегруз датами,
   assert.equal(overloaded(bundle.entries), "");
 });
 
-test("общий объём не уменьшился: прогулка держит 18 минут звука", () => {
+test("общий объём не уменьшился: прогулка держит порог звука", () => {
   const changed = bundle.entries.filter(({ status }) => status === "changed");
   const before = changed.reduce((sum, entry) => sum + realWords(entry.expected.story.paragraphs), 0);
   const after = changed.reduce((sum, entry) => sum + realWords(entry.story.paragraphs), 0);

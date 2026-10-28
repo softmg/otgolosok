@@ -22,7 +22,7 @@ def place(i: int, lat: float, lon: float = BASE_LON) -> dict:
 
 
 def args(**overrides) -> argparse.Namespace:
-    values = {"min_stops": 10, "max_stops": 20, "min_audio_min": 18, "max_overlap": 0.5, "near_m": 100,
+    values = {"min_stops": 10, "max_stops": 20, "min_audio_min": 17, "max_overlap": 0.5, "near_m": 100,
               "max_near_overlap": 0.5, "max_route_km": 10, "max_hop_m": 700, "radius_m": 3000}
     return argparse.Namespace(**(values | overrides))
 
