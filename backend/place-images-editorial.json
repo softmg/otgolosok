@@ -4929,5 +4929,44 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
     "retrievedAt": "2026-10-28",
     "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
+  },
+  "osm:node:4740630721": {
+    "thumbnail": "/images/places/node-4740630721-7841d1390c8e.jpg",
+    "src": "/images/places/node-4740630721-4bedb7be1e5e.jpg",
+    "width": 960,
+    "height": 1280,
+    "alt": "Памятник Фёдору Гаазу в Малом Казённом переулке",
+    "author": "Kemal KOZBAEV",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%91%D1%8E%D1%81%D1%82_%D0%A4.%D0%9F.%D0%93%D0%B0%D0%B0%D0%B7%D0%B0.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-28",
+    "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
+  },
+  "osm:node:4595636713": {
+    "thumbnail": "/images/places/node-4595636713-d4eaf5d27aa4.jpg",
+    "src": "/images/places/node-4595636713-512fcd109974.jpg",
+    "width": 960,
+    "height": 640,
+    "alt": "«Деревья любви» на Лужковом мосту",
+    "author": "Tatters ✾",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Trees_of_Love_%D0%94%D0%B5%D1%80%D0%B5%D0%B2%D1%8C%D1%8F_%D0%9B%D1%8E%D0%B1%D0%B2%D0%B8_%D0%9B%D1%83%D0%B6%D0%BA%D0%BE%D0%B2_%D0%BC%D0%BE%D1%81%D1%82_(6634728723).jpg",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "retrievedAt": "2026-10-28",
+    "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
+  },
+  "osm:way:37130963": {
+    "thumbnail": "/images/places/way-37130963-6fe648ff8573.jpg",
+    "src": "/images/places/way-37130963-4724ca7ed529.jpg",
+    "width": 960,
+    "height": 639,
+    "alt": "Городская усадьба Третьякова на Сущёвской улице — Библиотека искусств имени Боголюбова",
+    "author": "ViktorJulin",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:City_Estate_of_Tretyakov_Suschevskaya_St._(1).jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "retrievedAt": "2026-10-28",
+    "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."
   }
 }
