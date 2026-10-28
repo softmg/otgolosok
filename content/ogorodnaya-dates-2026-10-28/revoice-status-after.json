@@ -1,0 +1,305 @@
+{
+  "mode": "status",
+  "at": "2026-10-28T14:33:05.433Z",
+  "count": 17,
+  "results": [
+    {
+      "placeId": "osm:way:52769675",
+      "name": "Дворец Юсуповых",
+      "textId": "d88e5a08-64f3-4959-9ff3-caab285eb744",
+      "reason": "ok",
+      "job": {
+        "id": "b9918102-e136-45a8-b511-df50e35decc7",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "caf99e56d5e66246cf581e7ac5d05235eeb801cb4df6b88519d837671b80e4bb",
+        "durationSec": 70.848,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:758586236",
+      "name": "Сквер Генерала армии А.В.Хрулёва",
+      "textId": "5e2bedd0-af31-4e5a-92af-f71792619b8d",
+      "reason": "ok",
+      "job": {
+        "id": "6735c6e1-9c37-4bb0-a622-09b1cc71041a",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "2e7e12d0e44dfe53c15222eeaeec84cd18e946cde22183163e9c0f30fee290ce",
+        "durationSec": 88.704,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:node:1691951965",
+      "name": "С. А. Чаплыгину",
+      "textId": "f1091040-9a5e-43e4-a8e5-a0de45437182",
+      "reason": "ok",
+      "job": null,
+      "audio": {
+        "sha256": "806c0d32b86430bc896ac161ae4f7e0f273d499afc3bf7b567728febae3b470f",
+        "durationSec": 69.984,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:node:1691951977",
+      "name": "Ленин-гимназист",
+      "textId": "c26059fe-09e0-4ce7-b68b-62722c031682",
+      "reason": "ok",
+      "job": null,
+      "audio": {
+        "sha256": "285d20efe05ac76a8cdffddbffc76d9a76798c46ce853b958c5a915641004a92",
+        "durationSec": 58.776,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:45777816",
+      "name": "Главный дом городской усадьбы Головиных",
+      "textId": "8a8b5884-9a85-424a-968a-e26a59bc9b29",
+      "reason": "ok",
+      "job": {
+        "id": "86c395c8-871a-4b8a-93bd-710d77c7ac5b",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "68b1641c36dc030aba21f1781401e90b39045c1389073c4176a1c5e49807c1e3",
+        "durationSec": 56.304,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:41087037",
+      "name": "Палаты Сверчковых",
+      "textId": "6461c0b4-5c58-410d-85f7-caaac6bca272",
+      "reason": "ok",
+      "job": {
+        "id": "b3fda276-8889-4899-ad96-53a7c3f36f09",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "b2285b0289ddbc6cb67f3f10e7a84435d75e8f5323c7307f3192508990626bad",
+        "durationSec": 59.736,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:node:5978239883",
+      "name": "Остатки фундамента храма Николая Чудотворца в Столпах",
+      "textId": "34c0bfa5-d4ce-468a-965d-9c5ce6447c6b",
+      "reason": "ok",
+      "job": {
+        "id": "67b076fa-2f41-4d10-851d-9934b00d8989",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "7a19d917d04946c205b8b2dc5e92422b4b4905f06fd1bbddd39663184a538e81",
+        "durationSec": 58.296,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:53016616",
+      "name": "Палаты Голицыных",
+      "textId": "11c41204-8d14-444f-9c97-b8ae06fdda08",
+      "reason": "ok",
+      "job": {
+        "id": "04124cb1-6cfe-4407-8045-56e58a060e45",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "90135a73b58cb72ece7cd3c7db7147b52ffa5b19f575296ac01cda54b2608ae1",
+        "durationSec": 87.096,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:15671457",
+      "name": "Российская Академия живописи, ваяния и зодчества Ильи Глазунова",
+      "textId": "5677f736-f458-4e9c-8a3a-04634c2e23d3",
+      "reason": "ok",
+      "job": null,
+      "audio": {
+        "sha256": "74556940b2fbd0aab7193b8069116d513a078b69f8f95e301e52b863b3d995fe",
+        "durationSec": 57.504,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:14732079",
+      "name": "Et Cetera",
+      "textId": "57721b45-5be3-4057-b3de-8924e1bcb322",
+      "reason": "ok",
+      "job": {
+        "id": "c797347e-1bfc-42b9-bb57-0e1773fdd5c4",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "4ec72d756084196ecbf5cb2bbf0857f825144f085c7c84140936fc534672f6a3",
+        "durationSec": 57.408,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:52829438",
+      "name": "Библиотека-читальня им. И. С. Тургенева",
+      "textId": "1612e345-2846-4b1d-962d-988aa4d364ce",
+      "reason": "ok",
+      "job": {
+        "id": "a5b39203-1129-4899-ad2b-46a65976f948",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "a6e38d24b3b218a6447adbf3fa81816937660791cfa3d919868f75418fe53f8a",
+        "durationSec": 61.416,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:node:416562788",
+      "name": "Н. К. Крупской",
+      "textId": "5b7ee940-d9ae-4b26-b7fc-d45a520832b0",
+      "reason": "ok",
+      "job": null,
+      "audio": {
+        "sha256": "88762ca4d716847ba13c9c7681b9df8d437717fb16390ff238a4444bd419cff1",
+        "durationSec": 62.784,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:9688342",
+      "name": "Храм Успения Пресвятой Богородицы в Печатниках",
+      "textId": "f0d494bf-1e60-4966-8236-62fbd7b08512",
+      "reason": "ok",
+      "job": {
+        "id": "189caa25-9ba9-46e3-8d57-f96272b16129",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "7bc608954296eb0a20bcb3543a651b8a6c3c9188b2241d6d92230e621fa27c85",
+        "durationSec": 65.016,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:484755695",
+      "name": "Храм Новомучеников и исповедников Российских на Лубянке",
+      "textId": "30df375e-fd1e-47e2-b27f-44add4b52d4f",
+      "reason": "ok",
+      "job": null,
+      "audio": {
+        "sha256": "2fa054bfe222a0fcc2d6473d76c0fc396b1e5c398fb39b0e39fa42105d9e2280",
+        "durationSec": 54.144,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:way:49578741",
+      "name": "Сретенская духовная семинария",
+      "textId": "834e7735-b635-49f0-86ff-113790617129",
+      "reason": "ok",
+      "job": {
+        "id": "f372c643-dfa6-437e-bd4a-40340ec38f6d",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "1d98613d43e890d88a3597699c51713b1576c15f09fc07695cd968d072fe23cc",
+        "durationSec": 62.448,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:relation:7719252",
+      "name": "Храм Святого Людовика Французского",
+      "textId": "b859b0b2-aa51-4871-9961-54389c0a2468",
+      "reason": "ok",
+      "job": {
+        "id": "4ab1e460-1a42-4d0c-9116-470baa90fdca",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "03fde75bf0e54c15614a2384a0d70ce0e3960ddeb45f65988e7ef58a6338f45e",
+        "durationSec": 71.976,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    },
+    {
+      "placeId": "osm:node:1106845052",
+      "name": "Музей В.В. Маяковского",
+      "textId": "f0268979-1f1d-4ed5-a633-9c63ce5a23b3",
+      "reason": "ok",
+      "job": {
+        "id": "4335c9ab-a7bf-406d-b002-4865418b078f",
+        "state": "succeeded",
+        "attempts": 1,
+        "error_json": null
+      },
+      "audio": {
+        "sha256": "2d0b7eef1e30faf2f0b596dbc72c09b11dd545db4cf66c5054c74f07e77252ed",
+        "durationSec": 69.096,
+        "provider": "elevenlabs",
+        "model": "eleven_v4",
+        "voice": "9ivxhQ6xIsHd6R3Xc635"
+      }
+    }
+  ]
+}

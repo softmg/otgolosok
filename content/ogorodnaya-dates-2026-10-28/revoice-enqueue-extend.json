@@ -1,0 +1,27 @@
+{
+  "mode": "enqueue",
+  "at": "2026-10-28T14:30:26.650Z",
+  "count": 2,
+  "results": [
+    {
+      "placeId": "osm:way:758586236",
+      "name": "Сквер Генерала армии А.В.Хрулёва",
+      "textId": "5e2bedd0-af31-4e5a-92af-f71792619b8d",
+      "reason": "старый текст",
+      "requestId": "c0ef4538-5a8e-5e78-a0f6-5af0f452167c",
+      "audioJobId": "6735c6e1-9c37-4bb0-a622-09b1cc71041a",
+      "state": "queued",
+      "previousAudioSha256": "45a7e1cd1829a31571582d526e8d69ddbd3f4baf70394b5f8cf1d82eb1ac4177"
+    },
+    {
+      "placeId": "osm:way:53016616",
+      "name": "Палаты Голицыных",
+      "textId": "11c41204-8d14-444f-9c97-b8ae06fdda08",
+      "reason": "старый текст",
+      "requestId": "5a569493-a388-5a7c-917d-ba12505266fa",
+      "audioJobId": "04124cb1-6cfe-4407-8045-56e58a060e45",
+      "state": "queued",
+      "previousAudioSha256": "bf56ff78de624801ef4b6ba07ceefcb3cb3f2b1665393be023de622eb4b0be96"
+    }
+  ]
+}

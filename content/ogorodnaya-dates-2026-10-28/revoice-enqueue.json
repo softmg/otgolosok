@@ -1,0 +1,117 @@
+{
+  "mode": "enqueue",
+  "at": "2026-10-28T14:20:28.444Z",
+  "count": 11,
+  "results": [
+    {
+      "placeId": "osm:way:52769675",
+      "name": "Дворец Юсуповых",
+      "textId": "d88e5a08-64f3-4959-9ff3-caab285eb744",
+      "reason": "старый текст",
+      "requestId": "870ee86f-1252-595c-8c40-bcef6937a2da",
+      "audioJobId": "b9918102-e136-45a8-b511-df50e35decc7",
+      "state": "queued",
+      "previousAudioSha256": "adbac78bb1b9566ac677fba11cc033efab1f1ed4ae81a4208a3738e0e9e1286b"
+    },
+    {
+      "placeId": "osm:way:45777816",
+      "name": "Главный дом городской усадьбы Головиных",
+      "textId": "8a8b5884-9a85-424a-968a-e26a59bc9b29",
+      "reason": "старый текст",
+      "requestId": "743db0da-5180-5f15-9d04-0d1e0cff2f9e",
+      "audioJobId": "86c395c8-871a-4b8a-93bd-710d77c7ac5b",
+      "state": "queued",
+      "previousAudioSha256": "63ac5e872642918762fe1901798eb6cbf4df0b85565165f994224fc0f2309b3c"
+    },
+    {
+      "placeId": "osm:way:41087037",
+      "name": "Палаты Сверчковых",
+      "textId": "6461c0b4-5c58-410d-85f7-caaac6bca272",
+      "reason": "старый текст",
+      "requestId": "c53cc711-e3dc-5752-b14d-98236f9de36b",
+      "audioJobId": "b3fda276-8889-4899-ad96-53a7c3f36f09",
+      "state": "queued",
+      "previousAudioSha256": "938d2f21d7bcb04c5a843ce3bb70dbde4b461e93294f844d278f99af078b8d9e"
+    },
+    {
+      "placeId": "osm:node:5978239883",
+      "name": "Остатки фундамента храма Николая Чудотворца в Столпах",
+      "textId": "34c0bfa5-d4ce-468a-965d-9c5ce6447c6b",
+      "reason": "старый текст",
+      "requestId": "1315ef3e-967e-5a46-af2a-735b4e1f5be8",
+      "audioJobId": "67b076fa-2f41-4d10-851d-9934b00d8989",
+      "state": "queued",
+      "previousAudioSha256": "3aaefcc832a4016dc68ae604c5856cfe931c1f4fc263b835a6953f9fd478cc0a"
+    },
+    {
+      "placeId": "osm:way:53016616",
+      "name": "Палаты Голицыных",
+      "textId": "fc2447ee-573f-4e3f-b89b-b9bdabe50490",
+      "reason": "старый текст",
+      "requestId": "e207df5e-2c05-5147-bb9a-cc30aeaf419d",
+      "audioJobId": "92a72a98-016c-4f9b-88d8-6371b6db3744",
+      "state": "queued",
+      "previousAudioSha256": "ba932e074ecd6d404b9b7ac654451ea4cc0d08baec22672257e75b9f79377520"
+    },
+    {
+      "placeId": "osm:relation:14732079",
+      "name": "Et Cetera",
+      "textId": "57721b45-5be3-4057-b3de-8924e1bcb322",
+      "reason": "старый текст",
+      "requestId": "b5905ca3-cfc1-5253-9f53-4750c48092a2",
+      "audioJobId": "c797347e-1bfc-42b9-bb57-0e1773fdd5c4",
+      "state": "queued",
+      "previousAudioSha256": "c7a3fb8cc35a3b5944252ae5309fdcb4770273762fdb3dafe750a9112e6b5ce5"
+    },
+    {
+      "placeId": "osm:way:52829438",
+      "name": "Библиотека-читальня им. И. С. Тургенева",
+      "textId": "1612e345-2846-4b1d-962d-988aa4d364ce",
+      "reason": "старый текст",
+      "requestId": "634da720-5636-5475-8e0c-a4fd0f63d10c",
+      "audioJobId": "a5b39203-1129-4899-ad2b-46a65976f948",
+      "state": "queued",
+      "previousAudioSha256": "2484b839c96d5015aa5dd48cd16148a710d3957c8eda131ab648d443890182c3"
+    },
+    {
+      "placeId": "osm:relation:9688342",
+      "name": "Храм Успения Пресвятой Богородицы в Печатниках",
+      "textId": "f0d494bf-1e60-4966-8236-62fbd7b08512",
+      "reason": "старый текст",
+      "requestId": "f024f451-9454-54bc-85a1-631a8eff3207",
+      "audioJobId": "189caa25-9ba9-46e3-8d57-f96272b16129",
+      "state": "queued",
+      "previousAudioSha256": "f31561af69ace389cd819bd62580fbf873d3b18bac4de6479ea8c1055b071fa9"
+    },
+    {
+      "placeId": "osm:way:49578741",
+      "name": "Сретенская духовная семинария",
+      "textId": "834e7735-b635-49f0-86ff-113790617129",
+      "reason": "старый текст",
+      "requestId": "657accba-b4d9-5267-8ab2-472b5949b45d",
+      "audioJobId": "f372c643-dfa6-437e-bd4a-40340ec38f6d",
+      "state": "queued",
+      "previousAudioSha256": "8512f80db9770531989a7a0b45fb90af22a533dd75913f722353e4183b80ffb4"
+    },
+    {
+      "placeId": "osm:relation:7719252",
+      "name": "Храм Святого Людовика Французского",
+      "textId": "b859b0b2-aa51-4871-9961-54389c0a2468",
+      "reason": "старый текст",
+      "requestId": "87cb2766-ea3a-5654-af0d-fe171beb5de1",
+      "audioJobId": "4ab1e460-1a42-4d0c-9116-470baa90fdca",
+      "state": "queued",
+      "previousAudioSha256": "e999493b81fe62608c59e0845fc90dbf5eb7be0e5d473d132a87b74cdae3d17d"
+    },
+    {
+      "placeId": "osm:node:1106845052",
+      "name": "Музей В.В. Маяковского",
+      "textId": "f0268979-1f1d-4ed5-a633-9c63ce5a23b3",
+      "reason": "старый текст",
+      "requestId": "f213ec9b-4634-57e1-b3f1-5bd09a4ba302",
+      "audioJobId": "4335c9ab-a7bf-406d-b002-4865418b078f",
+      "state": "queued",
+      "previousAudioSha256": "5b901bf9e65f1d0a327d22d7448534fc5a9dc72da2656baa830bc043928660fc"
+    }
+  ]
+}
