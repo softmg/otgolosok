@@ -1,0 +1,250 @@
+{
+  "verifiedAt": "2026-10-28T12:38:10.655Z",
+  "title": "Татарская слобода: мечеть, храмы и типография",
+  "distanceM": 6202,
+  "walkingMinutes": 80,
+  "stops": 15,
+  "audioSec": 1141.3,
+  "chapters": [
+    {
+      "placeId": "osm:node:10015992717",
+      "title": "Дом-музей и экспедиционный штаб Фёдора Конюхова",
+      "words": 127,
+      "audio": {
+        "sha256": "ee2d0aee6a924e58cc6b096f38b90596e9d988a32bbac068282a774cc6d90759",
+        "bytes": 495981,
+        "durationSec": 61.968
+      },
+      "photo": {
+        "thumbnailBytes": 18096,
+        "author": "Erokhin",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A2%D0%B2%D0%BE%D1%80%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%B0%D1%81%D1%82%D0%B5%D1%80%D1%81%D0%BA%D0%B0%D1%8F_%D0%B8_%D1%87%D0%B0%D1%81%D0%BE%D0%B2%D0%BD%D1%8F_%D0%A4%D1%91%D0%B4%D0%BE%D1%80%D0%B0_%D0%9A%D0%BE%D0%BD%D1%8E%D1%85%D0%BE%D0%B2%D0%B0_%D0%B2_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5-1.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:129306472",
+      "title": "Городская усадьба М. Ф. Михайлова (Центр детского творчества «Замоскворечье»)",
+      "words": 108,
+      "audio": {
+        "sha256": "0c0d699ab37a98ecf5d9508859e8bd3405dbafc0be9dd55af0f54c97aa954d87",
+        "bytes": 467949,
+        "durationSec": 58.464
+      },
+      "photo": {
+        "thumbnailBytes": 15777,
+        "author": "TTE3342",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%93%D0%BE%D1%80%D0%BE%D0%B4%D1%81%D0%BA%D0%B0%D1%8F_%D1%83%D1%81%D0%B0%D0%B4%D1%8C%D0%B1%D0%B0_%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%B0.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7672227",
+      "title": "сквер Ополченцев Замоскворечья",
+      "words": 114,
+      "audio": {
+        "sha256": "b221b8183fd7f0780bc982934053cffd221802803fc07e45f39f1f4349ea19c1",
+        "bytes": 508845,
+        "durationSec": 63.576
+      },
+      "photo": {
+        "thumbnailBytes": 45181,
+        "author": "Александр Сигачёв",
+        "license": "CC0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_-_Novokuznetskiy_garden_-_2024-09-14_-_f2.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:12344757",
+      "title": "Собор Покрова Пресвятой Богородицы Русской древлеправославной церкви",
+      "words": 149,
+      "audio": {
+        "sha256": "56355c399e75c0e472a8cb4eae80773c54fac5f548e96a373e6263dd0f21de0b",
+        "bytes": 683565,
+        "durationSec": 85.416
+      },
+      "photo": {
+        "thumbnailBytes": 23123,
+        "author": "Tsalkin Boris",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:2015_09_24_003_%D0%9D%D0%BE%D0%B2%D0%BE%D0%BA%D1%83%D0%B7%D0%BD%D0%B5%D1%86%D0%BA%D0%B0%D1%8F_38.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:53830818",
+      "title": "Российский музей леса",
+      "words": 112,
+      "audio": {
+        "sha256": "e91dfe839b9ea18c2575abd75b7d7cfedc6d00852ad6206e31ffe4eb0f1569b1",
+        "bytes": 470445,
+        "durationSec": 58.776
+      },
+      "photo": {
+        "thumbnailBytes": 18515,
+        "author": "NVO",
+        "license": "CC BY 2.5",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_5th_Monetchikovsky_Lane_East.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:534370303",
+      "title": "Храм Спаса Преображения на Болвановке",
+      "words": 105,
+      "audio": {
+        "sha256": "db7481424b64acafdfe33393a03f1fba0ee29fb036ac5adc99eb44c838434681",
+        "bytes": 485229,
+        "durationSec": 60.624
+      },
+      "photo": {
+        "thumbnailBytes": 32896,
+        "author": "NVO",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Spas-na-Bolvanovke.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:110894021",
+      "title": "Храм Святителя Николая в Кузнецкой слободе",
+      "words": 102,
+      "audio": {
+        "sha256": "a4403d5322a8f0c043f7bd299574b7aa4d94b056e5e23833239d9763db40a83b",
+        "bytes": 477549,
+        "durationSec": 59.664
+      },
+      "photo": {
+        "thumbnailBytes": 27683,
+        "author": "TTE3342",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A6%D0%B5%D1%80%D0%BA%D0%BE%D0%B2%D1%8C_%D0%9D%D0%B8%D0%BA%D0%BE%D0%BB%D1%8B_%D0%B2_%D0%9A%D1%83%D0%B7%D0%BD%D0%B5%D1%86%D0%B0%D1%85.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:20397973",
+      "title": "Офис телеканала «ТВ Центр»",
+      "words": 113,
+      "audio": {
+        "sha256": "4ba32f752287740692ec1ec21c699b76112d4dc7439137c803a2e5497dace9c1",
+        "bytes": 469869,
+        "durationSec": 58.704
+      },
+      "photo": {
+        "thumbnailBytes": 6859,
+        "author": "Alexandr Alexandrovich Gubarev",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:3099842_%D0%90.%D0%90._%D0%93%D1%83%D0%B1%D0%B0%D1%80%D0%B5%D0%B2_-_%D0%91%D0%BE%D0%BB%D1%8C%D1%88%D0%B0%D1%8F_%D0%A2%D0%B0%D1%82%D0%B0%D1%80%D1%81%D0%BA%D0%B0%D1%8F_%D1%83%D0%BB%D0%B8%D1%86%D0%B0._%D0%94%D0%BE%D0%BC%D0%B0_31,_33,_35,_1913.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7418784",
+      "title": "Историческая (Замоскворецкая) мечеть Москвы",
+      "words": 127,
+      "audio": {
+        "sha256": "9702fa689976e88f325ed279ddea286bf58230e8b229f6a467ee0d4ca92690e3",
+        "bytes": 586221,
+        "durationSec": 73.248
+      },
+      "photo": {
+        "thumbnailBytes": 19442,
+        "author": "Ludvig14",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_HistoricalMosque2.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:1367901767",
+      "title": "Памятник Габдулле Тукаю",
+      "words": 115,
+      "audio": {
+        "sha256": "272b25c7947dd722ed577580f4080051cf29188c25a114f51d4b3b6456c3dfa0",
+        "bytes": 518445,
+        "durationSec": 64.776
+      },
+      "photo": {
+        "thumbnailBytes": 45925,
+        "author": "Unknown authorUnknown author",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gabdulla_Tukay_monument,_Moscow_(2019-07-05)_27.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7455707",
+      "title": "Вишняки: улица помнит стрельцов",
+      "words": 217,
+      "audio": {
+        "sha256": "2fccfd0318bb08b2b0cfb58342a16273ae1cd194acb34bb7226da7aabbbfdaca",
+        "bytes": 874989,
+        "durationSec": 109.344
+      },
+      "photo": {
+        "thumbnailBytes": 25768,
+        "author": "Solundir",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Church_of_the_Trinity_in_Vishnyaki.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7695875",
+      "title": "Екатерина на Всполье: храм с кремлёвской оградой",
+      "words": 122,
+      "audio": {
+        "sha256": "e1e4bf38708b7c28074aa8acb680e234b9a0196c45968ab6a4a6a732fba4e63e",
+        "bytes": 529389,
+        "durationSec": 66.144
+      },
+      "photo": {
+        "thumbnailBytes": 32363,
+        "author": "Vadim Zhivotovsky",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D1%8F,_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0,_%D1%80-%D0%BD_%D0%AF%D0%BA%D0%B8%D0%BC%D0%B0%D0%BD%D0%BA%D0%B0_-_%D0%97%D0%B5%D0%BC%D0%BB%D1%8F%D0%BD%D0%BE%D0%B9_%D0%B3%D0%BE%D1%80%D0%BE%D0%B4,_%D0%BF%D0%B5%D1%80.%D0%9F%D0%BE%D0%B3%D0%BE%D1%80%D0%B5%D0%BB%D1%8C%D1%81%D0%BA%D0%B8%D0%B9,60-2,_%D1%86%D0%B5%D1%80%D0%BA%D0%BE%D0%B2%D1%8C_%D0%B2%D0%B5%D0%BB%D0%B8%D0%BA%D0%BE%D0%BC%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D1%86%D1%8B_%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D1%8B_%D0%BD%D0%B0_%D0%92%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B5,_14-28_25.0_-_panoramio.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:53830791",
+      "title": "Рекк: особняк со львами",
+      "words": 229,
+      "audio": {
+        "sha256": "1abdcc97501ab31d676851d1b7a2360bec3b261c84d1fb4beaa223f2bf498a49",
+        "bytes": 940269,
+        "durationSec": 117.504
+      },
+      "photo": {
+        "thumbnailBytes": 16630,
+        "author": "Ludvig14",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Pyatnitskaya64_002_2307.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:53830787",
+      "title": "Дурилин: птицы на доходном доме",
+      "words": 179,
+      "audio": {
+        "sha256": "129ec06f14675fa38197e14d9fe3094e44d87cf8b14ae5d60ee01f8b0145d60a",
+        "bytes": 701421,
+        "durationSec": 87.648
+      },
+      "photo": {
+        "thumbnailBytes": 14978,
+        "author": "Artyom Svetlov",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Malaya_Ordynka_Street_39_s1_2026-06_136.JPG"
+      }
+    },
+    {
+      "placeId": "osm:relation:20392452",
+      "title": "Сытин: книги выходят на улицу",
+      "words": 225,
+      "audio": {
+        "sha256": "e58b0683d0c242c3e819bb6f1a6cc08095b3379bf17f7cde49f3dcdd02ac2f91",
+        "bytes": 923565,
+        "durationSec": 115.416
+      },
+      "photo": {
+        "thumbnailBytes": 21122,
+        "author": "NVO",
+        "license": "CC BY 2.5",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sytin_Printshop,_Pyatnitskaya_71,_Moscow.jpg"
+      }
+    }
+  ]
+}

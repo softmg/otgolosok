@@ -1,0 +1,298 @@
+{
+  "verifiedAt": "2026-10-28T12:38:00.184Z",
+  "title": "Брюсов переулок и Большая Никитская: музыка и сцена",
+  "distanceM": 6555,
+  "walkingMinutes": 81,
+  "stops": 18,
+  "audioSec": 1180.2,
+  "chapters": [
+    {
+      "placeId": "osm:node:708696038",
+      "title": "Памятник П. И. Чайковскому",
+      "words": 106,
+      "audio": {
+        "sha256": "1871779fdcb90211ccbc10dc716ba43ce8faac7b34275f2639f51f5289bab21f",
+        "bytes": 441645,
+        "durationSec": 55.176
+      },
+      "photo": {
+        "thumbnailBytes": 48551,
+        "author": "Ludvig14",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_ChaikovskyMonument_7123.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:8463582",
+      "title": "Храм Вознесения Господня на Большой Никитской («Малое Вознесение»)",
+      "words": 129,
+      "audio": {
+        "sha256": "a5f811873e7a9f0c93eca7a43b85c9093d16949491563b8b24ba861a842b7a7e",
+        "bytes": 602349,
+        "durationSec": 75.264
+      },
+      "photo": {
+        "thumbnailBytes": 28038,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bolshaya_Nikitskaya_18_(2).jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:5527925431",
+      "title": "Музей АРТ4",
+      "words": 108,
+      "audio": {
+        "sha256": "dd1347baca374d10f2fe58b7523a1d4e9e4180ea7c86b0fc892c09035a9ead81",
+        "bytes": 458349,
+        "durationSec": 57.264
+      },
+      "photo": {
+        "thumbnailBytes": 15095,
+        "author": "А. И. Астахова",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Museum_Art4_Ru.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:32903277",
+      "title": "Московский театр «ОКОЛО дома Станиславского»",
+      "words": 106,
+      "audio": {
+        "sha256": "ff2cedcebebccc2545c45a24ad73ec9a438d297a97bd19dd0a36c74a883d36e0",
+        "bytes": 463341,
+        "durationSec": 57.888
+      },
+      "photo": {
+        "thumbnailBytes": 23033,
+        "author": "Rubin16",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Theater_Near_Stanislavsky_House.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:5181397887",
+      "title": "Музей-квартира Н. С. Голованова",
+      "words": 104,
+      "audio": {
+        "sha256": "2659a3d9ee3859049a5f85b74cb91682083f8e5368974fae50a66df65abf610a",
+        "bytes": 461421,
+        "durationSec": 57.648
+      },
+      "photo": {
+        "thumbnailBytes": 14922,
+        "author": "Gerarus",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bryusov_Lane,_7._2013_1.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:10165684",
+      "title": "Храм Успения Пресвятой Богородицы на Успенском Вражке",
+      "words": 205,
+      "audio": {
+        "sha256": "364f3791e64c0c2524258d5fbc45da7555723a2da11943e8a38be85a19137ab9",
+        "bytes": 939501,
+        "durationSec": 117.408
+      },
+      "photo": {
+        "thumbnailBytes": 25232,
+        "author": "A.Savin",
+        "license": "FAL",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_UspenskyVrazhek_Assumption_asv2021-08_img1.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:2590877091",
+      "title": "Музей-квартира Вс. Э. Мейерхольда",
+      "words": 120,
+      "audio": {
+        "sha256": "13d62d1e75f1b8c0375e91f39563ba5322aadceaef40c92dd8cb6ff4a915dd00",
+        "bytes": 537069,
+        "durationSec": 67.104
+      },
+      "photo": {
+        "thumbnailBytes": 15224,
+        "author": "Шахов Алексей",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%94%D0%BE%D0%BC-%D0%BC%D1%83%D0%B7%D0%B5%D0%B9_%D0%9C%D0%B5%D0%B9%D0%B5%D1%80%D1%85%D0%BE%D0%BB%D1%8C%D0%B4%D0%B0_(%D0%91%D1%80%D1%8E%D1%81%D0%BE%D0%B2_%D0%BF%D0%B5%D1%80.,_12).jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:1145283024",
+      "title": "Памятник Араму Ильичу Хачатуряну",
+      "words": 112,
+      "audio": {
+        "sha256": "066eb11ece7f7eae0af7186871fac38ce766901d7e71d5feb6d963dfd8f9a561",
+        "bytes": 453741,
+        "durationSec": 56.688
+      },
+      "photo": {
+        "thumbnailBytes": 22806,
+        "author": "Yerevantsi",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aram_Khachaturian_Moscow1.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7259659",
+      "title": "Храм Воскресения Словущего на Успенском Вражке",
+      "words": 114,
+      "audio": {
+        "sha256": "f9d0a1e9dec8ae60857486723fe1bb3a5f1912d48850fc6dc558f16fdcc43f17",
+        "bytes": 527469,
+        "durationSec": 65.904
+      },
+      "photo": {
+        "thumbnailBytes": 31175,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Bryusov_15_(1).jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:205734958",
+      "title": "сквер Мстислава Ростроповича",
+      "words": 104,
+      "audio": {
+        "sha256": "1cf08279545eeb3daf2b40ef7bd6b7b4b5572f8fe9c10c6b633cbc2cde2be753",
+        "bytes": 446829,
+        "durationSec": 55.824
+      },
+      "photo": {
+        "thumbnailBytes": 15464,
+        "author": "Apr1",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BA%D0%B2%D0%B5%D1%80_%D0%9C%D1%81%D1%82%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%D0%B0_%D0%A0%D0%BE%D1%81%D1%82%D1%80%D0%BE%D0%BF%D0%BE%D0%B2%D0%B8%D1%87%D0%B0.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:174929171",
+      "title": "Сквер им. Муслима Магомаева",
+      "words": 103,
+      "audio": {
+        "sha256": "b83bd7e27a7b96cf561b006f0da56ba81d9105a5031135a7c3439076b52e127b",
+        "bytes": 420525,
+        "durationSec": 52.536
+      },
+      "photo": {
+        "thumbnailBytes": 21914,
+        "author": "salech hcelas",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%95%D0%92%D0%95%D0%A6-%D0%BB%D1%8E%D0%B1%D0%B8%D0%BC%D0%B5%D1%86_-_panoramio.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:1855700832",
+      "title": "Памятник Низами Гянджеви",
+      "words": 135,
+      "audio": {
+        "sha256": "59dd1523d30046bf944314180881122728f6423215f59adcfa3d4db9877c1adf",
+        "bytes": 525549,
+        "durationSec": 65.664
+      },
+      "photo": {
+        "thumbnailBytes": 20631,
+        "author": "Zmurad",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BC%D1%8F%D1%82%D0%BD%D0%B8%D0%BA_%D0%9D%D0%B8%D0%B7%D0%B0%D0%BC%D0%B8_%D0%93%D1%8F%D0%BD%D0%B4%D0%B6%D0%B5%D0%B2%D0%B8_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:205731716",
+      "title": "Дом-музей К. С. Станиславского",
+      "words": 114,
+      "audio": {
+        "sha256": "72eaf9d44367a913d980aba754a351e6fe06076cfa49057ee4085d5f6e5c721e",
+        "bytes": 474861,
+        "durationSec": 59.328
+      },
+      "photo": {
+        "thumbnailBytes": 16389,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Leontyevsky_10,6_June_2009_01.JPG"
+      }
+    },
+    {
+      "placeId": "osm:node:4262313478",
+      "title": "Пушкинский дуб",
+      "words": 101,
+      "audio": {
+        "sha256": "bfd34cc61a9aa537e20a52d8b8b93e7e60d566aa88fdfb6bf545d1d0b8ecbc79",
+        "bytes": 416685,
+        "durationSec": 52.056
+      },
+      "photo": {
+        "thumbnailBytes": 51941,
+        "author": "YellowMapleLeaf",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D1%83%D1%88%D0%BA%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D1%83%D0%B1.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:52132608",
+      "title": "Городская усадьба Кондиковых — Орловых — Г.М. Лианозова",
+      "words": 111,
+      "audio": {
+        "sha256": "cabfe02398b4c7b52f4b662608df4dcb4da9d83fe37642e87dade46f2407496e",
+        "bytes": 503661,
+        "durationSec": 62.928
+      },
+      "photo": {
+        "thumbnailBytes": 16614,
+        "author": "user:Retired_electrician",
+        "license": "CC0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_M-Gnezdnikovsky_7_Aug_2024_01.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:47973338",
+      "title": "Государственный институт искусствознания в бывшем доме Шестакова — Лобковой",
+      "words": 125,
+      "audio": {
+        "sha256": "a490f69e1e86c375f0964033dc762b4730e3b87cd5f30038a816e4e4410b5f0e",
+        "bytes": 567021,
+        "durationSec": 70.848
+      },
+      "photo": {
+        "thumbnailBytes": 11618,
+        "author": "Andreykor",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kozitsky_per._5_(2).jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:456962",
+      "title": "Российский государственный архив социально-политической истории (РГАСПИ)",
+      "words": 154,
+      "audio": {
+        "sha256": "21d502ae6fe2baf82e999b6a6fe529830175901648b12467acb831fae4fbeddf",
+        "bytes": 721389,
+        "durationSec": 90.144
+      },
+      "photo": {
+        "thumbnailBytes": 31694,
+        "author": "Чръный человек",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%97%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5_%D0%A0%D0%93%D0%90%D0%A1%D0%9F%D0%98_%D0%B2_%D1%84%D0%B5%D0%B2%D1%80%D0%B0%D0%BB%D0%B5_2025_%D0%B3%D0%BE%D0%B4%D0%B0.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:2088644176",
+      "title": "Памятник В. И. Ленину на Тверской площади",
+      "words": 118,
+      "audio": {
+        "sha256": "2131e51c7c5f2b1c94e13cf9f5196787dd253a1619e94d27194b81d3b9d164ec",
+        "bytes": 484461,
+        "durationSec": 60.528
+      },
+      "photo": {
+        "thumbnailBytes": 21295,
+        "author": "Ludvig14",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_BDmitrovka15_7749.jpg"
+      }
+    }
+  ]
+}

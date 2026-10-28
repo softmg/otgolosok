@@ -1,0 +1,314 @@
+{
+  "verifiedAt": "2026-10-28T12:37:48.755Z",
+  "title": "Ивановская горка: палаты, общины и Хохловка",
+  "distanceM": 6369,
+  "walkingMinutes": 84,
+  "stops": 19,
+  "audioSec": 1270.4,
+  "chapters": [
+    {
+      "placeId": "osm:node:3047362972",
+      "title": "Часовня-памятник героям Плевны",
+      "words": 133,
+      "audio": {
+        "sha256": "14e644b80a44d469f0e48e6f8406667672f5fa26813b0b5d7e504316dd7d84bc",
+        "bytes": 570861,
+        "durationSec": 71.328
+      },
+      "photo": {
+        "thumbnailBytes": 29431,
+        "author": "Ikar.us (talk)",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Plewen-Denkmal.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:8888875",
+      "title": "Политехнический музей",
+      "words": 130,
+      "audio": {
+        "sha256": "f79668469f079cfd757667eb85eedb62417404cb18052f44e25e98d4854c9817",
+        "bytes": 608685,
+        "durationSec": 76.056
+      },
+      "photo": {
+        "thumbnailBytes": 19631,
+        "author": "Sealle",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Polytechnical_Museum_after_reconstruction.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7259822",
+      "title": "Здание Птицеводсоюза",
+      "words": 178,
+      "audio": {
+        "sha256": "ecc669ee1d9d78ba89f15d1175853093f922219e85a8895b785d5ac146397775",
+        "bytes": 853101,
+        "durationSec": 106.608
+      },
+      "photo": {
+        "thumbnailBytes": 18161,
+        "author": "Ludvig14",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_HouseOfTrusts_X67.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:6990965187",
+      "title": "Музей истории Златоустовского монастыря",
+      "words": 126,
+      "audio": {
+        "sha256": "a6dad40a2d65ed5b1617377337396bde6d213385f2b6b4df87c945b49e8f9fb2",
+        "bytes": 543405,
+        "durationSec": 67.896
+      },
+      "photo": {
+        "thumbnailBytes": 11885,
+        "author": "Raven Tao",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9A%D0%BE%D1%80%D0%BF%D1%83%D1%81_%D0%BA%D0%B5%D0%BB%D0%B8%D0%B9_%D0%97%D0%BB%D0%B0%D1%82%D0%BE%D1%83%D1%81%D1%82%D0%BE%D0%B2%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_%D0%BC%D0%BE%D0%BD%D0%B0%D1%81%D1%82%D1%8B%D1%80%D1%8F.JPG"
+      }
+    },
+    {
+      "placeId": "osm:relation:7259801",
+      "title": "Малороссийское подворье",
+      "words": 106,
+      "audio": {
+        "sha256": "c85ef214d021dbcfdb1ed7607d8f7e655f9731b85581da3d0a8e655c19143e48",
+        "bytes": 522861,
+        "durationSec": 65.328
+      },
+      "photo": {
+        "thumbnailBytes": 21161,
+        "author": "Kemal KOZBAEV",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D0%B0%D0%BB%D0%BE%D1%80%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B5_%D0%BF%D0%BE%D0%B4%D0%B2%D0%BE%D1%80%D1%8C%D0%B5_01.JPG"
+      }
+    },
+    {
+      "placeId": "osm:node:1096235294",
+      "title": "Памятник А. Л. Мясникову",
+      "words": 114,
+      "audio": {
+        "sha256": "39c464f1664cbf5cf8a5da7fb590fc73d409ee10f695ae20f155d96307cf3019",
+        "bytes": 535149,
+        "durationSec": 66.864
+      },
+      "photo": {
+        "thumbnailBytes": 12748,
+        "author": "Feud50",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D1%8F%D1%81%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7524307",
+      "title": "Евангелическо-лютеранский кафедральный собор Святых Петра и Павла",
+      "words": 111,
+      "audio": {
+        "sha256": "d882d9ff8a475aebc94008d2f07ea16bb98ec2bb29fe686e8d7f2b40364639cb",
+        "bytes": 518445,
+        "durationSec": 64.776
+      },
+      "photo": {
+        "thumbnailBytes": 21971,
+        "author": "Bischof brauer",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lutheran_St._Peter_and_Paul_Cathedral_Moscow.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:9037250",
+      "title": "Палаты Мазепы",
+      "words": 127,
+      "audio": {
+        "sha256": "d9621bc74fc04bac62f532e5ae5b726ffbe1b3441cabd3ffe3234c0b7d2babdd",
+        "bytes": 528045,
+        "durationSec": 65.976
+      },
+      "photo": {
+        "thumbnailBytes": 18923,
+        "author": "Martisha",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BB%D0%B0%D1%82%D1%8B_%D0%9C%D0%B0%D0%B7%D0%B5%D0%BF%D1%8B_4.JPG"
+      }
+    },
+    {
+      "placeId": "osm:relation:8043044",
+      "title": "Храм Живоначальной Троицы в Хохлах",
+      "words": 112,
+      "audio": {
+        "sha256": "4c5887ca7e857dd37a52da8e678e39fab051613bc416adde388662781dd465c7",
+        "bytes": 505581,
+        "durationSec": 63.168
+      },
+      "photo": {
+        "thumbnailBytes": 35660,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_New_Year_in_Khokhlovsky_Lane.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7151077",
+      "title": "Морозовский сад",
+      "words": 109,
+      "audio": {
+        "sha256": "4b1e33c8ed34264be1ea81b9e3993393ee3f63971726338858aaa6c327227a57",
+        "bytes": 426861,
+        "durationSec": 53.328
+      },
+      "photo": {
+        "thumbnailBytes": 24809,
+        "author": "Николай Аввакумов",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9C%D0%BE%D1%80%D0%BE%D0%B7%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D1%81%D0%B0%D0%B4._2009_%D0%B3%D0%BE%D0%B4.01.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:52387428",
+      "title": "Главный дом городской усадьбы Ф. А. Остермана — частный дом Мясницкой полицейской части",
+      "words": 114,
+      "audio": {
+        "sha256": "d374850e6d1aebd0dc2ea43bc6ad7acd6316a5dbbbf1940397f8a326b8435954",
+        "bytes": 471789,
+        "durationSec": 58.944
+      },
+      "photo": {
+        "thumbnailBytes": 21086,
+        "author": "SoakedSanity",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A5%D0%B8%D1%82%D1%80%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%BF%D0%B5%D1%80%D0%B5%D1%83%D0%BB%D0%BE%D0%BA,_4%D1%8110.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7623552",
+      "title": "Храм Трёх Святителей на Кулишках",
+      "words": 106,
+      "audio": {
+        "sha256": "13632871ace13cfeae6230f771119aab9af7b4a62d1817852dda7fc825e6e69e",
+        "bytes": 516525,
+        "durationSec": 64.536
+      },
+      "photo": {
+        "thumbnailBytes": 27945,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Wiki_Khitrovka_Market,_Church_in_Khitrovsky_Lane,_Moscow,_Russia.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:46096643",
+      "title": "Палаты Шуйских",
+      "words": 104,
+      "audio": {
+        "sha256": "29c6ed4918ecbcb2c1be234bb0a2df03bb1c32055bddf5fe70edece6152beffa",
+        "bytes": 409581,
+        "durationSec": 51.168
+      },
+      "photo": {
+        "thumbnailBytes": 18891,
+        "author": "Николай Аввакумов",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BB%D0%B0%D1%82%D1%8B_%D0%A8%D1%83%D0%B9%D1%81%D0%BA%D0%B8%D1%85_%D0%B2_%D0%9F%D0%BE%D0%B4%D0%BA%D0%BE%D0%BB%D0%BE%D0%BA%D0%BE%D0%BB%D1%8C%D0%BD%D0%BE%D0%BC_%D0%BF%D0%B5%D1%80.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:10319256",
+      "title": "Дом Ярошенко",
+      "words": 115,
+      "audio": {
+        "sha256": "b72dbc6f4083cc5bd8d185d993b602c25520dff8960f23693b6379528d450f0c",
+        "bytes": 506349,
+        "durationSec": 63.264
+      },
+      "photo": {
+        "thumbnailBytes": 14262,
+        "author": "Николай Аввакумов",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%94%D0%BE%D0%BC_%D0%AF%D1%80%D0%BE%D1%88%D0%B5%D0%BD%D0%BA%D0%BE_%D1%81_%D0%BF%D0%B0%D0%BB%D0%B0%D1%82%D0%B0%D0%BC%D0%B8_17_%D0%B2%D0%B5%D0%BA%D0%B0.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:12198829",
+      "title": "Дом с атлантами на Солянке",
+      "words": 132,
+      "audio": {
+        "sha256": "6005ba295697fe47bcf154fd97633b119a8e2b0eaf88183f42bc964e3564d453",
+        "bytes": 544749,
+        "durationSec": 68.064
+      },
+      "photo": {
+        "thumbnailBytes": 21825,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Solyanka_7_Aug_2009_05.JPG"
+      }
+    },
+    {
+      "placeId": "osm:node:4489277689",
+      "title": "Памятник Осипу Мандельштаму",
+      "words": 113,
+      "audio": {
+        "sha256": "ff89c184c55df5120f6b53ff652684b693cfad06a063dd3ac19daa4e0e74630e",
+        "bytes": 508269,
+        "durationSec": 63.504
+      },
+      "photo": {
+        "thumbnailBytes": 22026,
+        "author": "Александр Сигачёв",
+        "license": "CC0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BC%D1%8F%D1%82%D0%BD%D0%B8%D0%BA_%D0%9E%D1%81%D0%B8%D0%BF%D1%83_%D0%9C%D0%B0%D0%BD%D0%B4%D0%B5%D0%BB%D1%8C%D1%88%D1%82%D0%B0%D0%BC%D1%83.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:3500887936",
+      "title": "Музей истории Императорского Православного Палестинского Общества",
+      "words": 122,
+      "audio": {
+        "sha256": "3a3020a85ce03f7418a244de52570096627cb8ca1a64ff8e1da68d58a16ba782",
+        "bytes": 551661,
+        "durationSec": 68.928
+      },
+      "photo": {
+        "thumbnailBytes": 14409,
+        "author": "Olga Kom",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%93%D0%BB%D0%B0%D0%B2%D0%BD%D1%8B%D0%B9_%D0%B4%D0%BE%D0%BC_%D0%97%D0%B0%D0%B1%D0%B5%D0%BB%D0%B8%D0%BD%D0%B0_%D1%83%D0%BB.,_%D0%B4%D0%BE%D0%BC_3,_%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5_2.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:45768173",
+      "title": "Московская хоральная синагога",
+      "words": 110,
+      "audio": {
+        "sha256": "b95249756a62817e4a515e1946f55b6cab10df526c35d678c0a8bd51f662a85c",
+        "bytes": 467949,
+        "durationSec": 58.464
+      },
+      "photo": {
+        "thumbnailBytes": 16616,
+        "author": "A.Savin",
+        "license": "FAL",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_05-2017_img31_Choral_Synagogue.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:1268321",
+      "title": "Ильинский сквер",
+      "words": 129,
+      "audio": {
+        "sha256": "1cb2e62894d708bad29b81b39694dc34fed415500fedc4dd084399561e9f26e0",
+        "bytes": 577965,
+        "durationSec": 72.216
+      },
+      "photo": {
+        "thumbnailBytes": 24419,
+        "author": "A.Savin",
+        "license": "FAL",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_05-2017_img43_Kitay-Gorod.jpg"
+      }
+    }
+  ]
+}
