@@ -20,7 +20,7 @@ test("пакет: все 17 остановок прогулки, 11 расска
 });
 
 test("до правки скилл находил перегруз датами, после — нет", () => {
-  assert.match(overloaded(bundle.entries.map(({ story, ...entry }) => entry)), /Библиотека-читальня/u);
+  assert.match(overloaded(bundle.entries.map((entry) => ({ ...entry, story: entry.expected.story }))), /Библиотека-читальня/u);
   assert.equal(overloaded(bundle.entries), "");
 });
 
