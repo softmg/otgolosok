@@ -14,7 +14,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -92,7 +92,7 @@ def main() -> None:
         catalog[place_id] = {"thumbnail": entry["thumbnail"], "src": entry["src"], "width": entry["width"],
                              "height": entry["height"], "alt": request["alt"], "author": author, "sourceUrl": page_url,
                              "license": license_name, "licenseUrl": license_url,
-                             "retrievedAt": datetime.now(tz=UTC).date().isoformat(),
+                             "retrievedAt": datetime.now(tz=timezone.utc).date().isoformat(),  # noqa: UP017 (system Python 3.9)
                              "modifications": "Размер уменьшен Wikimedia Commons; превью обрезается при показе."}
         print(f"добавлено: {place_id} — {author}, {license_name}")
     CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

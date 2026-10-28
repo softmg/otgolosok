@@ -1,9 +1,11 @@
-// node build.mjs — builds changes.json from captured.json with the editorial edits from edits.mjs.
+// node build.mjs — builds both batches of the package: changes.json from captured.json with EDITS and
+// changes-ogorodnaya.json from captured-ogorodnaya.json with OGORODNAYA_EDITS (edits.mjs).
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
-import { EDITS } from "./edits.mjs";
+import { EDITS, OGORODNAYA_EDITS } from "./edits.mjs";
 
 export const BUNDLE_ID = "garden-promo-walks-2026-10-28";
+export const OGORODNAYA_BUNDLE_ID = "garden-promo-walks-ogorodnaya-2026-10-28";
 const here = (file) => new URL(`./${file}`, import.meta.url);
 export const realWords = (paragraphs) => paragraphs.flatMap(({ text }) => text.split(/\s+/u))
   .filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
@@ -38,21 +40,26 @@ const edit = (story, change) => {
   return next;
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const capture = JSON.parse(readFileSync(here("captured.json"), "utf8"));
+const buildBundle = (bundleId, capturePath, edits, outPath) => {
+  const capture = JSON.parse(readFileSync(here(capturePath), "utf8"));
   const used = new Set();
   const entries = capture.places.map((place) => {
     assert.equal(place.textId, place.publishedTextId, `Опубликован не последний текст: ${place.placeId}`);
     const expected = { textId: place.textId, placeContentHash: place.placeContentHash, address: place.address,
       location: place.location, story: place.story, audio: place.audio };
-    const change = EDITS[place.placeId];
+    const change = edits[place.placeId];
     if (!change) return { placeId: place.placeId, name: place.name, status: "unchanged", realWords: realWords(place.story.paragraphs), expected };
     used.add(place.placeId);
     const story = edit(place.story, change);
     return { placeId: place.placeId, name: place.name, status: "changed", realWords: realWords(story.paragraphs), expected, story };
   });
-  assert.deepEqual([...used].sort(), Object.keys(EDITS).sort(), "Правка для точки вне пакета");
-  const bundle = { id: BUNDLE_ID, capturedAt: capture.capturedAt, entries };
-  writeFileSync(here("changes.json"), JSON.stringify(bundle, null, 2) + "\n");
+  assert.deepEqual([...used].sort(), Object.keys(edits).sort(), "Правка для точки вне пакета");
+  const bundle = { id: bundleId, capturedAt: capture.capturedAt, entries };
+  writeFileSync(here(outPath), JSON.stringify(bundle, null, 2) + "\n");
   console.log(entries.map((entry) => `${entry.status} ${entry.realWords} ${entry.name}`).join("\n"));
+};
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  buildBundle(BUNDLE_ID, "captured.json", EDITS, "changes.json");
+  buildBundle(OGORODNAYA_BUNDLE_ID, "captured-ogorodnaya.json", OGORODNAYA_EDITS, "changes-ogorodnaya.json");
 }

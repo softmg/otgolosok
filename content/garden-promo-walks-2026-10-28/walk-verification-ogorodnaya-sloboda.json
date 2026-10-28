@@ -1,0 +1,282 @@
+{
+  "verifiedAt": "2026-10-28T13:15:01.133Z",
+  "title": "Огородная слобода и Лубянка: палаты, театр и храмы",
+  "distanceM": 6406,
+  "walkingMinutes": 84,
+  "stops": 17,
+  "audioSec": 1093.8,
+  "chapters": [
+    {
+      "placeId": "osm:way:52769675",
+      "title": "Палаты Волковых — Юсуповых",
+      "words": 119,
+      "audio": {
+        "sha256": "adbac78bb1b9566ac677fba11cc033efab1f1ed4ae81a4208a3738e0e9e1286b",
+        "bytes": 567789,
+        "durationSec": 70.944
+      },
+      "photo": {
+        "thumbnailBytes": 32366,
+        "author": "Ludvig14",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_Volkov-YusupovPalace_009_2696.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:758586236",
+      "title": "Сквер Генерала армии А. В. Хрулёва",
+      "words": 115,
+      "audio": {
+        "sha256": "45a7e1cd1829a31571582d526e8d69ddbd3f4baf70394b5f8cf1d82eb1ac4177",
+        "bytes": 519021,
+        "durationSec": 64.848
+      },
+      "photo": {
+        "thumbnailBytes": 17478,
+        "author": "Министерство обороны Российской Федерации",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Andrey_Khrulev_1.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:1691951965",
+      "title": "Бюст С. А. Чаплыгина",
+      "words": 112,
+      "audio": {
+        "sha256": "806c0d32b86430bc896ac161ae4f7e0f273d499afc3bf7b567728febae3b470f",
+        "bytes": 560109,
+        "durationSec": 69.984
+      },
+      "photo": {
+        "thumbnailBytes": 22145,
+        "author": "Feud50",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A7%D0%90%D0%9F%D0%9B%D0%AB%D0%93%D0%98%D0%9D.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:1691951977",
+      "title": "Памятник «Ленин-гимназист»",
+      "words": 112,
+      "audio": {
+        "sha256": "285d20efe05ac76a8cdffddbffc76d9a76798c46ce853b958c5a915641004a92",
+        "bytes": 470445,
+        "durationSec": 58.776
+      },
+      "photo": {
+        "thumbnailBytes": 25734,
+        "author": "Федянин Федор Александрович",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:AutumnLenin.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:45777816",
+      "title": "Дом усадьбы Головиных",
+      "words": 111,
+      "audio": {
+        "sha256": "63ac5e872642918762fe1901798eb6cbf4df0b85565165f994224fc0f2309b3c",
+        "bytes": 448749,
+        "durationSec": 56.064
+      },
+      "photo": {
+        "thumbnailBytes": 18193,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Potapovsky_8-12_2008_02.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:41087037",
+      "title": "Палаты Сверчковых",
+      "words": 112,
+      "audio": {
+        "sha256": "938d2f21d7bcb04c5a843ce3bb70dbde4b461e93294f844d278f99af078b8d9e",
+        "bytes": 489645,
+        "durationSec": 61.176
+      },
+      "photo": {
+        "thumbnailBytes": 16168,
+        "author": "Raven Tao",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BB%D0%B0%D1%82%D1%8B_%D0%B3%D0%BE%D1%81%D1%82%D1%8F_%D0%A1%D0%B2%D0%B5%D1%80%D1%87%D0%BA%D0%BE%D0%B2a.JPG"
+      }
+    },
+    {
+      "placeId": "osm:node:5978239883",
+      "title": "Остатки фундамента храма Николая Чудотворца в Столпах",
+      "words": 113,
+      "audio": {
+        "sha256": "3aaefcc832a4016dc68ae604c5856cfe931c1f4fc263b835a6953f9fd478cc0a",
+        "bytes": 495981,
+        "durationSec": 61.968
+      },
+      "photo": {
+        "thumbnailBytes": 13970,
+        "author": "Bogunilia",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B8%D0%B2%D1%88%D0%B8%D0%B9%D1%81%D1%8F_%D1%84%D1%80%D0%B0%D0%B3%D0%BC%D0%B5%D0%BD%D1%82_%D1%81%D0%B5%D0%B2%D0%B5%D1%80%D0%BD%D0%BE%D0%B9_%D1%81%D1%82%D0%B5%D0%BD%D1%8B_%D1%86%D0%B5%D1%80%D0%BA%D0%B2%D0%B8_%D0%9D%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D1%8F_%D0%A7%D1%83%D0%B4%D0%BE%D1%82%D0%B2%D0%BE%D1%80%D1%86%D0%B0_%D0%B2_%D0%A1%D1%82%D0%BE%D0%BB%D0%BF%D0%B0%D1%85_(%D1%84%D0%BE%D1%82%D0%BE_%E2%80%94_%D0%B0%D0%B2%D0%B3%D1%83%D1%81%D1%82_2024).jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:53016616",
+      "title": "Палаты Голицыных",
+      "words": 110,
+      "audio": {
+        "sha256": "ba932e074ecd6d404b9b7ac654451ea4cc0d08baec22672257e75b9f79377520",
+        "bytes": 449901,
+        "durationSec": 56.208
+      },
+      "photo": {
+        "thumbnailBytes": 31150,
+        "author": "NVO",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Krivokolenny_10C1_June_2008_03.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:15671457",
+      "title": "Учебный корпус Российской академии живописи, ваяния и зодчества Ильи Глазунова",
+      "words": 106,
+      "audio": {
+        "sha256": "74556940b2fbd0aab7193b8069116d513a078b69f8f95e301e52b863b3d995fe",
+        "bytes": 460269,
+        "durationSec": 57.504
+      },
+      "photo": {
+        "thumbnailBytes": 16584,
+        "author": "Vladimir OKC",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow_School_of_Painting,_Sculpture_and_Architecture.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:14732079",
+      "title": "Театр «Et Cetera»",
+      "words": 112,
+      "audio": {
+        "sha256": "c7a3fb8cc35a3b5944252ae5309fdcb4770273762fdb3dafe750a9112e6b5ce5",
+        "bytes": 479469,
+        "durationSec": 59.904
+      },
+      "photo": {
+        "thumbnailBytes": 17810,
+        "author": "Зимин Василий Геннадиевич",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A2%D0%B5%D0%B0%D1%82%D1%80-Et-Cetera.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:52829438",
+      "title": "Библиотека-читальня имени И. С. Тургенева",
+      "words": 117,
+      "audio": {
+        "sha256": "2484b839c96d5015aa5dd48cd16148a710d3957c8eda131ab648d443890182c3",
+        "bytes": 563181,
+        "durationSec": 70.368
+      },
+      "photo": {
+        "thumbnailBytes": 19012,
+        "author": "Architect:Dmitry Chichagov. Unknown photographer for P. P. Pavlov print house.",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Turgenev_Library,_by_D.N.Chichagov,_1880s.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:416562788",
+      "title": "Памятник Н. К. Крупской",
+      "words": 116,
+      "audio": {
+        "sha256": "88762ca4d716847ba13c9c7681b9df8d437717fb16390ff238a4444bd419cff1",
+        "bytes": 502509,
+        "durationSec": 62.784
+      },
+      "photo": {
+        "thumbnailBytes": 20519,
+        "author": "Shuvaev",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Sretensky_Boulevard_2014_03.JPG"
+      }
+    },
+    {
+      "placeId": "osm:relation:9688342",
+      "title": "Храм Успения Пресвятой Богородицы в Печатниках",
+      "words": 112,
+      "audio": {
+        "sha256": "f31561af69ace389cd819bd62580fbf873d3b18bac4de6479ea8c1055b071fa9",
+        "bytes": 535725,
+        "durationSec": 66.936
+      },
+      "photo": {
+        "thumbnailBytes": 27152,
+        "author": "NVO",
+        "license": "CC BY 2.5",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moscow,_Dormition_church_by_Sretenka_Gates.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:484755695",
+      "title": "Храм Воскресения Христова и Новомучеников и исповедников Церкви Русской",
+      "words": 107,
+      "audio": {
+        "sha256": "2fa054bfe222a0fcc2d6473d76c0fc396b1e5c398fb39b0e39fa42105d9e2280",
+        "bytes": 433389,
+        "durationSec": 54.144
+      },
+      "photo": {
+        "thumbnailBytes": 11623,
+        "author": "Московская духовная академия",
+        "license": "CC BY-SA 2.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A5%D1%80%D0%B0%D0%BC_%D0%9D%D0%BE%D0%B2%D0%BE%D0%BC%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2_%D0%B8_%D0%98%D1%81%D0%BF%D0%BE%D0%B2%D0%B5%D0%B4%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2_%D0%A6%D0%B5%D1%80%D0%BA%D0%B2%D0%B8_%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%BE%D0%B9_%D0%BD%D0%B0_%D0%9B%D1%83%D0%B1%D1%8F%D0%BD%D0%BA%D0%B5._2019.jpg"
+      }
+    },
+    {
+      "placeId": "osm:way:49578741",
+      "title": "Сретенская духовная семинария (ныне Сретенская духовная академия)",
+      "words": 113,
+      "audio": {
+        "sha256": "8512f80db9770531989a7a0b45fb90af22a533dd75913f722353e4183b80ffb4",
+        "bytes": 521709,
+        "durationSec": 65.184
+      },
+      "photo": {
+        "thumbnailBytes": 14732,
+        "author": "Uladzimir Filipau",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D1%80%D0%B5%D1%82%D0%B5%D0%BD%D1%81%D0%BA%D0%B0%D1%8F_%D0%B4%D1%83%D1%85%D0%BE%D0%B2%D0%BD%D0%B0%D1%8F_%D0%B0%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F_02.jpg"
+      }
+    },
+    {
+      "placeId": "osm:relation:7719252",
+      "title": "Храм Святого Людовика Французского",
+      "words": 133,
+      "audio": {
+        "sha256": "e999493b81fe62608c59e0845fc90dbf5eb7be0e5d473d132a87b74cdae3d17d",
+        "bytes": 627309,
+        "durationSec": 78.384
+      },
+      "photo": {
+        "thumbnailBytes": 16018,
+        "author": "A.Savin",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9A%D0%B0%D1%82%D0%BE%D0%BB%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F_%D1%86%D0%B5%D1%80%D0%BA%D0%BE%D0%B2%D1%8C_%D0%9B%D1%8E%D0%B4%D0%BE%D0%B2%D0%B8%D0%BA%D0%B0_%D0%B2_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5.jpg"
+      }
+    },
+    {
+      "placeId": "osm:node:1106845052",
+      "title": "Государственный музей В. В. Маяковского",
+      "words": 135,
+      "audio": {
+        "sha256": "5b901bf9e65f1d0a327d22d7448534fc5a9dc72da2656baa830bc043928660fc",
+        "bytes": 629229,
+        "durationSec": 78.624
+      },
+      "photo": {
+        "thumbnailBytes": 19959,
+        "author": "Vladimir OKC",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mayakovsky(4).jpg"
+      }
+    }
+  ]
+}

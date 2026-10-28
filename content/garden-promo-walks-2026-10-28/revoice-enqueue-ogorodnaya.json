@@ -1,0 +1,47 @@
+{
+  "mode": "enqueue",
+  "at": "2026-10-28T13:04:35.445Z",
+  "count": 4,
+  "results": [
+    {
+      "placeId": "osm:way:484755695",
+      "name": "Храм Новомучеников и исповедников Российских на Лубянке",
+      "textId": "30df375e-fd1e-47e2-b27f-44add4b52d4f",
+      "reason": "external/f5",
+      "requestId": "6ae3df29-405d-5fb2-a2bb-30e36e45fa56",
+      "audioJobId": "0e812bbb-c896-49b7-9752-bb6322d2b2fa",
+      "state": "queued",
+      "previousAudioSha256": "29af460c93750d9284f5e8e27dbc6fc2a11127488200f49c032ceb22c282d646"
+    },
+    {
+      "placeId": "osm:way:49578741",
+      "name": "Сретенская духовная семинария",
+      "textId": "f767ec68-5973-457c-b045-68040cf1c8ba",
+      "reason": "старый текст",
+      "requestId": "ed71c82f-967b-5844-825a-cf8793417cea",
+      "audioJobId": "079777d2-ab04-4add-8dc2-4406b535e5c9",
+      "state": "queued",
+      "previousAudioSha256": "fbc6c978402fad69611d1df01e03f48fab1ab1f2bf113602d045e6487aa500bf"
+    },
+    {
+      "placeId": "osm:relation:7719252",
+      "name": "Храм Святого Людовика Французского",
+      "textId": "d33c6a1d-fbed-4a28-aac2-74e543b12f6c",
+      "reason": "external/f5",
+      "requestId": "a1b8d06b-2893-5fc8-9874-09a5901dd3cd",
+      "audioJobId": "4dd16b5a-b51d-4f83-b780-7b829a133c52",
+      "state": "queued",
+      "previousAudioSha256": "1b85c2d535301e42928318bc7584ce029ced685514604c8281c01bfbd635a648"
+    },
+    {
+      "placeId": "osm:node:1106845052",
+      "name": "Музей В.В. Маяковского",
+      "textId": "aba3a921-ba53-4338-9b6b-62f90b4d86f1",
+      "reason": "старый текст",
+      "requestId": "27815ffb-5c55-58f3-a07d-c4455a3e0b97",
+      "audioJobId": "2618bbdb-bf68-46d9-82eb-ee7b973c589e",
+      "state": "queued",
+      "previousAudioSha256": "58459eda72cc69ba81a9dd60262034fa28c50a5fbafd6eb3f0540a2f77558b16"
+    }
+  ]
+}

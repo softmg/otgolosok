@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 
 HERE = Path(__file__).parent
-captured = {p["placeId"]: p for p in json.loads((HERE / "captured.json").read_text(encoding="utf-8"))["places"]}
+captured = {p["placeId"]: p for name in ("captured.json", "captured-ogorodnaya.json")
+            for p in json.loads((HERE / name).read_text(encoding="utf-8"))["places"]}
 
 # (placeId, label) in walking order.
 WALKS = {
@@ -77,10 +78,15 @@ WALKS = {
         ("osm:way:41087037", "палаты Сверчковых"),
         ("osm:node:5978239883", "фундамент храма Николая в Столпах"),
         ("osm:way:53016616", "палаты Голицыных"),
+        ("osm:relation:15671457", "учебный корпус Академии живописи на Мясницкой"),
         ("osm:relation:14732079", "театр «Et Cetera»"),
         ("osm:way:52829438", "Тургеневская библиотека-читальня"),
         ("osm:node:416562788", "памятник Крупской"),
         ("osm:relation:9688342", "храм Успения в Печатниках"),
+        ("osm:way:484755695", "собор Новомучеников Сретенского монастыря"),
+        ("osm:way:49578741", "Сретенская духовная академия"),
+        ("osm:relation:7719252", "храм Святого Людовика"),
+        ("osm:node:1106845052", "музей Маяковского"),
     ],
 }
 

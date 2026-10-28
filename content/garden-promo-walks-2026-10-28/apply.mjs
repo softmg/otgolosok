@@ -8,8 +8,8 @@ import { DatabaseSync } from "node:sqlite";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-// The single batch of this package: initials, source mentions and short stories of the four walks.
-const BATCHES = { "garden-promo-walks-2026-10-28": 17 };
+// Both batches of this package: the first for all four walks, the second for the stops added to the Ogorodnaya walk.
+const BATCHES = { "garden-promo-walks-2026-10-28": 17, "garden-promo-walks-ogorodnaya-2026-10-28": 3 };
 const [bundlePath, mode, backupPath] = process.argv.slice(2);
 assert.ok(["dry-run", "apply"].includes(mode), "Режим: dry-run или apply");
 const bundle = JSON.parse(readFileSync(bundlePath, "utf8"));
