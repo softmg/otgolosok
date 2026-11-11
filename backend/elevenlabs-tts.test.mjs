@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { brotliCompressSync } from "node:zlib";
+import { MockAgent, getGlobalDispatcher, setGlobalDispatcher } from "undici";
 import { createElevenLabsTts, elevenLabsApi, elevenLabsApiKeys, listElevenLabsVoices, speechChunks } from "./elevenlabs-tts.mjs";
 import { loadElevenLabsTts } from "./server.mjs";
 
@@ -274,4 +276,27 @@ test("startup warns by key number, never by key, when a spare key does not see i
     assert.equal(await loadElevenLabsTts({ ELEVENLABS_API_KEYS: "main-secret,copy-secret:", ELEVENLABS_VOICE_ID: "RuVoice1" }, provider, null, reply), null);
     assert.deepEqual(warnings, ["ElevenLabs is disabled: ELEVENLABS_API_KEYS has a malformed voice id; use key:voiceId"]);
   } finally { console.warn = warn; }
+});
+
+test("default ElevenLabs transport decodes Brotli voices and preserves audio headers independently of global fetch", async t => {
+  const previous = getGlobalDispatcher(), agent = new MockAgent();
+  agent.disableNetConnect();
+  setGlobalDispatcher(agent);
+  t.after(async () => { setGlobalDispatcher(previous); await agent.close(); });
+  t.mock.method(globalThis, "fetch", async () => { throw new Error("Unexpected process-global fetch"); });
+  const endpoint = "https://elevenlabs-fixture.invalid", pool = agent.get(endpoint);
+  const voices = { voices: [{ voice_id: "FixtureVoice1", name: "Отголосок2", labels: { language: "ru" } }] };
+  const compressed = brotliCompressSync(Buffer.from(JSON.stringify(voices)));
+  for (let index = 0; index < 2; index++) pool.intercept({ path: "/v1/voices", method: "GET" })
+    .reply(200, compressed, { headers: { "Content-Type": "application/json", "Content-Encoding": "br" } });
+  pool.intercept({ path: "/v1/text-to-speech/FixtureVoice1?output_format=mp3_44100_128", method: "POST" })
+    .reply(200, Buffer.from("fixture-audio"), { headers: { "Content-Type": "audio/mpeg" } });
+  const listed = await listElevenLabsVoices({ apiKey: "fixture-key", baseUrl: endpoint + "/v1" });
+  assert.deepEqual(listed, [{ id: "FixtureVoice1", label: "Отголосок2 (ru)", language: "ru" }]);
+  const loaded = await loadElevenLabsTts({ ELEVENLABS_API_KEY: "fixture-key", ELEVENLABS_BASE_URL: endpoint + "/v1" }, /** @type {any} */ ({ response: async () => ({ text: "" }) }), null);
+  assert.equal(loaded?.voice, "FixtureVoice1");
+  assert.deepEqual(loaded?.voices, listed);
+  const tts = createElevenLabsTts({ apiKeys: [{ apiKey: "fixture-key" }], voice: "FixtureVoice1", tagNarration, baseUrl: endpoint + "/v1" });
+  assert.equal((await tts.speech("Тестовая запись.")).toString(), "fixture-audio");
+  agent.assertNoPendingInterceptors();
 });

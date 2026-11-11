@@ -1,3 +1,4 @@
+import { fetch as httpFetch } from "undici";
 import { failure } from "./domain.mjs";
 import { boundedBody } from "./provider.mjs";
 import { fetchWithRetry, isTransientError } from "./retry.mjs";
@@ -95,7 +96,7 @@ async function request(fetchImpl, url, init) {
  * @param {{apiKey: string, baseUrl?: string, proxyToken?: string, fetchImpl?: typeof fetch, signal?: AbortSignal}} options
  * @returns {Promise<{id: string, label: string, language: string | null}[]>}
  */
-export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = fetch, signal }) {
+export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = /** @type {typeof fetch} */ (/** @type {unknown} */ (httpFetch)), signal }) {
   const deadline = AbortSignal.any([AbortSignal.timeout(20000), ...(signal ? [signal] : [])]);
   const response = await request(fetchImpl, `${baseUrl}/voices`, { headers: { "xi-api-key": apiKey, ...proxyHeaders(proxyToken) }, signal: deadline });
   if (!response.ok) throw await rejection(response);
@@ -118,7 +119,7 @@ export async function listElevenLabsVoices({ apiKey, baseUrl = ELEVENLABS_API, p
  * @param {{apiKeys: {apiKey: string, voice?: string | null}[], voice: string, tagNarration: ((script: string, options: {signal?: AbortSignal, language?: "ru"|"en"|"zh"}) => Promise<string>) & {version?: string},
  *   voices?: {id: string, label: string}[], model?: string, language?: "ru"|"en"|"zh", baseUrl?: string, proxyToken?: string, fetchImpl?: typeof fetch, now?: () => number}} options
  */
-export function createElevenLabsTts({ apiKeys, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, language = "ru", baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = fetch, now = Date.now }) {
+export function createElevenLabsTts({ apiKeys, voice, tagNarration, voices = [], model = ELEVENLABS_MODEL, language = "ru", baseUrl = ELEVENLABS_API, proxyToken, fetchImpl = /** @type {typeof fetch} */ (/** @type {unknown} */ (httpFetch)), now = Date.now }) {
   if (!Array.isArray(apiKeys) || !apiKeys.length || apiKeys.some(key => typeof key?.apiKey !== "string" || !key.apiKey.trim()
     || (key.voice != null && !validVoiceId(key.voice))) || !validVoiceId(voice) || typeof tagNarration !== "function"
     || model !== ELEVENLABS_MODEL) throw failure("PROVIDER_CONFIG");

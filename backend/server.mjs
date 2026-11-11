@@ -1,3 +1,4 @@
+import { fetch as httpFetch } from "undici";
 import { createServer as httpServer } from "node:http";
 import { createReadStream } from "node:fs";
 import { mkdir, readFile, stat } from "node:fs/promises";
@@ -933,7 +934,7 @@ export function createApp({store,provider,osmGeocoder=null,foodIndex=null,parkin
  * startup; when that fails, only ELEVENLABS_VOICE_ID is offered.
  * @param {NodeJS.ProcessEnv} env @param {ReturnType<typeof createProvider> | null} provider @param {ReturnType<typeof createBackendLogger>} logs
  */
-export async function loadElevenLabsTts(env,provider,logs,fetchImpl=fetch) {
+export async function loadElevenLabsTts(env,provider,logs,fetchImpl=/** @type {typeof fetch} */ (/** @type {unknown} */ (httpFetch))) {
   const apiKeys=elevenLabsApiKeys(env),apiKey=apiKeys[0]?.apiKey;
   if(!apiKey)return null;
   if(apiKeys.some(key=>key.voice!==null&&!validVoiceId(key.voice))){console.warn("ElevenLabs is disabled: ELEVENLABS_API_KEYS has a malformed voice id; use key:voiceId");return null;}
