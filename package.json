@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "video:observe": "node scripts/video-observer/server.mjs",
     "dev:https": "next dev --experimental-https",
     "build": "node scripts/build-walk-catalog.mjs && next build && node scripts/build-content-security-policy.mjs && node scripts/build-service-worker.mjs",
     "start": "serve out",

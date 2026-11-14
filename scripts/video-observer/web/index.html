@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Создание роликов · Отголосок</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.mjs"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">К запуску</a>
+    <header class="app-header">
+      <a class="brand" href="/" aria-label="Отголосок, список запусков"
+        >отголосок<span aria-hidden="true">.</span></a
+      >
+      <div class="workspace-name">
+        Мастерская роликов <span class="local-label">локально</span>
+      </div>
+      <div class="refresh-controls">
+        <label class="auto-label"
+          ><input id="auto-refresh" type="checkbox" checked /> Обновлять каждые
+          15 с</label
+        >
+        <button id="refresh" type="button" class="button button-quiet">
+          Обновить
+        </button>
+      </div>
+    </header>
+    <div class="workspace">
+      <aside class="sidebar" aria-label="Запуски роликов">
+        <div class="sidebar-heading">
+          <h1>Запуски</h1>
+          <span id="run-count" class="count">—</span>
+        </div>
+        <label class="search-label" for="run-search">Найти запуск</label>
+        <input
+          id="run-search"
+          type="search"
+          placeholder="Дата, история или статус"
+          autocomplete="off"
+        />
+        <div id="run-list" class="run-list" aria-label="Выбор запуска">
+          <p class="muted">Читаем локальные данные…</p>
+        </div>
+        <p class="sidebar-footnote">
+          Только чтение. Сборка, правила редакции и публикация управляются
+          конвейером.
+        </p>
+      </aside>
+      <main id="main" tabindex="-1">
+        <div
+          id="connection-status"
+          role="status"
+          aria-live="polite"
+          class="connection-status"
+        >
+          Загружаем данные запусков…
+        </div>
+        <div id="global-warning"></div>
+        <div id="detail">
+          <div class="empty-state">
+            <span class="empty-mark" aria-hidden="true">↗</span>
+            <h2>Каждый запуск — на одной странице</h2>
+            <p>
+              Выберите запуск, чтобы увидеть его этапы, историю проверок и
+              места, где потребовалось вмешательство.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>
