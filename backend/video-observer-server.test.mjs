@@ -81,6 +81,15 @@ test("observer serves its local HTML, module and styles with restrictive browser
 
 test("observer lists actual runs and exposes per-run analysis and portable JSON/Markdown reports", async (t) => {
   const f = await fixture(t);
+  await writeFile(
+    path.join(path.dirname(f.source), "token-usage.jsonl"),
+    JSON.stringify({
+      id: "response-token-test",
+      stage: "script",
+      model: "test-model",
+      usage: { input_tokens: 100, output_tokens: 50, total_tokens: 150 },
+    }) + "\n",
+  );
   const listResponse = await f.get("/api/runs");
   assert.equal(listResponse.status, 200);
   const list = /** @type {any} */ (await listResponse.json());
@@ -91,6 +100,8 @@ test("observer lists actual runs and exposes per-run analysis and portable JSON/
   assert.equal(response.status, 200);
   const run = /** @type {any} */ (await response.json());
   assert.equal(run.id, f.date);
+  assert.equal(run.tokenUsage.totalTokens, 150);
+  assert.equal(run.tokenUsage.byStage[0].stage, "script");
   assert.ok(Array.isArray(run.analysis.good));
   assert.ok(Array.isArray(run.analysis.bad));
   assert.ok(Array.isArray(run.analysis.improve));
@@ -104,6 +115,7 @@ test("observer lists actual runs and exposes per-run analysis and portable JSON/
   const json = /** @type {any} */ (await jsonResponse.json());
   assert.equal(json.id, run.id);
   assert.deepEqual(json.analysis, run.analysis);
+  assert.deepEqual(json.tokenUsage, run.tokenUsage);
   const markdownResponse = await f.get(`/api/runs/${f.date}/report.md`);
   assert.equal(markdownResponse.status, 200);
   assert.match(markdownResponse.headers.get("content-type"), /text\/markdown/);

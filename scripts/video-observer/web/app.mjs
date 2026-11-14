@@ -23,6 +23,7 @@ const timeFormat = new Intl.DateTimeFormat("ru-RU", {
   minute: "2-digit",
   second: "2-digit",
 });
+const countFormat = new Intl.NumberFormat("ru-RU");
 const stageStatuses = {
   complete: "Пройден",
   current: "В работе",
@@ -109,6 +110,11 @@ function duration(value) {
   return minutes < 60
     ? `${minutes} мин ${seconds % 60} с`
     : `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
+}
+function tokenCount(value) {
+  return Number.isSafeInteger(value) && value >= 0
+    ? countFormat.format(value)
+    : "Нет данных";
 }
 function tone(status) {
   if (
@@ -387,6 +393,7 @@ function renderOverview(detail) {
     ["Ремонты", text(summary.repairCount)],
     ["Рендеры", text(summary.renderCount)],
     ["Ошибки в истории", text(summary.errorCount)],
+    ["Токены по журналам", tokenCount(detail.tokenUsage?.totalTokens)],
   ]) {
     stats.append(
       append(node("div", "stat"), node("dt", "", label), node("dd", "", value)),
@@ -526,6 +533,172 @@ function renderTime(detail) {
       chart.append(row);
     }
   element.append(chart);
+  return element;
+}
+function renderTokens(detail) {
+  const usage = detail.tokenUsage;
+  const element = section(
+    "tokens",
+    "Токены моделей",
+    "Учтено по сохранённым данным. Вызовы без usage не включены; исторические журналы могут содержать лишь часть расхода.",
+  );
+  const available = usage && usage.status !== "unavailable";
+  element
+    .querySelector(".section-heading")
+    .append(
+      badge(
+        available ? "waiting" : "unknown",
+        available ? "Частичный учёт" : "Нет подтверждённых данных",
+      ),
+    );
+  const summary = node("div", "token-summary");
+  const stats = node("dl", "stats");
+  for (const [label, value] of [
+    ["Всего учтено", usage?.totalTokens],
+    ["Вход", usage?.inputTokens],
+    ["Выход", usage?.outputTokens],
+    ["Из входа — кеш", usage?.cachedInputTokens],
+    ["Из выхода — рассуждение", usage?.reasoningOutputTokens],
+  ]) {
+    stats.append(
+      append(
+        node("div", "stat"),
+        node("dt", "", label),
+        node("dd", "", tokenCount(value)),
+      ),
+    );
+  }
+  const calls = Number.isSafeInteger(usage?.calls) ? usage.calls : 0;
+  const sources = Number.isSafeInteger(usage?.sourceCount)
+    ? usage.sourceCount
+    : 0;
+  append(
+    summary,
+    stats,
+    node(
+      "p",
+      "token-coverage",
+      `Учтённых вызовов: ${countFormat.format(calls)} · Источников: ${countFormat.format(sources)}. Кеш и рассуждение входят в соответствующие суммы и повторно не прибавляются.`,
+    ),
+  );
+  if (usage?.missingUsageCount > 0) {
+    summary.append(
+      node(
+        "p",
+        "token-coverage token-limit",
+        `Наблюдений без usage: ${tokenCount(usage.missingUsageCount)}. Полный расход запуска неизвестен.`,
+      ),
+    );
+  }
+  if (usage?.excludedDuplicateCount > 0) {
+    summary.append(
+      node(
+        "p",
+        "token-coverage",
+        `Повторных записей исключено: ${tokenCount(usage.excludedDuplicateCount)}.`,
+      ),
+    );
+  }
+  element.append(summary);
+  if (usage?.estimatedCalls > 0 || usage?.estimatedTokens != null) {
+    const estimate = append(
+      node("div", "token-estimate"),
+      node("strong", "", "Оценка провайдера"),
+      node(
+        "p",
+        "",
+        `${tokenCount(usage.estimatedTokens)} токенов · Вызовов: ${tokenCount(usage.estimatedCalls)}. Эта оценка показана отдельно и не прибавляется к подтверждённым суммам.`,
+      ),
+    );
+    element.append(estimate);
+  }
+  if (usage?.notes?.length) element.append(notice(usage.notes));
+
+  const stages = usage?.byStage || [];
+  if (stages.length) {
+    const { wrap, body } = table([
+      "Этап",
+      "Вызовы",
+      "Вход",
+      "Выход",
+      "Всего",
+      "Кеш во входе",
+      "Рассуждение в выходе",
+    ]);
+    wrap.classList.add("token-table");
+    for (const stage of stages) {
+      body.append(
+        append(
+          node("tr"),
+          node("td", "table-main", stage.label || stageName(stage.stage)),
+          node("td", "token-number", tokenCount(stage.calls)),
+          node("td", "token-number", tokenCount(stage.inputTokens)),
+          node("td", "token-number", tokenCount(stage.outputTokens)),
+          node("td", "token-number token-total", tokenCount(stage.totalTokens)),
+          node("td", "token-number", tokenCount(stage.cachedInputTokens)),
+          node("td", "token-number", tokenCount(stage.reasoningOutputTokens)),
+        ),
+      );
+    }
+    element.append(wrap);
+  } else {
+    element.append(
+      node(
+        "p",
+        "inline-empty",
+        "Для разбивки по этапам пока нет сохранённых измерений токенов.",
+      ),
+    );
+  }
+
+  for (const [estimated, label] of [
+    [false, "Учтённые вызовы"],
+    [true, "Вызовы с оценкой провайдера"],
+  ]) {
+    const records = (usage?.records || []).filter(
+      (record) => Boolean(record.estimated) === estimated,
+    );
+    if (!records.length) continue;
+    const details = node("details", "token-records");
+    details.append(
+      node("summary", "", `${label} · ${countFormat.format(records.length)}`),
+    );
+    const { wrap, body } = table([
+      "Вызов и источник",
+      "Вход",
+      "Выход",
+      estimated ? "Оценка всего" : "Всего",
+      "Кеш во входе",
+      "Рассуждение в выходе",
+    ]);
+    wrap.classList.add("token-table");
+    for (const record of records) {
+      const source = append(
+        node("td", "table-description"),
+        node("div", "table-main", stageName(record.stage)),
+        node("p", "", text(record.model, "Модель не записана")),
+        node("p", "mono muted", text(record.id, "Идентификатор не записан")),
+        evidence(record.evidence),
+      );
+      body.append(
+        append(
+          node("tr"),
+          source,
+          node("td", "token-number", tokenCount(record.inputTokens)),
+          node("td", "token-number", tokenCount(record.outputTokens)),
+          node(
+            "td",
+            "token-number token-total",
+            tokenCount(record.totalTokens),
+          ),
+          node("td", "token-number", tokenCount(record.cachedInputTokens)),
+          node("td", "token-number", tokenCount(record.reasoningOutputTokens)),
+        ),
+      );
+    }
+    details.append(wrap);
+    element.append(details);
+  }
   return element;
 }
 function renderAnalysis(detail) {
@@ -883,6 +1056,7 @@ function renderDetail() {
   nav.setAttribute("aria-label", "Разделы запуска");
   for (const [id, label] of [
     ["stages", "Этапы"],
+    ["tokens", "Токены"],
     ["analysis", "Разбор"],
     ["rules", "Правила"],
     ["repairs", "Исправления"],
@@ -896,6 +1070,7 @@ function renderDetail() {
     nav,
     renderStages(detail),
     renderTime(detail),
+    renderTokens(detail),
     renderAnalysis(detail),
     renderRules(detail),
     renderRepairs(detail),

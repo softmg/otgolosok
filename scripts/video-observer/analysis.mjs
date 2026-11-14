@@ -201,6 +201,7 @@ export function createAiBrief(run) {
     "Каждое утверждение свяжи с evidence (путь и строка), отдели факт от гипотезы. Не называй отсутствие result.json живым процессом. Не считай новый timestamp или новый текст отчёта новым результатом. Отпечаток изменённого файла ещё не подтверждает принятый прогресс.",
     "Отдели инфраструктуру от редакции, длительность рендера от ожидания, действующий блокер от исторического. Успешная публикация имеет приоритет над старым отказом. Частые отклонения не доказывают, что правило слишком строгое. Не предлагай ослаблять требования к фактам, лицензиям и происхождению звука без доказательств.",
     "Для каждого предложения укажи эффект, риск и способ проверить. Не изменяй пайплайн и не публикуй ролик в рамках разбора.",
+    "tokenUsage содержит только сохранённые счётчики: сумма частичная, отсутствие usage не равно нулю. usage.estimated показан отдельно. Кеш и reasoning уже входят во вход/выход. Сравнивай токены запусков только с учётом покрытия данных; не называй частичную сумму полным расходом.",
     JSON.stringify({ ...run, aiBrief: undefined }, null, 2),
   ].join("\n\n");
 }
@@ -221,6 +222,33 @@ export function reportMarkdown(run) {
     "Подсказки построены локальными правилами. Редакционные гипотезы требуют проверки; запрос к внешней модели не выполнялся.",
     "",
   ];
+  if (run.tokenUsage) {
+    const usage = run.tokenUsage;
+    const format = (value) =>
+      value === null || value === undefined
+        ? "нет данных"
+        : new Intl.NumberFormat("ru-RU").format(value);
+    lines.push(
+      "## Токены",
+      "",
+      `Учтено по сохранённым данным: ${format(usage.totalTokens)}. Вход: ${format(usage.inputTokens)}, выход: ${format(usage.outputTokens)}.`,
+      "",
+      `Кеш во входе: ${format(usage.cachedInputTokens)}. Рассуждения в выходе: ${format(usage.reasoningOutputTokens)}. Повторно к итогу не прибавляются.`,
+      "",
+    );
+    if (usage.estimatedCalls)
+      lines.push(
+        `Отдельная оценка провайдера: ${format(usage.estimatedTokens)} токенов, ${usage.estimatedCalls} вызовов; в подтверждённую сумму не включена.`,
+        "",
+      );
+    for (const note of usage.notes ?? []) lines.push(`- ${note}`);
+    lines.push("");
+    for (const row of usage.byStage ?? [])
+      lines.push(
+        `- ${row.label}: ${format(row.totalTokens)} токенов (${row.calls} вызовов).`,
+      );
+    lines.push("");
+  }
   for (const [key, label] of [
     ["good", "Что сработало"],
     ["bad", "Что мешало"],

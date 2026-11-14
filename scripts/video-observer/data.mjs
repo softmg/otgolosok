@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { collectTokenUsage } from "./tokens.mjs";
 
 const MAX_JSON = 2 * 1024 * 1024;
 const MAX_LOG = 4 * 1024 * 1024;
@@ -188,6 +189,42 @@ async function reader(root) {
           .catch(() => warn("Не удалось закрыть файл: " + file.label));
     }
   };
+  const payload = async (relative, maxBytes) => {
+    if (Date.now() > deadline || readBytes >= 160 * 1024 * 1024) {
+      warn(
+        "Достигнут общий лимит чтения; данные о токенах могут быть неполными.",
+      );
+      return null;
+    }
+    const file = await safe(relative);
+    if (!file) return null;
+    if (
+      !file.stat.isFile() ||
+      file.stat.size > maxBytes ||
+      readBytes + file.stat.size > 160 * 1024 * 1024
+    ) {
+      warn("Источник токенов пропущен из-за лимита размера: " + file.label);
+      return null;
+    }
+    readBytes += file.stat.size;
+    let handle;
+    try {
+      handle = await fs.open(file.real, "r");
+      const buffer = Buffer.alloc(file.stat.size);
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
+      return buffer.subarray(0, bytesRead).toString("utf8");
+    } catch {
+      warn("Источник токенов недоступен: " + file.label);
+      return null;
+    } finally {
+      if (handle)
+        await handle
+          .close()
+          .catch(() =>
+            warn("Не удалось закрыть источник токенов: " + file.label),
+          );
+    }
+  };
   const names = async (relative, optional = true) => {
     const directory = await safe(relative, optional);
     if (!directory) return [];
@@ -252,6 +289,7 @@ async function reader(root) {
     json,
     names,
     log,
+    payload,
   };
 }
 
@@ -449,6 +487,11 @@ export async function loadRun({ root, id, now = new Date().toISOString() }) {
   const b = await baseRun(r, id, now);
   const home = `${b.daily}/durable`;
   const runDir = `${b.daily}/shorts/runs/tomorrow-${id}`;
+  const tokenUsage = await collectTokenUsage(r, {
+    daily: b.daily,
+    runDir,
+    work: typeof b.plan?.work === "string" ? r.evidence(b.plan.work) : null,
+  });
   const events = [],
     repairs = [],
     ruleMap = new Map(),
@@ -911,6 +954,7 @@ export async function loadRun({ root, id, now = new Date().toISOString() }) {
       errorCount: events.filter((event) => event.kind === "error").length,
     },
     stages,
+    tokenUsage,
     events,
     repairs,
     rules: [...ruleMap.values()].sort(
