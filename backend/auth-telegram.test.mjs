@@ -166,11 +166,12 @@ test("malformed server agreement evidence fails closed on Telegram callback", as
   const f = await oauthFixture(t);
   for (const acceptedAt of ["2000-01-01", 8.64e15 + 1, -1, 1.5]) {
     const flow = await f.start();
-    const state = flow.url.searchParams.get("state");
-    const record = f.runtime.database.prepare("SELECT value FROM verification WHERE identifier=?").get(state);
+    const identifier = `auth-state:${flow.url.searchParams.get("state")}`;
+    const record = f.runtime.database.prepare("SELECT value FROM verification WHERE identifier=?").get(identifier);
+    assert.ok(record);
     const stored = JSON.parse(String(record.value));
     stored.serverContext.termsAcceptance.acceptedAt = acceptedAt;
-    f.runtime.database.prepare("UPDATE verification SET value=? WHERE identifier=?").run(JSON.stringify(stored), state);
+    f.runtime.database.prepare("UPDATE verification SET value=? WHERE identifier=?").run(JSON.stringify(stored), identifier);
     const response = await f.callback(flow, "telegram-malformed-evidence");
     assert.equal(new URL(response.headers.get("location"), origin).searchParams.get("error"), "TERMS_REQUIRED");
     assert.equal(f.runtime.database.prepare("SELECT COUNT(*) AS count FROM user").get().count, 0);

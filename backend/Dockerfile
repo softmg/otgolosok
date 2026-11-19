@@ -1,7 +1,7 @@
-FROM node:24.20.0-bookworm-slim
+FROM node:24.22.3-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54
 RUN apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=1 update && apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -y --no-install-recommends install ffmpeg ca-certificates python3 python3-venv && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY vendor/softmg-airouter-logs-0.1.0.tgz ./vendor/
 RUN corepack enable && pnpm install --prod --frozen-lockfile
 COPY backend/requirements.txt ./

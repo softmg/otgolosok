@@ -21,8 +21,8 @@ it("stays flat and uses only its own generated icons", () => {
 function iconAt(zoom: number, sourceLayer: string, properties: Record<string, string>) {
   for (const layer of mapStyle.layers) {
     if (layer.type !== "symbol" || layer["source-layer"] !== sourceLayer || !layer.layout?.["icon-image"]) continue;
-    if ((layer.minzoom ?? 0) > zoom || !featureFilter(layer.filter).filter({ zoom }, { type: 1, properties })) continue;
-    const icon = createExpression(layer.layout["icon-image"]);
+    if ((layer.minzoom ?? 0) > zoom || !featureFilter(layer.filter, `${layer.id}.filter`).filter({ zoom }, { type: 1, properties })) continue;
+    const icon = createExpression(layer.layout["icon-image"], `${layer.id}.layout.icon-image`);
     if (icon.result !== "success") throw new Error(`invalid icon-image in ${layer.id}`);
     return String(icon.value.evaluate({ zoom }, { type: 1, properties }));
   }
@@ -59,7 +59,7 @@ it.each([
 
 const landLayers = mapStyle.layers.filter(layer => "source-layer" in layer && layer["source-layer"] === "land");
 const drawsAt = (zoom: number, kind: string) => landLayers.some(layer =>
-  (layer.minzoom ?? 0) <= zoom && "filter" in layer && featureFilter(layer.filter).filter({ zoom }, { type: 3, properties: { kind } }));
+  (layer.minzoom ?? 0) <= zoom && "filter" in layer && featureFilter(layer.filter, `${layer.id}.filter`).filter({ zoom }, { type: 3, properties: { kind } }));
 
 it("never draws ESA WorldCover landcover, which owes credit beyond OpenStreetMap", () => {
   for (const [kind, maxZoom] of Object.entries(ESA_LANDCOVER_MAX_ZOOM)) {
@@ -94,6 +94,6 @@ it.each([
   const labels = mapStyle.layers.filter(layer => "source-layer" in layer && layer["source-layer"] === "water_lines_labels");
   expect(labels.length).toBeGreaterThan(0);
   const feature = { type: 2 as const, properties: { kind, name } };
-  const shown = labels.some(layer => "filter" in layer && featureFilter(layer.filter).filter({ zoom: 16 }, feature));
+  const shown = labels.some(layer => "filter" in layer && featureFilter(layer.filter, `${layer.id}.filter`).filter({ zoom: 16 }, feature));
   expect(shown).toBe(named);
 });
