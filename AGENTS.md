@@ -32,6 +32,8 @@ Whenever you identify a workaround, defect, or reliability risk, please highligh
 
 Разрешено собирать и публиковать второй выпуск YouTube Shorts в ту же московскую календарную дату, если разница по времени публикации между выпусками превышает 8 часов (например, предыдущий выпуск вышел с опозданием после полуночи МСК, а текущий слот — вечером); такой более ранний ролик не считается дублем текущего слота и не блокирует сборку или публикацию.
 
+В общих скриптах конвейера `otgolosok-creative/scripts/*.mjs` запрещено хардкодить сюжетные строки, имена, адреса, плашки обложек, подписи остановок и списки фраз субтитров конкретного выпуска. Все выпуск-специфичные параметры (`storyCoverPlaque`, `storyCoverPhoto`, `captionPhrases`, `compactCaptionPhrases`, `storyPhotos`, `storyPhotoFraming`, `routeFinaleLayout`) хранить только в данных самого выпуска (`data/daily/YYYY-MM-DD/`).
+
 ## Commits and branches
 
 - Please make git atomic commits by yourself when a task or phase is finished. Follow the repository's existing commit conventions and contribution guidelines, if present (for example, CONTRIBUTING.md, AGENTS.md, or conventions evident from recent commit history). If the repository does not define its own commit-message convention, use Conventional Commits. 
