@@ -1,0 +1,357 @@
+{
+  "mode": "enqueue",
+  "at": "2026-10-18T07:57:55.519Z",
+  "count": 35,
+  "results": [
+    {
+      "placeId": "osm:relation:85762",
+      "name": "Малый театр",
+      "textId": "7a824a56-2284-4ee8-8a09-64f81b3c1035",
+      "reason": "старый текст",
+      "requestId": "e4509e5d-aeca-53cc-b525-c3b2d761d594",
+      "audioJobId": "2d67e8b7-9ae6-4fc3-8084-1755a66ce631",
+      "state": "queued",
+      "previousAudioSha256": "4b5646746c04ff91e5c4b1714755a830af36e6af5d7f75ec0d95ecfdd165a853"
+    },
+    {
+      "placeId": "osm:node:4639900102",
+      "name": "А. Н. Островскому",
+      "textId": "2f51e87f-0301-496b-bf20-c405f4711e86",
+      "reason": "старый текст",
+      "requestId": "c739c8d7-4728-5188-939e-a472d5ce699b",
+      "audioJobId": "147664f3-b2f3-4610-841e-0d99ce276072",
+      "state": "queued",
+      "previousAudioSha256": "20a129cca7f8ebf4f4aa5b4920dbb94e30d044020f1b0c102b579d61466302a6"
+    },
+    {
+      "placeId": "osm:node:10030895986",
+      "name": "Квадрига Аполлона",
+      "textId": "6bba0905-f7a3-43cd-9b8d-2f34b2d8967e",
+      "reason": "external/f5",
+      "requestId": "bf60a7e8-1fbf-5aab-82a2-13b51aa82b11",
+      "audioJobId": "0633b5fe-7cd2-4c66-9bcc-3828a7785bc0",
+      "state": "queued",
+      "previousAudioSha256": "5aaf41f34b1ba1e46a135f759eec247eb81783a81e2f21eaf592acadcbbb91e5"
+    },
+    {
+      "placeId": "osm:relation:6204093",
+      "name": "Большой театр (Новая сцена)",
+      "textId": "b703c05e-93dd-486f-8d7e-250f8c5f6d07",
+      "reason": "external/f5",
+      "requestId": "2b9ed7ec-7d87-51f1-9ebf-3bbabaf3dc38",
+      "audioJobId": "89c52ea9-5565-4b76-a35b-0ffd60a60c94",
+      "state": "queued",
+      "previousAudioSha256": "f7e93dfefdd2e7bd7e44bf255c89aac25c5d3718cde3b66262cca6ad98693554"
+    },
+    {
+      "placeId": "osm:way:46513023",
+      "name": "Театр оперетты",
+      "textId": "2be1919a-d7bf-4b06-b3e1-edd158afa786",
+      "reason": "external/f5",
+      "requestId": "3e927192-964a-5db3-83cc-c4fc61de6b1d",
+      "audioJobId": "62118ec8-4459-403e-affe-7a244b2636a6",
+      "state": "queued",
+      "previousAudioSha256": "775618077aab162e380087ff639c061e94b928f4f7e69c02e26e6eab2b4fae9d"
+    },
+    {
+      "placeId": "osm:node:1161887242",
+      "name": "Музей С. С. Прокофьева",
+      "textId": "c27842aa-fede-45a7-97d8-c2a9733b4565",
+      "reason": "external/f5",
+      "requestId": "80aa6335-0ebe-58a9-aa69-1b0ec4a3498e",
+      "audioJobId": "1a99b732-ce24-4210-99e4-a9caaa3aa4f0",
+      "state": "queued",
+      "previousAudioSha256": "4b9b33c9c08272410fa1e1eb645f2bd7a4460b6b47cc11aeaa6ed62c192e0b0b"
+    },
+    {
+      "placeId": "osm:relation:2669483",
+      "name": "Российская государственная библиотека искусств",
+      "textId": "c7509d50-a6c7-4f1f-a64b-8c4cb0848228",
+      "reason": "старый текст",
+      "requestId": "2a94d7af-287e-5f27-8eae-12c820861db0",
+      "audioJobId": "c575f546-b6e9-459c-9c2d-ae2af7657fbf",
+      "state": "queued",
+      "previousAudioSha256": "baa3b0f461c3983dc5d44ade06c9231eaa87bcf599bb14069616c8aef7a6bdce"
+    },
+    {
+      "placeId": "osm:relation:6210567",
+      "name": "Савой",
+      "textId": "a45de4f9-e483-416e-bb6d-56578b6da6eb",
+      "reason": "external/f5",
+      "requestId": "095a322b-9fac-5f2e-8a11-a7ced894855b",
+      "audioJobId": "9d19c578-62ef-4e0d-96e1-37722bdf265d",
+      "state": "queued",
+      "previousAudioSha256": "e1440b4aa1d8d90d74d86b693a3d350900ff7ceb1fdf051f902d8cdb3376abb8"
+    },
+    {
+      "placeId": "osm:relation:11369155",
+      "name": "Храм Софии Премудрости Божией",
+      "textId": "9a51678c-f242-4ef3-993f-f011df8cf3f5",
+      "reason": "external/f5",
+      "requestId": "b197fe2e-7ad8-53f2-9a7d-48003c04be25",
+      "audioJobId": "fa6a234e-78e8-4f62-9f27-34c4650c5503",
+      "state": "queued",
+      "previousAudioSha256": "33c09048aacdb8a43e91855a6eeb3bc6839c7374d69cb66d47eb24b697a81661"
+    },
+    {
+      "placeId": "osm:way:52475408",
+      "name": "Палаты тверского подворья",
+      "textId": "905cdb57-53dc-4b36-adce-a9a802a45d28",
+      "reason": "external/f5",
+      "requestId": "72ea9c7f-6955-5f1e-88be-4d1043536867",
+      "audioJobId": "a2acee4b-8dba-4074-aabd-1a1a1a18e781",
+      "state": "queued",
+      "previousAudioSha256": "f0671f20fcaa0f45a667cd211cb77f9dc5fe564530480923fb8755967553a998"
+    },
+    {
+      "placeId": "osm:relation:2669510",
+      "name": "Московский дом художника",
+      "textId": "068ddb96-cc6b-4c36-854f-85985169b798",
+      "reason": "external/f5",
+      "requestId": "ccf88092-d26e-5923-9f2a-9277023008d8",
+      "audioJobId": "0b1e221f-9f3e-4304-a1c4-27cb42661396",
+      "state": "queued",
+      "previousAudioSha256": "9c748edb60736a5edcd063591dd8f94cda4b3b4a4c935d5ed843ad6c406ae2c5"
+    },
+    {
+      "placeId": "osm:relation:17096998",
+      "name": "Институт востоковедения РАН",
+      "textId": "e3aee80e-ce51-4d3a-a126-5bb107400d8b",
+      "reason": "старый текст",
+      "requestId": "d480a712-a1bc-5037-a8ad-4f1c065028b9",
+      "audioJobId": "313f7092-49a3-40f8-be0e-b26c3113d9c9",
+      "state": "queued",
+      "previousAudioSha256": "feb989d29c55087c12e8ac962750ab07b7100388c8c05ffea21b5b344b8fc7c0"
+    },
+    {
+      "placeId": "osm:relation:6812723",
+      "name": "Сандуновские бани",
+      "textId": "22c7e013-db76-498d-bfc9-756c2be66e96",
+      "reason": "external/f5",
+      "requestId": "8114254b-fda0-5ffc-9c2f-183c5f7406a3",
+      "audioJobId": "aab33d20-565a-43b4-9fa3-6050bca9c9da",
+      "state": "queued",
+      "previousAudioSha256": "09557aa4e6e29f850207d1b9a211ed8ea5867776f84c2e0aa2750ecbae1a56d5"
+    },
+    {
+      "placeId": "osm:way:96935135",
+      "name": "Банк России",
+      "textId": "991d12bb-39ac-4be5-813f-67cb17c4ac15",
+      "reason": "external/f5",
+      "requestId": "bf5c3608-5593-5b8b-97bf-8a4886d07240",
+      "audioJobId": "080814e6-f6a4-4a6f-967a-6bbbd2a98773",
+      "state": "queued",
+      "previousAudioSha256": "df5c59582fccca85a3aea314c7a536370c8104a9bfa2bce1d49b6ca580883fc6"
+    },
+    {
+      "placeId": "osm:relation:456961",
+      "name": "Музыкальный театр им. Станиславского и Немировича-Данченко",
+      "textId": "c448a8b4-da1f-40b5-b4f1-c8f82a2cd2d7",
+      "reason": "external/f5",
+      "requestId": "f582662d-3935-5232-b6f5-8fdd180c3e40",
+      "audioJobId": "8860a186-7b46-4df1-b420-a787262815ca",
+      "state": "queued",
+      "previousAudioSha256": "a127207c4b489a944336209a14af6a794d4312a9f5da677087ed7c8a9a5f6a7e"
+    },
+    {
+      "placeId": "osm:relation:3138566",
+      "name": "Нарышкинские палаты",
+      "textId": "1ebc0c38-c3ce-4740-a06f-3bb66c5b9251",
+      "reason": "старый текст",
+      "requestId": "00c10ac7-6cf5-5459-b680-98de4b662a68",
+      "audioJobId": "625c59c7-66c1-4f24-94be-f38e77274676",
+      "state": "queued",
+      "previousAudioSha256": "304f98cfaca57637aac467ab4cf1eef7bc4d21322b1222b2009dd658c8f0ce94"
+    },
+    {
+      "placeId": "osm:node:250525422",
+      "name": "Покорителям космоса",
+      "textId": "38c374a6-662a-445d-aa98-488a917a50bd",
+      "reason": "external/f5",
+      "requestId": "0780580b-17b5-5d1f-88d6-2a6cc8d737fb",
+      "audioJobId": "30797a71-2de6-445d-8b11-33dfb6dbd3cb",
+      "state": "queued",
+      "previousAudioSha256": "659d4c5f38c36c39798c1aefe65310533ea85b0fa7b131f26f16c45303ed59e2"
+    },
+    {
+      "placeId": "osm:relation:18440666",
+      "name": "Мемориальный музей космонавтики",
+      "textId": "f68b5656-b196-4238-b7d0-d2622aad2807",
+      "reason": "external/f5",
+      "requestId": "4d6751d6-24e4-5aa7-8b1b-715ef297be71",
+      "audioJobId": "7b754b9d-0208-4922-bbbb-a7d2e1c6eccb",
+      "state": "queued",
+      "previousAudioSha256": "a3a48b0b9a41e529646f1840247ab864c21aa274c6cb7dea8ae37f412ca243db"
+    },
+    {
+      "placeId": "osm:relation:1391529",
+      "name": "Главный вход ВДНХ",
+      "textId": "7d51c0d0-e6ae-4c70-adc7-251fb65f9f78",
+      "reason": "external/f5",
+      "requestId": "fec854da-f6b7-57f4-8c14-eeba31f04417",
+      "audioJobId": "216309df-d351-4584-8aab-defa2199744b",
+      "state": "queued",
+      "previousAudioSha256": "be12d7b2129560dc7c76aa4b15e8204a26135a9364baec11461fdea33bf23683"
+    },
+    {
+      "placeId": "osm:relation:12859332",
+      "name": "Павильон № 1 (Центральный). Экспозиция Третьяковской галереи",
+      "textId": "b8d2697e-08df-46b9-ade1-28e73333637e",
+      "reason": "external/f5",
+      "requestId": "aea23860-a364-5fce-9756-1cc5b5989ed7",
+      "audioJobId": "d023faaf-a679-4759-9458-8b94b3554152",
+      "state": "queued",
+      "previousAudioSha256": "bc5bc07f8869321bb21ef466a8d73af33d39961de193f9af6b6a9c0d4e278dc8"
+    },
+    {
+      "placeId": "osm:relation:14451091",
+      "name": "Павильон № 4. \"Кыргызстан\"",
+      "textId": "dace068e-fc39-439f-abe9-2b60b2492ec5",
+      "reason": "external/f5",
+      "requestId": "242a5448-ef3c-5ce7-acaa-6f2405bec941",
+      "audioJobId": "21fcb08e-ac6c-4b9d-ac77-58dc2b30413a",
+      "state": "queued",
+      "previousAudioSha256": "318011b39bb6630631ec5e7f05539a507d82fd21f4bfcbcf918deaa4e4e9c049"
+    },
+    {
+      "placeId": "osm:relation:14451088",
+      "name": "Павильон № 5. \"Физика\"",
+      "textId": "46f47d7a-501d-4ab7-a567-acfe71c947ae",
+      "reason": "external/f5",
+      "requestId": "a7f322c2-5cf0-5a4e-8d8d-e437295690b8",
+      "audioJobId": "e69c2ffb-6615-467c-933c-ab35a56982ed",
+      "state": "queued",
+      "previousAudioSha256": "25136720982b2a359545993c9811da1450d5e26ba7f2c9c3700185277c18990c"
+    },
+    {
+      "placeId": "osm:way:28852197",
+      "name": "Павильон № 6. \"Абхазия\"",
+      "textId": "d19f4e83-60a6-4a67-a783-1a2b76c4c98a",
+      "reason": "external/f5",
+      "requestId": "9db58ce8-89d4-57f8-adfc-8f924840570e",
+      "audioJobId": "1d36149d-e9e1-455d-b0c1-e567a56adad3",
+      "state": "queued",
+      "previousAudioSha256": "e12228585c62dce1f708b20fc79081d2c9330b4e6a7cb7607272c1a34bbf021d"
+    },
+    {
+      "placeId": "osm:way:28867956",
+      "name": "Павильон № 10. \"Молдова\"",
+      "textId": "a793c36a-6d69-4948-a299-d25d1e42e428",
+      "reason": "external/f5",
+      "requestId": "1fd9ab93-cb18-5176-b380-f628dc46bdbd",
+      "audioJobId": "92225a54-9df3-4a95-a306-95ee65a28d97",
+      "state": "queued",
+      "previousAudioSha256": "a849518644b0baea093079411fbcd6bd00cf335c93c271a1e829a980e8a34a22"
+    },
+    {
+      "placeId": "osm:relation:14450821",
+      "name": "Павильон № 11. \"Казахстан\"",
+      "textId": "780884e4-97d3-4386-a575-752a5b9cb188",
+      "reason": "external/f5",
+      "requestId": "2d53de35-816d-5c4a-b0af-9761f95bfdfa",
+      "audioJobId": "3e314f4b-9ea9-4ee1-a51b-59fd0db7fdae",
+      "state": "queued",
+      "previousAudioSha256": "66830df22521896cb54f77dcf0ea73a5c8e460588c72a09be6991a50909bb715"
+    },
+    {
+      "placeId": "osm:way:28847473",
+      "name": "Павильон № 67. \"Карелия\"",
+      "textId": "8de5fb76-6403-4fd7-979a-bc978658c5b2",
+      "reason": "external/f5",
+      "requestId": "d0d82bd9-516d-5ee7-bae7-ee706ecedd26",
+      "audioJobId": "7d8a98c4-0ce2-4098-810d-d04ad0e20caa",
+      "state": "queued",
+      "previousAudioSha256": "99b1ed4a584e4390c43591880ada057f49fe76b2d7007f02d126d61778e62cd3"
+    },
+    {
+      "placeId": "osm:way:28847472",
+      "name": "Павильон № 68. \"Армения\"",
+      "textId": "f10d4c62-ea5b-4301-b70f-8b19d3572fbe",
+      "reason": "external/f5",
+      "requestId": "233cc3e5-5432-503c-9f63-ff455be5057c",
+      "audioJobId": "32a3a666-b340-4979-b8c8-7641293cedeb",
+      "state": "queued",
+      "previousAudioSha256": "68e6f59b5cc6e7d51a41846eb468d19f89b12959ceb8731db6312132277bbd94"
+    },
+    {
+      "placeId": "osm:way:28852195",
+      "name": "Павильон № 66. \"Узбекистан\"",
+      "textId": "d3752797-35c8-412f-9986-972a383880e4",
+      "reason": "external/f5",
+      "requestId": "6879b36b-2006-5304-8de1-7879610f8e53",
+      "audioJobId": "ce4928da-acbb-4522-bb62-2c911a1a0d12",
+      "state": "queued",
+      "previousAudioSha256": "a3738e5d4546916af6490848413f9431f82afcb96a3c367b9f11dc97633d5724"
+    },
+    {
+      "placeId": "osm:way:28847474",
+      "name": "Павильон № 64. \"Оптика\"",
+      "textId": "29bac2a6-a0a7-4764-a2bc-8015b391f0a1",
+      "reason": "external/f5",
+      "requestId": "0a992931-5b00-5a87-a1c8-9c311e321d54",
+      "audioJobId": "dd64e83b-4cbc-4d17-998e-d342ead7755d",
+      "state": "queued",
+      "previousAudioSha256": "272e0620415ad4722e6d33b348a9ae7ea58aff2d855a023055c2b37b51121116"
+    },
+    {
+      "placeId": "osm:way:28852219",
+      "name": "Павильон № 59. \"Зерно\"",
+      "textId": "4c39c880-df28-4f44-a7b7-d25cb31fd779",
+      "reason": "external/f5",
+      "requestId": "a83386e4-8121-5f18-bef4-974dafe38fa4",
+      "audioJobId": "9f4c7797-df33-442f-b4bd-9e6e8cab0252",
+      "state": "queued",
+      "previousAudioSha256": "7dbfbbadb4e7dfc1b296259d244a713f2a708b324e6f78144093b6a80ccd889a"
+    },
+    {
+      "placeId": "osm:node:253038783",
+      "name": "Музей Рерихов",
+      "textId": "8b0b4ce5-be1e-4f07-a507-abe4d16825d0",
+      "reason": "external/f5",
+      "requestId": "0e7a293c-75d1-5913-804b-10665b6223d8",
+      "audioJobId": "c7f986dd-2979-48c8-ab85-1902eb0f0ecf",
+      "state": "queued",
+      "previousAudioSha256": "70d5058bfcf9b1678be6c35181ff58885ba06436c518e6652f36099c8130fbfd"
+    },
+    {
+      "placeId": "osm:way:28852152",
+      "name": "Павильон № 14. \"Азербайджан\"",
+      "textId": "c37d0359-8b81-4662-a6c5-ee734ff8a85b",
+      "reason": "external/f5",
+      "requestId": "2c804c75-bed9-5959-9786-00803a25dc27",
+      "audioJobId": "c0ba5066-a4b3-4c5b-b536-025651fcd3ec",
+      "state": "queued",
+      "previousAudioSha256": "4fcc69e8202b7701f58831482721551fa70aa27089b42377fc8eca44c8cc3ec8"
+    },
+    {
+      "placeId": "osm:relation:19626017",
+      "name": "Павильон № 18. \"Республика Беларусь\"",
+      "textId": "4a70e9b7-5681-496c-8979-d5c1eaf7dff5",
+      "reason": "external/f5",
+      "requestId": "3d631fb6-3d8b-5ffe-a429-71c2846474dc",
+      "audioJobId": "cb103ff4-34ff-409d-989a-2d3375e7813e",
+      "state": "queued",
+      "previousAudioSha256": "7996edd55c0b87990f9588ef3189da874ecfa65543706f6ca3be331e9b7bab43"
+    },
+    {
+      "placeId": "osm:relation:402442",
+      "name": "Павильон № 26. Музей транспорта Москвы",
+      "textId": "247a4323-18a9-4dee-b7d6-d60bbfa337e9",
+      "reason": "external/f5",
+      "requestId": "5aad3f76-490d-5e45-abaf-7e358b4411fd",
+      "audioJobId": "bca338a4-4174-45e2-81ad-32bc1e74a435",
+      "state": "queued",
+      "previousAudioSha256": "2a413742111179a6591fe45444d78a56ef9891fb2e8d26978a8f2380638b0904"
+    },
+    {
+      "placeId": "osm:relation:14462503",
+      "name": "Павильон № 30. \"Микробиологическая промышленность\"",
+      "textId": "70d5072a-6af8-478d-be5f-4b1d542e4c19",
+      "reason": "external/f5",
+      "requestId": "ba9812b8-e488-564c-a772-09ca49d9915d",
+      "audioJobId": "f8cfbbbd-eeed-4be3-b4fc-c922fd9ec7da",
+      "state": "queued",
+      "previousAudioSha256": "fdabc33ea43a3e493d6343903b12ee52e85915229d7ee9894dc1929a50036335"
+    }
+  ]
+}
