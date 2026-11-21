@@ -9,7 +9,6 @@ import { fileURLToPath } from "node:url";
  */
 export const DEFAULT_ROLE_CHAINS = Object.freeze({
   light: [
-    { provider: "acp-antigravity-acp", model: "gemini-4-neon", reasoningLevel: "low" },
     { provider: "codex", model: "gpt-6-luna", reasoningLevel: "medium" },
     { provider: "claude-code", model: "claude-haiku-4-5-20251001", reasoningLevel: "low" },
     { provider: "claude-code", model: "claude-sonnet-5-5", reasoningLevel: "medium" },

@@ -75,11 +75,12 @@ test("happy path: preserves role priority and excludes grok completely", () => {
 
   assert.equal(res.demotedCodex, false);
   assert.equal(res.warnings.length, 0);
-  assert.equal(res.modelChains.light[0].model, "gemini-4-neon");
-  assert.equal(res.modelChains.light[0].reasoningLevel, "low");
-  assert.equal(res.modelChains.light[1].model, "gpt-6-luna");
-  assert.equal(res.modelChains.light[2].model, "claude-haiku-4-5-20251001");
-  assert.equal(res.modelChains.light[2].reasoningLevel, "low");
+  assert.equal(res.modelChains.light[0].provider, "codex");
+  assert.equal(res.modelChains.light[0].model, "gpt-6-luna");
+  assert.equal(res.modelChains.light[0].reasoningLevel, "medium");
+  assert.equal(res.modelChains.light[1].model, "claude-haiku-4-5-20251001");
+  assert.equal(res.modelChains.light[1].reasoningLevel, "low");
+  assert.equal(res.modelChains.light[2].model, "claude-sonnet-5-5");
   assert.equal(res.modelChains.worker[0].model, "gpt-6.2-sol");
   assert.equal(res.modelChains.visual[0].model, "gpt-6.1-terra");
   assert.equal(res.modelChains.architect[0].model, "gpt-6.2-astra");
@@ -92,7 +93,7 @@ test("happy path: preserves role priority and excludes grok completely", () => {
 test("missing models and models without supportedReasoningEfforts are skipped cleanly", () => {
   const partialModels = {
     ...SAMPLE_MODELS,
-    codex: SAMPLE_MODELS.codex.filter((m) => m.id !== "gpt-6.1-terra" && m.id !== "gpt-6.2-astra"),
+    codex: SAMPLE_MODELS.codex.filter((m) => m.id !== "gpt-6-luna" && m.id !== "gpt-6.1-terra" && m.id !== "gpt-6.2-astra"),
     "acp-antigravity-acp": SAMPLE_MODELS["acp-antigravity-acp"].filter((m) => m.id !== "gemini-4-neon"),
   };
 
@@ -102,7 +103,7 @@ test("missing models and models without supportedReasoningEfforts are skipped cl
     poolStatus: null,
   });
 
-  assert.equal(res.modelChains.light[0].model, "gpt-6-luna");
+  assert.equal(res.modelChains.light[0].model, "claude-haiku-4-5-20251001");
   assert.equal(res.modelChains.visual[0].model, "gpt-6.2-sol");
   assert.equal(res.modelChains.architect[0].provider, "claude-code");
   assert.equal(res.modelChains.architect[0].model, "claude-opus-5-5");

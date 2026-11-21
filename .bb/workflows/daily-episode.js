@@ -165,15 +165,6 @@ const COMMON_RULES = [
 async function invokeLiteralAgent(spec, prompt, stepLabel, phaseName, schema) {
   const key = `${spec.provider}/${spec.model}/${spec.reasoningLevel}`;
   switch (key) {
-    case "acp-antigravity-acp/gemini-4-neon/low":
-      return await agent(prompt, {
-        label: stepLabel,
-        phase: phaseName,
-        schema: schema,
-        provider: "acp-antigravity-acp",
-        model: "gemini-4-neon",
-        reasoningLevel: "low",
-      });
     case "acp-antigravity-acp/gemini-4-neon/high":
       return await agent(prompt, {
         label: stepLabel,
