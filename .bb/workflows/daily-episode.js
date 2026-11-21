@@ -44,12 +44,12 @@ export const meta = {
             minItems: 1,
             items: {
               type: "object",
-              required: ["provider", "model", "reasoningLevel"],
+              required: ["provider", "model"],
               additionalProperties: false,
               properties: {
                 provider: { type: "string", minLength: 1 },
                 model: { type: "string", minLength: 1 },
-                reasoningLevel: { type: "string", minLength: 1 },
+                reasoningLevel: { type: "string", minLength: 1, nullable: true },
               },
             },
           },
@@ -58,12 +58,12 @@ export const meta = {
             minItems: 1,
             items: {
               type: "object",
-              required: ["provider", "model", "reasoningLevel"],
+              required: ["provider", "model"],
               additionalProperties: false,
               properties: {
                 provider: { type: "string", minLength: 1 },
                 model: { type: "string", minLength: 1 },
-                reasoningLevel: { type: "string", minLength: 1 },
+                reasoningLevel: { type: "string", minLength: 1, nullable: true },
               },
             },
           },
@@ -72,12 +72,12 @@ export const meta = {
             minItems: 1,
             items: {
               type: "object",
-              required: ["provider", "model", "reasoningLevel"],
+              required: ["provider", "model"],
               additionalProperties: false,
               properties: {
                 provider: { type: "string", minLength: 1 },
                 model: { type: "string", minLength: 1 },
-                reasoningLevel: { type: "string", minLength: 1 },
+                reasoningLevel: { type: "string", minLength: 1, nullable: true },
               },
             },
           },
@@ -86,12 +86,12 @@ export const meta = {
             minItems: 1,
             items: {
               type: "object",
-              required: ["provider", "model", "reasoningLevel"],
+              required: ["provider", "model"],
               additionalProperties: false,
               properties: {
                 provider: { type: "string", minLength: 1 },
                 model: { type: "string", minLength: 1 },
-                reasoningLevel: { type: "string", minLength: 1 },
+                reasoningLevel: { type: "string", minLength: 1, nullable: true },
               },
             },
           },
@@ -163,8 +163,26 @@ const COMMON_RULES = [
 ].join("\n");
 
 async function invokeLiteralAgent(spec, prompt, stepLabel, phaseName, schema) {
-  const key = `${spec.provider}/${spec.model}/${spec.reasoningLevel}`;
+  const key = spec.reasoningLevel
+    ? `${spec.provider}/${spec.model}/${spec.reasoningLevel}`
+    : `${spec.provider}/${spec.model}`;
   switch (key) {
+    case "acp-antigravity-acp/gemini-3.8-flash":
+      return await agent(prompt, {
+        label: stepLabel,
+        phase: phaseName,
+        schema: schema,
+        provider: "acp-antigravity-acp",
+        model: "gemini-3.8-flash",
+      });
+    case "acp-opencode/opencode/deepseek-v4.1-flash-free":
+      return await agent(prompt, {
+        label: stepLabel,
+        phase: phaseName,
+        schema: schema,
+        provider: "acp-opencode",
+        model: "opencode/deepseek-v4.1-flash-free",
+      });
     case "acp-antigravity-acp/gemini-4-neon/high":
       return await agent(prompt, {
         label: stepLabel,

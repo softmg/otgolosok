@@ -87,12 +87,18 @@ test("happy path: preserves role priority and excludes grok completely", () => {
   assert.equal(res.modelChains.light[0].provider, "codex");
   assert.equal(res.modelChains.light[0].model, "gpt-6-luna");
   assert.equal(res.modelChains.light[0].reasoningLevel, "medium");
-  assert.equal(res.modelChains.light[1].model, "claude-haiku-4-5-20251001");
-  assert.equal(res.modelChains.light[1].reasoningLevel, "low");
-  assert.equal(res.modelChains.light[2].model, "claude-sonnet-5-5");
-  assert.equal(res.modelChains.light[3].provider, "acp-opencode");
-  assert.equal(res.modelChains.light[3].model, "opencode/big-pickle");
-  assert.equal(res.modelChains.light[3].reasoningLevel, "medium");
+  assert.equal(res.modelChains.light[1].provider, "acp-antigravity-acp");
+  assert.equal(res.modelChains.light[1].model, "gemini-3.8-flash");
+  assert.equal("reasoningLevel" in res.modelChains.light[1], false);
+  assert.equal(res.modelChains.light[2].model, "claude-haiku-4-5-20251001");
+  assert.equal(res.modelChains.light[2].reasoningLevel, "low");
+  assert.equal(res.modelChains.light[3].model, "claude-sonnet-5-5");
+  assert.equal(res.modelChains.light[4].provider, "acp-opencode");
+  assert.equal(res.modelChains.light[4].model, "opencode/deepseek-v4.1-flash-free");
+  assert.equal("reasoningLevel" in res.modelChains.light[4], false);
+  assert.equal(res.modelChains.light[5].provider, "acp-opencode");
+  assert.equal(res.modelChains.light[5].model, "opencode/big-pickle");
+  assert.equal(res.modelChains.light[5].reasoningLevel, "medium");
   assert.equal(res.modelChains.worker[0].model, "gpt-6.2-sol");
   assert.equal(res.modelChains.visual[0].model, "gpt-6.1-terra");
   assert.equal(res.modelChains.architect[0].model, "gpt-6.2-astra");
@@ -102,11 +108,11 @@ test("happy path: preserves role priority and excludes grok completely", () => {
   }
 });
 
-test("missing models and models without supportedReasoningEfforts are skipped cleanly", () => {
+test("missing models are skipped cleanly and models without effort omit reasoningLevel", () => {
   const partialModels = {
     ...SAMPLE_MODELS,
     codex: SAMPLE_MODELS.codex.filter((m) => m.id !== "gpt-6-luna" && m.id !== "gpt-6.1-terra" && m.id !== "gpt-6.2-astra"),
-    "acp-antigravity-acp": SAMPLE_MODELS["acp-antigravity-acp"].filter((m) => m.id !== "gemini-4-neon"),
+    "acp-antigravity-acp": SAMPLE_MODELS["acp-antigravity-acp"].filter((m) => m.id !== "gemini-4-neon" && m.id !== "gemini-3.8-flash"),
   };
 
   const res = buildModelChains({
@@ -125,13 +131,14 @@ test("missing models and models without supportedReasoningEfforts are skipped cl
     modelsByProvider: SAMPLE_MODELS,
     roleChains: {
       light: [
-        { provider: "acp-antigravity-acp", model: "gemini-3.8-flash", reasoningLevel: "medium" },
-        { provider: "codex", model: "gpt-6-luna", reasoningLevel: "medium" },
+        { provider: "acp-antigravity-acp", model: "gemini-3.8-flash", reasoningLevel: null },
+        { provider: "acp-opencode", model: "opencode/deepseek-v4.1-flash-free", reasoningLevel: "medium" },
       ],
     },
   });
   assert.deepEqual(flashCheck.modelChains.light, [
-    { provider: "codex", model: "gpt-6-luna", reasoningLevel: "medium" },
+    { provider: "acp-antigravity-acp", model: "gemini-3.8-flash" },
+    { provider: "acp-opencode", model: "opencode/deepseek-v4.1-flash-free" },
   ]);
 });
 
@@ -202,7 +209,9 @@ test("every DEFAULT_ROLE_CHAINS tuple has a matching literal case in .bb/workflo
 
   for (const [role, list] of Object.entries(DEFAULT_ROLE_CHAINS)) {
     for (const spec of list) {
-      const key = `${spec.provider}/${spec.model}/${spec.reasoningLevel}`;
+      const key = spec.reasoningLevel
+        ? `${spec.provider}/${spec.model}/${spec.reasoningLevel}`
+        : `${spec.provider}/${spec.model}`;
       assert.ok(
         wfSource.includes(`case "${key}":`),
         `Missing literal case "${key}" in daily-episode.js for role "${role}"`,

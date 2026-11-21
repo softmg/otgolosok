@@ -4,14 +4,15 @@ import { fileURLToPath } from "node:url";
 
 /**
  * Упорядоченные цепочки кандидатов по ролям (Grok намеренно исключён).
- * Включают только модели с известными supportedReasoningEfforts,
- * совместимые со строгой валидацией BB Workflows.
+ * Поддерживаются модели как с явным reasoningLevel, так и без effort (reasoningLevel: null).
  */
 export const DEFAULT_ROLE_CHAINS = Object.freeze({
   light: [
     { provider: "codex", model: "gpt-6-luna", reasoningLevel: "medium" },
+    { provider: "acp-antigravity-acp", model: "gemini-3.8-flash", reasoningLevel: null },
     { provider: "claude-code", model: "claude-haiku-4-5-20251001", reasoningLevel: "low" },
     { provider: "claude-code", model: "claude-sonnet-5-5", reasoningLevel: "medium" },
+    { provider: "acp-opencode", model: "opencode/deepseek-v4.1-flash-free", reasoningLevel: null },
     { provider: "acp-opencode", model: "opencode/big-pickle", reasoningLevel: "medium" },
   ],
   worker: [
@@ -111,14 +112,17 @@ export function assessCodexPoolHealth(poolStatus) {
 }
 
 function resolveReasoningLevel(candidateLevel, modelMeta) {
+  // Явно запрошен режим без reasoningLevel (патч BB workflows allow-omitted-reasoning)
+  if (candidateLevel == null) {
+    return null;
+  }
+
   const modelEfforts = Array.isArray(modelMeta?.supportedReasoningEfforts)
     ? modelMeta.supportedReasoningEfforts
         .map((e) => (typeof e === "string" ? e : e?.reasoningEffort))
         .filter(Boolean)
     : [];
 
-  // BB Workflows допускает модель с пустым supportedReasoningEfforts только если
-  // reasoningDiscovery === "known" — тогда принимается исключительно defaultReasoningEffort.
   if (modelEfforts.length === 0) {
     if (modelMeta?.reasoningDiscovery === "known" && modelMeta?.defaultReasoningEffort) {
       return modelMeta.defaultReasoningEffort;
@@ -182,16 +186,13 @@ export function buildModelChains({
       if (!mMeta) continue;
 
       const reasoningLevel = resolveReasoningLevel(c.reasoningLevel, mMeta);
-      if (!reasoningLevel) continue;
-      const key = `${c.provider}/${c.model}/${reasoningLevel}`;
+      const key = reasoningLevel ? `${c.provider}/${c.model}/${reasoningLevel}` : `${c.provider}/${c.model}`;
       if (seen.has(key)) continue;
       seen.add(key);
 
-      valid.push({
-        provider: c.provider,
-        model: c.model,
-        reasoningLevel,
-      });
+      const entry = { provider: c.provider, model: c.model };
+      if (reasoningLevel) entry.reasoningLevel = reasoningLevel;
+      valid.push(entry);
     }
 
     if (demoteCodex && valid.some((v) => v.provider !== "codex")) {
@@ -295,7 +296,9 @@ if (isDirectRun) {
     process.stdout.write(`${JSON.stringify(out, null, 2)}\n`);
   } else {
     for (const [role, list] of Object.entries(out.modelChains)) {
-      const formatted = list.map((x) => `${x.provider}/${x.model}(${x.reasoningLevel})`).join(" -> ");
+      const formatted = list
+        .map((x) => (x.reasoningLevel ? `${x.provider}/${x.model}(${x.reasoningLevel})` : `${x.provider}/${x.model}`))
+        .join(" -> ");
       process.stdout.write(`${role}: ${formatted || "NONE"}\n`);
     }
     if (out.warnings.length > 0) {
