@@ -12,6 +12,7 @@ export const DEFAULT_ROLE_CHAINS = Object.freeze({
     { provider: "codex", model: "gpt-6-luna", reasoningLevel: "medium" },
     { provider: "claude-code", model: "claude-haiku-4-5-20251001", reasoningLevel: "low" },
     { provider: "claude-code", model: "claude-sonnet-5-5", reasoningLevel: "medium" },
+    { provider: "acp-opencode", model: "opencode/big-pickle", reasoningLevel: "medium" },
   ],
   worker: [
     { provider: "codex", model: "gpt-6.2-sol", reasoningLevel: "high" },
@@ -116,8 +117,12 @@ function resolveReasoningLevel(candidateLevel, modelMeta) {
         .filter(Boolean)
     : [];
 
-  // BB Workflows отклоняет модели с пустым supportedReasoningEfforts при явном выборе.
+  // BB Workflows допускает модель с пустым supportedReasoningEfforts только если
+  // reasoningDiscovery === "known" — тогда принимается исключительно defaultReasoningEffort.
   if (modelEfforts.length === 0) {
+    if (modelMeta?.reasoningDiscovery === "known" && modelMeta?.defaultReasoningEffort) {
+      return modelMeta.defaultReasoningEffort;
+    }
     return null;
   }
   if (modelEfforts.includes(candidateLevel)) {

@@ -282,6 +282,15 @@ async function invokeLiteralAgent(spec, prompt, stepLabel, phaseName, schema) {
         model: "claude-fable-5-1",
         reasoningLevel: "high",
       });
+    case "acp-opencode/opencode/big-pickle/medium":
+      return await agent(prompt, {
+        label: stepLabel,
+        phase: phaseName,
+        schema: schema,
+        provider: "acp-opencode",
+        model: "opencode/big-pickle",
+        reasoningLevel: "medium",
+      });
     default:
       throw new Error(`Unsupported literal model spec in daily-episode workflow: ${key}`);
   }

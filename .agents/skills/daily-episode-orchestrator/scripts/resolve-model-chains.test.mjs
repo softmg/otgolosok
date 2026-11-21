@@ -26,6 +26,11 @@ const SAMPLE_PROVIDERS = [
     reasoningLevels: [{ id: "low" }, { id: "medium" }, { id: "high" }, { id: "xhigh" }],
   },
   {
+    id: "acp-opencode",
+    available: true,
+    reasoningLevels: [{ id: "low" }, { id: "medium" }, { id: "high" }],
+  },
+  {
     id: "acp-grok",
     available: true,
     reasoningLevels: [{ id: "medium" }, { id: "high" }],
@@ -52,8 +57,12 @@ const SAMPLE_MODELS = {
     { id: "claude-haiku-4-5-20251001", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }] },
   ],
   "acp-antigravity-acp": [
-    { id: "gemini-4-neon", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }, { reasoningEffort: "xhigh" }] },
-    { id: "gemini-3.8-flash", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
+    { id: "gemini-4-neon", reasoningDiscovery: "known", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }, { reasoningEffort: "xhigh" }] },
+    { id: "gemini-3.8-flash", reasoningDiscovery: "unknown", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
+  ],
+  "acp-opencode": [
+    { id: "opencode/big-pickle", reasoningDiscovery: "known", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
+    { id: "opencode/deepseek-v4.1-flash-free", reasoningDiscovery: "unknown", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
   ],
   "acp-grok": [{ id: "grok-4.7" }],
   "acp-cursor": [],
@@ -81,6 +90,9 @@ test("happy path: preserves role priority and excludes grok completely", () => {
   assert.equal(res.modelChains.light[1].model, "claude-haiku-4-5-20251001");
   assert.equal(res.modelChains.light[1].reasoningLevel, "low");
   assert.equal(res.modelChains.light[2].model, "claude-sonnet-5-5");
+  assert.equal(res.modelChains.light[3].provider, "acp-opencode");
+  assert.equal(res.modelChains.light[3].model, "opencode/big-pickle");
+  assert.equal(res.modelChains.light[3].reasoningLevel, "medium");
   assert.equal(res.modelChains.worker[0].model, "gpt-6.2-sol");
   assert.equal(res.modelChains.visual[0].model, "gpt-6.1-terra");
   assert.equal(res.modelChains.architect[0].model, "gpt-6.2-astra");
