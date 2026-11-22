@@ -738,7 +738,7 @@ const phase2Prompt = [
   "Задача Phase 2 (без публикации!):",
   "1. Синхронизируй чекпойнты prepare/script с актуальными файлами, чтобы ранние 4 этапа взялись из кэша.",
   "2. Собери выпуск: озвучка ElevenLabs v4 (provider: elevenlabs, model: eleven_v4, голос «Отголосок2»), preproduction-measured (--phase measured), полный рендер promo-video.mp4 (1080x1920) + обложки youtube-cover.jpg/png, строгий финальный аудит promo-review.json (verdict: ready, все оценки >= 7) и audio-qc.json (ok: true).",
-  "3. При HTTP 429 от локальной подписки используй штатный фолбэк Airouter (с действующим лимитом 9 МБ), сохраняя те же аудиоклипы ElevenLabs.",
+  "3. При исчерпании квоты (HTTP 429 / CODEX_QUOTA) локальной подписки сначала переключайся на Airouter Pool (готовые подписки пула через scripts/codex-pool-repair.mjs / Airouter Pool), и только если недоступен и Airouter Pool — используй прямой Airouter (с действующим лимитом 9 МБ), сохраняя те же аудиоклипы ElevenLabs.",
   `4. После успешной локальной сборки (built.json local-only) прогони финальную сверку Pi Durable (npm run video:durable -- ${date}) без публикации, чтобы зафиксировать durable/status.json -> approved, и останови лишние процессы/LaunchAgent.`,
   "5. Если изменялись скрипты в otgolosok-creative — прогони полный набор тестов через /Users/user/.agents/bin/agent-pool test -- npm test и git diff --check.",
   "6. Верни точный структурированный отчёт через bb_workflow_result.",
