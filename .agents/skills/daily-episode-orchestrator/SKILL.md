@@ -9,7 +9,7 @@ description: "Оркестрировать ежедневную локальну
 
 ## Границы и безопасность
 
-- **Автоматическая публикация на YouTube запрещена** (только локальная сборка до `durable/status.json -> approved`).
+- **Только отложенная публикация на YouTube (`private` + `publishAt`)** — строго на последнем этапе `Scheduled YouTube Publish` после прохождения `Final Gate` (`durable/status.json -> approved`), через штатный `scripts/publish-daily.mjs <date> --publish-at <slotAt>` (или `publishScheduled: false`, если нужна только локальная сборка). Немедленная публичная публикация (`--privacy public`) в автоматическом workflow запрещена.
 - **Не подделывать квитанции** (`visual-material.json`, `preproduction-*.json`, `promo-review.json`, `audio-qc.json`), не снижать пороги `< 7/10`, не обходить гейты.
 - **Порядок провайдеров для внешних аудитов и агентов**: сначала локальная подписка; если она заканчивается или недоступна — сначала Airouter Pool (готовые подписки пула); и только потом — прямой Airouter (с проверкой лимита тела <= 9 000 000 байт).
 - **Grok (`acp-grok`) не использовать** в цепочках сборки (высокий риск фальшивых отчётов и циклов на HTTP 429).
@@ -56,17 +56,20 @@ bb workflows validate --name daily-episode
     "shortsRoot": "/Users/user/projects/ai/otgolosok-shorts",
     "maxEarlyAttempts": 3,
     "allowSecondSameDayAfterHours": 8,
+    "publishScheduled": true,
     "modelChains": "<объект modelChains из шага 2>"
   }
   ```
+
+При необходимости пропустить загрузку на YouTube передай `"publishScheduled": false`; для явного времени слота — `"publishAt": "<ISO-8601>"` (по умолчанию берётся `plan.json -> slotAt`).
 
 После успешного вызова `bb_workflow_run` выведи полученный `previewDirective` **ровно один раз отдельной строкой** (без code fence) и заверши ход — система разбудит тебя по завершении workflow.
 
 ### 4. Разбор итога и эскалация блокеров
 
-- **`status: "approved"`**:
+- **`status: "published"` / `status: "approved"`**:
   - Если во время сборки правились скрипты/тесты в `/Users/user/projects/ai/otgolosok-creative`, проверь `git status -sb`, прогони `/Users/user/.agents/bin/agent-pool test -- npm test`, сделай атомарный коммит и push.
-  - Отчитайся пользователю на русском: путь и SHA-256 `promo-video.mp4`, обложка, оценки `preproduction-early` / `preproduction-measured` / `promo-review` / `audio-qc`, статус `durable`, и `modelAudit` (какие модели и фолбэки реально сработали).
+  - Отчитайся пользователю на русском: путь и SHA-256 `promo-video.mp4`, обложка, оценки `preproduction-early` / `preproduction-measured` / `promo-review` / `audio-qc`, статус `durable`, при `published` — `youtubeVideoId`, Shorts URL, время `publishAt` и путь к `youtube-publish.json`, а также `modelAudit` (какие модели и фолбэки реально сработали).
 - **`status: "already_done"`**:
   - Сообщи, почему сборка пропущена (уже собран/запланирован/опубликован выпуск в пределах 8 часов).
 - **`status: "blocked"`**:

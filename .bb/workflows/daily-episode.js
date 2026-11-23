@@ -1,7 +1,7 @@
 export const meta = {
   name: "daily-episode",
   description:
-    "Оркестрация ежедневной сборки выпуска Отголоска (Preflight -> Selection & Visual -> Early Preproduction -> Phase 2 Render & Audit -> Final Gate) с цепочками фолбэк-моделей и независимой верификацией каждого этапа.",
+    "Оркестрация ежедневной сборки и отложенной публикации выпуска Отголоска (Preflight -> Selection & Visual -> Early Preproduction -> Phase 2 Render & Audit -> Final Gate -> Scheduled YouTube Publish) с цепочками фолбэк-моделей и независимой верификацией каждого этапа.",
   inputSchema: {
     type: "object",
     required: ["date", "modelChains"],
@@ -33,6 +33,16 @@ export const meta = {
         minimum: 1,
         maximum: 24,
         description: "Минимальная разница в часах для второго выпуска в ту же дату МСК",
+      },
+      publishScheduled: {
+        type: "boolean",
+        description: "Выполнить отложенную публикацию на YouTube (private + publishAt) после Final Gate (по умолчанию true)",
+      },
+      publishAt: {
+        type: "string",
+        minLength: 20,
+        nullable: true,
+        description: "Явное будущее время отложенной публикации в ISO-8601 с часовым поясом; если не задано, берётся plan.json -> slotAt",
       },
       modelChains: {
         type: "object",
@@ -105,7 +115,7 @@ export const meta = {
     additionalProperties: true,
     properties: {
       status: {
-        enum: ["approved", "already_done", "blocked"],
+        enum: ["published", "approved", "already_done", "blocked"],
       },
       date: { type: "string" },
       stage: { type: "string" },
@@ -114,6 +124,10 @@ export const meta = {
       videoSha256: { type: "string", nullable: true },
       coverPath: { type: "string", nullable: true },
       durableStatus: { type: "string", nullable: true },
+      youtubeVideoId: { type: "string", nullable: true },
+      youtubeUrl: { type: "string", nullable: true },
+      publishAt: { type: "string", nullable: true },
+      youtubePublishReceipt: { type: "string", nullable: true },
       modelAudit: {
         type: "array",
         items: {
@@ -136,6 +150,7 @@ export const meta = {
     { title: "Early Preproduction", detail: "Сборка early-пакета и прохождение text/packaging/raw-photo/composed-frame" },
     { title: "Phase 2 Render & Audit", detail: "Озвучка ElevenLabs v4, measured-frame, рендер MP4, promo-review и audio-qc" },
     { title: "Final Gate", detail: "Независимая сверка SHA-256, квитанций, тестов и статуса approved" },
+    { title: "Scheduled YouTube Publish", detail: "Отложенная загрузка на YouTube (private + publishAt) и независимая проверка readback" },
   ],
 };
 
@@ -144,6 +159,8 @@ const creativeRoot = args.creativeRoot || "/Users/user/projects/ai/otgolosok-cre
 const shortsRoot = args.shortsRoot || "/Users/user/projects/ai/otgolosok-shorts";
 const maxEarlyAttempts = args.maxEarlyAttempts || 3;
 const minHoursGap = args.allowSecondSameDayAfterHours || 8;
+const publishScheduled = args.publishScheduled !== false;
+const explicitPublishAt = args.publishAt || null;
 const dailyDir = `${creativeRoot}/data/daily/${date}`;
 const runDir = `${dailyDir}/shorts/runs/tomorrow-${date}`;
 const launchLabel = `online.otgolosok.creative-durable-${date}`;
@@ -151,7 +168,7 @@ const modelAudit = [];
 
 const COMMON_RULES = [
   "СТРОГИЕ ПРАВИЛА ПРОЕКТА:",
-  "- Автоматическая публикация на YouTube ЗАПРЕЩЕНА (youtube-publish.json не создавать).",
+  "- Публикация на YouTube СТРОГО ЗАПРЕЩЕНА на всех этапах сборки до завершения Final Gate (approved). Отложенная публикация (private + publishAt) разрешена ТОЛЬКО на этапе Scheduled YouTube Publish. Немедленная публикация (--privacy public) в автоматическом workflow запрещена.",
   "- НИКОГДА не выводи и не записывай секреты, токены и API-ключи в stdout, логи и файлы.",
   "- НИКОГДА не редактируй вручную квитанции проверок (visual-material.json, preproduction-*.json, promo-review.json, audio-qc.json), не занижай пороги (<7/10) и не обходи гейты.",
   "- НИКОГДА не вызывай agentapi, сторонние локальные демоны Antigravity или прокси — используй только штатные CLI, node, python3, curl и скрипты проекта.",
@@ -353,11 +370,12 @@ phase("Preflight");
 
 const preflightSchema = {
   type: "object",
-  required: ["slotFree", "alreadyBuilt", "videosChecked", "readbackPath", "historyPath", "summary"],
+  required: ["slotFree", "alreadyBuilt", "alreadyPublished", "videosChecked", "readbackPath", "historyPath", "summary"],
   additionalProperties: false,
   properties: {
     slotFree: { type: "boolean" },
     alreadyBuilt: { type: "boolean" },
+    alreadyPublished: { type: "boolean" },
     videosChecked: { type: "integer", minimum: 0 },
     latestVideoId: { type: "string", nullable: true },
     readbackPath: { type: "string" },
@@ -368,12 +386,13 @@ const preflightSchema = {
 
 const verifyPreflightSchema = {
   type: "object",
-  required: ["verified", "slotFree", "alreadyBuilt", "reason"],
+  required: ["verified", "slotFree", "alreadyBuilt", "alreadyPublished", "reason"],
   additionalProperties: false,
   properties: {
     verified: { type: "boolean" },
     slotFree: { type: "boolean" },
     alreadyBuilt: { type: "boolean" },
+    alreadyPublished: { type: "boolean" },
     reason: { type: "string" },
   },
 };
@@ -387,8 +406,11 @@ const preflightPrompt = [
   `2. Создай каталог ${dailyDir}/operator-research/ и запиши свежие файлы:`,
   `   - ${dailyDir}/morning-youtube-readback.json ({"date":"${date}","checkedAt":"<ISO>","channelId":"UC6iI4xswk8MOTld9b1mL4GQ","videosChecked":<N>,"scheduledForDate":[...],"publicOnDate":[...],"note":"..."})`,
   `   - ${dailyDir}/operator-research/youtube-channel-history.json (массив всех видео канала: videoId, title, publishedAt, publishAt, privacyStatus).`,
-  `3. Учти правило дедупликации: второй выпуск в ту же московскую дату РАЗРЕШЁН, если разница по времени публикации до слота ${date}T18:30:00Z превышает ${minHoursGap} часов (например, вчерашний ролик вышел после полуночи МСК). Отрази это в поле note.`,
-  `4. Проверь, есть ли уже готовые ${dailyDir}/built.json (с валидным MP4 и promo-review ready), ${dailyDir}/youtube-publish.json или запущенный LaunchAgent ${launchLabel}.`,
+  `3. Учти правило дедупликации: второй выпуск в ту же московскую дату РАЗРЕШЁН, если разница по времени публикации до слота ${date}T17:30:00Z (Пн–Чт) / ${date}T18:30:00Z (Пт–Вс) превышает ${minHoursGap} часов (например, вчерашний ролик вышел после полуночи МСК). Отрази это в поле note.`,
+  `4. Проверь раздельно:`,
+  `   - alreadyBuilt: есть ли уже готовые ${dailyDir}/built.json с валидным MP4, promo-review ready и ${dailyDir}/durable/status.json === "approved";`,
+  `   - alreadyPublished: существует ли ${dailyDir}/youtube-publish.json со status === "confirmed" (или ролик уже запланирован/опубликован на этот слот на YouTube).`,
+  `   Также проверь, запущен ли LaunchAgent ${launchLabel}.`,
   "5. Верни точный итог через bb_workflow_result.",
 ].join("\n");
 
@@ -407,8 +429,8 @@ let preflightCheck = await runRole(
     "Проверь файлы НА ДИСКЕ (не доверяй тексту отчёта):",
     `1. Существует ли ${dailyDir}/morning-youtube-readback.json, совпадает ли date === "${date}", свежее ли checkedAt (не вчерашнее), и больше ли videosChecked нуля?`,
     `2. Существует ли ${dailyDir}/operator-research/youtube-channel-history.json и содержит ли реальный непустой массив видео?`,
-    `3. Существует ли ${dailyDir}/built.json или ${dailyDir}/youtube-publish.json?`,
-    `4. Корректно ли определено slotFree (с учётом правила разницы > ${minHoursGap} ч до слота ${date}T18:30:00Z)?`,
+    `3. Проверь раздельно alreadyBuilt (${dailyDir}/built.json + ${dailyDir}/durable/status.json === "approved") и alreadyPublished (${dailyDir}/youtube-publish.json со status === "confirmed").`,
+    `4. Корректно ли определено slotFree (с учётом правила разницы > ${minHoursGap} ч до вечернего слота ${date})?`,
     `Отчёт предыдущего агента для сверки: ${JSON.stringify(preflight)}`,
   ].join("\n"),
   {
@@ -434,7 +456,7 @@ if (!preflightCheck.verified) {
     "preflight:verify-disk-2",
     [
       `Повторная независимая проверка файлов Preflight в ${dailyDir} для даты ${date}.`,
-      `Проверь morning-youtube-readback.json (date==="${date}", свежий checkedAt, videosChecked>0), youtube-channel-history.json, built.json и youtube-publish.json.`,
+      `Проверь morning-youtube-readback.json (date==="${date}", свежий checkedAt, videosChecked>0), youtube-channel-history.json, built.json, durable/status.json и youtube-publish.json.`,
       `Отчёт worker: ${JSON.stringify(preflight)}`,
       COMMON_RULES,
     ].join("\n"),
@@ -456,23 +478,47 @@ if (!preflightCheck.verified) {
     videoSha256: null,
     coverPath: null,
     durableStatus: null,
+    youtubeVideoId: null,
+    youtubeUrl: null,
+    publishAt: null,
+    youtubePublishReceipt: null,
     modelAudit,
   };
 }
 
-if (preflightCheck.alreadyBuilt || !preflightCheck.slotFree) {
+if (!preflightCheck.slotFree || preflightCheck.alreadyPublished || (preflightCheck.alreadyBuilt && !publishScheduled)) {
   return {
     status: "already_done",
     date,
     stage: "preflight",
-    summary: `Сборка не требуется: ${preflightCheck.reason} (${preflight.summary})`,
+    summary: `Сборка/публикация не требуется: ${preflightCheck.reason} (${preflight.summary})`,
     videoPath: null,
     videoSha256: null,
     coverPath: null,
     durableStatus: null,
+    youtubeVideoId: null,
+    youtubeUrl: null,
+    publishAt: null,
+    youtubePublishReceipt: null,
     modelAudit,
   };
 }
+
+const skipBuildToPublish = Boolean(preflightCheck.alreadyBuilt && !preflightCheck.alreadyPublished && publishScheduled);
+let phase2 = {
+  ok: true,
+  measuredOk: true,
+  promoReviewReady: true,
+  audioQcOk: true,
+  videoPath: `${runDir}/promo-video.mp4`,
+  videoSha256: null,
+  coverPath: `${runDir}/youtube-cover.jpg`,
+  durableStatus: "approved",
+  errorSummary: null,
+  summary: "Локальная сборка уже была одобрена ранее; переход сразу к Final Gate и отложенной публикации.",
+};
+
+if (!skipBuildToPublish) {
 
 // ==================== PHASE 2: SELECTION & VISUAL ====================
 phase("Selection & Visual");
@@ -744,7 +790,7 @@ const phase2Prompt = [
   "6. Верни точный структурированный отчёт через bb_workflow_result.",
 ].join("\n");
 
-let phase2 = await runRole("worker", "phase2:render-and-audit", phase2Prompt, {
+phase2 = await runRole("worker", "phase2:render-and-audit", phase2Prompt, {
   phase: "Phase 2 Render & Audit",
   schema: phase2Schema,
 });
@@ -765,6 +811,7 @@ if (!phase2.ok || !phase2.measuredOk || !phase2.promoReviewReady || !phase2.audi
       schema: phase2Schema,
     },
   );
+}
 }
 
 // ==================== PHASE 5: FINAL GATE ====================
@@ -798,7 +845,7 @@ const finalGate = await runRole(
     `2. Проверь ${runDir}/promo-review.json: verdict === "ready", все оценки >= 7, все checks passed.`,
     `3. Проверь ${runDir}/preproduction-early.json (ok: true), ${runDir}/preproduction-measured.json (ok: true), ${dailyDir}/audio-qc.json (ok: true).`,
     "4. Проверь провайдера, модель и голос озвучки: elevenlabs / eleven_v4 / «Отголосок2».",
-    `5. Проверь ${dailyDir}/durable/status.json === "approved" и ОТСУТСТВИЕ ${dailyDir}/youtube-publish.json (автопубликация не запускалась).`,
+    `5. Проверь ${dailyDir}/durable/status.json === "approved" и ОТСУТСТВИЕ ${dailyDir}/youtube-publish.json (на этапе Final Gate публикация ещё не запускалась).`,
     `6. Проверь git -C ${creativeRoot} status -sb и git -C ${creativeRoot} diff --check (если есть правки в scripts/tests, убедись что тесты проходили и нет хардкода выпуска в scripts/*.mjs).`,
     `Отчёт Фазы 2: ${JSON.stringify(phase2)}`,
   ].join("\n"),
@@ -819,18 +866,160 @@ if (!finalGate.approved) {
     videoSha256: finalGate.videoSha256 || phase2.videoSha256 || null,
     coverPath: finalGate.coverPath || phase2.coverPath || null,
     durableStatus: finalGate.durableStatus || phase2.durableStatus || null,
+    youtubeVideoId: null,
+    youtubeUrl: null,
+    publishAt: null,
+    youtubePublishReceipt: null,
+    modelAudit,
+  };
+}
+
+if (!publishScheduled) {
+  return {
+    status: "approved",
+    date,
+    stage: "final-gate",
+    summary: finalGate.summary,
+    videoPath: finalGate.videoPath || `${runDir}/promo-video.mp4`,
+    videoSha256: finalGate.videoSha256 || phase2.videoSha256 || null,
+    coverPath: finalGate.coverPath || `${runDir}/youtube-cover.jpg`,
+    durableStatus: finalGate.durableStatus || "approved",
+    youtubeVideoId: null,
+    youtubeUrl: null,
+    publishAt: null,
+    youtubePublishReceipt: null,
+    modelAudit,
+  };
+}
+
+// ==================== PHASE 6: SCHEDULED YOUTUBE PUBLISH ====================
+phase("Scheduled YouTube Publish");
+
+const publishSchema = {
+  type: "object",
+  required: ["ok", "summary"],
+  additionalProperties: false,
+  properties: {
+    ok: { type: "boolean" },
+    videoId: { type: "string", nullable: true },
+    url: { type: "string", nullable: true },
+    publishAt: { type: "string", nullable: true },
+    privacyStatus: { type: "string", nullable: true },
+    processingStatus: { type: "string", nullable: true },
+    receiptPath: { type: "string", nullable: true },
+    errorSummary: { type: "string", nullable: true },
+    summary: { type: "string" },
+  },
+};
+
+const verifyPublishSchema = {
+  type: "object",
+  required: ["verified", "summary"],
+  additionalProperties: false,
+  properties: {
+    verified: { type: "boolean" },
+    videoId: { type: "string", nullable: true },
+    url: { type: "string", nullable: true },
+    publishAt: { type: "string", nullable: true },
+    receiptPath: { type: "string", nullable: true },
+    issues: { type: "array", items: { type: "string" } },
+    summary: { type: "string" },
+  },
+};
+
+const publishTargetInstruction = explicitPublishAt
+  ? `Используй явно переданное время отложенной публикации: ${explicitPublishAt}.`
+  : `Прочитай время слота slotAt из ${dailyDir}/plan.json (обычно 17:30Z для Пн–Чт = 20:30 МСК или 18:30Z для Пт–Вс = 21:30 МСК).`;
+
+const publishPrompt = [
+  `Рабочий каталог: ${creativeRoot}. Целевая дата выпуска (МСК): ${date}.`,
+  "Final Gate ПРОЙДЕН (durable/status.json === approved). Теперь разрешена ТОЛЬКО отложенная публикация (private + publishAt).",
+  "СТРОГИЕ ПРАВИЛА ЭТАПА ПУБЛИКАЦИИ:",
+  "- НЕ запускай немедленную публикацию (--privacy public ЗАПРЕЩЁН). Только --publish-at с будущим временем в ISO-8601 с часовым поясом.",
+  "- НИКОГДА не выводи и не записывай секреты, токены и API-ключи в stdout, логи и файлы.",
+  "- НИКОГДА не подделывай квитанции и не повторяй загрузку вслепую при наличии videoId в state.sqlite или upload.json.",
+  "",
+  "Порядок работы:",
+  `1. ${publishTargetInstruction} Убедись, что выбранный publishAt строго в будущем (Date.parse(publishAt) > Date.now()); если время слота уже прошло — НЕ публикуй немедленно, верни ok: false с явным блокером.`,
+  `2. Проверь plan.type в ${dailyDir}/plan.json:`,
+  `   - Для plan.type === "normal" запусти штатный скрипт:`,
+  `     node --env-file-if-exists=${shortsRoot}/.env --env-file-if-exists=${creativeRoot}/../otgolosok/.env scripts/publish-daily.mjs ${date} --publish-at <publishAt>`,
+  `   - Для plan.type === "creative" используй штатный scripts/publish.mjs с CREATIVE_PLAN_FILE=${dailyDir}/plan.json и аргументами <plan.work> <publishAt> (с теми же env-файлами и TOKFILE=${shortsRoot}/data/secrets/youtube-token.json), затем запиши подтверждённую квитанцию ${dailyDir}/youtube-publish.json.`,
+  `3. Убедись, что скрипт завершился с кодом 0, подтвердил загрузку, установку обложки после processingStatus === "succeeded", настройки канала (плейлист «Москва», containsSyntheticMedia: false) и записал ${dailyDir}/youtube-publish.json со status === "confirmed".`,
+  "4. Верни структурированный итог через bb_workflow_result.",
+].join("\n");
+
+let published = await runRole("worker", "publish:youtube-scheduled", publishPrompt, {
+  phase: "Scheduled YouTube Publish",
+  schema: publishSchema,
+});
+
+if (!published.ok || !published.videoId) {
+  log(`Scheduled publish failed on worker (${published.errorSummary || published.summary}); escalating to architect`);
+  published = await runRole(
+    "architect",
+    "publish:architect-repair",
+    [
+      publishPrompt,
+      "",
+      `Предыдущая попытка отложенной публикации завершилась ошибкой: ${JSON.stringify(published)}`,
+      "Диагностируй причину (проверь state.sqlite, upload.json, youtube-publish.json и список загрузок канала, чтобы исключить дубль на YouTube). Если блокер требует участия владельца (например, протух refresh_token или время слота уже прошло), верни ok: false без обходов.",
+    ].join("\n"),
+    {
+      phase: "Scheduled YouTube Publish",
+      schema: publishSchema,
+    },
+  );
+}
+
+const publishVerify = await runRole(
+  "light",
+  "publish:verify-readback",
+  [
+    `Независимая проверка отложенной публикации на YouTube для ${date} в ${creativeRoot}.`,
+    "Проверь НАПРЯМУЮ НА ДИСКЕ:",
+    `1. Существует ли ${dailyDir}/youtube-publish.json со status === "confirmed" и channel.id === "UC6iI4xswk8MOTld9b1mL4GQ".`,
+    `2. Совпадает ли videoSha256 в youtube-publish.json с фактическим shasum -a 256 ${finalGate.videoPath || `${runDir}/promo-video.mp4`}.`,
+    "3. Проверь поля remote и settings в youtube-publish.json: remote.status.privacyStatus === \"private\", remote.status.publishAt задано и совпадает с requestedPublishAt, remote.processingDetails.processingStatus === \"succeeded\", thumbnail.processingStatus === \"succeeded\" и thumbnail.thumbnailSetAt не пустой, settings.playlistTitle === \"Москва\", settings.containsSyntheticMedia === false.",
+    `Отчёт публикации: ${JSON.stringify(published)}`,
+  ].join("\n"),
+  {
+    phase: "Scheduled YouTube Publish",
+    schema: verifyPublishSchema,
+    preferAlternate: true,
+  },
+);
+
+if (!published.ok || !publishVerify.verified) {
+  return {
+    status: "blocked",
+    date,
+    stage: "scheduled-publish",
+    summary: `Отложенная публикация на YouTube не подтверждена: ${(publishVerify.issues || []).join("; ") || published.errorSummary || publishVerify.summary}`,
+    videoPath: finalGate.videoPath || `${runDir}/promo-video.mp4`,
+    videoSha256: finalGate.videoSha256 || phase2.videoSha256 || null,
+    coverPath: finalGate.coverPath || `${runDir}/youtube-cover.jpg`,
+    durableStatus: finalGate.durableStatus || "approved",
+    youtubeVideoId: publishVerify.videoId || published.videoId || null,
+    youtubeUrl: publishVerify.url || published.url || null,
+    publishAt: publishVerify.publishAt || published.publishAt || null,
+    youtubePublishReceipt: publishVerify.receiptPath || published.receiptPath || null,
     modelAudit,
   };
 }
 
 return {
-  status: "approved",
+  status: "published",
   date,
-  stage: "final-gate",
-  summary: finalGate.summary,
+  stage: "scheduled-publish",
+  summary: publishVerify.summary,
   videoPath: finalGate.videoPath || `${runDir}/promo-video.mp4`,
   videoSha256: finalGate.videoSha256 || phase2.videoSha256 || null,
   coverPath: finalGate.coverPath || `${runDir}/youtube-cover.jpg`,
   durableStatus: finalGate.durableStatus || "approved",
+  youtubeVideoId: publishVerify.videoId || published.videoId || null,
+  youtubeUrl: publishVerify.url || published.url || null,
+  publishAt: publishVerify.publishAt || published.publishAt || null,
+  youtubePublishReceipt: publishVerify.receiptPath || published.receiptPath || `${dailyDir}/youtube-publish.json`,
   modelAudit,
 };
