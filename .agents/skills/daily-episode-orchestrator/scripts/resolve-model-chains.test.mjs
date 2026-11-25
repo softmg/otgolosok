@@ -5,8 +5,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   DEFAULT_ROLE_CHAINS,
+  EXCLUDED_PROVIDERS,
   assessCodexPoolHealth,
   buildModelChains,
+  inferModelFamily,
 } from "./resolve-model-chains.mjs";
 
 const SAMPLE_PROVIDERS = [
@@ -18,7 +20,7 @@ const SAMPLE_PROVIDERS = [
   {
     id: "claude-code",
     available: true,
-    reasoningLevels: [{ id: "low" }, { id: "medium" }, { id: "high" }, { id: "xhigh" }],
+    reasoningLevels: [{ id: "low" }, { id: "medium" }, { id: "high" }],
   },
   {
     id: "acp-antigravity-acp",
@@ -35,40 +37,33 @@ const SAMPLE_PROVIDERS = [
     available: true,
     reasoningLevels: [{ id: "medium" }, { id: "high" }],
   },
-  {
-    id: "acp-cursor",
-    available: true,
-    reasoningLevels: [{ id: "high" }],
-  },
 ];
 
 const SAMPLE_MODELS = {
   codex: [
-    { id: "gpt-6.2-sol", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }, { reasoningEffort: "xhigh" }] },
-    { id: "gpt-6.2-astra", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
-    { id: "gpt-6.1-terra", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
+    { id: "gpt-6-astra", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
     { id: "gpt-6.1-sol", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
-    { id: "gpt-6-luna", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
+    { id: "gpt-6.1-terra", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
+    { id: "gpt-6-luna", defaultReasoningEffort: "medium", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
   ],
   "claude-code": [
-    { id: "claude-opus-5-5", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
-    { id: "claude-fable-5-1", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
-    { id: "claude-sonnet-5-5", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }] },
-    { id: "claude-haiku-4-5-20251001", defaultReasoningEffort: "low", supportedReasoningEfforts: [{ reasoningEffort: "low" }] },
+    { id: "claude-opus-5-5", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "high" }] },
+    { id: "claude-sonnet-5-5", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "high" }] },
   ],
   "acp-antigravity-acp": [
     { id: "gemini-4-neon", reasoningDiscovery: "known", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }, { reasoningEffort: "high" }, { reasoningEffort: "xhigh" }] },
     { id: "gemini-3.8-flash", reasoningDiscovery: "unknown", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
+    { id: "claude-opus-5-5", reasoningDiscovery: "unknown", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
+    { id: "claude-sonnet-5-5", reasoningDiscovery: "unknown", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
   ],
   "acp-opencode": [
     { id: "opencode/big-pickle", reasoningDiscovery: "known", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
     { id: "opencode/deepseek-v4.1-flash-free", reasoningDiscovery: "unknown", defaultReasoningEffort: "medium", supportedReasoningEfforts: [] },
   ],
   "acp-grok": [{ id: "grok-4.7" }],
-  "acp-cursor": [],
 };
 
-test("happy path: preserves role priority and excludes grok completely", () => {
+test("happy path: enforces Team Orchestration role priorities, excludes claude-code and grok, tags families", () => {
   const poolStatus = {
     accounts: [
       { provider: "codex", kind: "oauth", enabled: true, status: "ready", limitWindows: [{ slot: "secondary", utilization: 0.18 }] },
@@ -84,35 +79,75 @@ test("happy path: preserves role priority and excludes grok completely", () => {
 
   assert.equal(res.demotedCodex, false);
   assert.equal(res.warnings.length, 0);
-  assert.equal(res.modelChains.light[0].provider, "codex");
-  assert.equal(res.modelChains.light[0].model, "gpt-6-luna");
-  assert.equal(res.modelChains.light[0].reasoningLevel, "medium");
-  assert.equal(res.modelChains.light[1].provider, "acp-antigravity-acp");
-  assert.equal(res.modelChains.light[1].model, "gemini-3.8-flash");
-  assert.equal("reasoningLevel" in res.modelChains.light[1], false);
-  assert.equal(res.modelChains.light[2].model, "claude-haiku-4-5-20251001");
-  assert.equal(res.modelChains.light[2].reasoningLevel, "low");
-  assert.equal(res.modelChains.light[3].model, "claude-sonnet-5-5");
-  assert.equal(res.modelChains.light[4].provider, "acp-opencode");
-  assert.equal(res.modelChains.light[4].model, "opencode/deepseek-v4.1-flash-free");
-  assert.equal("reasoningLevel" in res.modelChains.light[4], false);
-  assert.equal(res.modelChains.light[5].provider, "acp-opencode");
-  assert.equal(res.modelChains.light[5].model, "opencode/big-pickle");
-  assert.equal(res.modelChains.light[5].reasoningLevel, "medium");
-  assert.equal(res.modelChains.worker[0].model, "gpt-6.2-sol");
-  assert.equal(res.modelChains.visual[0].model, "gpt-6.1-terra");
-  assert.equal(res.modelChains.architect[0].model, "gpt-6.2-astra");
+
+  // light: Gemini Flash first, Codex Luna second
+  assert.deepEqual(res.modelChains.light[0], {
+    provider: "acp-antigravity-acp",
+    model: "gemini-3.8-flash",
+    family: "gemini",
+  });
+  assert.deepEqual(res.modelChains.light[1], {
+    provider: "codex",
+    model: "gpt-6-luna",
+    reasoningLevel: "medium",
+    family: "codex",
+  });
+
+  // worker: codex/gpt-6.1-sol -> acp-antigravity-acp/claude-sonnet-5-5 -> gemini-4-neon
+  assert.deepEqual(res.modelChains.worker[0], {
+    provider: "codex",
+    model: "gpt-6.1-sol",
+    reasoningLevel: "high",
+    family: "codex",
+  });
+  assert.deepEqual(res.modelChains.worker[1], {
+    provider: "acp-antigravity-acp",
+    model: "claude-sonnet-5-5",
+    family: "claude",
+  });
+
+  // visual: Gemini 4 Neon first
+  assert.deepEqual(res.modelChains.visual[0], {
+    provider: "acp-antigravity-acp",
+    model: "gemini-4-neon",
+    reasoningLevel: "high",
+    family: "gemini",
+  });
+
+  // architect & reviewer: codex/gpt-6-astra -> acp-antigravity-acp/gemini-4-neon (high)
+  for (const role of ["architect", "reviewer"]) {
+    assert.deepEqual(res.modelChains[role][0], {
+      provider: "codex",
+      model: "gpt-6-astra",
+      reasoningLevel: "high",
+      family: "codex",
+    });
+    assert.deepEqual(res.modelChains[role][1], {
+      provider: "acp-antigravity-acp",
+      model: "gemini-4-neon",
+      reasoningLevel: "high",
+      family: "gemini",
+    });
+  }
 
   for (const list of Object.values(res.modelChains)) {
-    assert.ok(list.every((c) => c.provider !== "acp-grok"));
+    assert.ok(list.every((c) => !EXCLUDED_PROVIDERS.includes(c.provider)));
+    assert.ok(list.every((c) => c.provider !== "claude-code" && c.provider !== "acp-grok"));
   }
+});
+
+test("inferModelFamily classifies providers and models into canonical families", () => {
+  assert.equal(inferModelFamily("codex", "gpt-6-astra"), "codex");
+  assert.equal(inferModelFamily("acp-antigravity-acp", "gemini-4-neon"), "gemini");
+  assert.equal(inferModelFamily("acp-antigravity-acp", "claude-sonnet-5-5"), "claude");
+  assert.equal(inferModelFamily("acp-opencode", "opencode/deepseek-v4.1-flash-free"), "deepseek");
+  assert.equal(inferModelFamily("acp-opencode", "opencode/big-pickle"), "acp-opencode");
 });
 
 test("missing models are skipped cleanly and models without effort omit reasoningLevel", () => {
   const partialModels = {
     ...SAMPLE_MODELS,
-    codex: SAMPLE_MODELS.codex.filter((m) => m.id !== "gpt-6-luna" && m.id !== "gpt-6.1-terra" && m.id !== "gpt-6.2-astra"),
-    "acp-antigravity-acp": SAMPLE_MODELS["acp-antigravity-acp"].filter((m) => m.id !== "gemini-4-neon" && m.id !== "gemini-3.8-flash"),
+    codex: SAMPLE_MODELS.codex.filter((m) => m.id !== "gpt-6-astra" && m.id !== "gpt-6.1-sol"),
   };
 
   const res = buildModelChains({
@@ -121,28 +156,14 @@ test("missing models are skipped cleanly and models without effort omit reasonin
     poolStatus: null,
   });
 
-  assert.equal(res.modelChains.light[0].model, "claude-haiku-4-5-20251001");
-  assert.equal(res.modelChains.visual[0].model, "gpt-6.2-sol");
-  assert.equal(res.modelChains.architect[0].provider, "claude-code");
-  assert.equal(res.modelChains.architect[0].model, "claude-opus-5-5");
-
-  const flashCheck = buildModelChains({
-    providers: SAMPLE_PROVIDERS,
-    modelsByProvider: SAMPLE_MODELS,
-    roleChains: {
-      light: [
-        { provider: "acp-antigravity-acp", model: "gemini-3.8-flash", reasoningLevel: null },
-        { provider: "acp-opencode", model: "opencode/deepseek-v4.1-flash-free", reasoningLevel: "medium" },
-      ],
-    },
-  });
-  assert.deepEqual(flashCheck.modelChains.light, [
-    { provider: "acp-antigravity-acp", model: "gemini-3.8-flash" },
-    { provider: "acp-opencode", model: "opencode/deepseek-v4.1-flash-free" },
-  ]);
+  assert.equal(res.modelChains.architect[0].provider, "acp-antigravity-acp");
+  assert.equal(res.modelChains.architect[0].model, "gemini-4-neon");
+  assert.equal(res.modelChains.worker[0].provider, "acp-antigravity-acp");
+  assert.equal(res.modelChains.worker[0].model, "claude-sonnet-5-5");
+  assert.equal("reasoningLevel" in res.modelChains.worker[0], false);
 });
 
-test("exhausted Codex pool demotes codex behind Claude and Antigravity across all roles", () => {
+test("exhausted Codex pool demotes codex behind Antigravity/OpenCode across all roles", () => {
   const exhaustedPool = {
     accounts: [
       { provider: "codex", kind: "api-key", enabled: true, status: "held", limitWindows: [] },
@@ -164,10 +185,9 @@ test("exhausted Codex pool demotes codex behind Claude and Antigravity across al
 
   assert.equal(res.demotedCodex, true);
   assert.ok(res.warnings.some((w) => w.includes("Codex pool degraded")));
-  assert.notEqual(res.modelChains.worker[0].provider, "codex");
-  assert.notEqual(res.modelChains.visual[0].provider, "codex");
-  assert.notEqual(res.modelChains.architect[0].provider, "codex");
-  // Codex candidates remain as last-resort fallbacks
+  for (const role of ["light", "worker", "visual", "architect", "reviewer"]) {
+    assert.notEqual(res.modelChains[role][0].provider, "codex", `role ${role} should demote codex`);
+  }
   assert.ok(res.modelChains.worker.some((c) => c.provider === "codex"));
 });
 
@@ -177,19 +197,19 @@ test("unsupported reasoningLevel falls back to a supported level for the model",
     modelsByProvider: {
       codex: [
         {
-          id: "gpt-6.2-sol",
+          id: "gpt-6.1-sol",
           defaultReasoningEffort: "medium",
           supportedReasoningEfforts: [{ reasoningEffort: "low" }, { reasoningEffort: "medium" }],
         },
       ],
     },
     roleChains: {
-      worker: [{ provider: "codex", model: "gpt-6.2-sol", reasoningLevel: "xhigh" }],
+      worker: [{ provider: "codex", model: "gpt-6.1-sol", reasoningLevel: "xhigh" }],
     },
   });
 
   assert.deepEqual(res.modelChains.worker, [
-    { provider: "codex", model: "gpt-6.2-sol", reasoningLevel: "medium" },
+    { provider: "codex", model: "gpt-6.1-sol", reasoningLevel: "medium", family: "codex" },
   ]);
 });
 

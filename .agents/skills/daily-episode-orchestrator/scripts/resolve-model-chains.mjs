@@ -3,42 +3,63 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 /**
- * Упорядоченные цепочки кандидатов по ролям (Grok намеренно исключён).
- * Поддерживаются модели как с явным reasoningLevel, так и без effort (reasoningLevel: null).
+ * Упорядоченные цепочки кандидатов по ролям (Team Orchestration v2).
+ * Политика провайдеров:
+ * - `acp-grok` исключён (высокий риск фальшивых отчётов и циклов на HTTP 429).
+ * - `claude-code` исключён (локальной подписки Claude Code нет; Claude используется через Antigravity).
+ * - Модели серии `gpt-6.2-*` исключены из основных ролей (высокая частота «Selected model is at capacity»).
+ * - Нагрузка разнесена по семьям моделей (`codex`, `gemini`, `claude`, `deepseek`), чтобы поддерживать
+ *   кросс-семейное ревью и мгновенный фолбэк при деградации одного провайдера.
  */
+export const EXCLUDED_PROVIDERS = Object.freeze(["acp-grok", "claude-code"]);
+
 export const DEFAULT_ROLE_CHAINS = Object.freeze({
   light: [
-    { provider: "codex", model: "gpt-6-luna", reasoningLevel: "medium" },
     { provider: "acp-antigravity-acp", model: "gemini-3.8-flash", reasoningLevel: null },
-    { provider: "claude-code", model: "claude-haiku-4-5-20251001", reasoningLevel: "low" },
-    { provider: "claude-code", model: "claude-sonnet-5-5", reasoningLevel: "medium" },
+    { provider: "codex", model: "gpt-6-luna", reasoningLevel: "medium" },
     { provider: "acp-opencode", model: "opencode/deepseek-v4.1-flash-free", reasoningLevel: null },
-    { provider: "acp-opencode", model: "opencode/big-pickle", reasoningLevel: "medium" },
+    { provider: "acp-opencode", model: "opencode/big-pickle", reasoningLevel: null },
   ],
   worker: [
-    { provider: "codex", model: "gpt-6.2-sol", reasoningLevel: "high" },
-    { provider: "claude-code", model: "claude-sonnet-5-5", reasoningLevel: "high" },
-    { provider: "acp-antigravity-acp", model: "gemini-4-neon", reasoningLevel: "high" },
     { provider: "codex", model: "gpt-6.1-sol", reasoningLevel: "high" },
-    { provider: "claude-code", model: "claude-opus-5-5", reasoningLevel: "high" },
+    { provider: "acp-antigravity-acp", model: "claude-sonnet-5-5", reasoningLevel: null },
+    { provider: "acp-antigravity-acp", model: "gemini-4-neon", reasoningLevel: "high" },
+    { provider: "codex", model: "gpt-6-astra", reasoningLevel: "high" },
   ],
   visual: [
-    { provider: "codex", model: "gpt-6.1-terra", reasoningLevel: "high" },
-    { provider: "codex", model: "gpt-6.2-sol", reasoningLevel: "high" },
-    { provider: "claude-code", model: "claude-opus-5-5", reasoningLevel: "high" },
     { provider: "acp-antigravity-acp", model: "gemini-4-neon", reasoningLevel: "high" },
-    { provider: "claude-code", model: "claude-sonnet-5-5", reasoningLevel: "high" },
+    { provider: "codex", model: "gpt-6.1-terra", reasoningLevel: "high" },
+    { provider: "acp-antigravity-acp", model: "claude-sonnet-5-5", reasoningLevel: null },
+    { provider: "codex", model: "gpt-6.1-sol", reasoningLevel: "high" },
   ],
   architect: [
-    { provider: "codex", model: "gpt-6.2-astra", reasoningLevel: "high" },
-    { provider: "claude-code", model: "claude-opus-5-5", reasoningLevel: "high" },
-    { provider: "claude-code", model: "claude-fable-5-1", reasoningLevel: "high" },
-    { provider: "acp-antigravity-acp", model: "gemini-4-neon", reasoningLevel: "xhigh" },
-    { provider: "codex", model: "gpt-6.2-sol", reasoningLevel: "xhigh" },
+    { provider: "codex", model: "gpt-6-astra", reasoningLevel: "high" },
+    { provider: "acp-antigravity-acp", model: "gemini-4-neon", reasoningLevel: "high" },
+    { provider: "acp-antigravity-acp", model: "claude-opus-5-5", reasoningLevel: null },
+    { provider: "codex", model: "gpt-6.1-sol", reasoningLevel: "high" },
+  ],
+  reviewer: [
+    { provider: "codex", model: "gpt-6-astra", reasoningLevel: "high" },
+    { provider: "acp-antigravity-acp", model: "gemini-4-neon", reasoningLevel: "high" },
+    { provider: "acp-antigravity-acp", model: "claude-opus-5-5", reasoningLevel: null },
+    { provider: "acp-antigravity-acp", model: "claude-sonnet-5-5", reasoningLevel: null },
   ],
 });
 
 const CODEX_WEEKLY_DEGRADED_THRESHOLD = 0.95;
+
+/**
+ * Определяет каноническую семью модели для кросс-семейного ревью и разноса фолбэков.
+ */
+export function inferModelFamily(provider, model) {
+  const p = String(provider || "").toLowerCase();
+  const m = String(model || "").toLowerCase();
+  if (p === "codex" || m.startsWith("gpt-")) return "codex";
+  if (m.includes("gemini")) return "gemini";
+  if (m.includes("claude")) return "claude";
+  if (m.includes("deepseek")) return "deepseek";
+  return p || "unknown";
+}
 
 /**
  * Оценивает состояние пула Codex (`bb airouter-pool status --json`).
@@ -112,7 +133,6 @@ export function assessCodexPoolHealth(poolStatus) {
 }
 
 function resolveReasoningLevel(candidateLevel, modelMeta) {
-  // Явно запрошен режим без reasoningLevel (патч BB workflows allow-omitted-reasoning)
   if (candidateLevel == null) {
     return null;
   }
@@ -158,9 +178,10 @@ export function buildModelChains({
   roleChains = DEFAULT_ROLE_CHAINS,
 }) {
   const warnings = [];
+  const excludedSet = new Set(EXCLUDED_PROVIDERS);
   const providerMap = new Map();
   for (const p of providers || []) {
-    if (p && p.id && p.available !== false) {
+    if (p && p.id && p.available !== false && !excludedSet.has(p.id)) {
       providerMap.set(p.id, p);
     }
   }
@@ -168,9 +189,9 @@ export function buildModelChains({
   const codexHealth = assessCodexPoolHealth(poolStatus);
   const demoteCodex = Boolean(preferNonCodex || !codexHealth.healthy);
   if (!codexHealth.healthy) {
-    warnings.push(`Codex pool degraded (${codexHealth.reason}): demoting codex models behind Claude/Antigravity`);
+    warnings.push(`Codex pool degraded (${codexHealth.reason}): demoting codex models behind Antigravity/OpenCode`);
   } else if (preferNonCodex) {
-    warnings.push("preferNonCodex enabled: demoting codex models behind Claude/Antigravity");
+    warnings.push("preferNonCodex enabled: demoting codex models behind Antigravity/OpenCode");
   }
 
   const resolved = {};
@@ -190,7 +211,11 @@ export function buildModelChains({
       if (seen.has(key)) continue;
       seen.add(key);
 
-      const entry = { provider: c.provider, model: c.model };
+      const entry = {
+        provider: c.provider,
+        model: c.model,
+        family: inferModelFamily(c.provider, c.model),
+      };
       if (reasoningLevel) entry.reasoningLevel = reasoningLevel;
       valid.push(entry);
     }
@@ -235,11 +260,17 @@ export function resolveLiveModelChains({ environmentId, preferNonCodex = false }
   const runtimeWarnings = [];
   const envArgs = environmentId ? ["--environment", environmentId] : [];
   const providers = runBbJson(["provider", "list", ...envArgs, "--json"], runtimeWarnings, "bb provider list") || [];
+  const neededProviders = new Set(
+    Object.values(DEFAULT_ROLE_CHAINS)
+      .flat()
+      .map((c) => c.provider),
+  );
+  const excludedSet = new Set(EXCLUDED_PROVIDERS);
 
   const modelsByProvider = {};
   for (const p of providers) {
     if (!p?.id || p.available === false) continue;
-    if (p.id === "acp-grok") continue; // Исключён политикой оркестратора
+    if (excludedSet.has(p.id) || !neededProviders.has(p.id)) continue;
     const raw = runBbJson(
       ["provider", "models", p.id, ...envArgs, "--json"],
       runtimeWarnings,
@@ -297,7 +328,11 @@ if (isDirectRun) {
   } else {
     for (const [role, list] of Object.entries(out.modelChains)) {
       const formatted = list
-        .map((x) => (x.reasoningLevel ? `${x.provider}/${x.model}(${x.reasoningLevel})` : `${x.provider}/${x.model}`))
+        .map((x) =>
+          x.reasoningLevel
+            ? `${x.provider}/${x.model}(${x.reasoningLevel})[${x.family}]`
+            : `${x.provider}/${x.model}[${x.family}]`,
+        )
         .join(" -> ");
       process.stdout.write(`${role}: ${formatted || "NONE"}\n`);
     }
