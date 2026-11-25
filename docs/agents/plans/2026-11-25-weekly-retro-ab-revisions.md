@@ -1,6 +1,11 @@
 # План: еженедельный цикл ретро, A/B-экспериментов в worktree, ревизий и откатов пайплайнов
 
-Status: plan (2026-11-25).
+Status: implemented 2026-11-25 in branch `main` (`otgolosok-shorts` `main`, `otgolosok-creative` `master`, `bb-plugins` `main`).
+
+> Реализованные нюансы (расхождения с первоначальным черновиком):
+> - В `server.ts` поле `rejectExperiment` принимает `experimentId` и `transferBaselineToQueue` (без отдельной колонки сохранения свободного текста причины отклонения; UI честно отображает это ограничение).
+> - После запуска эксперимента из ретро статус `retro_runs` остаётся в `prototyping` (повторный запуск альтернативной гипотезы из уже активного `prototyping`-ретро защищён на сервере; UI явно поясняет ограничение).
+> - Когортные снимки ревизий возвращаются в `revision.cohortSnapshot` (а не отдельным верхнеуровневым полем `cohorts`).
 
 > Note for agents: this plan is a point-in-time snapshot — its "codebase facts" describe the code as of 2026-11-25 (`otgolosok` `main`, `otgolosok-creative` `master`, `otgolosok-shorts` `main`, `bb-plugins/bb-plugin-otgolosok-releases`). Do NOT treat it as current architecture docs; verify every fact against the actual code before relying on it.
 
