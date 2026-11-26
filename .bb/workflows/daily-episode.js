@@ -971,7 +971,7 @@ if (!skipBuildToPublish) {
         "",
         "Жёсткий порядок работы (сначала бесплатный pre-gate, потом LLM-аудит!):",
         `1. Убедись, что LaunchAgent ${launchLabel} остановлен (launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/${launchLabel}.plist 2>/dev/null || true).`,
-        `2. Проверь ${targetDir}/preproduction-early.json: если ok === true и все 4 этапа (text, packaging, raw-photo, composed-frame) уже прошли — НЕ перезаписывай артефакты, только прогони pre-gate и верни earlyOk: true.`,
+        `2. Проверь ${targetDir}/preproduction-early.json: если ok === true и все 4 этапа (text, packaging, raw-photo, composed-frame) уже прошли — НЕ перезаписывай артефакты, только прогони pre-gate и верни earlyOk: true; если ok === false — прочитай error.corrections и пакетно закрой все замечания (включая недостающие первичные источники в evidence/sources/ и обновление SHA-привязок).`,
         `3. Собери/исправь согласованный пакет данных выпуска (строго внутри data/daily/${date}/ и data/work/auto-${date}/; редактировать scripts/*.mjs ЗАПРЕЩЕНО!).`,
         `4. ОБЯЗАТЕЛЬНО запусти детерминированный pre-gate ПЕРЕД вызовом preproduction-review:`,
         `   node scripts/episode-pregate.mjs ${targetDir} --mode ${arch.planType}`,
