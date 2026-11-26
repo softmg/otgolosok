@@ -878,7 +878,9 @@ if (!skipBuildToPublish) {
       `Независимая сверка ассетов после Parallel Asset Production в ${creativeRoot} для ${date} (тип ${arch.planType}).`,
       COMMON_RULES,
       "",
-      `1. Проверь на диске ${dailyDir}/plan.json, ${runDir}/visual-material.json (ok===true, score>=7, distinctSubjects>=3, covered>=3) и ${runDir}/script.json (для creative также ${workDir}/script.json, ${workDir}/auto-prepared.json и ${workDir}/script-review.json).`,
+      arch.planType === "creative"
+        ? `1. Проверь на диске ${dailyDir}/plan.json (type === "creative"), ${runDir}/visual-material.json (ok===true, score>=7, distinctSubjects>=3, covered>=3), ${runDir}/script.json, ${workDir}/script.json, ${workDir}/auto-prepared.json и ${workDir}/script-review.json.`
+        : `1. Проверь на диске ${dailyDir}/plan.json (type === "normal"), ${runDir}/visual-material.json (ok===true, score>=7, distinctSubjects>=3, covered>=3) и ${runDir}/script.json. Creative-пакет в ${workDir}/ для типа normal НЕ требуется и его отсутствие НЕ является блокером.`,
       `2. Запусти детерминированный pre-gate: node scripts/episode-pregate.mjs ${arch.planType === "creative" ? workDir : runDir} --mode ${arch.planType} --allow-missing-preproduction-input`,
       "3. Верни точный статус (verified, visualMaterialOk, scriptPresent, pregateOk, blockers) через bb_workflow_result.",
     ].join("\n"),
