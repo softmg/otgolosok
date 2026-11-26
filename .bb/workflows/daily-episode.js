@@ -679,7 +679,7 @@ if (!skipBuildToPublish) {
       COMMON_RULES,
       "",
       "Задача Episode Architect (коротко и прицельно — 3–5 минут, без поллинга LaunchAgent!):",
-      `1. Убедись, что ${dailyDir}/plan.json существует. Если plan.json ещё нет — запусти синхронно штатный отбор (npm run tomorrow -- --date ${date} --plan-only или эквивалент в scripts/tomorrow.mjs; НЕ запускай фоновый LaunchAgent!).`,
+      `1. Убедись, что ${dailyDir}/plan.json существует. Если plan.json ещё нет — запусти синхронно штатный локальный отбор: npm run tomorrow -- --local --date ${date} --plan-only (слот на YouTube уже проверен реальным OAuth на Preflight, а --local использует локальное расписание PROMO_CREATIVE_WEEKDAYS без SSH к VPS; НЕ запускай фоновый LaunchAgent!).`,
       `2. Проверь текущее состояние на диске:`,
       `   - assetsAlreadyReady: существует ли валидный ${runDir}/visual-material.json (ok===true, score>=7, distinctSubjects>=3, covered>=3) и все фото на диске с SHA-1;`,
       `   - scriptAlreadyReady: существует ли валидный ${runDir}/script.json (и для creative: ${workDir}/script.json + ${workDir}/auto-prepared.json + принятый ${workDir}/script-review.json).`,
