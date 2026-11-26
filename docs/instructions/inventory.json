@@ -628,7 +628,7 @@
       ],
       "reason": "Workflow сохраняет команды, схемы и переходы этапов; общие нормы промптов делегированы каноническим Rule ID.",
       "review": {
-        "sha256": "d9a6208ceedabd11e7101d53c826446dc6995d1745ac7d72845732e7abeb5f82",
+        "sha256": "632ca3974f1555dbe01642381c77147b7517781b6398a6c62728d4a00049e7ba",
         "method": "parallel-semantic-audit-wfr_de512766+dedup-apply-wfr_d16a05c9"
       }
     },
