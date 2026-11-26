@@ -219,17 +219,12 @@ const launchLabel = `online.otgolosok.creative-durable-${date}`;
 const modelAudit = [];
 
 const COMMON_RULES = [
-  "СТРОГИЕ ПРАВИЛА ПРОЕКТА И TEAM ORCHESTRATION:",
-  "- Публикация на YouTube СТРОГО ЗАПРЕЩЕНА на всех этапах сборки до завершения Final Gate (approved). Отложенная публикация (private + publishAt) разрешена ТОЛЬКО на этапе Scheduled YouTube Publish. Немедленная публикация (--privacy public) запрещена.",
-  "- РАЗДЕЛЕНИЕ КОНТЕНТА И КОДА ДВИЖКА: тебе ЗАПРЕЩЕНО редактировать файлы в otgolosok-creative/scripts/*.mjs и otgolosok-creative/tests/*.mjs! Ты работаешь ТОЛЬКО в каталогах данных выпуска (data/daily/" + date + "/ и data/work/auto-" + date + "/). Если обнаружен реальный баг конвейера, НЕ чини код сам — остановись и верни структурированный codeBug (file, symptom, reproduction), чтобы координатор передал его в изолированный team-workflow (team-aer).",
-  "- НИКОГДА не запускай фоновый LaunchAgent и не крути циклы поллинга sleep/ps/launchctl; вызывай штатные CLI-скрипты синхронно и перед правкой файлов убедись, что старый LaunchAgent " + launchLabel + " выгружен.",
-  "- НИКОГДА не выводи и не записывай секреты, токены и API-ключи в stdout, логи и файлы.",
-  "- НИКОГДА не редактируй вручную квитанции проверок (visual-material.json, preproduction-*.json, promo-review.json, creative-review.json, audio-qc.json), не занижай пороги (<7/10) и не обходи гейты.",
-  "- НИКОГДА не вызывай agentapi, сторонние локальные демоны Antigravity или прокси — используй только штатные CLI, node, python3, curl и скрипты проекта.",
-  "- При запросах к Wikimedia Commons API всегда передавай User-Agent: OtgolosokShorts/1.0 (https://otgolosok.online), делай паузу >= 1 с, не больше 15 API-запросов, проверяй свободные лицензии (CC0, CC BY, CC BY-SA, Public domain) и реальный SHA-1 файлов (без PastVu).",
-  "- Для поиска первичных источников и альтернативных HTML-страниц разрешено использовать Airouter Perplexity (лимит тела запроса <= 9 000 000 байт; после HTTP 413 не повторять без уменьшения тела).",
-  "- Озвучка ТОЛЬКО ElevenLabs v4 (provider: elevenlabs, model: eleven_v4, голос «Отголосок2»). В речи людей называть полным именем и фамилией (без инициалов) и не упоминать сторонние сайты как источники.",
-  "- По завершении ОБЯЗАТЕЛЬНО верни структурированный результат через инструмент bb_workflow_result.",
+  "Перед работой обязательно прочитай канонические домены в /Users/user/projects/ai/otgolosok/docs/instructions/README.md и перечисленные ниже файлы. Если файл недоступен, верни blockClass infra.",
+  "Общие домены: engineering.md, providers-and-payloads.md, orchestration.md, episode-state.md, verification.md, publication.md, operations.md (относительно реестра).",
+  "Редакционные домены: " + shortsRoot + "/assets/promo-review/editorial.md, visual.md, audio.md, packaging.md. Прочитай полный текст, не только реестр.",
+  "Контекст вызова: данные data/daily/" + date + "/ и data/work/auto-" + date + "/; прежний LaunchAgent: " + launchLabel + ".",
+  "Область роли: контентный воркер по ORCH-01/ORCH-03; координатор выполняет эскалации отдельно.",
+  "По завершении верни структурированный результат через bb_workflow_result.",
 ].join("\n");
 
 // Классификатор ошибок (портирован из team-aer + расширен на capacity/stream disconnect)
@@ -1010,7 +1005,7 @@ if (!skipBuildToPublish) {
         "Проверь НАПРЯМУЮ НА ДИСКЕ:",
         `1. Запусти node scripts/episode-pregate.mjs ${targetDir} --mode ${arch.planType} и убедись, что детерминированный pre-gate зелёный (0 блокеров).`,
         `2. Прочитай ${targetDir}/preproduction-early.json: проверь ok === true и статус всех 4 этапов (text, packaging, raw-photo, composed-frame) — у всех ok === true, оценки >= 7, corrections пустой.`,
-        `3. Проверь git -C ${creativeRoot} diff -- scripts/: контентные воркеры НЕ должны были править отслеживаемые scripts/*.mjs и хардкодить выпуск ${date} (scriptsClean; старые untracked-файлы других дат не ломают scriptsClean, если не относятся к ${date}).`,
+        `3. Проверь git -C ${creativeRoot} diff -- scripts/: контентные воркеры НЕ должны были править scripts/*.mjs под выпуск ${date} или хардкодить выпуск ${date} (scriptsClean; параллельные незакоммиченные правки или старые untracked-файлы других задач, не содержащие привязки к ${date} и не менявшиеся воркером, не ломают scriptsClean).`,
         "4. Если есть отказ — собери ИСЧЕРПЫВАЮЩИЙ конкретный список blockingFindings (с файлами/шотами/строками), чтобы исполнитель исправил всё за 1 пакетный проход.",
         `Отчёт исполнителя: ${JSON.stringify(lastEarly)}`,
       ].join("\n"),
