@@ -980,7 +980,7 @@ if (!skipBuildToPublish) {
         arch.planType === "creative"
           ? `   node --env-file-if-exists=${shortsRoot}/.env --env-file-if-exists=${creativeRoot}/../otgolosok/.env scripts/preproduction-review.mjs ${workDir} --phase early`
           : `   node --env-file-if-exists=${shortsRoot}/.env --env-file-if-exists=${creativeRoot}/../otgolosok/.env scripts/normal-preproduction.mjs ${date} --phase early`,
-        "6. НЕ крути бесконечные циклы (>2 прогонов preproduction-review за шаг запрещено!). Если упёрся в баг скрипта — верни codeBug; если у кандидата нет 3 фото места — верни candidateUnfit: true.",
+        "6. НЕ крути бесконечные циклы (>2 прогонов preproduction-review за шаг запрещено; при транзиентном PREPRODUCTION_CONTRACT/PREPRODUCTION_SERVICE с corrections=[] допускается 1 дополнительный повтор без правок файлов). Если упёрся в баг скрипта — верни codeBug; если у кандидата нет 3 фото места — верни candidateUnfit: true.",
         "7. Верни структурированный отчёт через bb_workflow_result.",
       ].join("\n"),
       {
@@ -1010,7 +1010,7 @@ if (!skipBuildToPublish) {
         "Проверь НАПРЯМУЮ НА ДИСКЕ:",
         `1. Запусти node scripts/episode-pregate.mjs ${targetDir} --mode ${arch.planType} и убедись, что детерминированный pre-gate зелёный (0 блокеров).`,
         `2. Прочитай ${targetDir}/preproduction-early.json: проверь ok === true и статус всех 4 этапов (text, packaging, raw-photo, composed-frame) — у всех ok === true, оценки >= 7, corrections пустой.`,
-        `3. Проверь git -C ${creativeRoot} diff -- scripts/: контентные воркеры НЕ должны были править scripts/*.mjs и хардкодить выпуск (scriptsClean).`,
+        `3. Проверь git -C ${creativeRoot} diff -- scripts/: контентные воркеры НЕ должны были править отслеживаемые scripts/*.mjs и хардкодить выпуск ${date} (scriptsClean; старые untracked-файлы других дат не ломают scriptsClean, если не относятся к ${date}).`,
         "4. Если есть отказ — собери ИСЧЕРПЫВАЮЩИЙ конкретный список blockingFindings (с файлами/шотами/строками), чтобы исполнитель исправил всё за 1 пакетный проход.",
         `Отчёт исполнителя: ${JSON.stringify(lastEarly)}`,
       ].join("\n"),
