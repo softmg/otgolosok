@@ -944,10 +944,10 @@ if (!skipBuildToPublish) {
       lastEarlyReview.failedStages.every((s) => s === "raw-photo" || s === "composed-frame");
 
     let role = "worker";
-    if (attempt === maxEarlyAttempts && attempt > 1) {
-      role = "architect";
-    } else if (onlyVisualLeft) {
+    if (onlyVisualLeft) {
       role = "visual";
+    } else if (attempt === maxEarlyAttempts && attempt > 1) {
+      role = "architect";
     }
 
     const prevFeedback = lastEarlyReview
@@ -971,7 +971,7 @@ if (!skipBuildToPublish) {
         "",
         "Жёсткий порядок работы (сначала бесплатный pre-gate, потом LLM-аудит!):",
         `1. Убедись, что LaunchAgent ${launchLabel} остановлен (launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/${launchLabel}.plist 2>/dev/null || true).`,
-        `2. Проверь ${targetDir}/preproduction-early.json: если ok === true и все 4 этапа (text, packaging, raw-photo, composed-frame) уже прошли — НЕ перезаписывай артефакты, только прогони pre-gate и верни earlyOk: true; если ok === false — прочитай error.corrections и пакетно закрой все замечания (включая недостающие первичные источники в evidence/sources/ и обновление SHA-привязок).`,
+        `2. Проверь ${targetDir}/preproduction-early.json: если ok === true и все 4 этапа (text, packaging, raw-photo, composed-frame) уже прошли — НЕ перезаписывай артефакты, только прогони pre-gate и верни earlyOk: true; если ok === false — прочитай error.corrections и пакетно закрой все замечания (включая недостающие первичные источники в evidence/sources/ и обновление SHA-привязок), сохраняя кэш уже пройденных этапов (если text/packaging/raw-photo уже passed — не ломай их без необходимости; при отказе composed-frame осмотри реальные кадры из preproduction-normal/*/preview.json).`,
         `3. Собери/исправь согласованный пакет данных выпуска (строго внутри data/daily/${date}/ и data/work/auto-${date}/; редактировать scripts/*.mjs ЗАПРЕЩЕНО!).`,
         `4. ОБЯЗАТЕЛЬНО запусти детерминированный pre-gate ПЕРЕД вызовом preproduction-review:`,
         `   node scripts/episode-pregate.mjs ${targetDir} --mode ${arch.planType}`,
