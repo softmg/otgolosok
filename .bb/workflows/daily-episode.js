@@ -483,6 +483,10 @@ const codeBugSchema = {
   },
 };
 
+function hasRealCodeBug(bug) {
+  return Boolean(bug && typeof bug === "object" && String(bug.symptom || "").trim().length > 0);
+}
+
 // ==================== PHASE 1: PREFLIGHT & INFRA GATE ====================
 phase("Preflight & Infra Gate");
 
@@ -694,7 +698,7 @@ if (!skipBuildToPublish) {
   );
   const arch = architectRun.value;
 
-  if (arch.codeBug) {
+  if (hasRealCodeBug(arch.codeBug)) {
     return blockedResult("episode-architect", "code_bug", `Баг конвейера на этапе Episode Architect: ${arch.codeBug.symptom}`, {
       codeBug: arch.codeBug,
     });
@@ -845,10 +849,9 @@ if (!skipBuildToPublish) {
 
     const [resResearch, resMedia, resScript] = fanoutResults;
     const bugFromFanout =
-      (resResearch && resResearch.value && resResearch.value.codeBug) ||
-      (resMedia && resMedia.value && resMedia.value.codeBug) ||
-      (resScript && resScript.value && resScript.value.codeBug) ||
-      null;
+      [resResearch, resMedia, resScript]
+        .map((r) => r && r.value && r.value.codeBug)
+        .find((b) => hasRealCodeBug(b)) || null;
 
     if (bugFromFanout) {
       return blockedResult("parallel-assets", "code_bug", `Баг конвейера на Parallel Asset Production: ${bugFromFanout.symptom}`, {
@@ -985,7 +988,7 @@ if (!skipBuildToPublish) {
     );
     lastEarly = earlyRun.value;
 
-    if (lastEarly.codeBug) {
+    if (hasRealCodeBug(lastEarly.codeBug)) {
       return blockedResult("early-preproduction", "code_bug", `Баг конвейера на Early Preproduction: ${lastEarly.codeBug.symptom}`, {
         codeBug: lastEarly.codeBug,
       });
@@ -1084,9 +1087,9 @@ if (!skipBuildToPublish) {
   });
   phase2 = phase2Run.value;
 
-  if (phase2.codeBug || phase2.blockClass === "code_bug") {
-    return blockedResult("locked-render", "code_bug", `Баг конвейера на Locked Render: ${(phase2.codeBug && phase2.codeBug.symptom) || phase2.errorSummary || phase2.summary}`, {
-      codeBug: phase2.codeBug,
+  if (hasRealCodeBug(phase2.codeBug) || phase2.blockClass === "code_bug") {
+    return blockedResult("locked-render", "code_bug", `Баг конвейера на Locked Render: ${(hasRealCodeBug(phase2.codeBug) && phase2.codeBug.symptom) || phase2.errorSummary || phase2.summary}`, {
+      codeBug: hasRealCodeBug(phase2.codeBug) ? phase2.codeBug : null,
       videoPath: phase2.videoPath,
       videoSha256: phase2.videoSha256,
       coverPath: phase2.coverPath,
@@ -1122,9 +1125,9 @@ if (!skipBuildToPublish) {
     );
     phase2 = phase2Run.value;
 
-    if (phase2.codeBug || phase2.blockClass === "code_bug") {
-      return blockedResult("locked-render", "code_bug", `Баг конвейера выявлен архитектором: ${(phase2.codeBug && phase2.codeBug.symptom) || phase2.errorSummary || phase2.summary}`, {
-        codeBug: phase2.codeBug,
+    if (hasRealCodeBug(phase2.codeBug) || phase2.blockClass === "code_bug") {
+      return blockedResult("locked-render", "code_bug", `Баг конвейера выявлен архитектором: ${(hasRealCodeBug(phase2.codeBug) && phase2.codeBug.symptom) || phase2.errorSummary || phase2.summary}`, {
+        codeBug: hasRealCodeBug(phase2.codeBug) ? phase2.codeBug : null,
         videoPath: phase2.videoPath,
         videoSha256: phase2.videoSha256,
         coverPath: phase2.coverPath,
@@ -1169,7 +1172,7 @@ const finalGateRun = await runRole(
     "4. Проверь preproduction-early.json (ok: true), preproduction-measured.json (ok: true), audio-qc (ok: true).",
     "5. Проверь провайдера, модель и голос озвучки: elevenlabs / eleven_v4 / «Отголосок2».",
     `6. Проверь ${dailyDir}/durable/status.json === "approved" и ОТСУТСТВИЕ ${dailyDir}/youtube-publish.json.`,
-    `7. Проверь git -C ${creativeRoot} diff -- scripts/ на отсутствие хардкода выпуска и незапланированных правок кода.`,
+    `7. Проверь git -C ${creativeRoot} diff -- scripts/ на отсутствие хардкода выпуска ${date} и правок скриптов воркером (параллельные незакоммиченные правки других задач, не привязанные к ${date}, не считаются нарушением).`,
     "8. Верни фактические videoPath, videoSha256, coverPath и durableStatus через bb_workflow_result.",
     `Отчёт Фазы 5: ${JSON.stringify(phase2)}`,
   ].join("\n"),
