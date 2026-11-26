@@ -1,29 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync, existsSync } from "node:fs";
+import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Claude Code reads .claude/skills, Codex reads .agents/skills. Git stores both
-// copies as plain files (the team works on Windows, where a checkout may join them
-// with a directory junction), so a clone without the junction must not drift.
 const root = fileURLToPath(new URL("..", import.meta.url));
-const source = join(root, ".claude", "skills");
-const copy = join(root, ".agents", "skills");
-
-/** @param {string} directory */
-function files(directory) {
-  return readdirSync(directory, { recursive: true, withFileTypes: true })
-    .filter(entry => entry.isFile())
-    .map(entry => join(entry.parentPath, entry.name).slice(directory.length + 1).replaceAll("\\", "/"))
-    .sort();
-}
-
-test("копии навыков агентов в .agents/skills совпадают с .claude/skills", () => {
-  const names = files(source);
-  assert.ok(names.length > 0, "в .claude/skills нет навыков");
-  assert.deepEqual(files(copy), names, "набор файлов навыков различается — скопируйте .claude/skills в .agents/skills");
-  for (const name of names) {
-    assert.ok(readFileSync(join(copy, name)).equals(readFileSync(join(source, name))), `${name} отличается — скопируйте его из .claude/skills`);
-  }
+const source = join(root, ".agents/skills");
+const adapters = join(root, ".claude/skills");
+const names = directory => readdirSync(directory, {withFileTypes:true}).filter(e=>e.isDirectory()).map(e=>e.name).sort();
+test("Claude обнаруживает все канонические навыки через тонкие адаптеры", () => {
+ assert.deepEqual(names(adapters), names(source));
+ for (const name of names(source)) {
+  const canonical = readFileSync(join(source,name,"SKILL.md"),"utf8");
+  const file = join(adapters,name,"SKILL.md"), text = readFileSync(file,"utf8");
+  const metadata = body => body.match(/^---\r?\n([\s\S]*?)\r?\n---/u)?.[1].replaceAll("\r", "");
+  assert.equal(metadata(text),metadata(canonical), `frontmatter ${name}`);
+  const links = [...text.matchAll(/\]\(([^)]+)\)/g)].map(m=>resolve(dirname(file),m[1]));
+  assert.deepEqual(links,[join(source,name,"SKILL.md")]);
+  assert.ok(links.every(link=>existsSync(link)));
+  assert.ok(text.length < 1800, `адаптер ${name} содержит копию процедуры`);
+ }
 });

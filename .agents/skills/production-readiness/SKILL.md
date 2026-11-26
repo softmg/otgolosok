@@ -156,13 +156,13 @@ Add an entry whenever a new Linux-consumed file type appears.
 
 ## 7. Deploy tooling safety
 
-- Any script or make target that can touch production config must **fail loudly** rather than fall back to a local dev file. The classic disaster: `make prod-sync` defaulting to the local `.env` (dev config) and overwriting the server's production `.env` (real keys, real URLs). The server-side env file is the single source of truth — never overwrite it wholesale.
+- Check production-config protection under [OPS-02](../../../docs/instructions/operations.md#ops-02). Inspect scripts and make targets for a missing server file and require an explicit failure path.
 - Don't assume tooling exists on the server (`rsync`, `sudo`); verify, and prefer git-push-based deploy when in doubt.
 - SSH to hardened servers: use connection multiplexing (`ControlMaster`/`ControlPersist`) instead of many rapid connections — fail2ban-style rate limits ban the port for everyone.
 
 ## 8. Secrets and environment profiles
 
-- No secrets in git, images, logs, error messages, or API responses. `.env` files are gitignored and documented via `.env.example`.
+- Secrets and repository hygiene: [ENG-02](../../../docs/instructions/engineering.md#eng-02). Verify `.env.example` documents the environment profile.
 - Run gitleaks as part of the review: `gitleaks git .` (full git history) and `gitleaks dir .` (working tree, catches gitignored-but-present files before they leak into images). If gitleaks is not installed, install it first (`winget install gitleaks` / `brew install gitleaks` / release binary from GitHub) and run it. Every finding is a **Blocker** until proven a false positive; a secret already in history stays compromised even after deleting the file — it must be rotated, not just removed.
 - Production profile values are validated at startup (e.g. reject unsafe flags like disabled access checks when `APP_ENV=production`); a config validator is cheaper than an incident.
 - Env var spelling matters (`production` vs `prod`) — validate enums, don't string-compare loosely in some places and strictly in others.
@@ -206,7 +206,7 @@ A deploy-breaking fix is not done until a test pins it. nginx templates, compose
 
 The person deploying this six months from now is not you and does not have this conversation. The README must let them go from a fresh clone to a running production instance without reverse-engineering the compose files.
 
-- A README (in Russian, per project convention) with a deployment section is a prerequisite, not a nicety. Missing or dev-only setup instructions is a **Risk** — the service that only you know how to deploy is a single point of failure.
+- A README (language per [ENG-01](../../../docs/instructions/engineering.md#eng-01)) with a deployment section is a prerequisite, not a nicety. Missing or dev-only setup instructions is a **Risk** — the service that only you know how to deploy is a single point of failure.
 - The deploy section must cover, concretely: prerequisites (Docker/Compose versions, required server tooling), how to create the production `.env` from `.env.example` and which vars are mandatory, the exact build/up commands (including which compose override files to combine), how to run migrations/seed steps, and how to verify the deploy is healthy (healthcheck URL, expected response).
 - Commands in the README must be copy-pasteable and match reality — the actual service/compose names, the actual ports, the actual env var names. Stale commands are worse than none. Cross-check them against the compose files and scripts you just reviewed.
 - Document rollback and log-inspection: how to view logs, how to roll back to the previous image/commit.
@@ -227,7 +227,7 @@ Then resolve every doc into exactly one of these — an unresolved doc is a find
 - **Delete** — it describes something removed, or duplicates a better doc. Remove it, and drop its entry from the index (`docs/agents/README.md`, `docs/README.md`, root README links).
 - **Mark as outdated** — only when a doc still carries historical value that nobody can re-derive (incident write-ups, past decisions). Put an explicit note at the top: what it covered, that it no longer reflects the current code, and as of which date.
 
-Also check the reverse direction: indexes must not list files that no longer exist, and every doc under `docs/` must have its entry in the corresponding `README.md` index with a short description (project convention).
+Check the reverse direction under [ENG-04](../../../docs/instructions/engineering.md#eng-04): compare existing docs with index entries and flag missing or stale entries.
 
 Severity: docs whose commands or env vars are wrong for a deploy or setup path are a **Risk** (a **Blocker** if following them corrupts data, overwrites production config, or leaks secrets). Missing or unindexed docs are a **Risk**. Purely cosmetic drift is a note in the report, not a finding.
 

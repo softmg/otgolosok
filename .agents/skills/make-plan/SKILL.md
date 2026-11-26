@@ -4,9 +4,9 @@ description: Create an implementation plan for any task — feature, refactor, m
 disable-model-invocation: true
 ---
 
-Create an implementation plan for the requested work (feature, refactor, migration, fix, infra change — any task), written **in English** (it will be consumed by coding agents — Claude Code / Codex), and save it to `docs/agents/plans/YYYY-MM-DD-<kebab-case-slug>.md` (date = plan creation date, today; it never changes afterwards — the living state is the `Status:` line).
+Create an implementation plan for the requested work (feature, refactor, migration, fix, infra change — any task), following [ENG-01](../../../docs/instructions/engineering.md#eng-01) and [ENG-04](../../../docs/instructions/engineering.md#eng-04), and save it to `docs/agents/plans/YYYY-MM-DD-<kebab-case-slug>.md` (date = plan creation date, today; it never changes afterwards — the living state is the `Status:` line).
 
-**Languages:** the plan FILE is written in English (it is consumed by coding agents). ALL communication with the user — clarifying questions, decision discussions, the final report — is in Russian.
+Language and authorized Git actions: [ENG-01](../../../docs/instructions/engineering.md#eng-01).
 
 ## Process
 
@@ -15,8 +15,8 @@ Create an implementation plan for the requested work (feature, refactor, migrati
    - Walk down each branch of the decision tree, resolving dependencies between decisions one by one — an answer often opens the next fork.
    - For each question, provide your **recommended answer** with a short reason.
    - If a question can be answered by exploring the codebase, explore the codebase instead of asking; the decisions themselves are always the user's.
-   - Do not start writing the plan until the interview is finished. Record the answers in the "Approved decisions" section (in English, like the rest of the plan).
-3. **Write the plan** (in English) using the structure below.
+   - Do not start writing the plan until the interview is finished. Record the answers in the "Approved decisions" section using the language policy above.
+3. **Write the plan** using the structure below.
 4. Report the created file path and a short summary of the plan to the user **in Russian**.
 
 ## Plan file structure
@@ -64,4 +64,4 @@ Use today's real date. The status line is always line 3 of the file (right under
 - One plan = one file; do not mix several unrelated tasks.
 - The plan must be self-contained: an agent with no chat history should be able to implement it.
 - Don't include code dumps; include signatures, paths, and behavior contracts instead.
-- Commit the plan file after creating it (`docs: ...` conventional commit, description in Russian per repo rules).
+- Apply [ENG-01](../../../docs/instructions/engineering.md#eng-01) to the completed plan (`docs: ...` when a commit is authorized).

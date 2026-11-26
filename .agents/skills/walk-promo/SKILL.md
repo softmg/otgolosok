@@ -1,7 +1,7 @@
 ---
 name: walk-promo
 description: Prepare promo materials for a published otgolosok walk — a YouTube Shorts video via ../otgolosok-shorts, a Telegram post about a different story from the same walk, a Telegram illustration and a vertical YouTube cover. Use when the user passes a walk share link and asks for Shorts / Telegram post / covers.
-argument-hint: <https://otgolosok.online/walk?share=...> [голос, например alex-bell]
+argument-hint: <https://otgolosok.online/walk?share=...> [голос по AUDIO-01]
 disable-model-invocation: true
 ---
 
@@ -9,25 +9,14 @@ Prepare a promo set for the walk `$ARGUMENTS`. All work happens in the sibling r
 `../otgolosok-shorts` (absolute: resolve from this repo's parent). Communicate with the user in Russian;
 all user-facing texts (post, titles, covers, journal) are in Russian.
 
-**Publishing is outward-facing.** Prepare everything locally, show the result, and upload to YouTube /
-send to Telegram only after the user explicitly says so in this conversation.
+Публикация и проверка загрузки: [PUB-01](../../../docs/instructions/publication.md#pub-01), [PUB-02](../../../docs/instructions/publication.md#pub-02).
 
-Before starting, read in `../otgolosok-shorts`: `README.md` (sections «Ролик по готовой прогулке»,
-«Telegram»), `docs/agents/shared-walks.md`, `docs/agents/cover-art.md`, `docs/agents/telegram.md`
-and the most recent `docs/agents/*-short-*.md` journal — it is the reference for format and checks.
-
-**No abbreviations anywhere in the promo** — hook, video title/description, Telegram post, cover titles:
-spell names out («Третье транспортное кольцо», not «ТТК»; «улица», not «ул.»), even if the story uses
-the short form. The generator rejects them (`*_ABBREVIATION`); keep the same rule in manual edits.
+Перед началом прочитайте каноны ниже; README и журналы `../otgolosok-shorts/docs/agents/` используйте для команд, формата и примеров. Для этой процедуры нужны разделы README «Ролик по готовой прогулке» и «Telegram», `docs/agents/shared-walks.md`, `docs/agents/cover-art.md`, `docs/agents/telegram.md` и последний журнал `docs/agents/*-short-*.md`; нормативные требования берите из канонов.
+Тексты промопакета и проверка `*_ABBREVIATION`: [EDIT-01](../../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-01).
 
 ## Локальная подготовка и финал одной истории
 
-При наличии выбора выполнять подготовку, монтаж, распознавание речи, рендер и проверки
-локально. Не отправлять сценарий, источники, маршрут, фото, аудио или видео в Airouter
-без явного разрешения пользователя. До запуска команды проверить, не вызывает ли она
-Airouter автоматически; без разрешения использовать локальные операции с готовыми
-материалами. Если облачный редакционный аудит не выполнялся, прямо указать это в отчёте;
-локальные проверки не выдавать за пройденный облачный аудит.
+Провайдеры и предварительная проверка облачных вызовов ручного `walk-promo`: [PROV-01](../../../docs/instructions/providers-and-payloads.md#prov-01). Если облачный аудит не выполнялся, отразить это в отчёте по [VERIFY-02](../../../docs/instructions/verification.md#verify-02).
 
 Для `format: "story"` сохранять прежний финал, как в
 [референсе владельца](https://www.youtube.com/shorts/OGU3em96ook):
@@ -40,20 +29,17 @@ Airouter автоматически; без разрешения использ�
 - Во время карты обязательно звучит осмысленное приглашение к прогулке и переходу
   к маршруту по ссылке в описании; для готовой локальной записи допустим общий призыв.
   Название прогулки, старт и параметры маршрута обязательно показать текстом на карте;
-  перечислять все параметры голосом не требуется. Все реплики проморолика, включая
-  приглашение, озвучены ElevenLabs `eleven_v4`, голос «Отголосок2». При наличии записи
-  использовать локальный кэш, проверив провайдера, модель, голос и SHA-256. Не подменять
-  брендовый голос системным синтезатором; при отсутствии подходящей записи явно сообщить,
-  что озвучка финала ещё не готова.
+  перечислять все параметры голосом не требуется. Озвучка и проверка кэша — по
+  [AUDIO-01](../../../../otgolosok-shorts/assets/promo-review/audio.md#audio-01). При отсутствии подходящей записи сообщить, что озвучка финала ещё не готова.
 - После окончания реплики удерживать карту 0,5 с, затем показывать светлую карточку
   «Читальня» из штатного `createCta` (`src/scenes/shared/cta.ts`) ровно 3 с: «Маршрут —
   в описании», «Отголосок» с красной точкой, «Город говорит рядом», `otgolosok.online`.
   Карточка без речи предусмотрена форматом; вся карта без озвучки недопустима.
-- Весь финал от конца истории (`storyEnd`, в штатной сцене `ctaAt`/`routeFinale.from`)
-  до конца карточки занимает 10–15 с; весь ролик не длиннее 58,5 с. Сверять реальные
-  длительности речи и правила `src/templates/walk/timing.ts`.
+- Хронометраж финала и всего `story` — по [PACK-02](../../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-02).
+  Сверять `storyEnd` (`ctaAt`/`routeFinale.from`), реальные длительности речи
+  и правила `src/templates/walk/timing.ts`.
 
-После рендера декодировать звук **итогового MP4** после `storyEnd` и локальным
+После рендера декодировать звук **итогового MP4** после `storyEnd` по [VERIFY-02](../../../docs/instructions/verification.md#verify-02); локальным
 распознаванием речи проверить наличие и полный текст реплики о прогулке, её окончание
 до светлой карточки и совпадение субтитров с речью. Наличие аудиодорожки, музыки или
 ненулевой громкости не подтверждает наличие голоса. Проверить кадры начала карты,
@@ -65,7 +51,7 @@ Airouter автоматически; без разрешения использ�
 - `DATA=tmp/$SLUG-video-$DATE` — **isolated** `SHORTS_DATA_DIR`, so the production scheduler
   (`auto`) never picks up or publishes a manual run.
 - `OUT=data/manual/$SLUG-$DATE` — finished materials (ignored by git, survives `cleanup`).
-- Voice: argument if given, otherwise `alex-bell`.
+- Voice: resolve the argument against [AUDIO-01](../../../../otgolosok-shorts/assets/promo-review/audio.md#audio-01).
 
 ## 1. Read the walk
 
@@ -98,21 +84,15 @@ update checkpoints (step 5).
 `findPhoto` uses the place's tags and then the story's Wikidata/Wikipedia sources, skipping items about
 people. If some episodes are still without `photo`:
 
-1. Search Commons (`list=search&srnamespace=6`), category or file names; send a `User-Agent`
-   and pause ~3 s between calls — Commons rate-limits (`You are making too many requests`).
+1. Search Commons (`list=search&srnamespace=6`), category or file names;
+   request policy and licensing: [VIS-04](../../../../otgolosok-shorts/assets/promo-review/visual.md#vis-04).
 2. Check and download with the generator's own `commonsCandidate` + `fetchPhoto`
    (`src/sources/wikimedia.ts`, cache dir `$DATA/cache/photos`) — they enforce licence, author and size.
-3. Look at every candidate (contact sheet via ffmpeg `xstack`): it must show this place and match
-   the beat's line. Reject misleading files (e.g. a boat named after the river instead of the river).
+3. Inspect candidates via an ffmpeg `xstack` contact sheet using [VIS-01](../../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01) and [VIS-02](../../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02).
 4. Save the original as `prepared-before-photos.json`, set `stops[i].photo =
    {path, sha1, width, height, attribution}` from the downloaded `<sha1>.json`.
 
-**Single-story format (`format: "story"`, every queue slot since 2026-10-13): at least 3 different
-photos of the place, never one picture for the whole story.** `prepare` takes up to four from the
-place's own sources and its Commons category (`stops[i].photos`); the storyboard fails with
-`STORY_PHOTOS` below three. For an editorial sequence set `prepared.storyPhotos` (≥ 3 entries,
-`fromSentence` on the story's sentences, `label`/`fit: "contain"` for archive shots or interiors) and
-match each photo to its sentence; a modern facade must not pose as a specific archive shot.
+Single-story photo selection: [VIS-01](../../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01), [VIS-02](../../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02). `prepare` takes up to four from the place’s sources and Commons category (`stops[i].photos`); `STORY_PHOTOS` diagnoses an insufficient set. For an editorial sequence set `prepared.storyPhotos` (`fromSentence`, `label`/`fit: "contain"` for archive shots or interiors), matching each entry to its sentence.
 
 ## 5. Update checkpoints and render (only after manual edits)
 
@@ -132,7 +112,7 @@ SHORTS_DATA_DIR=$DATA pnpm shorts stills --run <id> --at 1.5,8,15,23,31,39,47 --
 ```
 
 Check stills visually (one strip via ffmpeg `hstack`): hook, overview, all four photos, final card;
-captions must not cover photos. Check `probe.json` (≤ 58,5 s, 1080×1920, 30 fps), `loudness.json`
+apply [VIS-02](../../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02). Check `probe.json` (duration per [PACK-02](../../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-02), 1080×1920, 30 fps), `loudness.json`
 (≈ −14 LUFS) and a full decode `ffmpeg -v error -i video.mp4 -f null -`.
 Copy `video.mp4`, `metadata.json`, `script.json`, `probe.json`, `loudness.json` to `$OUT`.
 
@@ -144,13 +124,13 @@ journal): bold headline with one emoji, a paragraph with one verified detail + s
 (`story.sources`, Cyrillic Wikipedia URLs are shorter than percent-encoded), 🎬 line with the video
 link and what the video shows, 🚶 distance / walking time / total listening time, 🎧 walk link, and a
 note that the cover is an illustration. 3–4 emoji total. Use only facts from the story text.
-**Caption limit is 1024 characters of HTML including tags** — measure with the real video URL.
+Apply [PACK-03](../../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-03) and measure with the real video URL.
 Save `telegram-post.draft.json` with a `{{VIDEO}}` placeholder; write the final `telegram-post.json`
 only after the YouTube URL exists (`{{VIDEO}}` → `<a href="https://www.youtube.com/shorts/<id>">Короткий ролик по этой прогулке</a>`).
 
 ## 7. Covers (Codex `image_gen`)
 
-Follow `docs/agents/cover-art.md`. If the post's object has a historical/real look, download a
+Apply [PACK-02](../../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-02); `docs/agents/cover-art.md` supplies procedural examples. If the post's object has a historical/real look, download a
 reference photo from Commons and pass it to the generator so it does not invent the object.
 Save prompts next to the images (`telegram-cover-prompt.txt`, `youtube-cover-prompt.txt`).
 
@@ -187,15 +167,13 @@ and its length, paths of both covers, and anything done by hand. Then wait for t
   ```
 
   With `--publish-at` the video is uploaded private and YouTube makes it public itself; the URL is
-  known at once. Confirm via `videos.list` (`privacyStatus`, `publishAt`). `thumbnails.set` does **not**
-  change the Shorts-feed thumbnail — tell the user to pick it in YouTube Studio.
+  known at once. Readback via `videos.list` (`privacyStatus`, `publishAt`) and thumbnail verification follow [PUB-02](../../../docs/instructions/publication.md#pub-02).
 - Telegram: finalize `telegram-post.json` with the video URL, copy it with the cover into the run dir.
   Now: `SHORTS_DATA_DIR=$DATA pnpm shorts telegram:send --run <id>` (idempotent via
   `telegram-delivery.json`). At a time: the Bot API cannot schedule — reuse the one-off server cron job
   described in the latest shorts journal (copy the previous job directory with the new post, cover and
   `schedule.json`, run its `--check` in the container, add the cron line in UTC). This is a production
-  change: do it only because the user asked for a scheduled post, and never write server addresses into
-  this public repo.
+  change governed by [PUB-01](../../../docs/instructions/publication.md#pub-01); diagnostics and repository hygiene follow [ENG-02](../../../docs/instructions/engineering.md#eng-02).
 
 Helper scripts (Commons check, `validateScript` run) are throwaway: `pnpm check` lints every `.ts`
 under the repo including `tmp/`, so delete them (or keep them outside the repo with absolute imports)
@@ -205,5 +183,4 @@ before running checks.
 
 Write `docs/agents/$SLUG-short-$DATE.md` in `../otgolosok-shorts` (Russian, same structure as the
 previous journal: прогон, сценарий, фотографии, Telegram, обложки, проверки, публикация) and add it
-to `docs/agents/README.md`. Run `pnpm check`, then commit there:
-`docs(video): <описание по-русски>`. No secrets, tokens, server addresses or `data/` files in git.
+to `docs/agents/README.md` under [ENG-04](../../../docs/instructions/engineering.md#eng-04). Run `pnpm check`; Git actions and language follow [ENG-01](../../../docs/instructions/engineering.md#eng-01), secrets and generated data follow [ENG-02](../../../docs/instructions/engineering.md#eng-02). For an authorized commit use `docs(video): <описание по-русски>`.

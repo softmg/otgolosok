@@ -8,71 +8,17 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# General rules
+# Инструкции проекта «Отголосок»
 
-Write README.md, documentation, MRs and UI text in Russian.
-Target production-ready quality: no quick hacks, temporary workarounds, or fragile solutions unless explicitly requested.
-Never commit secrets or .env files; never print secrets to logs, error messages, events, or API responses.
-YAGNI: Do not add infrastructure or integrations nobody asked for (monitoring, metrics, tracing, admin panels). Propose first; add only after explicit approval.
-Whenever you identify a workaround, defect, or reliability risk, please highlight it and suggest a proper fix.
+Перед работой прочитайте [реестр доменов](docs/instructions/README.md) и канонические файлы доменов своей задачи. Реестр задаёт общие правила для трёх соседних checkout.
 
-## Провайдеры и лимит тела запроса
+- [Разработка и Git](docs/instructions/engineering.md)
+- [Провайдеры и транспорт](docs/instructions/providers-and-payloads.md)
+- [Оркестрация](docs/instructions/orchestration.md)
+- [Состояние выпуска](docs/instructions/episode-state.md)
+- [Верификация](docs/instructions/verification.md)
+- [Публикация](docs/instructions/publication.md)
+- [Каталог прогулок](docs/instructions/walk-catalog.md)
+- [Эксплуатация](docs/instructions/operations.md)
 
-Если доступна локальная подписка, всегда использовать её для работы агента и внешних аудитов. Если локальная подписка заканчивается или недоступна, сначала переключаться на Airouter Pool (готовые подписки пула), и только потом — если недоступны и локальная подписка, и Airouter Pool — использовать прямой Airouter. При отправке через Airouter Pool или Airouter заранее проверять, что сериализованное тело запроса вместе с историей, инструкциями, результатами инструментов и вложениями не превышает 9\u202f000\u202f000 байт. После HTTP 413 запрос не повторять без уменьшения тела.
-
-В озвучиваемых текстах людей называть полным именем и фамилией, найдя полное имя в источниках; инициалы («Э.-Р. Нирнзее») допустимы, только если полное имя найти не удалось.
-
-В текстах рассказов и справок, включая озвучку, не упоминать сторонние ресурсы как источники сведений: названия сайтов, блогов, порталов и изданий, URL и обороты вроде «в очерке Moscowwalks», «по данным сайта», «автор статьи отмечает». Подтверждённые факты излагать напрямую, сохраняя их смысл и степень достоверности. Названия и ссылки на источники хранить в отдельных полях источников. Это не запрещает называть музей, архив, издание или организацию, когда они сами являются предметом рассказа или участниками описываемых событий.
-
-Все записи ElevenLabs создавать только моделью v4 (`provider: elevenlabs`, `model: eleven_v4`), голос «Отголосок2». Модель `eleven_v3` запрещена для новых записей и переозвучки. Существующие записи v3 и F5 в промопрогулках заменять на v4, сохраняя текущий текст и доступность прежнего звука до готовности замены. Перед публикацией проверять провайдера, модель и голос каждой записи: статус `ready`, доступность MP3 и длительность сами по себе недостаточны.
-
-У каждой остановки промопрогулки должно быть фото-превью: снимок именно этого объекта со свободной лицензией и указанным автором (Wikimedia Commons, Flickr с CC), опубликованный через редакционный каталог `backend/place-images-editorial.json` или автоматическую синхронизацию. Если свободного снимка нет, остановку в промопрогулку не включать; лицензию не додумывать, снимки PastVu и сайтов без явной свободной лицензии не использовать. Перед публикацией проверять, что превью загружается у всех остановок.
-
-В Shorts об одной истории показывать не меньше трёх разных свободно лицензированных фото места и менять их по ходу рассказа; один снимок на весь рассказ недопустим (проверка `STORY_PHOTOS` в `otgolosok-shorts`).
-
-Разрешено собирать и публиковать второй выпуск YouTube Shorts в ту же московскую календарную дату, если разница по времени публикации между выпусками превышает 8 часов (например, предыдущий выпуск вышел с опозданием после полуночи МСК, а текущий слот — вечером); такой более ранний ролик не считается дублем текущего слота и не блокирует сборку или публикацию.
-
-В общих скриптах конвейера `otgolosok-creative/scripts/*.mjs` запрещено хардкодить сюжетные строки, имена, адреса, плашки обложек, подписи остановок и списки фраз субтитров конкретного выпуска. Все выпуск-специфичные параметры (`storyCoverPlaque`, `storyCoverPhoto`, `captionPhrases`, `compactCaptionPhrases`, `storyPhotos`, `storyPhotoFraming`, `routeFinaleLayout`) хранить только в данных самого выпуска (`data/daily/YYYY-MM-DD/`).
-
-## Commits and branches
-
-- Please make git atomic commits by yourself when a task or phase is finished. Follow the repository's existing commit conventions and contribution guidelines, if present (for example, CONTRIBUTING.md, AGENTS.md, or conventions evident from recent commit history). If the repository does not define its own commit-message convention, use Conventional Commits. 
-- Run the relevant linters, formatters, and checks for the files being committed (for example, Ruff for Python) and fix any issues before committing.  
-- Before every commit, run the project's lint, type-check, and test commands.
-  Defaults when none are configured: Python — `uv run ruff check . && uv run pyright`
-  (plus `uv run pytest` if tests exist); TypeScript — `npm run check`, otherwise the
-  project's lint/type-check scripts plus relevant tests. Fix all errors caused by your changes.
-- Commit messages and MR titles follow Git Atomic Conventional Commits: keep the type and scope in English (`feat(auth):`, `fix(db):`), write the description after the colon in Russian — e.g. `feat(consent): интегрировать Яндекс.Метрику`.
-- Maintain .gitignore yourself: add generated, local, temporary, cache, build, and environment files as they appear.
-- In the Bash tool, pass multi-line commit messages via `-m` with a regular double-quoted string (or heredoc), NOT PowerShell `@'...'@` syntax — the `@` leaks into the message text.
-- A task is not finished until every commit is pushed: before reporting completion, push the current branch and make sure `git status -sb` shows no `ahead` against its upstream.
-- Do not create new branches without explicit user confirmation. Work in the current branch; сreate a branch only on explicit request.
-
-## Tests and completion
-
-- Add or update tests for changed behavior: happy path, failure path, and boundary cases; table-driven where one rule has many inputs.
-- Run the relevant test scope when a change could affect behavior; run the full suite for broad, cross-cutting, risky, or release-level changes. Trivial non-behavioral edits (docs, comments, formatting, isolated constants) may skip tests.
-- A bug fix starts with a test that reproduces the bug.
-- No filler tests: no test without a meaningful assertion, no test whose only assertion is "the mock was called", no test that restates the implementation. Deleting a worthless test is an improvement.
-- A task is "Done" only when tests pass and the change is verified end-to-end, committed and pushed.
-
-## Error handling
-
-- Error handling is mandatory, not optional: every operation that can fail at runtime (network calls, external APIs, DB, filesystem, subprocesses) must handle failure explicitly — never leave a bare call whose error crashes the app or disappears silently.
-- Retry transient failures (network, 5xx, 429, timeouts) with bounded exponential backoff; no retries for deterministic 4xx/logic errors.
-- Keep it proportional — don't wrap every line in try/catch; handle errors at the boundary where you can actually act on them.
-
-# Gotchas and observations
-
-Record important observations from your work (results of long test runs, API behavior, environment quirks, etc.) as `docs/agents/<topic>.md` files, each listed in `docs/agents/README.md` with a short two-sentence description.
-
-AGENTS.md gotchas are for CRITICAL facts only — the kind that break production or silently corrupt work. Everything less important lives in `docs/agents/`. Add one only if both are true:
-1. Without it, the next agent will make a concrete mistake.
-2. It cannot be learned from the code the agent will read anyway. 
-
-One fact per bullet, max two lines; details go to `docs/agents/<topic>.md` with a link. 
-Never add bullets to AGENTS.md on your own — propose the wording and get the user's explicit approval first; if you hesitate whether it's important enough, it isn't.
-
-## Gotchas:
-- `generator-data/ops-backups` растёт ~409 МБ на пакетную операцию и попадает в tar деплойного бэкапа генератора — перед деплоем чистить с удержанием последних партий, иначе ENOSPC на VPS (см. docs/agents/zelenograd-labels-2026-10-05.md).
-- Delete Gotchas that are no longer true or are now covered by a test.
+Команды проверки проекта перечислены в package.json. Редакционные домены доступны через реестр.

@@ -12,12 +12,12 @@ description: "Оркестрировать ежедневную локальну
 Workflow разделён на 7 фаз с чёткими границами владения и кросс-семейной верификацией:
 
 1. **Preflight & Infra Gate (`light`)**: YouTube OAuth + слот + быстрая проверка `scripts/preflight-infra-check.mjs` (headless Chrome, `ffmpeg`/`ffprobe`, smoke viewer `otgolosok.online/walk`). Окружение проверяется на 1-й минуте, а не после рендера.
-2. **Episode Architect (`architect`, read-only)**: выбирает/проверяет кандидата, заранее проверяет наличие >=3 разных свободных фото именно места (fail-fast `candidate_unfit`) и пишет единый `data/daily/<date>/episode-brief.json`. Фоновый `LaunchAgent`-поллинг запрещён.
+2. **Episode Architect (`architect`, read-only)**: выбирает/проверяет кандидата, заранее проверяет фото по [VIS-02](../../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02) (fail-fast `candidate_unfit`) и пишет единый `data/daily/<date>/episode-brief.json`. Границы роли — [ORCH-01](../../../docs/instructions/orchestration.md#orch-01).
 3. **Parallel Asset Production (`parallel()`)**: три узких агента с непересекающимися файлами — Researcher (`light`), Media Hunter (`visual` — Gemini 4 Neon), Scriptwriter (`worker` — Codex 6.1 Sol → Antigravity Claude Sonnet 5.5).
-4. **Pre-Gate & Cross-Family Review**: перед каждым LLM-аудитом обязательно запускается бесплатный детерминированный `scripts/episode-pregate.mjs` (<2 с), затем `preproduction-review.mjs --phase early` (не больше `maxEarlyAttempts: 2`), после чего **кросс-семейный Reviewer** проверяет квитанции на диске и чистоту `scripts/`.
-5. **Locked Render & Audit**: контент заморожен (`script.json`, `shots.json`, `rights.json` менять запрещено). Выполняются озвучка ElevenLabs v4, `measured-frame`, рендер MP4, `creative-review`/`promo-review`, `audio-qc` и `npm run video:durable`.
-6. **Final Gate (`light`, cross-family)**: сверка SHA-256, квитанций, голоса `eleven_v4` («Отголосок2»), `durable/status.json === "approved"` и чистоты `scripts/`.
-7. **Scheduled YouTube Publish**: только отложенная публикация (`private` + `publishAt`) и независимый readback.
+4. **Pre-Gate & Cross-Family Review**: `scripts/episode-pregate.mjs` (<2 с), затем `preproduction-review.mjs --phase early`; допуск — [VERIFY-01](../../../docs/instructions/verification.md#verify-01), попытки — [ORCH-02](../../../docs/instructions/orchestration.md#orch-02), Reviewer и `scriptsClean` — [ORCH-01](../../../docs/instructions/orchestration.md#orch-01).
+5. **Locked Render & Audit**: freeze по [STATE-04](../../../docs/instructions/episode-state.md#state-04). Выполняются озвучка по [AUDIO-01](../../../../otgolosok-shorts/assets/promo-review/audio.md#audio-01), `measured-frame`, рендер MP4, `creative-review`/`promo-review`, `audio-qc` и `npm run video:durable`.
+6. **Final Gate (`light`, cross-family)**: проверка по [VERIFY-02](../../../docs/instructions/verification.md#verify-02), [AUDIO-01](../../../../otgolosok-shorts/assets/promo-review/audio.md#audio-01) и [ORCH-01](../../../docs/instructions/orchestration.md#orch-01).
+7. **Scheduled YouTube Publish**: публикация по [PUB-01](../../../docs/instructions/publication.md#pub-01) и [PUB-02](../../../docs/instructions/publication.md#pub-02).
 
 ## Роли и цепочки моделей
 
@@ -29,12 +29,13 @@ Workflow разделён на 7 фаз с чёткими границами в�
 
 ## Границы и безопасность
 
-- **Только отложенная публикация на YouTube (`private` + `publishAt`)** — строго после `Final Gate` (`durable/status.json -> approved`). Немедленная публикация (`--privacy public`) запрещена.
-- **Разделение контента и кода движка**: контентным воркерам `daily-episode` запрещено редактировать `otgolosok-creative/scripts/*.mjs`. При баге конвейера воркер возвращает `blockClass: "code_bug"` + `codeBug`, а координатор запускает отдельный **`team-workflow` (`team-aer`)** для починки кода с тестами и кросс-семейным ревью.
-- **Запрет на ручные марафоны в треде координатора**: координатору запрещено вручную запускать десятки итераций `preproduction-review` в своём контексте. Реакция на блокер — строго по `blockClass` (см. шаг 4).
-- **Не подделывать квитанции** (`visual-material.json`, `preproduction-*.json`, `promo-review.json`, `creative-review.json`, `audio-qc.json`), не снижать пороги `< 7/10`, не обходить гейты.
-- **Порядок провайдеров**: сначала локальная подписка → Airouter Pool → прямой Airouter (лимит тела <= 9 000 000 байт).
-- **Не делать ручной поллинг** таймерами `schedule` — BB сам уведомляет о завершении workflow.
+- Публикационные полномочия и readback: [PUB-01](../../../docs/instructions/publication.md#pub-01), [PUB-02](../../../docs/instructions/publication.md#pub-02).
+- В результате бага сохраняй `blockClass: "code_bug"` и объект `codeBug`; квитанции включают `visual-material.json`, `preproduction-*.json`, `promo-review.json`, `creative-review.json`, `audio-qc.json`.
+- Владение файлами, независимость и отсутствие поллинга: [ORCH-01](../../../docs/instructions/orchestration.md#orch-01).
+- Попытки, возобновление и эскалация: [ORCH-02](../../../docs/instructions/orchestration.md#orch-02), [ORCH-03](../../../docs/instructions/orchestration.md#orch-03).
+- Квитанции и допуск: [VERIFY-01](../../../docs/instructions/verification.md#verify-01), [VERIFY-02](../../../docs/instructions/verification.md#verify-02).
+- Провайдеры: [PROV-01](../../../docs/instructions/providers-and-payloads.md#prov-01).
+- BB сам уведомляет о завершении workflow; схема триажа приведена ниже.
 
 ## Порядок запуска
 
@@ -81,9 +82,9 @@ bb workflows validate --name daily-episode
 - **`status: "published"` / `"approved"`**:
   - Отчитайся пользователю на русском: путь и SHA-256 видео, обложка, оценки, статус `durable`, при `published` — `youtubeVideoId`, Shorts URL, время `publishAt`, путь к `youtube-publish.json` и `modelAudit`.
 - **`status: "already_done"`**:
-  - Сообщи причину пропуска (выпуск уже собран/запланирован в пределах 8 часов).
+  - Сообщи причину пропуска, сверив слот по [PUB-01](../../../docs/instructions/publication.md#pub-01).
 - **`status: "blocked"`** — выгрузи историю (`bb workflows history <run-id> --cursor 0 --limit 100 > "$BB_THREAD_STORAGE/wf.jsonl"`) и действуй строго по `blockClass`:
-  - **`code_bug`**: НЕ правь код руками в треде координатора! Запусти `team_workflow_plan` (`team-aer`) с точным описанием `codeBug` (файл, симптом, воспроизведение, регрессионный тест). После `approved` (коммит + push) возобнови `daily-episode` через `resumeRunId`.
+  - **`code_bug`**: По [ORCH-01](../../../docs/instructions/orchestration.md#orch-01) запусти `team_workflow_plan` (`team-aer`) с точным описанием `codeBug` (файл, симптом, воспроизведение, регрессионный тест). После `approved` и разрешённого Git-цикла по [ENG-01](../../../docs/instructions/engineering.md#eng-01) возобнови `daily-episode` через `resumeRunId`.
   - **`infra`** (`BROWSER_ENVIRONMENT_UNAVAILABLE`, OAuth, viewer down): проверь/восстанови окружение или эскалируй владельцу — не трать время на контент при сломанной инфраструктуре.
-  - **`candidate_unfit`** (нет >=3 разных свободных фото места): переключи выпуск на следующего кандидата из очереди и перезапусти, не вымучивая непригодный сюжет.
+  - **`candidate_unfit`** (не выполнен фото-контракт VIS-02): переключи выпуск на следующего кандидата из очереди и перезапусти, не вымучивая непригодный сюжет.
   - **`editorial_blocker` / `audio_defect` / `publish_blocker`**: сделай точечную диагностику (не более 2 команд) и либо перезапусти через `resumeRunId`, либо эскалируй владельцу с чётким списком действий.
