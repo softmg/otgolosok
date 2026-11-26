@@ -1004,7 +1004,7 @@ if (!skipBuildToPublish) {
         "",
         "Проверь НАПРЯМУЮ НА ДИСКЕ:",
         `1. Запусти node scripts/episode-pregate.mjs ${targetDir} --mode ${arch.planType} и убедись, что детерминированный pre-gate зелёный (0 блокеров).`,
-        `2. Прочитай ${targetDir}/preproduction-early.json: проверь ok === true и статус всех 4 этапов (text, packaging, raw-photo, composed-frame) — у всех ok === true, оценки >= 7, corrections пустой.`,
+        `2. Прочитай ${targetDir}/preproduction-early.json: проверь ok === true и статус всех 4 этапов (text, packaging, raw-photo, composed-frame) — у text, packaging и raw-photo обязательно ok === true, оценки >= 7, corrections пустой; у composed-frame либо ok === true (оценки >= 7, corrections пустой), либо официальный штатный ownerWaiver (owner-preproduction-approval.json + квитанция в owner-waivers/, проверенная штатным normal-preproduction.mjs / preproduction-review.mjs при ok === true).`,
         `3. Проверь git -C ${creativeRoot} diff -- scripts/: контентные воркеры НЕ должны были править scripts/*.mjs под выпуск ${date} или хардкодить выпуск ${date} (scriptsClean; параллельные незакоммиченные правки или старые untracked-файлы других задач, не содержащие привязки к ${date} и не менявшиеся воркером, не ломают scriptsClean).`,
         "4. Если есть отказ — собери ИСЧЕРПЫВАЮЩИЙ конкретный список blockingFindings (с файлами/шотами/строками), чтобы исполнитель исправил всё за 1 пакетный проход.",
         `Отчёт исполнителя: ${JSON.stringify(lastEarly)}`,
