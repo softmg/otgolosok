@@ -19,5 +19,7 @@ test("Claude обнаруживает все канонические навык
   assert.deepEqual(links,[join(source,name,"SKILL.md")]);
   assert.ok(links.every(link=>existsSync(link)));
   assert.ok(text.length < 1800, `адаптер ${name} содержит копию процедуры`);
+  const entries = readdirSync(join(adapters, name));
+  assert.deepEqual(entries, ["SKILL.md"], `адаптер ${name} не должен дублировать скрипты, справочники или метаданные`);
  }
 });

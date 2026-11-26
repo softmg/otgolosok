@@ -146,6 +146,64 @@ export function verifyInstructions(root = path.resolve(import.meta.dirname, '..'
       }
     }
   }
+  // Anti-proliferation guards: prevent duplicate skill trees, stray runtime AGENTS/CLAUDE, new repair logs, and stale worktrees.
+  const guards = inventory.hygieneGuards ?? {};
+  for (const dirSpec of guards.claudeSkillAdapterDirs ?? []) {
+    const base = path.resolve(root, '..', dirSpec.repo, dirSpec.path);
+    if (!fs.existsSync(base)) continue;
+    function scanSkillAdapter(dir) {
+      for (const item of fs.readdirSync(dir, {withFileTypes: true})) {
+        if (item.isSymbolicLink() || item.name === '.DS_Store' || item.name.endsWith('-workspace')) continue;
+        const full = path.join(dir, item.name);
+        if (item.isDirectory()) scanSkillAdapter(full);
+        else if (item.name !== 'SKILL.md') {
+          errors.push(`Duplicate non-adapter file in .claude/skills: ${dirSpec.repo}/${path.relative(path.resolve(root, '..', dirSpec.repo), full).split(path.sep).join('/')}`);
+        }
+      }
+    }
+    scanSkillAdapter(base);
+  }
+  for (const dirSpec of guards.forbidNewEntrypointsIn ?? []) {
+    const base = path.resolve(root, '..', dirSpec.repo, dirSpec.path);
+    if (!fs.existsSync(base)) continue;
+    function scanEntrypoints(dir, depth) {
+      if (depth > 5) return;
+      for (const item of fs.readdirSync(dir, {withFileTypes: true})) {
+        if (item.isSymbolicLink() || item.name === 'node_modules' || item.name === '.hyperframes') continue;
+        const full = path.join(dir, item.name);
+        if (item.isDirectory()) scanEntrypoints(full, depth + 1);
+        else if (item.name === 'AGENTS.md' || item.name === 'CLAUDE.md') {
+          const key = `${dirSpec.repo}/${path.relative(path.resolve(root, '..', dirSpec.repo), full).split(path.sep).join('/')}`;
+          if (!sources.has(key)) errors.push(`Forbidden new runtime entrypoint: ${key}`);
+        }
+      }
+    }
+    scanEntrypoints(base, 0);
+  }
+  if (guards.forbidNewRepairReviewsIn) {
+    const spec = guards.forbidNewRepairReviewsIn;
+    const base = path.resolve(root, '..', spec.repo, spec.path);
+    const allowed = new Set(spec.grandfathered ?? []);
+    if (fs.existsSync(base)) {
+      for (const item of fs.readdirSync(base, {withFileTypes: true})) {
+        if (!item.isFile()) continue;
+        if ((item.name.endsWith('-repair.md') || item.name.includes('-attempt-')) && !allowed.has(item.name)) {
+          errors.push(`Forbidden new repair report in docs/reviews: ${spec.repo}/${spec.path}/${item.name}`);
+        }
+      }
+    }
+  }
+  for (const repo of guards.requireWorktreeGitignoreIn ?? []) {
+    const repoDir = path.resolve(root, '..', repo);
+    const gi = path.join(repoDir, '.gitignore');
+    if (!fs.existsSync(gi) || !fs.readFileSync(gi, 'utf8').includes('.claude/worktrees/')) {
+      errors.push(`Missing .claude/worktrees/ in .gitignore: ${repo}`);
+    }
+    const wt = path.join(repoDir, '.claude/worktrees');
+    if (fs.existsSync(wt) && fs.readdirSync(wt).some(name => !name.startsWith('.'))) {
+      errors.push(`Stale .claude/worktrees directory present: ${repo}/.claude/worktrees`);
+    }
+  }
   // Pending migrations are deliberately a failure, never a clean SSOT declaration.
   const pending = inventory.files.filter(entry => entry.decision === 'pending-line-review');
   if (pending.length) errors.push(`Semantic migration incomplete: ${pending.length} sources pending`);

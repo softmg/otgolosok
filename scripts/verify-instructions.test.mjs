@@ -120,3 +120,31 @@ test('non-markdown code files skip markdown link parsing', async t => {
  fs.writeFileSync(file, JSON.stringify(data));
  assert.equal(verifyInstructions(root).ok, true);
 });
+test('hygiene guards reject duplicate .claude/skills files, new runtime AGENTS, new repair reviews, and missing worktree gitignore', t => {
+ const root = fixture(t), file = path.join(root, 'docs/instructions/inventory.json');
+ const data = JSON.parse(fs.readFileSync(file));
+ data.hygieneGuards = {
+  claudeSkillAdapterDirs: [{repo: 'project', path: '.claude/skills'}],
+  forbidNewEntrypointsIn: [{repo: 'project', path: 'videos'}],
+  forbidNewRepairReviewsIn: {repo: 'project', path: 'docs/reviews', grandfathered: ['2026-11-18-old-repair.md']},
+  requireWorktreeGitignoreIn: ['project']
+ };
+ fs.writeFileSync(file, JSON.stringify(data));
+ fs.writeFileSync(path.join(root, '.gitignore'), '.claude/worktrees/\n');
+ fs.mkdirSync(path.join(root, '.claude/skills/demo'), {recursive: true});
+ fs.writeFileSync(path.join(root, '.claude/skills/demo/SKILL.md'), 'adapter\n');
+ fs.mkdirSync(path.join(root, 'docs/reviews'), {recursive: true});
+ fs.writeFileSync(path.join(root, 'docs/reviews/2026-11-18-old-repair.md'), 'old\n');
+ assert.equal(verifyInstructions(root).ok, true);
+
+ fs.writeFileSync(path.join(root, '.claude/skills/demo/extra.py'), 'print(1)\n');
+ fs.mkdirSync(path.join(root, 'videos/auto-new'), {recursive: true});
+ fs.writeFileSync(path.join(root, 'videos/auto-new/AGENTS.md'), 'stray\n');
+ fs.writeFileSync(path.join(root, 'docs/reviews/2026-11-27-new-repair.md'), 'new\n');
+ fs.mkdirSync(path.join(root, '.claude/worktrees/agent-dead'), {recursive: true});
+ const errs = verifyInstructions(root).errors.join('\n');
+ assert.match(errs, /Duplicate non-adapter file in \.claude\/skills/);
+ assert.match(errs, /Forbidden new runtime entrypoint/);
+ assert.match(errs, /Forbidden new repair report in docs\/reviews/);
+ assert.match(errs, /Stale \.claude\/worktrees directory present/);
+});
