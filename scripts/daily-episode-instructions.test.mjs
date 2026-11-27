@@ -81,6 +81,11 @@ test('transient transport failure uses a bounded alternative model',async()=>{
  assert.equal(calls.filter(c=>c.label==='preflight:oauth-and-infra').length,2);
  assert.equal(result.stage,'final-gate');noPublish(calls);
 });
+test('provider warning banner corrupting JSON triggers quota fallback instead of schema abort',async()=>{
+ const {calls,result}=await run({approved:false,alreadyBuilt:true,respond:(label,count)=>{if(label==='preflight:oauth-and-infra'&&count===1)throw Error('Structured output failed after 2 corrective turns: worker JSON response is corrupt: Unexpected token \'⚠\', "⚠ Third-pa"... is not valid JSON');}});
+ assert.equal(calls.filter(c=>c.label==='preflight:oauth-and-infra').length,2);
+ assert.equal(result.stage,'final-gate');noPublish(calls);
+});
 test('scheduled publication requires successful independent readback',async()=>{
  const {calls,result}=await run();
  assert.equal(result.status,'published');

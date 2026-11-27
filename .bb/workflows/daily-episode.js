@@ -237,7 +237,7 @@ const COMMON_RULES = [
 
 // Классификатор ошибок (портирован из team-aer + расширен на capacity/stream disconnect)
 const ERROR_RULES = [
-  ["fallback_quota", true, "selected model is at capacity|at capacity|individual quota|quota reached|quota_exceeded|quota limit|usage limit|account exhausted|upgrade your subscription"],
+  ["fallback_quota", true, "selected model is at capacity|at capacity|individual quota|quota reached|quota_exceeded|quota limit|usage limit|account exhausted|upgrade your subscription|worker json response is corrupt:.*⚠"],
   ["non_fallback_schema", false, "bb_workflow_result|ajv|structured output|invalid submission|schema validation|output schema"],
   ["non_fallback_payload", false, "\\b413\\b|payload too large|request entity too large|context length exceeded|prompt too long"],
   ["non_fallback_auth", false, "\\b401\\b|\\b403\\b|unauthorized|unauthenticated|invalid api key|expired session|login required|auth_required"],
