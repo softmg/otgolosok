@@ -50,6 +50,12 @@ export const meta = {
         nullable: true,
         description: "URL для smoke-проверки viewer на этапе Preflight (по умолчанию https://otgolosok.online/walk)",
       },
+      candidateKey: {
+        type: "string",
+        minLength: 1,
+        nullable: true,
+        description: "Идентификатор/ревизия кандидата для Фазы 2+: изменение candidateKey вместе с resumeRunId мгновенно переиспользует Preflight из кэша и перезапускает только с Episode Architect",
+      },
       modelChains: {
         type: "object",
         required: ["light", "worker", "visual", "architect", "reviewer"],
@@ -194,8 +200,8 @@ export const meta = {
   },
   phases: [
     { title: "Preflight & Infra Gate", detail: "YouTube OAuth, слот, проверка Chromium/viewer и независимая сверка" },
-    { title: "Episode Architect", detail: "Read-only выбор кандидата, проверка >=3 фото места и единый episode-brief.json" },
-    { title: "Parallel Asset Production", detail: "Параллельный fan-out: Researcher + Media Hunter + Scriptwriter" },
+    { title: "Episode Architect", detail: "Read-only выбор кандидата, быстрая разведка фото и единый episode-brief.json" },
+    { title: "Parallel Asset Production", detail: "Fail-fast Media Gate (photo-search + ensureVisualMaterial) -> parallel(Researcher + Scriptwriter)" },
     { title: "Pre-Gate & Cross-Family Review", detail: "Детерминированный pre-gate, --phase early и кросс-семейный ревьювер" },
     { title: "Locked Render & Audit", detail: "Замороженный контент: ElevenLabs v4, measured-frame, MP4, creative/promo-review и audio-qc" },
     { title: "Final Gate", detail: "Кросс-семейная дисковая сверка SHA-256, квитанций и чистоты scripts/" },
@@ -211,6 +217,7 @@ const minHoursGap = args.allowSecondSameDayAfterHours || 8;
 const publishScheduled = args.publishScheduled !== false;
 const explicitPublishAt = args.publishAt || null;
 const viewerSmokeUrl = args.viewerSmokeUrl || "https://otgolosok.online/walk";
+const candidateKey = args.candidateKey || null;
 const dailyDir = `${creativeRoot}/data/daily/${date}`;
 const runDir = `${dailyDir}/shorts/runs/tomorrow-${date}`;
 const workDir = `${creativeRoot}/data/work/auto-${date}`;
@@ -675,7 +682,7 @@ if (!skipBuildToPublish) {
     "architect",
     "architect:episode-brief",
     [
-      `Ты Episode Architect (продюсер-архитектор выпуска) в ${creativeRoot}. Целевая дата: ${date}.`,
+      `Ты Episode Architect (продюсер-архитектор выпуска) в ${creativeRoot}. Целевая дата: ${date}.${candidateKey ? ` Ревизия/кандидат: ${candidateKey}.` : ""}`,
       `Каталог выпуска: ${dailyDir}. runDir: ${runDir}. workDir: ${workDir}.`,
       COMMON_RULES,
       "",
@@ -684,11 +691,11 @@ if (!skipBuildToPublish) {
       `2. Проверь текущее состояние на диске:`,
       `   - assetsAlreadyReady: существует ли валидный ${runDir}/visual-material.json (ok===true, score>=7, distinctSubjects>=3, covered>=3) и все фото на диске с SHA-1;`,
       `   - scriptAlreadyReady: существует ли валидный ${runDir}/script.json (и для creative: ${workDir}/script.json + ${workDir}/auto-prepared.json + принятый ${workDir}/script-review.json).`,
-      "3. До производства проверь фото кандидата по [VIS-01](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01), [VIS-02](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02), [VIS-04](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-04). Если пакет места непригоден и Commons не позволяет его собрать — верни candidateUnfit: true.",
-      `4. Запиши единый контракт для параллельной команды в ${briefPath} (JSON):`,
+      `3. До производства проверь фото кандидата по [VIS-01](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01), [VIS-02](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02), [VIS-04](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-04). Используй быстрый батчевый поиск node scripts/photo-search.mjs --wiki-page "<ru/en статья>" --category "<Commons категория>" --query "<запрос>" --max-commons-requests 4 --out ${dailyDir}/architect-research/photo-scout.json (оставляя Media Hunter >= 10 запросов Commons). Если пакет места непригоден и ни Commons, ни Openverse не позволяют его собрать — верни candidateUnfit: true.`,
+      `4. Запиши единый контракт для команды производства в ${briefPath} (JSON):`,
       "   - date, planType, placeId, placeName, walkShareUrl, routeFallbackRequired (boolean);",
       "   - hookAngle (сильный факт + чёткое обещание), keyFacts (список подтверждённых фактов с ссылками на источники), forbiddenClaims;",
-      "   - mediaPlan (фото места и иллюстрации по VIS-01/VIS-02/VIS-04);",
+      "   - mediaPlan (фото места и иллюстрации по VIS-01/VIS-02/VIS-04, включая конкретные статьи Wikipedia, категории Commons и поисковые запросы для photo-search.mjs);",
       "   - finalePlan (старт, целевая остановка, вопрос по [PACK-03](../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-03)).",
       "5. Баг scripts/*.mjs передай через codeBug по [ORCH-01](../../docs/instructions/orchestration.md#orch-01).",
       "6. Верни структурированный итог через bb_workflow_result.",
@@ -769,6 +776,52 @@ if (!skipBuildToPublish) {
   };
 
   if (!arch.assetsAlreadyReady || !arch.scriptAlreadyReady) {
+    // Шаг 3a (Fail-Fast Media Gate): Media Hunter идёт ПЕРВЫМ до Researcher и Scriptwriter,
+    // чтобы непригодный по визуалу кандидат отсекался за 10–15 минут без написания сценария в корзину.
+    const resMedia = arch.assetsAlreadyReady
+      ? {
+          value: { ok: true, distinctPlacePhotos: arch.placePhotosFeasibleCount || 3, commonsRequestsUsed: 0, summary: "visual-material уже подтверждён на диске" },
+          selected: { provider: "cache", model: "disk", family: "cache" },
+        }
+      : await runRole(
+          "visual",
+          "assets:media-hunter",
+          [
+            "Правила этапа: [VIS-01](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01), [VIS-02](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02), [VIS-04](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-04), [STATE-02](../../docs/instructions/episode-state.md#state-02).",
+            `Роль: Media & Rights Hunter (ранний визуальный гейт до Researcher/Scriptwriter). Рабочий каталог: ${creativeRoot}. Дата: ${date}. Тип: ${arch.planType}.`,
+            `Контракт выпуска: прочитай ${briefPath}.`,
+            COMMON_RULES,
+            "",
+            "ЗОНА ВЛАДЕНИЯ (трогай ТОЛЬКО медиа, реестр прав и визуальную часть брифа):",
+            `- ${arch.planType === "creative" ? `${workDir}/media/ и ${workDir}/rights.json` : `${runDir}/prepared.json (только stops[0].photos) и кэш фото`}`,
+            `- ${dailyDir}/operator-research/commons-search.json`,
+            `- ${briefPath} (только уточнение visualBeatNotes / адаптированных формулировок битов под реально найденные фото)`,
+            "",
+            "Задача:",
+            `1. Используй штатный батчевый поисковик node scripts/photo-search.mjs --wiki-page "<статья>" --category "<Commons категория>" --query "<запрос>" --max-commons-requests 10 --out ${dailyDir}/operator-research/commons-search.json (обходит статьи Wikipedia, подкатегории Commons батчами до 50 файлов/запрос и Openverse CC0/PDM/CC BY/CC BY-SA, соблюдая лимит VIS-04 <= 15 запросов Commons с учётом архитектора).`,
+            "2. Скачай оригиналы/превью, проверь их глазами, заполни rights.json (или stops[0].photos), сохрани реальные SHA-1/SHA-256 по VIS-04 и STATE-02.",
+            "3. Прогони штатный ensureVisualMaterial (до 2 попыток), если visual-material.json ещё не готов. Если на 1-й попытке собрано >= 3 разных свободных фото места и >= 4 различимых сюжетов/архивов, но исходный «слепой» proposal из select-walk.mjs упёрся в 1–2 бита без фото — добери архив/гравюры/портреты через photo-search.mjs и при необходимости честно адаптируй фокус битов в episode-brief.json (строго на тех же facts из plan.json, без выдумок и подмен по VIS-01/VIS-02), затем выполни 2-ю попытку ensureVisualMaterial.",
+            "4. Если и после документированного поиска по Commons + Wikipedia + Openverse пакет не проходит ensureVisualMaterial или не набирает >= 3 разных фото места по VIS-02 — верни candidateUnfit: true (Researcher и Scriptwriter тогда не запустятся).",
+            "5. script.json, factcheck.md и scripts/*.mjs вне зоны владения (ORCH-01). Верни результат через bb_workflow_result.",
+          ].join("\n"),
+          { phase: "Parallel Asset Production", schema: mediaSchema },
+        );
+
+    if (hasRealCodeBug(resMedia?.value?.codeBug)) {
+      return blockedResult("parallel-assets", "code_bug", `Баг конвейера на Media Gate: ${resMedia.value.codeBug.symptom}`, {
+        codeBug: resMedia.value.codeBug,
+      });
+    }
+    if (resMedia && resMedia.value && resMedia.value.candidateUnfit) {
+      return blockedResult(
+        "parallel-assets",
+        "candidate_unfit",
+        `Визуальный материал не прошёл проверку (candidate_unfit): ${resMedia.value.summary}`,
+      );
+    }
+
+    // Шаг 3b (Parallel Research & Script): запускаем только после зелёного Media Gate,
+    // чтобы Scriptwriter опирался на реально найденные фото и подтверждённый visual-material.json.
     const fanoutResults = await parallel([
       // Поток A: Researcher (источники, HTML/Perplexity, factcheck) — владеет только operator-research/sources и factcheck/source-verification
       () =>
@@ -781,7 +834,7 @@ if (!skipBuildToPublish) {
             `Контракт выпуска: прочитай ${briefPath}.`,
             COMMON_RULES,
             "",
-            "ЗОНА ВЛАДЕНИЯ (трогай ТОЛЬКО эти пути, чтобы не конфликтовать с Media Hunter и Scriptwriter):",
+            "ЗОНА ВЛАДЕНИЯ (трогай ТОЛЬКО эти пути, чтобы не конфликтовать с Scriptwriter):",
             `- ${dailyDir}/operator-research/sources/`,
             `- ${arch.planType === "creative" ? `${workDir}/evidence/sources/` : `${runDir}/evidence/`}`,
             `- ${arch.planType === "creative" ? `${workDir}/factcheck.md и ${workDir}/source.json` : `${dailyDir}/operator-research/sources-index.json`}`,
@@ -794,37 +847,7 @@ if (!skipBuildToPublish) {
           { phase: "Parallel Asset Production", schema: researchSchema },
         ),
 
-      // Поток B: Media Hunter (Gemini 4 Neon — фото места, SHA-1, лицензии, visual-material)
-      () =>
-        arch.assetsAlreadyReady
-          ? Promise.resolve({
-              value: { ok: true, distinctPlacePhotos: arch.placePhotosFeasibleCount || 3, commonsRequestsUsed: 0, summary: "visual-material уже подтверждён на диске" },
-              selected: { provider: "cache", model: "disk", family: "cache" },
-            })
-          : runRole(
-              "visual",
-              "assets:media-hunter",
-              [
-                "Правила этапа: [VIS-01](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01), [VIS-04](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-04), [STATE-02](../../docs/instructions/episode-state.md#state-02).",
-                `Роль: Media & Rights Hunter. Рабочий каталог: ${creativeRoot}. Дата: ${date}. Тип: ${arch.planType}.`,
-                `Контракт выпуска: прочитай ${briefPath}.`,
-                COMMON_RULES,
-                "",
-                "ЗОНА ВЛАДЕНИЯ (трогай ТОЛЬКО медиа и реестр прав):",
-                `- ${arch.planType === "creative" ? `${workDir}/media/ и ${workDir}/rights.json` : `${runDir}/prepared.json (только stops[0].photos) и кэш фото`}`,
-                `- ${dailyDir}/operator-research/commons-search.json`,
-                "",
-                "Задача:",
-                "1. Через Wikimedia Commons API подбери фото места и иллюстрации по брифу и [VIS-01](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01), [VIS-02](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02), [VIS-04](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-04).",
-                "2. Скачай оригиналы, заполни rights.json (или stops[0].photos), сохрани SHA-1/SHA-256 по VIS-04 и STATE-02.",
-                "3. Если Commons не позволяет собрать пакет по VIS-02/VIS-04 — верни candidateUnfit: true.",
-                "4. Прогони штатный ensureVisualMaterial (до 2 попыток), если visual-material.json ещё не готов.",
-                "5. script.json, factcheck.md и scripts/*.mjs вне зоны владения (ORCH-01). Верни результат через bb_workflow_result.",
-              ].join("\n"),
-              { phase: "Parallel Asset Production", schema: mediaSchema },
-            ),
-
-      // Поток C: Scriptwriter (Codex 6.1 Sol -> Antigravity Sonnet 5.5 — сценарий и упаковка)
+      // Поток B: Scriptwriter (Codex 6.1 Sol -> Antigravity Sonnet 5.5 — сценарий и упаковка под реальные фото)
       () =>
         arch.scriptAlreadyReady
           ? Promise.resolve({
@@ -836,14 +859,14 @@ if (!skipBuildToPublish) {
               "assets:scriptwriter",
               [
                 `Роль: Scriptwriter & Packaging Author. Рабочий каталог: ${creativeRoot}. Дата: ${date}. Тип: ${arch.planType}.`,
-                `Контракт выпуска: прочитай ${briefPath}.`,
+                `Контракт выпуска: прочитай ${briefPath} и уже подтверждённый ${runDir}/visual-material.json (пиши сценарий с опорой на реально найденные фото, без упоминания кадров, которых нет).`,
                 COMMON_RULES,
                 "",
                 "ЗОНА ВЛАДЕНИЯ (трогай ТОЛЬКО сценарий и упаковку):",
                 `- ${arch.planType === "creative" ? `${workDir}/script.json, ${workDir}/publish.json, ${workDir}/caption-groups.json` : `${runDir}/script.json`}`,
                 "",
                 "Задача:",
-                "1. Подготовь script.json по episode-brief.json, [EDIT-01](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-01), [EDIT-02](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-02), [EDIT-03](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-03), [EDIT-04](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-04), [EDIT-05](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-05) и [PACK-01](../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-01), [PACK-02](../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-02), [PACK-03](../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-03).",
+                "1. Подготовь script.json по episode-brief.json, visual-material.json, [EDIT-01](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-01), [EDIT-02](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-02), [EDIT-03](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-03), [EDIT-04](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-04), [EDIT-05](../../../otgolosok-shorts/assets/promo-review/editorial.md#edit-05) и [PACK-01](../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-01), [PACK-02](../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-02), [PACK-03](../../../otgolosok-shorts/assets/promo-review/packaging.md#pack-03).",
                 `2. Для plan.type === "creative" используй штатный prepareCreative / reviewAndRepairCreativeDraft (не трогая неизменяемый архив ${workDir}/creative-draft-audits/), чтобы появились ${workDir}/script.json, ${workDir}/auto-prepared.json и симлинк ${runDir}/script.json -> ${workDir}/script.json.`,
                 "3. media/, rights.json и scripts/*.mjs вне зоны владения; codeBug передай по ORCH-01. Верни результат через bb_workflow_result.",
               ].join("\n"),
@@ -851,9 +874,9 @@ if (!skipBuildToPublish) {
             ),
     ]);
 
-    const [resResearch, resMedia, resScript] = fanoutResults;
+    const [resResearch, resScript] = fanoutResults;
     const bugFromFanout =
-      [resResearch, resMedia, resScript]
+      [resResearch, resScript]
         .map((r) => r && r.value && r.value.codeBug)
         .find((b) => hasRealCodeBug(b)) || null;
 
@@ -861,13 +884,6 @@ if (!skipBuildToPublish) {
       return blockedResult("parallel-assets", "code_bug", `Баг конвейера на Parallel Asset Production: ${bugFromFanout.symptom}`, {
         codeBug: bugFromFanout,
       });
-    }
-    if (resMedia && resMedia.value && resMedia.value.candidateUnfit) {
-      return blockedResult(
-        "parallel-assets",
-        "candidate_unfit",
-        `Media Hunter не нашёл >= 3 разных свободных фото места: ${resMedia.value.summary}`,
-      );
     }
   } else {
     log("Assets and script already verified on disk; skipping Parallel Asset Production fan-out.");

@@ -208,7 +208,22 @@ for (const [label, stage] of [['architect:episode-brief', 'episode-architect'], 
   noPublish(calls);
   assert.ok(!calls.some(c=>c.label.startsWith('early:') || c.label.startsWith('phase2:') || c.label.startsWith('final-gate:')));
   if(stage==='episode-architect') assert.ok(!calls.some(c=>c.label.startsWith('assets:')));
-  else assert.ok(!calls.some(c=>c.label==='assets:verify-disk'));
+  else {
+   assert.ok(!calls.some(c=>c.label==='assets:researcher' || c.label==='assets:scriptwriter' || c.label==='assets:verify-disk'), 'Media Gate candidateUnfit must stop before Researcher and Scriptwriter');
+  }
   assert.ok(calls.find(c=>c.label===label).prompt.includes('visual.md#vis-02'));
+  assert.ok(calls.find(c=>c.label===label).prompt.includes('photo-search.mjs'));
  });
 }
+
+test('candidateKey leaves Preflight prompts identical for resumeRunId prefix caching and updates Episode Architect', async () => {
+ const first = await run({args:{candidateKey:'osm:node:1'}, approved:false});
+ const second = await run({args:{candidateKey:'osm:node:2'}, approved:false});
+ const pre1 = first.calls.filter(c=>c.label.startsWith('preflight:')).map(c=>c.prompt);
+ const pre2 = second.calls.filter(c=>c.label.startsWith('preflight:')).map(c=>c.prompt);
+ assert.deepEqual(pre1, pre2, 'Preflight prompts must not depend on candidateKey so resumeRunId caches Phase 1');
+ const arch1 = first.calls.find(c=>c.label==='architect:episode-brief').prompt;
+ const arch2 = second.calls.find(c=>c.label==='architect:episode-brief').prompt;
+ assert.notEqual(arch1, arch2);
+ assert.ok(arch2.includes('osm:node:2'));
+});

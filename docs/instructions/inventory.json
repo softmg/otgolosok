@@ -435,8 +435,8 @@
     },
     {
       "path": ".bb/workflows/daily-episode.js",
-      "sha256": "6fdfa5a6318024a7357dc34e5e0aa99a44e0f8405fb7e56961c4c7fa59851515",
-      "bytes": 75532,
+      "sha256": "6c4f2eab5f4b8a902a75eaedff03a4b71f95fa42151534fff9e215f25c984493",
+      "bytes": 79010,
       "repo": "otgolosok",
       "role": "runtime-consumer",
       "decision": "retained-procedure",
@@ -628,7 +628,7 @@
       ],
       "reason": "Workflow сохраняет команды, схемы и переходы этапов; общие нормы промптов делегированы каноническим Rule ID.",
       "review": {
-        "sha256": "632ca3974f1555dbe01642381c77147b7517781b6398a6c62728d4a00049e7ba",
+        "sha256": "6c4f2eab5f4b8a902a75eaedff03a4b71f95fa42151534fff9e215f25c984493",
         "method": "parallel-semantic-audit-wfr_de512766+dedup-apply-wfr_d16a05c9"
       }
     },
@@ -2672,8 +2672,8 @@
     },
     {
       "path": ".agents/skills/daily-episode-orchestrator/SKILL.md",
-      "sha256": "5f9e7bf703277398b0dcf3845c6c3ef8668bb1a6a53fb341c93159297949ba7f",
-      "bytes": 9911,
+      "sha256": "24e602fef027be7db7f2c4a7b8c6631641d8050cb4ff5ef5aec9dcdca5cde5e1",
+      "bytes": 10358,
       "repo": "otgolosok",
       "role": "tool-procedure",
       "decision": "retained-procedure",
@@ -2749,7 +2749,7 @@
       ],
       "reason": "Навык содержит команды запуска daily-episode и триаж результатов вместе с повторными междоменными запретами.",
       "review": {
-        "sha256": "f2daa03e0303f2d5781a1314c1b93b5331e11cba129d8ec0fe0e24b3c37305aa",
+        "sha256": "24e602fef027be7db7f2c4a7b8c6631641d8050cb4ff5ef5aec9dcdca5cde5e1",
         "method": "parallel-semantic-audit-wfr_de512766+dedup-apply-wfr_d16a05c9"
       }
     },
