@@ -435,8 +435,8 @@
     },
     {
       "path": ".bb/workflows/daily-episode.js",
-      "sha256": "6c4f2eab5f4b8a902a75eaedff03a4b71f95fa42151534fff9e215f25c984493",
-      "bytes": 79010,
+      "sha256": "b492a7c8d28c81ceb33b6c66493cfc0a149d95c1657eca08fcc8b60877addf59",
+      "bytes": 79432,
       "repo": "otgolosok",
       "role": "runtime-consumer",
       "decision": "retained-procedure",
@@ -628,7 +628,7 @@
       ],
       "reason": "Workflow сохраняет команды, схемы и переходы этапов; общие нормы промптов делегированы каноническим Rule ID.",
       "review": {
-        "sha256": "6c4f2eab5f4b8a902a75eaedff03a4b71f95fa42151534fff9e215f25c984493",
+        "sha256": "b492a7c8d28c81ceb33b6c66493cfc0a149d95c1657eca08fcc8b60877addf59",
         "method": "parallel-semantic-audit-wfr_de512766+dedup-apply-wfr_d16a05c9"
       }
     },
@@ -2672,8 +2672,8 @@
     },
     {
       "path": ".agents/skills/daily-episode-orchestrator/SKILL.md",
-      "sha256": "24e602fef027be7db7f2c4a7b8c6631641d8050cb4ff5ef5aec9dcdca5cde5e1",
-      "bytes": 10358,
+      "sha256": "632e08622d04772b5e88f66ff59e070e66fd9f682e92a5de6614701d8f77fadf",
+      "bytes": 10448,
       "repo": "otgolosok",
       "role": "tool-procedure",
       "decision": "retained-procedure",
@@ -2749,7 +2749,7 @@
       ],
       "reason": "Навык содержит команды запуска daily-episode и триаж результатов вместе с повторными междоменными запретами.",
       "review": {
-        "sha256": "24e602fef027be7db7f2c4a7b8c6631641d8050cb4ff5ef5aec9dcdca5cde5e1",
+        "sha256": "632e08622d04772b5e88f66ff59e070e66fd9f682e92a5de6614701d8f77fadf",
         "method": "parallel-semantic-audit-wfr_de512766+dedup-apply-wfr_d16a05c9"
       }
     },
@@ -23339,9 +23339,11 @@
       "decision": "new-domain",
       "owner": "visual",
       "review": {
-        "sha256": "36f793f2054da990c8a1a28c2ef2e94cc77d87e46b4352c2d512f1e96481c9fe",
+        "sha256": "88de23b71ebe9af7b84a6bc2a148b7221b494e00f66f18d312852a8429918d84",
         "method": "final-executor-wfr_fe4f5291: restore daily-episode place-photo specialization per Architect"
-      }
+      },
+      "sha256": "88de23b71ebe9af7b84a6bc2a148b7221b494e00f66f18d312852a8429918d84",
+      "bytes": 16206
     },
     {
       "repo": "otgolosok-shorts",
