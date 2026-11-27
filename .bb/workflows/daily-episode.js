@@ -689,7 +689,7 @@ if (!skipBuildToPublish) {
       "Задача Episode Architect (3–5 минут): [STATE-01](../../docs/instructions/episode-state.md#state-01), [STATE-02](../../docs/instructions/episode-state.md#state-02), [VIS-01](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01), [OPS-01](../../docs/instructions/operations.md#ops-01).",
       `1. Убедись, что ${dailyDir}/plan.json существует. Если plan.json ещё нет — запусти синхронно штатный локальный отбор: npm run tomorrow -- --local --date ${date} --plan-only (PROMO_CREATIVE_WEEKDAYS; OPS-01, STATE-01 и ORCH-01).`,
       `2. Проверь текущее состояние на диске:`,
-      `   - assetsAlreadyReady: существует ли валидный ${runDir}/visual-material.json (ok===true, score>=7, distinctSubjects>=3, covered>=3) и все фото на диске с SHA-1;`,
+      `   - assetsAlreadyReady: существует ли валидный ${runDir}/visual-material.json (ok===true, result.score>=7, result.distinctSubjects>=3, covered>=3) и все фото на диске с SHA-1;`,
       `   - scriptAlreadyReady: существует ли валидный ${runDir}/script.json (и для creative: ${workDir}/script.json + ${workDir}/auto-prepared.json + принятый ${workDir}/script-review.json).`,
       `3. До производства проверь фото кандидата по [VIS-01](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-01), [VIS-02](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-02), [VIS-04](../../../otgolosok-shorts/assets/promo-review/visual.md#vis-04). Используй быстрый батчевый поиск node scripts/photo-search.mjs --geo "<lat>,<lon>" --wiki-page "<ru/en статья>" --category "<Commons категория>" --query "<запрос>" --max-commons-requests 4 --out ${dailyDir}/architect-research/photo-scout.json (ищет сразу в PastVu, Commons, TinyFish web-архивах и Openverse; оставляй Media Hunter >= 10 запросов Commons; по VIS-04 PastVu подходит и жёсткого фильтра по лицензии нет). Если пакет места непригоден и ни PastVu, ни Commons, ни TinyFish, ни Openverse не позволяют его собрать — верни candidateUnfit: true.`,
       `4. Запиши единый контракт для команды производства в ${briefPath} (JSON):`,
@@ -898,8 +898,8 @@ if (!skipBuildToPublish) {
       COMMON_RULES,
       "",
       arch.planType === "creative"
-        ? `1. Проверь на диске ${dailyDir}/plan.json (type === "creative"), ${runDir}/visual-material.json (ok===true, score>=7, distinctSubjects>=3, covered>=3), ${runDir}/script.json, ${workDir}/script.json, ${workDir}/auto-prepared.json и ${workDir}/script-review.json.`
-        : `1. Проверь на диске ${dailyDir}/plan.json (type === "normal"), ${runDir}/visual-material.json (ok===true, score>=7, distinctSubjects>=3, covered>=3) и ${runDir}/script.json. Пакет в ${workDir}/ оценивай по STATE-02.`,
+        ? `1. Проверь на диске ${dailyDir}/plan.json (type === "creative"), ${runDir}/visual-material.json (ok===true, covered>=3, result.score>=7, result.distinctSubjects>=3; поля score/distinctSubjects лежат в result, верхнеуровневые дубли не требуются), ${runDir}/script.json, ${workDir}/script.json, ${workDir}/auto-prepared.json и ${workDir}/script-review.json.`
+        : `1. Проверь на диске ${dailyDir}/plan.json (type === "normal"), ${runDir}/visual-material.json (ok===true, covered>=3, result.score>=7, result.distinctSubjects>=3; поля score/distinctSubjects лежат в result, верхнеуровневые дубли не требуются) и ${runDir}/script.json. Для normal каталог ${workDir}/ не требуется по STATE-02.`,
       `2. Запусти детерминированный pre-gate: node scripts/episode-pregate.mjs ${arch.planType === "creative" ? workDir : runDir} --mode ${arch.planType} --allow-missing-preproduction-input`,
       "3. Верни точный статус (verified, visualMaterialOk, scriptPresent, pregateOk, blockers) через bb_workflow_result.",
     ].join("\n"),

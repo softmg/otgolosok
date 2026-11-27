@@ -227,3 +227,15 @@ test('candidateKey leaves Preflight prompts identical for resumeRunId prefix cac
  assert.notEqual(arch1, arch2);
  assert.ok(arch2.includes('osm:node:2'));
 });
+
+test('assets:verify-disk reads nested visual-material result fields and never demands workDir for normal', async () => {
+ const normal = await run({type:'normal', approved:false});
+ const normalVerify = normal.calls.find(c=>c.label==='assets:verify-disk').prompt;
+ assert.ok(normalVerify.includes('result.score>=7'));
+ assert.ok(normalVerify.includes('result.distinctSubjects>=3'));
+ assert.ok(normalVerify.includes('не требуется по STATE-02'));
+ const creative = await run({type:'creative', approved:false});
+ const creativeVerify = creative.calls.find(c=>c.label==='assets:verify-disk').prompt;
+ assert.ok(creativeVerify.includes('result.score>=7'));
+ assert.ok(creativeVerify.includes('result.distinctSubjects>=3'));
+});
