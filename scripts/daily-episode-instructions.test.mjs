@@ -238,4 +238,7 @@ test('assets:verify-disk reads nested visual-material result fields and never de
  const creativeVerify = creative.calls.find(c=>c.label==='assets:verify-disk').prompt;
  assert.ok(creativeVerify.includes('result.score>=7'));
  assert.ok(creativeVerify.includes('result.distinctSubjects>=3'));
+ const archNormal = normal.calls.find(c=>c.label==='architect:episode-brief').prompt;
+ assert.ok(archNormal.includes('episode-pregate.mjs'));
+ assert.ok(archNormal.includes('НЕ сравнивай сырой sha256 файла'));
 });
